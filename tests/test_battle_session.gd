@@ -28,14 +28,26 @@ func _enemy_table() -> Dictionary:
 	return t
 
 
+func _char_table() -> Dictionary:
+	var t := {}
+	for c: Dictionary in DataRegistry.get_domain("characters").get("characters", []):
+		t[str(c.get("id", ""))] = c
+	return t
+
+
+func _combat() -> Dictionary:
+	return DataRegistry.get_domain("balance").get("combat", {})
+
+
 func _stage_config() -> Dictionary:
 	return DataRegistry.get_entry("stages", STAGE_ID)
 
 
-func _make_session() -> BattleSession:
+func _make_session(stage_config: Dictionary = {}) -> BattleSession:
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	var errs := s.setup(_stage_config(), _enemy_table(), _grid())
+	var cfg := stage_config if not stage_config.is_empty() else _stage_config()
+	var errs := s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_eq(errs.size(), 0, "会话构建应无错误：%s" % str(errs))
 	return s
 
@@ -51,7 +63,7 @@ func _advance_session(s: BattleSession, total: float) -> void:
 # ---------- 漏怪结算 ----------
 
 func test_core_damage_applied_only_once_per_enemy() -> void:
-	var rt := StageRuntime.from_config(_stage_config(), _enemy_table(), _grid())
+	var rt := StageRuntime.from_config(_stage_config(), _enemy_table(), _grid(), _char_table(), _combat())
 	# 生成一个敌人并推进到核心
 	var e := EnemyRuntime.from_config(_enemy_table()["echo_normal"], 1, 1)
 	rt.enemies.append(e)
@@ -70,11 +82,23 @@ func test_core_damage_applied_only_once_per_enemy() -> void:
 	assert_eq(rt.core_damage_events, 1, "结算事件应只发生 1 次")
 
 
+## 漏怪结算专项夹具：单敌人、早出怪、不部署任何角色，
+## 确保"敌人确实抵达核心"这一前提成立，不依赖 1-1 的可调出怪节奏。
+func _leak_fixture_config(core_hp: int = 5) -> Dictionary:
+	var cfg := _stage_config().duplicate(true)
+	cfg["coreHp"] = core_hp
+	cfg["enemySpawnTimeline"] = [
+		{"time": 0.5, "lane": 1, "enemy": "echo_normal"},
+	]
+	return cfg
+
+
 func test_enemy_reaching_core_via_session_damages_once() -> void:
-	var s := _make_session()
+	# 使用专项夹具：无角色在场，敌人必然抵达核心
+	var s := _make_session(_leak_fixture_config())
 	var hp0 := s.stage.core_hp
-	# 跑到第一个敌人抵达核心之后
-	_advance_session(s, 12.0)
+	# echo_normal 速度 0.55 格/秒，从 x=5 到 x=0 需约 9.1 秒；留足余量
+	_advance_session(s, 20.0)
 	assert_gt(s.stage.reached_core_count, 0, "应有敌人抵达核心")
 	# 核心扣减次数应等于抵达核心的敌人数量（每个只扣一次）
 	assert_eq(s.stage.core_damage_events, s.stage.reached_core_count,
@@ -83,8 +107,8 @@ func test_enemy_reaching_core_via_session_damages_once() -> void:
 
 
 func test_reached_enemies_are_removed_after_settlement() -> void:
-	var s := _make_session()
-	_advance_session(s, 14.0)
+	var s := _make_session(_leak_fixture_config())
+	_advance_session(s, 20.0)
 	# 场上不应残留 REACHED_CORE 状态的敌人
 	for e: EnemyRuntime in s.stage.enemies:
 		assert_ne(e.state, BattleTypes.EnemyState.REACHED_CORE,
@@ -94,7 +118,7 @@ func test_reached_enemies_are_removed_after_settlement() -> void:
 # ---------- 多路共享同一核心 ----------
 
 func test_multiple_lanes_share_single_core_hp() -> void:
-	var rt := StageRuntime.from_config(_stage_config(), _enemy_table(), _grid())
+	var rt := StageRuntime.from_config(_stage_config(), _enemy_table(), _grid(), _char_table(), _combat())
 	var hp0 := rt.core_hp
 
 	# 手工放三个敌人分别在上/中/下路，且都抵达核心
@@ -114,7 +138,7 @@ func test_multiple_lanes_share_single_core_hp() -> void:
 
 
 func test_lanes_do_not_have_independent_cores() -> void:
-	var rt := StageRuntime.from_config(_stage_config(), _enemy_table(), _grid())
+	var rt := StageRuntime.from_config(_stage_config(), _enemy_table(), _grid(), _char_table(), _combat())
 	# StageRuntime 只暴露单一 core_hp，不提供 per-lane 核心
 	assert_true(rt.has_method("apply_core_damage"), "应通过统一入口结算核心伤害")
 	var props := rt.get_property_list()
@@ -136,7 +160,7 @@ func test_defeat_when_core_hp_depleted() -> void:
 
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	var errs := s.setup(cfg, _enemy_table(), _grid())
+	var errs := s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_eq(errs.size(), 0, "构建应成功")
 
 	_advance_session(s, 20.0)
@@ -154,7 +178,7 @@ func test_defeat_triggers_only_once() -> void:
 
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	s.setup(cfg, _enemy_table(), _grid())
+	s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 
 	var decisions := []
 	s.outcome_decided.connect(func(o: int) -> void: decisions.append(o))
@@ -178,7 +202,7 @@ func test_victory_when_all_planned_enemies_cleared() -> void:
 
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	s.setup(cfg, _enemy_table(), _grid())
+	s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 
 	# 先让敌人全部生成
 	_advance_session(s, 1.5)
@@ -205,7 +229,7 @@ func test_victory_requires_all_planned_enemies_spawned() -> void:
 
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	s.setup(cfg, _enemy_table(), _grid())
+	s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 
 	_advance_session(s, 1.0)
 	s.stage.despawn_all_for_test()
@@ -222,7 +246,7 @@ func test_victory_requires_core_alive() -> void:
 
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	s.setup(cfg, _enemy_table(), _grid())
+	s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 
 	_advance_session(s, 20.0)
 	# 核心已耗尽 → 必须是失败，而不是胜利
@@ -246,7 +270,7 @@ func test_no_new_spawns_after_outcome_decided() -> void:
 
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	s.setup(cfg, _enemy_table(), _grid())
+	s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 
 	# 推进到两个敌人都已生成
 	_advance_session(s, 1.5)
@@ -282,7 +306,7 @@ func test_no_damage_after_defeat() -> void:
 
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	s.setup(cfg, _enemy_table(), _grid())
+	s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 
 	_advance_session(s, 20.0)
 	assert_eq(s.outcome, BattleTypes.Outcome.DEFEAT, "应判失败")
@@ -301,7 +325,7 @@ func test_session_freezes_on_outcome() -> void:
 
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	s.setup(cfg, _enemy_table(), _grid())
+	s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	_advance_session(s, 20.0)
 	assert_true(s.is_frozen(), "确定胜负后应冻结状态机")
 	assert_true(s.is_decided(), "应处于已决出状态")

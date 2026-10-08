@@ -1,24 +1,27 @@
 {
-  "schemaVersion": "1.0.0-p0.1",
+  "schemaVersion": "1.0.0-p0.2",
   "domain": "stage",
   "stageId": "1-1",
-  "_spec": "V2.1.4 CLEAN MASTER：1-1 初次锚定。P0.1 只配置核心/AP/出怪时间线；availableCharacters 与奖励仍属 Alpha 阶段，保持占位。",
-  "_note": "P0.1 仅使用 coreHp、startingAp、apRegen、enemySpawnTimeline。敌人出现时间与路线全部来自本配置，不写死在代码中（V2.1.4 D-34/D-35）。",
+  "_spec": "V2.1.4 CLEAN MASTER：1-1 初次锚定。教学关，验证 部署 / 阻挡 / 核心生命。",
+  "_note": "敌人出现时间与路线全部来自本配置，不写死在代码中（V2.1.4 D-34/D-35）。",
   "chapter": 1,
   "mapId": "ch1_classroom_sunset",
   "coreHp": 5,
   "_coreHp_spec": "V2.1.4 G-五：普通关核心生命默认 3；1-1 放宽为 5 以降低新手挫败。",
   "startingAp": 10,
+  "_startingAp_spec": "V2.1.4 D-7：开局 AP 10；与雨宫澪部署费用 10 相等，保证开局即可部署并完成教学。",
   "apRegen": 1,
-  "availableCharacters": [],
+  "availableCharacters": ["amamiya_mio"],
+  "_availableCharacters_spec": "V2.1.4 G-三：1-1 解锁雨宫澪。P0.2 阶段 1-1 仅她一名可部署角色。",
   "enemySpawnTimeline": [
-    { "time": 2.0, "lane": 1, "enemy": "echo_normal" },
-    { "time": 6.0, "lane": 0, "enemy": "echo_normal" },
-    { "time": 10.0, "lane": 2, "enemy": "echo_normal" },
-    { "time": 16.0, "lane": 1, "enemy": "echo_normal" },
-    { "time": 22.0, "lane": 0, "enemy": "echo_runner" },
-    { "time": 26.0, "lane": 2, "enemy": "echo_runner" }
+    { "time": 3.0, "lane": 1, "enemy": "echo_normal" },
+    { "time": 8.0, "lane": 1, "enemy": "echo_normal" },
+    { "time": 13.0, "lane": 1, "enemy": "echo_normal" },
+    { "time": 18.0, "lane": 1, "enemy": "echo_normal" },
+    { "time": 26.0, "lane": 0, "enemy": "echo_normal" },
+    { "time": 30.0, "lane": 2, "enemy": "echo_normal" }
   ],
+  "_timeline_rationale": "V2.1.4 G-十一 与 P4 表将『各关精确出怪秒数与数量』明确列为候选/可配置平衡参数。P0.2 约束『同一名角色不能同时部署多个实体』，而 1-1 仅雨宫澪一名可部署角色，因此她至多覆盖一条路线；若三路同时压满则单人不可能通关，与 G-十二『新档只使用雨宫澪也能完成教学』冲突。故本版时线：中段 4 个普通残响体（间隔 5s，大于其约 4.4s 的击杀耗时）承担阻挡教学；末段上/下段各 1 个用于演示『漏怪会扣核心』，在核心 5 点缓冲内不影响通关。待 P0.3 起有更多角色可部署后再扩展为多路压力。",
   "tutorialTriggers": [],
   "specialRules": [],
   "firstClearRewardId": "",
@@ -26,5 +29,5 @@
   "storyBefore": "",
   "storyAfter": "",
   "bossConfig": {},
-  "_p0.1_scope": "P0.1 不实现：玩家单位部署、AP 消耗、阻挡、攻击、技能、Wave UI、奖励结算。enemySpawnTimeline 的 lane 取 0/1/2（上/中/下）。"
+  "_p0.2_scope": "P0.2 已实现：部署、AP、阻挡、双方攻击、死亡与失能。未实现：主动撤退/再部署（P0.3）、技能天赋、局内强化、奖励结算。"
 }

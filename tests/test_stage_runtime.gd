@@ -21,6 +21,16 @@ func _grid() -> BattleGrid:
 	return BattleGrid.from_layout(DataRegistry.get_layout())
 
 
+func _char_table() -> Dictionary:
+	var t := {}
+	for c: Dictionary in DataRegistry.get_domain("characters").get("characters", []):
+		t[str(c.get("id", ""))] = c
+	return t
+
+
+func _combat() -> Dictionary:
+	return DataRegistry.get_domain("balance").get("combat", {})
+
 func _enemy_table() -> Dictionary:
 	var t := {}
 	for e: Dictionary in DataRegistry.get_domain("enemies").get("enemies", []):
@@ -32,14 +42,36 @@ func _stage_config() -> Dictionary:
 	return DataRegistry.get_entry("stages", STAGE_ID)
 
 
+## 生成时序测试专用夹具：不依赖 1-1 的可调平衡值，
+## 用固定时间/路线验证"按配置出怪"这一行为本身。
+## （1-1 的精确出怪秒数属规格 G-十一 列为候选的可配置平衡参数，会随试玩调整。）
+func _fixture_config() -> Dictionary:
+	var cfg := _stage_config().duplicate(true)
+	cfg["coreHp"] = 5
+	cfg["startingAp"] = 10
+	cfg["apRegen"] = 1
+	cfg["enemySpawnTimeline"] = [
+		{"time": 2.0, "lane": 1, "enemy": "echo_normal"},
+		{"time": 6.0, "lane": 0, "enemy": "echo_normal"},
+		{"time": 10.0, "lane": 2, "enemy": "echo_normal"},
+	]
+	return cfg
+
+
+func _make_fixture_runtime() -> StageRuntime:
+	return StageRuntime.from_config(
+		_fixture_config(), _enemy_table(), _grid(), _char_table(), _combat()
+	)
+
+
 func _make_runtime() -> StageRuntime:
-	return StageRuntime.from_config(_stage_config(), _enemy_table(), _grid())
+	return StageRuntime.from_config(_stage_config(), _enemy_table(), _grid(), _char_table(), _combat())
 
 
 func _make_session() -> BattleSession:
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	var errs := s.setup(_stage_config(), _enemy_table(), _grid())
+	var errs := s.setup(_stage_config(), _enemy_table(), _grid(), _char_table(), _combat())
 	assert_eq(errs.size(), 0, "会话构建应无错误：%s" % str(errs))
 	return s
 
@@ -73,7 +105,7 @@ func test_runtime_builds_without_errors() -> void:
 # ---------- 生成 ----------
 
 func test_enemies_spawn_at_scheduled_time_and_lane() -> void:
-	var rt := _make_runtime()
+	var rt := _make_fixture_runtime()
 	assert_eq(rt.spawned_enemy_count(), 0, "t=0 时不应有敌人已生成")
 
 	# 推进到 2.0s：第一条计划（lane 1）应生成
@@ -89,7 +121,7 @@ func test_enemies_spawn_at_scheduled_time_and_lane() -> void:
 
 
 func test_enemies_spawn_at_entry_position() -> void:
-	var rt := _make_runtime()
+	var rt := _make_fixture_runtime()
 	_advance(rt, 2.01)
 	assert_gt(rt.enemies.size(), 0, "应已生成敌人")
 	# 生成瞬间应在入口侧（x = SPAWN_X = 5.0）
@@ -98,26 +130,43 @@ func test_enemies_spawn_at_entry_position() -> void:
 
 
 func test_enemies_never_change_lane() -> void:
-	var rt := _make_runtime()
-	# 跑足够长的时间让所有敌人生成并移动
-	_advance(rt, 30.0)
+	# 使用专项夹具（多个敌人分布在不同路线），确保场上确实有敌人可供检查，
+	# 不依赖 1-1 的可调出怪节奏（1-1 中段敌人会被玩家单位阻挡/击杀）。
+	var cfg := _fixture_config().duplicate(true)
+	cfg["enemySpawnTimeline"] = [
+		{"time": 1.0, "lane": 0, "enemy": "echo_normal"},
+		{"time": 1.0, "lane": 1, "enemy": "echo_normal"},
+		{"time": 1.0, "lane": 2, "enemy": "echo_normal"},
+	]
+	var rt := StageRuntime.from_config(
+		cfg, _enemy_table(), _grid(), _char_table(), _combat()
+	)
+	# 推进到三个敌人都已生成
+	_advance(rt, 1.05)
+	assert_eq(rt.enemies.size(), 3, "应生成 3 个敌人（三种路线各一）")
+
 	# 记录当前路线
 	var lanes_before := {}
 	for e: EnemyRuntime in rt.enemies:
 		lanes_before[e.instance_id] = e.lane
-	# 再推进一段
-	_advance(rt, 10.0)
+	assert_eq(lanes_before.size(), 3, "应记录到 3 个敌人的初始路线")
+
+	# 再推进一段（敌人会持续移动）
+	_advance(rt, 3.0)
+	var checked := 0
 	for e: EnemyRuntime in rt.enemies:
 		if lanes_before.has(e.instance_id):
 			assert_eq(e.lane, lanes_before[e.instance_id],
 				"敌人 #%d 不得换线（规格 D-4）" % e.instance_id)
+			checked += 1
+	assert_gt(checked, 0, "应至少检查到一个仍在场的敌人（保证本测试确实断言）")
 
 
 # ---------- 移动 ----------
 
 func test_enemy_moves_left_at_configured_speed() -> void:
-	var rt := _make_runtime()
-	_advance(rt, 2.01)
+	var rt := _make_fixture_runtime()
+	_advance(rt, 2.05)
 	if rt.enemies.is_empty():
 		fail_test("未生成敌人")
 		return
@@ -134,8 +183,8 @@ func test_enemy_moves_left_at_configured_speed() -> void:
 
 
 func test_enemy_does_not_cross_core() -> void:
-	var rt := _make_runtime()
-	_advance(rt, 2.01)
+	var rt := _make_fixture_runtime()
+	_advance(rt, 2.05)
 	if rt.enemies.is_empty():
 		fail_test("未生成敌人")
 		return
@@ -180,8 +229,8 @@ func test_movement_is_resolution_independent() -> void:
 	g2.reference_canvas_width = 3840
 	g2.reference_canvas_height = 2160
 
-	var rt1 := StageRuntime.from_config(_stage_config(), _enemy_table(), g1)
-	var rt2 := StageRuntime.from_config(_stage_config(), _enemy_table(), g2)
+	var rt1 := StageRuntime.from_config(_stage_config(), _enemy_table(), g1, _char_table(), _combat())
+	var rt2 := StageRuntime.from_config(_stage_config(), _enemy_table(), g2, _char_table(), _combat())
 	_advance_granular(rt1, 8.0, 1.0 / 60.0)
 	_advance_granular(rt2, 8.0, 1.0 / 60.0)
 
@@ -203,7 +252,7 @@ func test_movement_is_resolution_independent() -> void:
 func test_invalid_enemy_id_is_reported() -> void:
 	var cfg := _stage_config().duplicate(true)
 	cfg["enemySpawnTimeline"] = [{"time": 1.0, "lane": 0, "enemy": "echo_does_not_exist"}]
-	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid())
+	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "引用不存在的敌人应报错")
 	var joined := "\n".join(rt.get_errors())
 	assert_string_contains(joined, "echo_does_not_exist", "错误信息应包含非法 ID")
@@ -212,45 +261,45 @@ func test_invalid_enemy_id_is_reported() -> void:
 func test_invalid_lane_is_reported() -> void:
 	var cfg := _stage_config().duplicate(true)
 	cfg["enemySpawnTimeline"] = [{"time": 1.0, "lane": 7, "enemy": "echo_normal"}]
-	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid())
+	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "非法 lane 应报错")
 
 
 func test_missing_core_hp_is_reported() -> void:
 	var cfg := _stage_config().duplicate(true)
 	cfg.erase("coreHp")
-	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid())
+	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "缺少 coreHp 应报错")
 
 
 func test_zero_or_negative_core_hp_is_reported() -> void:
 	var cfg := _stage_config().duplicate(true)
 	cfg["coreHp"] = 0
-	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid())
+	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "coreHp=0 应报错")
 
 	var cfg2 := _stage_config().duplicate(true)
 	cfg2["coreHp"] = -3
-	var rt2 := StageRuntime.from_config(cfg2, _enemy_table(), _grid())
+	var rt2 := StageRuntime.from_config(cfg2, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt2.is_valid(), "coreHp 为负应报错")
 
 
 func test_missing_spawn_fields_are_reported() -> void:
 	var cfg := _stage_config().duplicate(true)
 	cfg["enemySpawnTimeline"] = [{"lane": 0, "enemy": "echo_normal"}]  # 缺 time
-	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid())
+	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "缺少 time 应报错")
 
 	var cfg2 := _stage_config().duplicate(true)
 	cfg2["enemySpawnTimeline"] = [{"time": 1.0, "enemy": "echo_normal"}]  # 缺 lane
-	var rt2 := StageRuntime.from_config(cfg2, _enemy_table(), _grid())
+	var rt2 := StageRuntime.from_config(cfg2, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt2.is_valid(), "缺少 lane 应报错")
 
 
 func test_negative_spawn_time_is_reported() -> void:
 	var cfg := _stage_config().duplicate(true)
 	cfg["enemySpawnTimeline"] = [{"time": -1.0, "lane": 0, "enemy": "echo_normal"}]
-	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid())
+	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "负 time 应报错")
 
 
@@ -259,7 +308,7 @@ func test_invalid_session_setup_returns_errors() -> void:
 	cfg["enemySpawnTimeline"] = [{"time": 1.0, "lane": 99, "enemy": "echo_normal"}]
 	var s := BattleSession.new()
 	add_child_autofree(s)
-	var errs := s.setup(cfg, _enemy_table(), _grid())
+	var errs := s.setup(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_gt(errs.size(), 0, "非法配置应使 setup 返回错误")
 
 

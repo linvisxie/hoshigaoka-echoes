@@ -1,6 +1,42 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-p0.2",
   "domain": "characters",
-  "_phase0": "Phase 0 占位。characterId、职业、基础面板、部署费、可用技能 ID、解锁关卡；不得重复保存技能效果/倍率。",
-  "characters": []
+  "_note": "角色唯一数据源（V2.1.4 B6 SSOT）。数值取自 V2.1.4 CLEAN MASTER D 章表 26 / E 章 三十五。本文件不得重复保存技能效果或倍率（技能归 skills.json）。",
+  "characters": [
+    {
+      "id": "amamiya_mio",
+      "name": "雨宫澪",
+      "nameShort": "澪",
+      "grade": "高二",
+      "club": "剑道部",
+      "classType": "KENDO",
+      "roleTags": ["FRONTLINE", "SINGLE"],
+      "baseStats": {
+        "hp": 1000,
+        "attack": 120,
+        "defense": 80
+      },
+      "attackInterval": 1.1,
+      "attackRange": {
+        "shape": "lane_band",
+        "direction": "forward",
+        "rangeTiles": 1.25,
+        "maxLaneDelta": 0,
+        "_note": "V2.1.4 D-13：同路线前方 1.25 格以内；当前阻挡目标始终可攻击。maxLaneDelta=0 表示不可跨线。"
+      },
+      "blockCount": 2,
+      "deployCost": 10,
+      "redeployTime": 20.0,
+      "damageType": "PHYSICAL",
+      "skillIds": [],
+      "talentIds": [],
+      "unlockStage": "1-1",
+      "spriteFramePx": 64,
+      "artRefs": {
+        "battleIdle": "char_amamiya_mio_battle_idle_01.png",
+        "portrait": "char_amamiya_mio_portrait_01.png"
+      },
+      "_spec": "V2.1.4 D-13 雨宫澪 / E-三十五 角色 01"
+    }
+  ]
 }

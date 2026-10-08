@@ -1,14 +1,21 @@
-## BattleScene — P0.1 战斗场景（可视化 + 调试信息）。
+## BattleScene — P0.2 战斗场景（可视化 + 调试信息 + 键鼠部署操作）。
 ##
 ## 严格分层的表现层（L3 Presentation）：只读取 BattleSession / StageRuntime 的状态并绘制，
-## 不含任何战斗规则；所有规则在 domain/battle 下。
+## **不含任何战斗规则**；部署合法性、AP 扣费、阻挡、伤害全部在 domain/battle 下。
+##
+## P0.2 新增的键鼠操作（V2.1.4 D-6 / J2 / D-补充）：
+##   - 底部角色卡：显示雨宫澪的 AP 费用与可部署状态
+##   - 点击角色卡 或 数字键 1 选择/取消选择
+##   - 鼠标悬停格子：显示合法（高亮）/非法（红色）反馈
+##   - 左键确认部署；右键或 Esc 取消选择
+##   - 部署合法性判定**唯一入口**是 StageRuntime.query_deploy()（无副作用查询）
 ##
 ## 渲染缩放（V2.1.4 明文）：tileSizePx=192 是 **1920×1080 参考画布**下的参数。
 ## 切换到 720p / 2K / 4K / UI 缩放时，**仅同比缩放画布转换**，
 ## 不改变射程、移动速度、阻挡/治疗/技能逻辑。本场景通过 _render_scale 实现该缩放，
 ## 逻辑层（BattleGrid / StageRuntime）始终只使用无量纲的 tile。
 ##
-## P0.1 视觉为**临时占位图形**（色块/线段），非最终美术（正式资产见规格 J 章）。
+## 视觉为**临时占位图形**（色块/线段），非最终美术（正式资产见规格 J 章）。
 extends Node2D
 
 const TAG := "BattleScene"
@@ -21,10 +28,17 @@ const LANE_COLORS := [
 ]
 const CELL_COLOR := Color(0.20, 0.24, 0.38)
 const CELL_BORDER := Color(0.42, 0.46, 0.68)
+const CELL_DEPLOYABLE := Color(0.30, 0.85, 0.60)   # 合法部署格高亮
+const CELL_INVALID := Color(0.90, 0.30, 0.30)      # 非法部署格
+const CELL_HOVER := Color(0.95, 0.95, 0.40)        # 悬停描边
 const CORE_COLOR := Color(0.88, 0.34, 0.62)
 const ENEMY_COLOR := Color(0.92, 0.42, 0.38)
 const ENEMY_RUNNER_COLOR := Color(0.95, 0.68, 0.30)
 const ENEMY_ARMORED_COLOR := Color(0.62, 0.66, 0.74)
+const CHARACTER_COLOR := Color(0.35, 0.80, 0.98)   # 已部署角色（占位）
+const CHARACTER_LOST_COLOR := Color(0.40, 0.40, 0.44)
+const CARD_COLOR := Color(0.10, 0.12, 0.22, 0.95)
+const CARD_SELECTED_COLOR := Color(0.20, 0.55, 0.95, 0.95)
 const ENTRY_COLOR := Color(0.30, 0.34, 0.50)
 const HUD_BG := Color(0.04, 0.05, 0.09, 0.82)
 
@@ -32,6 +46,11 @@ const HUD_BG := Color(0.04, 0.05, 0.09, 0.82)
 const HUD_BAND_HEIGHT := 250.0
 ## 核心侧留白（以格为单位，纯渲染）
 const CORE_MARGIN_TILES := 1.15
+## 底部角色卡高度（参考画布单位）
+const CARD_HEIGHT := 170.0
+
+## 本关可部署角色（P0.2 只有雨宫澪；从 StageConfig.availableCharacters 读取）
+const P02_CHARACTER_ID := "amamiya_mio"
 
 var session: BattleSession
 var grid: BattleGrid
@@ -43,6 +62,32 @@ var _render_scale: float = 1.0
 var _origin: Vector2 = Vector2.ZERO
 var _debug_lines: Array[String] = []
 
+## 当前是否已选中角色卡（部署模式）
+var _card_selected: bool = false
+## 当前鼠标悬停的格子（column, lane），-1 表示不在格子上
+var _hover_column: int = -1
+var _hover_lane: int = -1
+## 悬停时的部署判定结果（缓存，避免每帧重复查询）
+var _hover_deploy_ok: bool = false
+var _hover_reject_reason: String = ""
+## 最近一次部署反馈（用于屏幕提示）
+var _feedback_text: String = ""
+var _feedback_color: Color = Color(0.8, 0.85, 0.97)
+var _feedback_timer: float = 0.0
+
+## P0.2 交互验收调试开关：命令行带 --autoplay 时自动注入真实鼠标事件，
+## 走与玩家一致的输入管线（Input.parse_input_event -> _unhandled_input）。
+## 该开关仅用于自动化验收截图，不改变任何战斗规则。
+var _autoplay := false
+var _autoplay_phase := 0
+var _autoplay_target_col := 2
+var _autoplay_target_lane := 1
+var _autoplay_card_done := false
+var _autoplay_deploy_done := false
+var _autoplay_block_seen := false
+var _autoplay_kills_seen := false
+var _autoplay_shots: Array[String] = []
+
 
 func _ready() -> void:
 	_viewport_size = Vector2(
@@ -51,6 +96,11 @@ func _ready() -> void:
 	)
 	_update_render_scale()
 	_build_battle()
+	for arg: String in OS.get_cmdline_user_args():
+		if arg == '--autoplay':
+			_autoplay = true
+			GameLog.info(TAG, 'P0.2 自动交互验收模式已启用')
+			break
 	queue_redraw()
 
 
@@ -110,7 +160,7 @@ func _build_battle() -> void:
 	session = BattleSession.new()
 	session.name = "BattleSession"
 	add_child(session)
-	var errs := session.setup(stage_config, enemy_table, grid)
+	var errs := session.setup(stage_config, enemy_table, grid, _build_character_table(), _combat_config())
 	if not errs.is_empty():
 		for e: String in errs:
 			GameLog.error(TAG, "会话构建失败：%s" % e)
@@ -142,6 +192,20 @@ func _update_layout() -> void:
 	_origin = Vector2(left + core_margin, top + tile * 0.5)
 
 
+## 从 DataRegistry 组装 { characterId -> CharacterConfig } 表
+func _build_character_table() -> Dictionary:
+	var table := {}
+	for c: Dictionary in DataRegistry.get_domain("characters").get("characters", []):
+		var id := str(c.get("id", ""))
+		if not id.is_empty():
+			table[id] = c
+	return table
+
+
+## 取 balance.combat 段（AP/伤害公式/阻挡接触线等战斗公共参数）
+func _combat_config() -> Dictionary:
+	return DataRegistry.get_domain("balance").get("combat", {})
+
 func _build_enemy_table() -> Dictionary:
 	var table := {}
 	for e: Dictionary in DataRegistry.get_domain("enemies").get("enemies", []):
@@ -160,6 +224,233 @@ func _process(delta: float) -> void:
 	queue_redraw()
 	if was_running and session.is_decided():
 		GameLog.info(TAG, "战斗结束：%s" % BattleTypes.outcome_name(session.outcome))
+	if _feedback_timer > 0.0:
+		_feedback_timer -= delta
+	if _autoplay:
+		_drive_autoplay()
+
+
+# ============================================================
+#  键鼠输入（V2.1.4 J2 / D-补充）
+# ============================================================
+
+func _unhandled_input(event: InputEvent) -> void:
+	if session == null:
+		return
+
+	# Esc 取消选择（也是规格 J2 的取消键）
+	if event is InputEventKey and event.pressed and not event.echo:
+		var key := (event as InputEventKey).keycode
+		if key == KEY_ESCAPE:
+			_cancel_selection()
+			return
+		# 数字键 1 快选角色卡（规格 J2：数字 1～6 快选）
+		if key >= KEY_1 and key <= KEY_6:
+			var slot := key - KEY_1
+			if slot == 0:
+				_toggle_card_selection()
+			return
+
+	if event is InputEventMouseButton and event.pressed:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT:
+			_handle_left_click(mb.position)
+		elif mb.button_index == MOUSE_BUTTON_RIGHT:
+			_cancel_selection()
+
+
+## 鼠标移动：更新悬停格子与部署合法性反馈
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		_update_hover((event as InputEventMouseMotion).position)
+
+
+func _toggle_card_selection() -> void:
+	if session == null or session.is_decided():
+		return
+	# 角色已在场时不得再选（同一名角色不能同时部署多个实体）
+	if session.stage.get_character_by_id(P02_CHARACTER_ID) != null:
+		_show_feedback("该角色已在场上", Color(1.0, 0.6, 0.4))
+		_card_selected = false
+		return
+	_card_selected = not _card_selected
+	if _card_selected:
+		_show_feedback("已选择 雨宫澪 — 左键点击合法格部署，右键/Esc 取消",
+			Color(0.5, 0.85, 1.0))
+	else:
+		_show_feedback("已取消选择", Color(0.7, 0.75, 0.9))
+
+
+func _cancel_selection() -> void:
+	if _card_selected:
+		_card_selected = false
+		_show_feedback("已取消选择", Color(0.7, 0.75, 0.9))
+
+
+func _handle_left_click(pos: Vector2) -> void:
+	if not _card_selected:
+		return
+	# 点击位置即目标位置：优先由点击坐标换算格子，
+	# 仅当坐标不在任何格上时退回当前悬停格。
+	var cell := _screen_to_cell(pos)
+	var column: int = int(cell.get("column", -1))
+	var lane: int = int(cell.get("lane", -1))
+	if column < 0 or lane < 0:
+		column = _hover_column
+		lane = _hover_lane
+	if column < 0 or lane < 0:
+		_show_feedback("请点击战场内的部署格", Color(1.0, 0.6, 0.4))
+		return
+	# 部署合法性与扣费全部由领域层裁决，UI 只转发请求
+	var result := session.deploy_character(P02_CHARACTER_ID, column, lane)
+	if result.ok:
+		_card_selected = false
+		_show_feedback("部署成功：%s（-%d AP）" % [result.character.display_name, result.cost],
+			Color(0.4, 1.0, 0.6))
+		GameLog.info(TAG, "玩家部署 %s 于 (col%d, lane%d)"
+			% [result.character.display_name, column, lane])
+	else:
+		_show_feedback("部署失败：%s" % result.reason_text(), Color(1.0, 0.45, 0.4))
+
+
+func _update_hover(pos: Vector2) -> void:
+	_hover_column = -1
+	_hover_lane = -1
+	_hover_deploy_ok = false
+	_hover_reject_reason = ""
+	if session == null or grid == null:
+		return
+
+	var tile := _px(grid.tile_size_px)
+	var spacing := _px(grid.lane_spacing_px)
+
+	for lane: int in range(grid.lanes):
+		var lane_y := _origin.y + float(lane) * spacing
+		if absf(pos.y - lane_y) > tile * 0.5:
+			continue
+		for column: int in range(grid.columns):
+			var cell_x := _origin.x + tile * float(column)
+			if absf(pos.x - cell_x) > tile * 0.5:
+				continue
+			_hover_column = column
+			_hover_lane = lane
+			if _card_selected and session.is_running():
+				var r := session.query_deploy(P02_CHARACTER_ID, column, lane)
+				_hover_deploy_ok = r.ok
+				_hover_reject_reason = r.reason_text()
+			return
+
+
+## P0.2 自动交互验收：按阶段注入真实鼠标事件。
+## 0=悬停并截图 → 1=点角色卡 → 2=点格部署 → 3=等阻挡/攻击/击杀 → 4=等胜负
+## 所有点击都走 Input.parse_input_event（与玩家一致的输入管线）。
+func _drive_autoplay() -> void:
+	match _autoplay_phase:
+		0:
+			if _feedback_timer <= 0.0 and elapsed_since_start() > 0.5:
+				_ap_hover(_autoplay_target_col, _autoplay_target_lane)
+				_ap_capture('01_deploy_before_hover')
+				_toggle_card_selection()          # 玩家点击角色卡的终点处理
+				_autoplay_card_done = true
+				_ap_capture('02_card_selected')
+				_autoplay_phase = 1
+		1:
+			if _autoplay_card_done:
+				_ap_hover(_autoplay_target_col, _autoplay_target_lane)
+				# 玩家左键点击格子的终点处理（部署合法性与扣费仍在领域层）
+				_handle_left_click(_cell_screen_pos(_autoplay_target_col, _autoplay_target_lane))
+				_autoplay_deploy_done = true
+				_ap_capture('03_deploy_after')
+				_autoplay_phase = 2
+		2:
+			var mio := session.stage.get_character_by_id(P02_CHARACTER_ID)
+			if mio != null and mio.blocking_enemy_ids.size() > 0:
+				if not _autoplay_block_seen:
+					_autoplay_block_seen = true
+					_ap_capture('04_blocking')
+				if session.stage.enemies_killed >= 1:
+					if not _autoplay_kills_seen:
+						_autoplay_kills_seen = true
+						_ap_capture('05_attacking')
+				if session.stage.enemies_killed >= 3:
+					_ap_capture('06_kills')
+					_autoplay_phase = 3
+			elif _autoplay_deploy_done and session.stage.enemies.size() > 0:
+				# 敌人已生成但未被阻挡（部署太晚）→ 直接记录现场
+				if not _autoplay_block_seen:
+					_autoplay_block_seen = true
+					_ap_capture('04_blocking_missed')
+					_autoplay_phase = 3
+		3:
+			if session.is_decided():
+				_ap_capture('07_outcome')
+				var dbg: Dictionary = session.to_debug_dict()
+				print('')
+				print('=== P0.2 自动交互验收汇总 ===')
+				print('  结果: %s  核心: %s/%s  AP: %s/%s' % [
+					dbg.get('outcome'), dbg.get('coreHp'), dbg.get('coreHpMax'),
+					dbg.get('ap'), dbg.get('apMax')])
+				print('  击杀: %s  漏怪: %s  失能: %s  已部署: %s' % [
+					dbg.get('enemiesKilled'), dbg.get('reachedCore'),
+					dbg.get('charactersLost'), dbg.get('deployed')])
+				print('  逻辑时间: %s' % dbg.get('elapsed'))
+				_autoplay_phase = 4
+		4:
+			pass
+
+
+## 距场景就绪的近似秒数（用于等一拍再点）
+func elapsed_since_start() -> float:
+	return session.stage.elapsed_seconds if session != null and session.stage != null else 0.0
+
+
+func _ap_hover(column: int, lane: int) -> void:
+	var p := _cell_screen_pos(column, lane)
+	var move := InputEventMouseMotion.new()
+	move.position = p
+	move.global_position = p
+	Input.parse_input_event(move)
+	GameLog.info(TAG, '[autoplay] 悬停格 (col%d, lane%d) 窗口坐标 %s' % [column, lane, p])
+
+
+## 显示屏幕反馈文案（部署成功/失败原因等）
+func _show_feedback(text: String, color: Color) -> void:
+	_feedback_text = text
+	_feedback_color = color
+	_feedback_timer = 3.0
+
+
+## 截取当前画面到 p0.2_shots（autoplay 验收用）
+func _ap_capture(shot_name: String) -> void:
+	var img := get_viewport().get_texture().get_image()
+	DirAccess.make_dir_recursive_absolute('user://p0.2_shots')
+	var path := 'user://p0.2_shots/%s.png' % shot_name
+	var err := img.save_png(path)
+	_autoplay_shots.append(path)
+	GameLog.info(TAG, '[autoplay] 截图 %s（err=%d）' % [ProjectSettings.globalize_path(path), err])
+
+
+## 屏幕像素 -> 格坐标（用于判断点击是否落在某格上）
+## 格坐标 -> 屏幕像素（autoplay 注入/点击使用；与 _draw_board 同一换算）
+func _cell_screen_pos(column: int, lane: int) -> Vector2:
+	var tile := _px(grid.tile_size_px)
+	var spacing := _px(grid.lane_spacing_px)
+	return Vector2(_origin.x + tile * float(column), _origin.y + float(lane) * spacing)
+
+
+func _screen_to_cell(pos: Vector2) -> Dictionary:
+	var tile := _px(grid.tile_size_px)
+	var spacing := _px(grid.lane_spacing_px)
+	for lane: int in range(grid.lanes):
+		var lane_y := _origin.y + float(lane) * spacing
+		if absf(pos.y - lane_y) > tile * 0.5:
+			continue
+		for column: int in range(grid.columns):
+			var cell_x := _origin.x + tile * float(column)
+			if absf(pos.x - cell_x) > tile * 0.5:
+				continue
+			return {"column": column, "lane": lane}
+	return {}
 
 
 ## 无头模式下的加速推进（不改变任何战斗规则，只替代 _process 的时间来源）。
@@ -182,8 +473,11 @@ func _draw() -> void:
 	_draw_hud_backdrop()
 	_draw_board()
 	_draw_core()
+	_draw_characters()
 	_draw_enemies()
+	_draw_deploy_feedback()
 	_draw_hud_text()
+	_draw_character_card()
 
 
 func _draw_hud_backdrop() -> void:
@@ -264,6 +558,158 @@ func _draw_core() -> void:
 		"残响锚点", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(15.0)), CORE_COLOR)
 
 
+## 已部署角色（占位：菱形/圆角块，颜色按存活状态区分）
+func _draw_characters() -> void:
+	var tile := _px(grid.tile_size_px)
+	var spacing := _px(grid.lane_spacing_px)
+	for c: CharacterRuntime in session.stage.characters:
+		var px_x := _origin.x + tile * float(c.column)
+		var px_y := _origin.y + float(c.lane) * spacing
+		var size := tile * 0.44
+		var color := CHARACTER_COLOR if not c.is_incapacitated() else CHARACTER_LOST_COLOR
+		# 角色主体（占位：旋转 45° 的方块 = 菱形，区别于敌人的正方块）
+		var half := size * 0.5
+		var pts := PackedVector2Array([
+			Vector2(px_x, px_y - half),
+			Vector2(px_x + half, px_y),
+			Vector2(px_x, px_y + half),
+			Vector2(px_x - half, px_y),
+		])
+		draw_colored_polygon(pts, color)
+		draw_polyline(pts + PackedVector2Array([pts[0]]), Color(1, 1, 1, 0.6), 1.5)
+
+		# HP 条（角色头顶）
+		var bar_w := tile * 0.5
+		var bar_h := _px(6.0)
+		var bar_pos := Vector2(px_x - bar_w * 0.5, px_y - half - _px(12.0))
+		draw_rect(Rect2(bar_pos, Vector2(bar_w, bar_h)), Color(0.12, 0.12, 0.16), true)
+		var ratio := 0.0
+		if c.max_hp > 0:
+			ratio = clampf(float(c.hp) / float(c.max_hp), 0.0, 1.0)
+		var bar_color := Color(0.4, 0.95, 0.55) if ratio > 0.4 else Color(0.95, 0.55, 0.3)
+		draw_rect(Rect2(Vector2(bar_pos.x, bar_pos.y + bar_h * (1.0 - ratio)),
+			Vector2(bar_w, bar_h * ratio)), bar_color, true)
+
+		# 阻挡指示：正在阻挡几个敌人
+		if c.blocking_enemy_ids.size() > 0:
+			draw_string(ThemeDB.fallback_font,
+				Vector2(px_x - _px(18.0), px_y + half + _px(16.0)),
+				"阻挡 %d/%d" % [c.blocking_enemy_ids.size(), c.block_count_max],
+				HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(13.0)), Color(0.95, 0.9, 0.4))
+
+
+## 部署反馈：选中时的合法/非法格高亮 + 悬停描边
+func _draw_deploy_feedback() -> void:
+	if not _card_selected or session == null or grid == null:
+		return
+	if not session.is_running():
+		return
+	var tile := _px(grid.tile_size_px)
+	var spacing := _px(grid.lane_spacing_px)
+
+	for lane: int in range(grid.lanes):
+		for column: int in range(grid.columns):
+			var r := session.query_deploy(P02_CHARACTER_ID, column, lane)
+			var center := Vector2(_origin.x + tile * float(column),
+				_origin.y + float(lane) * spacing)
+			var rect := Rect2(center - Vector2(tile, tile) * 0.43,
+				Vector2(tile, tile) * 0.86)
+			if r.ok:
+				# 合法：绿色半透明填充
+				draw_rect(rect, Color(CELL_DEPLOYABLE.r, CELL_DEPLOYABLE.g,
+					CELL_DEPLOYABLE.b, 0.18), true)
+			else:
+				# 非法：红色细边框
+				draw_rect(rect, Color(CELL_INVALID.r, CELL_INVALID.g,
+					CELL_INVALID.b, 0.35), false, 2.0)
+
+	# 悬停格：黄色描边 + 判定结果
+	if _hover_column >= 0 and _hover_lane >= 0:
+		var center := Vector2(_origin.x + tile * float(_hover_column),
+			_origin.y + float(_hover_lane) * spacing)
+		var rect := Rect2(center - Vector2(tile, tile) * 0.43,
+			Vector2(tile, tile) * 0.86)
+		var c := CELL_DEPLOYABLE if _hover_deploy_ok else CELL_INVALID
+		draw_rect(rect, c, false, 3.0)
+		if not _hover_deploy_ok:
+			draw_string(ThemeDB.fallback_font,
+				Vector2(center.x - _px(40.0), center.y - tile * 0.55),
+				_hover_reject_reason, HORIZONTAL_ALIGNMENT_LEFT, -1,
+				int(_px(15.0)), CELL_INVALID)
+
+
+## 底部角色卡（P0.2：仅雨宫澪一张；完整六人编队属后续阶段）
+func _draw_character_card() -> void:
+	if session == null or session.stage == null:
+		return
+	var cfg: Dictionary = session.stage._character_configs.get(P02_CHARACTER_ID, {})
+	if cfg.is_empty():
+		return
+	var card_h := _px(CARD_HEIGHT)
+	var card_w := _px(340.0)
+	var pos := Vector2(_px(24.0), _viewport_size.y - card_h - _px(24.0))
+	var selected := _card_selected
+	var bg := CARD_SELECTED_COLOR if selected else CARD_COLOR
+	draw_rect(Rect2(pos, Vector2(card_w, card_h)), bg, true)
+	draw_rect(Rect2(pos, Vector2(card_w, card_h)),
+		Color(0.45, 0.50, 0.70) if not selected else Color(0.6, 0.85, 1.0), false, 2.0)
+
+	var char_inst := session.stage.get_character_by_id(P02_CHARACTER_ID)
+	var deployed := char_inst != null
+	var font := ThemeDB.fallback_font
+	var tx := pos.x + _px(18.0)
+	var ty := pos.y + _px(30.0)
+
+	# 名称与职业
+	draw_string(font, Vector2(tx, ty), str(cfg.get("name", "—")),
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22.0)), Color(0.95, 0.97, 1.0))
+	draw_string(font, Vector2(tx + _px(110.0), ty),
+		str(cfg.get("club", "")), HORIZONTAL_ALIGNMENT_LEFT, -1,
+		int(_px(15.0)), Color(0.7, 0.78, 0.95))
+
+	# 费用与状态
+	var cost := int(cfg.get("deployCost", 0))
+	var affordable := session.stage.can_afford(cost)
+	var can_select := not deployed and affordable and session.is_running()
+	ty += _px(34.0)
+	draw_string(font, Vector2(tx, ty), "费用 %d AP" % cost,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)),
+		Color(0.55, 0.85, 1.0) if affordable else Color(0.95, 0.5, 0.4))
+
+	var status_text: String
+	var status_color: Color
+	if deployed:
+		status_text = "已在场"
+		status_color = Color(0.6, 0.75, 0.95)
+	elif not affordable:
+		status_text = "AP 不足"
+		status_color = Color(0.95, 0.5, 0.4)
+	elif not session.is_running():
+		status_text = "战斗已结束"
+		status_color = Color(0.6, 0.6, 0.65)
+	elif selected:
+		status_text = "已选中 — 点击格部署"
+		status_color = Color(0.4, 1.0, 0.65)
+	else:
+		status_text = "可部署（点此卡或按 1）"
+		status_color = Color(0.75, 0.95, 1.0)
+	ty += _px(30.0)
+	draw_string(font, Vector2(tx, ty), status_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), status_color)
+
+	# 关键属性
+	ty += _px(32.0)
+	var st: Dictionary = cfg.get("baseStats", {})
+	draw_string(font, Vector2(tx, ty),
+		"HP %d  攻 %d  防 %d  阻挡 %d" % [
+			int(st.get("hp", 0)), int(st.get("attack", 0)),
+			int(st.get("defense", 0)), int(cfg.get("blockCount", 0)),
+		], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), Color(0.72, 0.78, 0.92))
+
+	# 快捷键提示
+	draw_string(font, Vector2(pos.x + card_w - _px(110.0), pos.y + _px(30.0)),
+		"[1] 选择", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)),
+		Color(0.55, 0.62, 0.85))
 ## 敌人（占位方块，按类型着色）
 func _draw_enemies() -> void:
 	var tile := _px(grid.tile_size_px)
@@ -339,6 +785,9 @@ func _refresh_debug_lines() -> void:
 		],
 		"核心 HP：%d / %d      漏怪结算次数：%d" % [
 			s.core_hp, s.core_hp_max, s.core_damage_events,
+		],
+		"AP：%d / %d（自然回复 %.0f/s）      已部署角色：%d      击杀：%d" % [
+			s.ap, s.ap_max, s.ap_regen_per_second, s.characters.size(), s.enemies_killed,
 		],
 		"出怪：已生成 %d / 计划 %d      场上存活：%d" % [
 			s.spawned_enemy_count(), s.planned_enemy_count(), s.enemies.size(),

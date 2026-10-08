@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-p0.2",
   "domain": "balance",
   "layout": {
     "_note": "V2.1.4 LOCKED 规则 / PROTOTYPE 参数：tileSizePx 与 laneSpacingPx 是原型视觉可调参数，不作为技能平衡值。",
@@ -14,13 +14,30 @@
     "boardReferenceWidthPx": 1152
   },
   "combat": {
-    "_note": "V2.1.4 D 章：战斗逻辑以格(tile)为无量纲单位；此处仅登记 Prototype 基线值。",
+    "_note": "V2.1.4 D 章：战斗逻辑以格(tile)为无量纲单位；此处承载战斗公共参数。",
     "startingAp": 10,
     "maxAp": 30,
     "apRegenPerSecond": 1,
     "coreHpDefault": 3,
+    "coreHpStage1_1": 5,
     "squadLimit": 6,
     "fieldDeployLimit": 5,
-    "_pending": "A2 相关其余参数、减益下限等依 V2.1.4 由 balance.json 承载，Alpha 阶段补齐。"
+    "damage": {
+      "_note": "V2.1.4 D-22：最终伤害 = 攻击 × 100 / (100 + 防御)。特殊伤害把目标防御按 40% 计入。最低伤害均为 1。内部保留浮点，扣 HP 时四舍五入为整数。",
+      "physicalDefenseFactor": 1.0,
+      "specialDefenseFactor": 0.4,
+      "minimumDamage": 1.0,
+      "rounding": "ROUND_HALF_UP"
+    },
+    "blocking": {
+      "_note": "V2.1.4 D-3A / D-10：只有 blockCount > 0 的角色能建立阻挡。敌人推进到阻挡者前方接触线且该单位仍有剩余阻挡名额时停止移动并攻击；名额已满的敌人继续前进。阻挡判定完全基于 tile，与 Sprite 尺寸无关。",
+      "contactLineTiles": 0.5,
+      "_contactLineTiles_note": "敌人中心与阻挡者所在格中心的接触距离（tile）。敌人沿路线自右向左移动，当其 logicalX 与阻挡者 column 之差 ≤ 该值时判定接触。"
+    },
+    "targeting": {
+      "_note": "V2.1.4 D-11：角色自动寻找攻击范围内目标，基础优先级为 ① 最接近防守核心的敌人 ② 当前正在阻挡的敌人 ③ 更早进入攻击范围的敌人。",
+      "priority": ["CLOSEST_TO_CORE", "CURRENTLY_BLOCKED", "EARLIEST_IN_RANGE"]
+    },
+    "_pending": "减益下限、攻速/CD 软上限等依 V2.1.4 由 balance.json 承载，Alpha 阶段补齐。"
   }
 }

@@ -16,12 +16,31 @@ var lane: int = BattleTypes.Lane.MIDDLE
 var logical_x: float = BattleGrid.SPAWN_X
 ## 移动速度（tile/s，来自 EnemyConfig.moveSpeed）
 var move_speed: float = 0.0
+## 生命值（P0.2 引入，来自 EnemyConfig.hp）
+var hp: int = 0
+var hp_max: int = 0
 ## 抵达核心造成的核心伤害（来自 EnemyConfig.coreDamage）
 var core_damage: int = 1
 ## 当前状态（P0.1 只经历 SPAWNING -> MOVING -> REACHED_CORE）
 var state: int = BattleTypes.EnemyState.SPAWNING
 ## 是否已结算过漏怪伤害（幂等保护：确保只扣一次）
 var core_damage_applied: bool = false
+
+## 当前阻挡自己的角色 instance_id（0 = 未被阻挡，P0.2 引入）
+var blocked_by_character_id: int = 0
+
+## 攻击冷却计时（秒；P0.2 引入）
+var attack_cooldown: float = 0.0
+
+## 攻击力 / 防御（P0.2 引入，来自 EnemyConfig）
+var attack: int = 0
+var defense: int = 0
+var attack_interval: float = 1.0
+var damage_type: int = CombatMath.DamageType.PHYSICAL
+
+## 累计受到/造成的伤害（调试与测试用）
+var total_damage_taken: int = 0
+var total_damage_dealt: int = 0
 
 
 ## 从 EnemyConfig 字典与出生参数构建。
@@ -35,11 +54,41 @@ static func from_config(config: Dictionary, lane: int, instance_id: int) -> Enem
 	e.core_damage = int(config.get("coreDamage", 0))
 	e.logical_x = BattleGrid.SPAWN_X
 	e.state = BattleTypes.EnemyState.MOVING
+	# P0.2：战斗数值
+	e.hp_max = int(config.get("hp", 0))
+	e.hp = e.hp_max
+	e.attack = int(config.get("attack", 0))
+	e.defense = int(config.get("defense", 0))
+	e.attack_interval = float(config.get("attackInterval", 1.0))
+	var dtype := str(config.get("damageType", "PHYSICAL"))
+	if dtype == "SPECIAL":
+		e.damage_type = CombatMath.DamageType.SPECIAL
 	return e
 
 
-## 是否还需要在战场上被处理（核心结算/移除之后为 false）
+## 受到伤害。返回实际扣减的 HP。
+## 注意：本方法**只扣 HP，不改变 state**。死亡状态由 StageRuntime._cleanup_dead()
+## 统一设置并计数，避免"先被标记死亡导致清理阶段判定失效、击杀数不增加"。
+func take_damage(amount: int) -> int:
+	if amount <= 0 or hp <= 0:
+		return 0
+	var applied := mini(amount, hp)
+	hp -= applied
+	total_damage_taken += applied
+	return applied
+
+
+## HP 是否已耗尽（死亡判定的唯一依据）
+func is_dead() -> bool:
+	return hp <= 0
+
+
+## 是否还需要在战场上被处理（核心结算/移除之后为 false）。
+## HP 耗尽即视为不活跃——即使 state 尚未更新为 DEAD（状态由 StageRuntime
+## 的清理阶段统一设置），这样可避免"已死敌人仍占用阻挡名额/被选为攻击目标"。
 func is_active() -> bool:
+	if hp <= 0:
+		return false
 	return state == BattleTypes.EnemyState.SPAWNING \
 		or state == BattleTypes.EnemyState.MOVING \
 		or state == BattleTypes.EnemyState.BLOCKED \
@@ -70,7 +119,11 @@ func to_debug_dict() -> Dictionary:
 		"lane": lane,
 		"logicalX": snappedf(logical_x, 0.0001),
 		"speed": move_speed,
+		"hp": hp,
+		"hpMax": hp_max,
+		"attack": attack,
 		"coreDamage": core_damage,
 		"state": BattleTypes.enemy_state_name(state),
 		"damageApplied": core_damage_applied,
+		"blockedBy": blocked_by_character_id,
 	}
