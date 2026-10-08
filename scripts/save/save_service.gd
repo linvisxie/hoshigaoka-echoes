@@ -50,7 +50,7 @@ func _ensure_dirs() -> void:
 func _register_migrations() -> void:
 	# 示例（未来启用）：
 	# _migrations[1] = func(save: Dictionary) -> Dictionary:
-	#     save["schemaVersion"] = 2
+	#     save["schema_version"] = 2
 	#     return save
 	pass
 
@@ -58,8 +58,8 @@ func _register_migrations() -> void:
 ## 构建一份默认存档（L5 SaveGame 结构）。
 func build_default_save() -> Dictionary:
 	return {
-		"schemaVersion": CURRENT_SCHEMA_VERSION,
-		"gameVersion": App.APP_VERSION,
+		"schema_version": CURRENT_SCHEMA_VERSION,
+		"game_version": App.APP_VERSION,
 		"profile": {
 			"playerName": "",
 			"createdAt": Time.get_datetime_string_from_system(true),
@@ -114,7 +114,7 @@ func load_game() -> bool:
 		GameLog.warn(TAG, "主存档校验/迁移失败：%s，尝试从 backup 恢复" % result.get("reason", ""))
 		return _load_backup()
 	_current = save
-	GameLog.info(TAG, "存档加载成功（schema %d）" % int(save.get("schemaVersion", 0)))
+	GameLog.info(TAG, "存档加载成功（schema %d）" % int(save.get("schema_version", 0)))
 	return true
 
 
@@ -129,8 +129,8 @@ func new_game(player_name: String = "") -> bool:
 ## 事务式提交存档：先 backup 现有存档，再写主存档。
 ## 避免"资源扣了但结果没保存"（L6）。
 func commit(save: Dictionary) -> bool:
-	save["schemaVersion"] = CURRENT_SCHEMA_VERSION
-	save["gameVersion"] = App.APP_VERSION
+	save["schema_version"] = CURRENT_SCHEMA_VERSION
+	save["game_version"] = App.APP_VERSION
 	# 1) 先把上一份已验证存档转为 backup
 	if FileAccess.file_exists(SAVE_PATH):
 		var prev: Variant = _read_json(SAVE_PATH)
@@ -168,23 +168,23 @@ func _validate_and_migrate(save: Dictionary) -> Dictionary:
 	var v := _validate(save)
 	if not v.get("ok", false):
 		return v
-	var version := int(save.get("schemaVersion", 0))
+	var version := int(save.get("schema_version", 0))
 	while version < CURRENT_SCHEMA_VERSION:
 		if not _migrations.has(version):
 			return {"ok": false, "reason": "缺少 %d -> %d 的迁移" % [version, version + 1]}
 		var migrate: Callable = _migrations[version]
 		save = migrate.call(save)
-		version = int(save.get("schemaVersion", 0))
+		version = int(save.get("schema_version", 0))
 	return _validate(save)
 
 
 ## schema 校验。
 func _validate(save: Dictionary) -> Dictionary:
-	if not save.has("schemaVersion"):
+	if not save.has("schema_version"):
 		return {"ok": false, "reason": "缺少 schemaVersion"}
 	if not save.has("flow_state"):
 		return {"ok": false, "reason": "缺少 flow_state"}
-	var version := int(save.get("schemaVersion", 0))
+	var version := int(save.get("schema_version", 0))
 	if version > CURRENT_SCHEMA_VERSION:
 		return {"ok": false, "reason": "存档来自更新的 schema（%d）" % version}
 	if version < 1:

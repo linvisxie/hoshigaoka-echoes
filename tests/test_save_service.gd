@@ -23,8 +23,8 @@ func after_each() -> void:
 
 func test_default_save_has_schema_version() -> void:
 	var save: Dictionary = _svc.build_default_save()
-	assert_true(save.has("schemaVersion"), "默认存档应含 schemaVersion")
-	assert_eq(int(save["schemaVersion"]), 1, "Phase 0 schemaVersion 应为 1")
+	assert_true(save.has("schema_version"), "默认存档应含 schema_version")
+	assert_eq(int(save["schema_version"]), 1, "Phase 0 schema_version 应为 1")
 
 
 func test_default_save_has_flow_state_contract() -> void:
@@ -41,21 +41,21 @@ func test_default_save_has_flow_state_contract() -> void:
 
 func test_validate_rejects_missing_schema_version() -> void:
 	var result: Dictionary = _svc._validate({"flow_state": {}})
-	assert_false(result["ok"], "缺少 schemaVersion 应校验失败")
+	assert_false(result["ok"], "缺少 schema_version 应校验失败")
 
 
 func test_validate_rejects_missing_flow_state() -> void:
-	var result: Dictionary = _svc._validate({"schemaVersion": 1})
+	var result: Dictionary = _svc._validate({"schema_version": 1})
 	assert_false(result["ok"], "缺少 flow_state 应校验失败")
 
 
 func test_validate_rejects_future_schema() -> void:
-	var result: Dictionary = _svc._validate({"schemaVersion": 999, "flow_state": {}})
+	var result: Dictionary = _svc._validate({"schema_version": 999, "flow_state": {}})
 	assert_false(result["ok"], "来自更高 schema 的存档应校验失败")
 
 
 func test_validate_accepts_current_schema() -> void:
-	var result: Dictionary = _svc._validate({"schemaVersion": 1, "flow_state": {}})
+	var result: Dictionary = _svc._validate({"schema_version": 1, "flow_state": {}})
 	assert_true(result["ok"], "当前 schema 的合法存档应通过校验")
 
 

@@ -1,7 +1,10 @@
 ; Engine configuration file.
 ; 《星丘残响》Hoshigaoka Echoes — Phase 0 工程骨架
-; 严格遵循 V2.1.4 CLEAN MASTER（L1 锁定技术栈 / L2 目录 / L4 Autoload / L6 存档 / L9 导出）
+; 严格遵循 V2.1.4 CLEAN MASTER（L1 技术栈 / L2 目录 / L4 Autoload / L6 存档 / L7 输入 / L9 导出 / J1 显示）
 ; 引擎：Godot 4.7.2 Stable ｜ 渲染：Compatibility / OpenGL ｜ 2D 像素项目
+;
+; 注意：Godot 编辑器保存本项目时会剥离注释、并省略等于默认值的项。
+; 因此本文件中的注释与显式默认值仅作"规格声明"用途；语义以引擎实际加载结果为准。
 
 config_version=5
 
@@ -13,7 +16,6 @@ config/version="0.1.0-phase0"
 run/main_scene="res://scenes/bootstrap/bootstrap.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
-; 单玩家档案，无需多开
 config/quit_on_go_back=true
 ; L6：开启自定义用户目录，正式数据目录 %APPDATA%\HoshigaokaEchoes
 config/use_custom_user_dir=true
@@ -22,7 +24,7 @@ config/custom_user_dir_name="HoshigaokaEchoes"
 [autoload]
 
 ; L4：App / DataRegistry / SaveService / AudioService / SceneRouter
-; 说明：Logger 以类（class_name）形式提供，不占用 Autoload 槽位；
+; GameLog 以 class_name 提供，不占用 Autoload 槽位（且须避开引擎内建 Logger 类名）；
 ; BattleSession / StageRuntime / StoryRunner 按 L4 要求场景实例化，不进全局单例。
 App="*res://scripts/app/app.gd"
 DataRegistry="*res://scripts/data/data_registry.gd"
@@ -40,19 +42,80 @@ window/size/window_height_override=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[input]
+
+; L7：业务层只查询 Action，不直接判断 KeyCode；键位来自 V2.1.4 D-补充与 J2 操作表。
+; 本段由 res://tools/setup_input_map.gd 通过 ProjectSettings API 写入后保留。
+select_slot_1={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":49,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+select_slot_2={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":50,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+select_slot_3={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":51,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+select_slot_4={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":52,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+select_slot_5={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":53,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+select_slot_6={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":54,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+confirm_action={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194309,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+, Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":32,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+cancel_action={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194305,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+pause_game={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":32,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+unit_skill={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":70,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+unit_retreat={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":16,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":82,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+
+[physics]
+
+; L11：默认目标 60 FPS（等于引擎默认值，此处显式声明规格意图）
+common/physics_ticks_per_second=60
 
 [rendering]
 
 ; 2D 像素项目：纹理默认最近邻过滤（J9.7）
+textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-textures/canvas_textures/default_texture_filter=0
 anti_aliasing/quality/msaa_2d=0
 environment/defaults/default_clear_color=Color(0.055, 0.063, 0.098, 1)
-
-[physics]
-
-common/physics_ticks_per_second=60
 
 [gui]
 
