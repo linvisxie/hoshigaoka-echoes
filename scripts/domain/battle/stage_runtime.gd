@@ -1,14 +1,18 @@
 ## StageRuntime — 单场战斗的关卡运行时（V2.1.4 L4：场景实例化，不进全局单例）。
 ##
-## 职责（P0.1 + P0.2 范围）：
+## 职责（P0.1～P0.3 范围）：
 ##   P0.1：按 StageConfig.enemySpawnTimeline 生成敌人、固定逻辑步长推进移动、
 ##         核心 HP 与漏怪结算（同一敌人只结算一次）
 ##   P0.2：AP 系统（初始化/自然回复/上限/扣费）、角色部署（合法性/占格/唯一性/费用）、
 ##         阻挡系统（接触线/阻挡名额/释放）、双方攻击与伤害、死亡与失能
+##   P0.3：主动撤退与 AP 返还、再部署冷却与失能离场、Wave 调度、暂停冻结
 ##
 ## 严格不含任何渲染、输入或 UI；不含技能/天赋/局内强化（属后续阶段）。
 ##
 ## 逻辑步长固定为 LOGIC_STEP_SECONDS，因此渲染帧率与分辨率不会改变战斗结果。
+##
+## P0.3 计时器纪律：再部署冷却、Wave 计时、AP 回复、攻击间隔全部只在**逻辑步**内推进，
+## 因此暂停（paused）与胜负确定（running=false）都会让全部计时器停在同一状态。
 class_name StageRuntime
 extends RefCounted
 
@@ -17,6 +21,29 @@ const LOGIC_STEP_SECONDS: float = 1.0 / 60.0
 
 ## 单帧最多追赶的逻辑步数，防止长时间卡顿后一次性跑完整关
 const MAX_STEPS_PER_ADVANCE: int = 240
+
+## 撤退与再部署的默认参数（仅当权威配置缺失时兜底；正常路径一律读取配置）
+const DEFAULT_RETREAT_REFUND_RATE: float = 0.5
+const DEFAULT_REDEPLOY_SECONDS: float = 20.0
+
+## 敌人/角色离场原因（供测试与日志断言；表现层据此播放不同反馈）
+enum Removal {
+	KILLED = 0,        ## HP ≤ 0 被击败
+	REACHED_CORE = 1,  ## 抵达残响锚点并完成漏怪结算
+	RETREATED = 2,     ## 玩家主动撤退
+	INCAPACITATED = 3, ## 因 HP 耗尽而失能离场
+}
+
+## Wave 运行状态
+enum WaveStatus {
+	PENDING = 0,   ## 尚未开始
+	ACTIVE = 1,    ## 进行中（正在出怪或清场）
+	CLEARED = 2,   ## 已完成（计划敌人全部生成且全部离场）
+}
+
+const WAVE_PENDING := WaveStatus.PENDING
+const WAVE_ACTIVE := WaveStatus.ACTIVE
+const WAVE_CLEARED := WaveStatus.CLEARED
 
 var grid: BattleGrid
 var combat_math: CombatMath
@@ -36,15 +63,37 @@ var _ap_accumulator: float = 0.0
 var enemies: Array[EnemyRuntime] = []
 var characters: Array[CharacterRuntime] = []
 
+## 离场记录（击杀 / 漏怪 / 主动撤退 / 失能）。供测试与结算摘要使用。
+var removals: Array[Dictionary] = []
+
 ## 本关允许部署的角色 id（来自 StageConfig.availableCharacters）
 var available_characters: Array[String] = []
 
 ## 阻挡接触线（tile，来自 balance.json combat.blocking）
 var block_contact_line_tiles: float = 0.5
 
+## 暂停开关（V2.1.4 D-35：暂停后游戏逻辑、动画、CD 与敌人移动全部停止）。
+## 表现层只置位，不复制任何规则。
+var paused: bool = false
+
+## 战斗是否仍在推进。由 BattleSession 在胜负确定时置 false，
+## 从领域层保证「胜负确定后所有计时器停止推进」。
+var running: bool = true
+
+## 撤退退款配置（V2.1.4 D-9 / 表 24）
+var retreat_refund_rate: float = DEFAULT_RETREAT_REFUND_RATE
+var retreat_refund_on_incapacitated: float = 0.0
+## 再部署默认冷却（角色级 redeployTime 优先）
+var redeploy_default_seconds: float = DEFAULT_REDEPLOY_SECONDS
+
 ## 计划中的出怪条目（来自 StageConfig，禁止写死在代码）
 var _spawn_plan: Array[Dictionary] = []
 var _spawn_cursor: int = 0
+
+## Wave 元数据与运行状态
+var waves: Array[Dictionary] = []
+var _wave_states: Array[Dictionary] = []
+var _current_wave_index: int = 0
 
 ## 累计逻辑时间（秒）
 var elapsed_seconds: float = 0.0
@@ -57,6 +106,9 @@ var _next_character_instance_id: int = 1
 var _enemy_configs: Dictionary = {}
 var _character_configs: Dictionary = {}
 
+## 已部署角色的实例历史（含已离场者）。用于「撤退/死亡/重新部署不得复制实体」的断言。
+var character_instances: Array[CharacterRuntime] = []
+
 ## 构建或运行期的错误（空 = 无错）
 var _errors: Array[String] = []
 
@@ -67,6 +119,10 @@ var enemies_killed: int = 0
 var characters_lost: int = 0
 var deploy_success_count: int = 0
 var deploy_reject_count: int = 0
+var retreat_count: int = 0
+var retreat_refunded_ap_total: int = 0
+## 战斗时长上限（秒）。超过后不再生成敌人，避免「敌人被永久阻挡」导致对局永不结束。
+var _max_battle_seconds: float = 0.0
 
 
 ## 从 StageConfig 与配置表构建 StageRuntime。
@@ -103,7 +159,7 @@ static func from_config(
 		rt.core_hp = int(core_hp_raw)
 
 	# ---- AP（V2.1.4 D-7：开局 10 / 上限 30 / 自然恢复 1 每秒）----
-	# 设计说明：balance_combat 为空表示"本次运行未启用 AP 系统"（例如 P0.1 的
+	# 设计说明：balance_combat 为空表示本次运行未启用 AP 系统（例如 P0.1 的
 	# 移动/漏怪专项测试只关心战场推进）。此时 AP 保持 0 且不报错；
 	# 一旦提供了 balance.combat（正式战斗必然提供），则严格执行必填校验。
 	if balance_combat.is_empty():
@@ -150,6 +206,30 @@ static func from_config(
 	else:
 		rt._errors.append("balance.combat.blocking 缺少 contactLineTiles")
 
+	# ---- 撤退退款与再部署冷却（V2.1.4 D-9 / 表 24）----
+	var retreat_cfg: Dictionary = balance_combat.get("retreat", {})
+	if retreat_cfg.has("refundRate"):
+		var rate := float(retreat_cfg["refundRate"])
+		if rate < 0.0 or rate > 1.0:
+			rt._errors.append("balance.combat.retreat.refundRate 必须落在 0.0～1.0，实际 %s" % rate)
+		else:
+			rt.retreat_refund_rate = rate
+	elif not balance_combat.is_empty():
+		rt._errors.append("balance.combat.retreat 缺少 refundRate")
+	rt.retreat_refund_on_incapacitated = float(
+		retreat_cfg.get("refundOnIncapacitated", 0.0)
+	)
+
+	var redeploy_cfg: Dictionary = balance_combat.get("redeploy", {})
+	if redeploy_cfg.has("defaultSeconds"):
+		var secs := float(redeploy_cfg["defaultSeconds"])
+		if secs < 0.0:
+			rt._errors.append("balance.combat.redeploy.defaultSeconds 不能为负，实际 %s" % secs)
+		else:
+			rt.redeploy_default_seconds = secs
+	elif not balance_combat.is_empty():
+		rt._errors.append("balance.combat.redeploy 缺少 defaultSeconds")
+
 	# ---- 可部署角色列表 ----
 	if stage_config.has("availableCharacters"):
 		var ac: Variant = stage_config["availableCharacters"]
@@ -158,9 +238,15 @@ static func from_config(
 				rt.available_characters.append(str(cid))
 		else:
 			rt._errors.append("availableCharacters 必须是数组")
+	else:
+		rt._errors.append("StageConfig 缺少 availableCharacters")
 
-	# ---- 出怪时间线 ----
+	# ---- 出怪时间线（唯一数据源）----
 	rt._spawn_plan = rt._validate_spawn_timeline(stage_config, enemy_table)
+	rt._max_battle_seconds = rt._compute_max_battle_seconds()
+
+	# ---- Wave 元数据与运行状态 ----
+	rt._build_waves(stage_config)
 	return rt
 
 
@@ -221,7 +307,18 @@ func _validate_spawn_timeline(
 			)
 			continue
 
-		out.append({"time": t, "lane": lane, "enemy": enemy_id, "index": i})
+		# wave 为可选字段：缺省时归入第 1 波，保持旧配置可用。
+		var wave_no := 0
+		if e.has("wave"):
+			wave_no = int(e["wave"])
+			if wave_no < 1:
+				_errors.append("enemySpawnTimeline[%d].wave 必须 ≥ 1，实际 %d" % [i, wave_no])
+				continue
+
+		out.append({
+			"time": t, "lane": lane, "enemy": enemy_id,
+			"index": i, "wave": wave_no,
+		})
 
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if not is_equal_approx(float(a["time"]), float(b["time"])):
@@ -229,6 +326,139 @@ func _validate_spawn_timeline(
 		return int(a["index"]) < int(b["index"])
 	)
 	return out
+
+
+## 战斗时长上限：最后一个计划出怪时间 + 敌人从入口走到核心所需时间 + 余量。
+## 超过后不再生成敌人，保证「敌人被永久阻挡」时对局仍能收敛到胜负。
+func _compute_max_battle_seconds() -> float:
+	if _spawn_plan.is_empty():
+		return 0.0
+	var last_time := 0.0
+	for e: Dictionary in _spawn_plan:
+		last_time = maxf(last_time, float(e["time"]))
+	return last_time + 40.0
+
+
+## 构建 Wave 元数据与运行状态。
+##
+## 数据单一来源纪律（V2.1.4 B6 + 本轮要求）：
+##   enemySpawnTimeline 是**出怪时间/路线/敌人种类的唯一数据源**；
+##   StageConfig.waves 只承载波次**元数据**（编号、显示名、完成条件），
+##   不得重复保存敌人安排。两者通过 timeline 条目的 wave 字段关联。
+func _build_waves(stage_config: Dictionary) -> void:
+	waves.clear()
+	_wave_states.clear()
+	_current_wave_index = 0
+
+	# 1) 元数据：优先取配置，缺失时自动推导
+	var meta_by_number := {}
+	var ordered_numbers: Array[int] = []
+	if stage_config.has("waves"):
+		var raw: Variant = stage_config["waves"]
+		if typeof(raw) != TYPE_ARRAY:
+			_errors.append("StageConfig.waves 必须是数组")
+		else:
+			for i: int in range((raw as Array).size()):
+				var wv: Variant = (raw as Array)[i]
+				if typeof(wv) != TYPE_DICTIONARY:
+					_errors.append("waves[%d] 必须是对象" % i)
+					continue
+				var w: Dictionary = wv
+				var num := int(w.get("number", 0))
+				if num < 1:
+					_errors.append("waves[%d].number 必须 ≥ 1" % i)
+					continue
+				if meta_by_number.has(num):
+					_errors.append("waves 出现重复编号 %d" % num)
+					continue
+				var cond := str(w.get("clearCondition", "ALL_ENEMIES_DEFEATED"))
+				if cond != "ALL_ENEMIES_DEFEATED":
+					_errors.append(
+						"waves[%d].clearCondition 暂只支持 ALL_ENEMIES_DEFEATED，实际 '%s'"
+						% [i, cond]
+					)
+				meta_by_number[num] = {
+					"number": num,
+					"label": str(w.get("label", "Wave %d" % num)),
+					"clearCondition": cond,
+				}
+				ordered_numbers.append(num)
+
+	# 2) 依据 timeline 的实际引用决定真实波次集合（timeline 是唯一出怪来源）
+	var referenced: Array[int] = []
+	var counts := {}
+	var last_time := {}
+	var lanes_by_wave := {}
+	for e: Dictionary in _spawn_plan:
+		var n := int(e["wave"])
+		if n <= 0:
+			# 未标注 wave 的条目归入第 1 波，保证旧配置向后兼容
+			n = 1
+		if not referenced.has(n):
+			referenced.append(n)
+		counts[n] = int(counts.get(n, 0)) + 1
+		last_time[n] = maxf(float(last_time.get(n, 0.0)), float(e["time"]))
+		var lanes: Array = lanes_by_wave.get(n, [])
+		var lane := int(e["lane"])
+		if not lanes.has(lane):
+			lanes.append(lane)
+		lanes_by_wave[n] = lanes
+	referenced.sort()
+
+	# 配置声明了波次却没有任何出怪 → 数据自相矛盾，必须报错而不是静默通过
+	if not meta_by_number.is_empty():
+		for n: int in ordered_numbers:
+			if not referenced.has(n):
+				_errors.append(
+					"waves 声明了第 %d 波，但 enemySpawnTimeline 中没有任何敌人归属该波" % n
+				)
+		# 出怪引用了未声明的波次 → 同样报错，避免出现「影子波次」
+		for n: int in referenced:
+			if not meta_by_number.has(n):
+				_errors.append("enemySpawnTimeline 引用了未在 waves 中声明的第 %d 波" % n)
+
+	for idx: int in range(referenced.size()):
+		var num: int = referenced[idx]
+		var meta: Dictionary = meta_by_number.get(num, {})
+		waves.append({
+			"number": num,
+			"label": str(meta.get("label", "Wave %d" % num)),
+			"clearCondition": str(meta.get("clearCondition", "ALL_ENEMIES_DEFEATED")),
+			"enemyCount": int(counts.get(num, 0)),
+			"lanes": lanes_by_wave.get(num, []),
+		})
+
+	if waves.is_empty():
+		# 没有任何出怪的关卡（例如调试用空关卡）不视为错误，但胜负门槛仍需可判定
+		_current_wave_index = 0
+		return
+
+	# 3) 运行状态
+	for i: int in range(waves.size()):
+		_wave_states.append({
+			"index": i,
+			"number": int(waves[i]["number"]),
+			"status": WAVE_PENDING,
+			"spawnIndexFirst": -1,
+			"spawnIndexLast": -1,
+			"spawned": 0,
+			"killed": 0,
+			"leaked": 0,
+		})
+	# 建立 timeline 游标区间（按规范化后的顺序，与 _spawn_cursor 一一对应）
+	for i: int in range(_spawn_plan.size()):
+		var n := int(_spawn_plan[i]["wave"])
+		if n <= 0:
+			n = 1
+		for wi: int in range(waves.size()):
+			if int(waves[wi]["number"]) == n:
+				if int(_wave_states[wi]["spawnIndexFirst"]) < 0:
+					_wave_states[wi]["spawnIndexFirst"] = i
+				_wave_states[wi]["spawnIndexLast"] = i
+				break
+
+	_wave_states[0]["status"] = WAVE_ACTIVE
+	_current_wave_index = 0
 
 
 func get_errors() -> Array[String]:
@@ -276,8 +506,8 @@ func can_afford(cost: int) -> bool:
 	return ap >= cost
 
 
-## 增加 AP（不超过上限）。返回实际增加量。
-## 预留 AP 加成扩展点（后续角色/装备可调用，P0.2 不实现具体加成）。
+## 增加 AP（不超过上限）。返回实际入账量。
+## 预留 AP 加成扩展点（后续角色/装备可调用）。
 func add_ap(amount: int) -> int:
 	if amount <= 0:
 		return 0
@@ -297,7 +527,7 @@ func try_spend_ap(cost: int) -> bool:
 
 
 # ============================================================
-#  角色部署（V2.1.4 D-6 / E 章 / 本轮要求）
+#  角色部署（V2.1.4 D-6 / E 章）
 # ============================================================
 
 ## 部署被拒绝的原因（用于 UI 与测试断言）
@@ -309,6 +539,7 @@ enum DeployReject {
 	CHARACTER_ALREADY_DEPLOYED = 4,
 	INSUFFICIENT_AP = 5,
 	BATTLE_FINISHED = 6,
+	REDEPLOY_COOLDOWN = 7,
 }
 
 ## 部署请求结果
@@ -318,6 +549,8 @@ class DeployResult:
 	var reason: int = DeployReject.OK
 	var character: CharacterRuntime = null
 	var cost: int = 0
+	## 被拒时若与再部署冷却有关，携带剩余秒数（供 UI 显示倒计时）
+	var cooldown_remaining: float = 0.0
 
 	func reason_text() -> String:
 		match reason:
@@ -335,6 +568,8 @@ class DeployResult:
 				return "AP 不足"
 			DeployReject.BATTLE_FINISHED:
 				return "战斗已结束"
+			DeployReject.REDEPLOY_COOLDOWN:
+				return "再部署冷却中（剩余 %.1f 秒）" % cooldown_remaining
 			_:
 				return "未知原因(%d)" % reason
 
@@ -344,6 +579,10 @@ class DeployResult:
 func query_deploy(character_id: String, column: int, lane: int) -> DeployResult:
 	var r := DeployResult.new()
 	r.character = null
+
+	if not running:
+		r.reason = DeployReject.BATTLE_FINISHED
+		return r
 
 	if not BattleTypes.is_valid_column(column) or not BattleTypes.is_valid_lane(lane):
 		r.reason = DeployReject.INVALID_CELL
@@ -355,6 +594,14 @@ func query_deploy(character_id: String, column: int, lane: int) -> DeployResult:
 
 	if not _character_configs.has(character_id):
 		r.reason = DeployReject.CHARACTER_NOT_AVAILABLE
+		return r
+
+	# 再部署冷却优先于占用/AP 判定：冷却期间角色卡必须显示剩余时间（V2.1.4 J 章）
+	var cooldown := get_redeploy_remaining(character_id)
+	if cooldown > 0.0:
+		r.reason = DeployReject.REDEPLOY_COOLDOWN
+		r.cooldown_remaining = cooldown
+		r.cost = _deploy_cost(character_id)
 		return r
 
 	if get_character_by_id(character_id) != null:
@@ -395,9 +642,13 @@ func deploy_character(character_id: String, column: int, lane: int) -> DeployRes
 		deploy_reject_count += 1
 		return r
 
+	# 重新部署一律创建**全新的运行时实例**（HP 满、攻击冷却就绪）；
+	# 旧实例留在 character_instances 里作为离场历史，不再出现在 characters 中。
 	var inst := CharacterRuntime.from_config(cfg, column, lane, _next_character_instance_id)
 	_next_character_instance_id += 1
+	inst.redeploy_time = _redeploy_seconds(character_id)
 	characters.append(inst)
+	character_instances.append(inst)
 	r.character = inst
 	deploy_success_count += 1
 	GameLog.info("StageRuntime", "部署 %s 到 (col%d, lane%d)，费用 %d AP，剩余 %d AP"
@@ -413,12 +664,331 @@ func get_character_by_id(character_id: String) -> CharacterRuntime:
 	return null
 
 
+## 取指定 id 最近一次生成的实例（含已离场者；从未部署返回 null）。
+## 再部署冷却即挂在该实例上。
+func get_character_instance(character_id: String) -> CharacterRuntime:
+	for i: int in range(character_instances.size() - 1, -1, -1):
+		if character_instances[i].character_id == character_id:
+			return character_instances[i]
+	return null
+
+
 ## 取某格上的角色（空返回 null）
 func get_character_at(column: int, lane: int) -> CharacterRuntime:
 	for c: CharacterRuntime in characters:
 		if c.column == column and c.lane == lane:
 			return c
 	return null
+
+
+## 某角色当前的再部署剩余秒数（0 = 可部署）
+func get_redeploy_remaining(character_id: String) -> float:
+	var inst := get_character_instance(character_id)
+	if inst == null:
+		return 0.0
+	# 仍在场上（未离场）时冷却无意义
+	if get_character_by_id(character_id) != null:
+		return 0.0
+	return maxf(0.0, inst.redeploy_cooldown_remaining)
+
+
+## 该角色是否处于再部署冷却
+func is_redeploy_cooling(character_id: String) -> bool:
+	return get_redeploy_remaining(character_id) > 0.0
+
+
+func _deploy_cost(character_id: String) -> int:
+	if not _character_configs.has(character_id):
+		return 0
+	return int((_character_configs[character_id] as Dictionary).get("deployCost", 0))
+
+
+## 角色级再部署时长（characters.json 的 redeployTime）；缺省回落到 balance 默认值。
+func _redeploy_seconds(character_id: String) -> float:
+	if _character_configs.has(character_id):
+		var cfg: Dictionary = _character_configs[character_id]
+		if cfg.has("redeployTime"):
+			var v := float(cfg["redeployTime"])
+			if v >= 0.0:
+				return v
+	return redeploy_default_seconds
+
+
+# ============================================================
+#  主动撤退（V2.1.4 D-9 / 表 24）
+# ============================================================
+
+## 撤退被拒绝的原因
+enum RetreatReject {
+	OK = 0,
+	CHARACTER_NOT_DEPLOYED = 1,
+	CHARACTER_INCAPACITATED = 2,
+	BATTLE_FINISHED = 3,
+}
+
+class RetreatResult:
+	extends RefCounted
+	var ok: bool = false
+	var reason: int = RetreatReject.OK
+	var character_id: String = ""
+	## 按比例算出的应返还额度（未受 AP 上限截断）
+	var refund: int = 0
+	## 实际入账的 AP（受 ap_max 截断）
+	var refund_granted: int = 0
+	## 撤退后该角色剩余的再部署冷却（秒）
+	var cooldown: float = 0.0
+	## 本次撤退解除的阻挡关系数量
+	var released_blocks: int = 0
+
+	func reason_text() -> String:
+		match reason:
+			RetreatReject.OK:
+				return "已撤退"
+			RetreatReject.CHARACTER_NOT_DEPLOYED:
+				return "该角色不在场上"
+			RetreatReject.CHARACTER_INCAPACITATED:
+				return "该角色已无法战斗"
+			RetreatReject.BATTLE_FINISHED:
+				return "战斗已结束"
+			_:
+				return "未知原因(%d)" % reason
+
+
+## 计算某角色的撤退返还 AP（V2.1.4 表 24：部署费用的 50%）。
+## 比例来自 balance.combat.retreat.refundRate，不写死在代码里，
+## 以便后续角色天赋 / 局内强化「快速换防」按来源覆写。
+## 返回值已按 FLOOR 取整，保证不会超过「费用 × 比例」这一规格上限。
+func compute_retreat_refund(deploy_cost: int, rate: float = -1.0) -> int:
+	var effective := retreat_refund_rate if rate < 0.0 else rate
+	if deploy_cost <= 0 or effective <= 0.0:
+		return 0
+	var raw := float(deploy_cost) * effective
+	var floored := int(floor(raw + 0.000001))
+	return clampi(floored, 0, deploy_cost)
+
+
+## 主动撤退：角色离场、原格立即释放、阻挡关系解除、按比例返还 AP，
+## 并进入该角色自身的再部署冷却。
+##
+## 幂等纪律：角色一旦离场就不再出现在 characters 中，
+## 因此重复调用只会得到 CHARACTER_NOT_DEPLOYED，不可能二次返还 AP。
+func withdraw_character(instance_id: int) -> RetreatResult:
+	var r := RetreatResult.new()
+	if not running:
+		r.reason = RetreatReject.BATTLE_FINISHED
+		return r
+
+	var char := get_character(instance_id)
+	if char == null:
+		r.reason = RetreatReject.CHARACTER_NOT_DEPLOYED
+		return r
+
+	r.character_id = char.character_id
+
+	# HP 耗尽的角色不归主动撤退管辖：走 _cleanup_dead 的失能路径（表 24「死亡返还 0 AP」）
+	if char.is_incapacitated():
+		r.reason = RetreatReject.CHARACTER_INCAPACITATED
+		return r
+
+	var cost := _deploy_cost(char.character_id)
+	r.refund = compute_retreat_refund(cost)
+	r.refund_granted = add_ap(r.refund)
+
+	# ① 解除该角色挂接的全部阻挡关系，被阻挡的敌人立即恢复行动
+	for e: EnemyRuntime in enemies:
+		if e.blocked_by_character_id == char.instance_id:
+			e.blocked_by_character_id = 0
+			e.state = BattleTypes.EnemyState.MOVING
+			e.attack_cooldown = 0.0
+			r.released_blocks += 1
+	char.blocking_enemy_ids.clear()
+
+	# ② 离场（原格随 get_character_at 立即变为空）
+	_remove_character_instance(char.instance_id)
+	_append_removal(Removal.RETREATED, char.character_id, char.instance_id, char.column, char.lane)
+
+	# ③ 进入再部署冷却
+	char.redeploy_cooldown_remaining = char.redeploy_time
+	r.cooldown = char.redeploy_cooldown_remaining
+
+	retreat_count += 1
+	retreat_refunded_ap_total += r.refund_granted
+	r.ok = true
+	r.reason = RetreatReject.OK
+
+	GameLog.info("StageRuntime",
+		"主动撤退 %s：解除阻挡 %d 名，返还 %d AP（费用 %d × %.0f%%，实际入账 %d），剩余 %d/%d AP，再部署冷却 %.1f 秒"
+		% [char.display_name, r.released_blocks, r.refund, cost,
+			retreat_refund_rate * 100.0, r.refund_granted, ap, ap_max,
+			char.redeploy_cooldown_remaining])
+	return r
+
+
+## 便捷重载：按角色 id 主动撤退该角色当前在场的实例。
+func withdraw_character_by_id(character_id: String) -> RetreatResult:
+	var inst := get_character_by_id(character_id)
+	if inst == null:
+		var r := RetreatResult.new()
+		r.character_id = character_id
+		r.reason = RetreatReject.CHARACTER_NOT_DEPLOYED
+		return r
+	return withdraw_character(inst.instance_id)
+
+
+## 从场上移除角色实例（保留在 character_instances 历史中）。
+func _remove_character_instance(instance_id: int) -> bool:
+	for i: int in range(characters.size()):
+		if characters[i].instance_id == instance_id:
+			characters.remove_at(i)
+			return true
+	return false
+
+
+func _append_removal(kind: int, character_id: String, instance_id: int, column: int, lane: int) -> void:
+	removals.append({
+		"kind": kind,
+		"entity": "character",
+		"characterId": character_id,
+		"entityId": instance_id,
+		"column": column,
+		"lane": lane,
+		"at": snappedf(elapsed_seconds, 0.001),
+	})
+
+
+## 某类离场事件的发生次数
+func removal_count(kind: int) -> int:
+	var n := 0
+	for r: Dictionary in removals:
+		if int(r["kind"]) == kind:
+			n += 1
+	return n
+
+
+# ============================================================
+#  Wave 调度（V2.1.4 D-33 / D-34 / D-40）
+# ============================================================
+
+## 总波数
+func total_wave_count() -> int:
+	return waves.size()
+
+
+## 当前波次序号（1 起；无波次时返回 0）。
+## 全部波次已完成时返回**最后一波的编号**，而不是 0——
+## 否则结算摘要与 HUD 会显示成「Wave 0/3」这种自相矛盾的读数。
+func current_wave_number() -> int:
+	if waves.is_empty():
+		return 0
+	if _current_wave_index >= waves.size():
+		return int(waves[waves.size() - 1]["number"])
+	if _current_wave_index < 0:
+		return 0
+	return int(waves[_current_wave_index]["number"])
+
+
+## 当前波次的运行状态字典（无波次时返回空字典）
+func current_wave_state() -> Dictionary:
+	if _current_wave_index < 0 or _current_wave_index >= _wave_states.size():
+		return {}
+	return _wave_states[_current_wave_index]
+
+
+## 当前波次尚未生成的数量
+func current_wave_remaining() -> int:
+	if _current_wave_index < 0 or _current_wave_index >= waves.size():
+		return 0
+	var first := int(_wave_states[_current_wave_index]["spawnIndexFirst"])
+	var last := int(_wave_states[_current_wave_index]["spawnIndexLast"])
+	if first < 0:
+		return 0
+	var total := last - first + 1
+	var spawned_in_wave := clampi(_spawn_cursor - first, 0, total)
+	return total - spawned_in_wave
+
+
+## 第 index 波（0 起）的运行状态
+func wave_state_at(index: int) -> Dictionary:
+	if index < 0 or index >= _wave_states.size():
+		return {}
+	return _wave_states[index]
+
+
+## 全部波次是否已完成（当前波索引已越过最后一波）
+func all_waves_cleared() -> bool:
+	if waves.is_empty():
+		return all_planned_spawned() and not has_living_enemies()
+	return _current_wave_index >= waves.size()
+
+
+## 下一波预告（供 HUD 显示「下一波」），无下一波时返回空字典
+func next_wave_preview() -> Dictionary:
+	var nxt := _current_wave_index + 1
+	if nxt < 0 or nxt >= waves.size():
+		return {}
+	var w: Dictionary = waves[nxt]
+	return {
+		"number": int(w["number"]),
+		"label": str(w["label"]),
+		"enemyCount": int(w["enemyCount"]),
+		"lanes": (w["lanes"] as Array).duplicate(),
+	}
+
+
+## 关闭当前波次并开启下一波。
+func _complete_current_wave() -> void:
+	if _current_wave_index < 0 or _current_wave_index >= _wave_states.size():
+		return
+	if int(_wave_states[_current_wave_index]["status"]) == WAVE_CLEARED:
+		return
+	_wave_states[_current_wave_index]["status"] = WAVE_CLEARED
+	GameLog.info("StageRuntime", "Wave %d 完成（生成 %d，击杀 %d，漏怪 %d）"
+		% [
+			int(waves[_current_wave_index]["number"]),
+			int(_wave_states[_current_wave_index]["spawned"]),
+			int(_wave_states[_current_wave_index]["killed"]),
+			int(_wave_states[_current_wave_index]["leaked"]),
+		])
+	_current_wave_index += 1
+	if _current_wave_index < _wave_states.size():
+		_wave_states[_current_wave_index]["status"] = WAVE_ACTIVE
+		GameLog.info("StageRuntime", "Wave %d 开始（%d 名敌人，路线 %s）"
+			% [
+				int(waves[_current_wave_index]["number"]),
+				int(waves[_current_wave_index]["enemyCount"]),
+				str(waves[_current_wave_index]["lanes"]),
+			])
+
+
+## 每逻辑步的 Wave 完成判定。
+## 完成条件（ALL_ENEMIES_DEFEATED）：本波计划敌人已全部生成，
+## 且本波敌人已全部「击杀 + 漏怪」结算完毕。
+func _update_wave_progress() -> void:
+	if _current_wave_index < 0 or _current_wave_index >= _wave_states.size():
+		return
+	var st: Dictionary = _wave_states[_current_wave_index]
+	if int(st["status"]) != WAVE_ACTIVE:
+		return
+	# 让位给「核心 HP 耗尽立即失败」：核心归零后不得再把波次判为完成，
+	# 也不得开启下一波（由 BattleSession 负责判定失败）。
+	if core_hp <= 0:
+		return
+	var last := int(st["spawnIndexLast"])
+	if last < 0:
+		# 本波没有任何敌人（数据异常已在构建期报错）→ 直接关闭
+		_complete_current_wave()
+		return
+	# 完成条件：本波计划敌人全部已生成（按计数判定，而不是用生成游标）——
+	# 这样「本波已生成完且已全部离场」必然隐含「后续波次的敌人尚未生成」，
+	# 不会出现跨波提前完成。
+	var total := int(waves[_current_wave_index]["enemyCount"])
+	if int(st["spawned"]) < total:
+		# 本波仍有敌人未生成
+		return
+	if int(st["killed"]) + int(st["leaked"]) < total:
+		# 本波仍有敌人留在场上（未被击杀也未漏怪）
+		return
+	_complete_current_wave()
 
 
 # ============================================================
@@ -431,10 +1001,17 @@ func advance(delta_seconds: float) -> Array[EnemyRuntime]:
 	var reached: Array[EnemyRuntime] = []
 	if delta_seconds <= 0.0 or not is_valid():
 		return reached
+	# 暂停或胜负已定时不推进任何计时器（V2.1.4 D-35 / D-40）
+	if paused or not running:
+		return reached
 
 	_accumulator += delta_seconds
 	var steps := 0
 	while _accumulator >= LOGIC_STEP_SECONDS and steps < MAX_STEPS_PER_ADVANCE:
+		# 核心 HP 耗尽 → 立即停止全部推进（V2.1.4 D-41），不得在同一帧的后续逻辑步继续出怪
+		if core_hp <= 0:
+			_accumulator = 0.0
+			break
 		_accumulator -= LOGIC_STEP_SECONDS
 		steps += 1
 		elapsed_seconds += LOGIC_STEP_SECONDS
@@ -445,16 +1022,22 @@ func advance(delta_seconds: float) -> Array[EnemyRuntime]:
 ## 单个逻辑步的完整推进顺序（确定性）：
 ##   1. AP 自然回复
 ##   2. 生成到期敌人
-##   3. 释放无效阻挡关系（阻挡者失能/敌人已亡）
-##   4. 清理死亡实体（HP≤0 → DEAD，释放阻挡名额）
-##   5. 敌人移动（仅 MOVING）
-##   6. 建立阻挡（接触线 + 剩余名额）
-##   7. 判定抵达核心
-##   8. 双方攻击结算
+##   3. 推进再部署冷却
+##   4. 释放无效阻挡关系（阻挡者离场/失能，敌人已亡）
+##   5. 清理死亡实体（HP≤0 → DEAD，释放阻挡名额）+ 失能角色离场
+##   6. 敌人移动（仅 MOVING）
+##   7. 建立阻挡（接触线 + 剩余名额）
+##   8. 判定抵达核心
+##   9. 双方攻击结算
+##  10. Wave 完成判定
 ##
-## 注意：清理放在"建立阻挡"之前，保证上一逻辑步内被击杀的敌人
+## 注意：清理放在「建立阻挡」之前，保证上一逻辑步内被击杀的敌人
 ## 立即释放阻挡名额，新敌人在同一逻辑步就能接上（V2.1.4 D-10）。
 func _step(step: float, reached: Array[EnemyRuntime]) -> void:
+	# 0. 核心已耗尽：本逻辑步不再推进任何内容（V2.1.4 D-41「立即失败」）
+	if core_hp <= 0:
+		return
+
 	# 1. AP 自然回复（按步长精确累积，不按帧）
 	if ap_regen_per_second > 0.0 and ap < ap_max:
 		_ap_accumulator += ap_regen_per_second * step
@@ -467,28 +1050,52 @@ func _step(step: float, reached: Array[EnemyRuntime]) -> void:
 	# 2. 生成
 	_spawn_due()
 
-	# 3. 释放无效阻挡
+	# 3. 再部署冷却（与渲染帧率完全解耦，只在逻辑步内递减）
+	_tick_redeploy_cooldowns(step)
+
+	# 4. 释放无效阻挡
 	_release_invalid_blocks()
 
-	# 4. 清理死亡实体（提前于建立阻挡，及时释放名额）
+	# 5. 清理死亡实体（提前于建立阻挡，及时释放名额）
 	_cleanup_dead()
 
-	# 5. 移动
+	# 6. 移动
 	_move_enemies(step)
 
-	# 6. 建立阻挡
+	# 7. 建立阻挡
 	_establish_blocks()
 
-	# 7. 抵达核心（仅未被阻挡的敌人可能到达）
+	# 8. 抵达核心（仅未被阻挡的敌人可能到达）
+	#    在领域层内**立即结算**核心伤害，而不是留给上层在同一帧末尾补算：
+	#    这样 core_hp 在「Wave 完成判定」之前就已经是真实值，
+	#    核心归零时本波不会被误判为完成，也不会误开启下一波。
 	for e: EnemyRuntime in enemies:
 		if e.state == BattleTypes.EnemyState.MOVING and e.has_reached_core():
 			e.state = BattleTypes.EnemyState.REACHED_CORE
 			reached_core_count += 1
+			_note_wave_leak(e)
 			reached.append(e)
+			apply_core_damage(e)
 
-	# 8. 攻击
+	# 9. 攻击
 	_resolve_character_attacks(step)
 	_resolve_enemy_attacks(step)
+
+	# 10. Wave 推进
+	_update_wave_progress()
+
+
+## 推进全部已离场实例的再部署冷却。
+func _tick_redeploy_cooldowns(step: float) -> void:
+	for c: CharacterRuntime in character_instances:
+		if c.redeploy_cooldown_remaining <= 0.0:
+			continue
+		# 仍在场上的实例不消耗冷却
+		if get_character(c.instance_id) != null:
+			continue
+		c.redeploy_cooldown_remaining = maxf(0.0, c.redeploy_cooldown_remaining - step)
+		if c.redeploy_cooldown_remaining <= 0.0:
+			GameLog.info("StageRuntime", "%s 的再部署冷却结束" % c.display_name)
 
 
 ## 生成所有到达时间的敌人。
@@ -497,6 +1104,10 @@ func _spawn_due() -> void:
 		var entry: Dictionary = _spawn_plan[_spawn_cursor]
 		if float(entry["time"]) > elapsed_seconds:
 			break
+		# 敌人被无限阻挡时也要保证对局收敛：超过战斗时长上限后不再生成
+		if _max_battle_seconds > 0.0 and elapsed_seconds > _max_battle_seconds:
+			GameLog.warn("StageRuntime", "已超过战斗时长上限 %.1fs，停止生成剩余敌人" % _max_battle_seconds)
+			return
 		var enemy_id: String = str(entry["enemy"])
 		var lane: int = int(entry["lane"])
 		var cfg: Dictionary = _enemy_configs[enemy_id]
@@ -504,8 +1115,43 @@ func _spawn_due() -> void:
 		_next_enemy_instance_id += 1
 		enemies.append(inst)
 		_spawn_cursor += 1
-		GameLog.debug("StageRuntime", "生成敌人 %s（lane=%d, t=%.2fs）"
-			% [enemy_id, lane, elapsed_seconds])
+		_note_wave_spawn(_spawn_cursor - 1)
+		GameLog.debug("StageRuntime", "生成敌人 %s（lane=%d, t=%.2fs, wave=%d）"
+			% [enemy_id, lane, elapsed_seconds, int(entry["wave"])])
+
+
+func _note_wave_spawn(spawn_index: int) -> void:
+	for st: Dictionary in _wave_states:
+		var first := int(st["spawnIndexFirst"])
+		var last := int(st["spawnIndexLast"])
+		if first >= 0 and spawn_index >= first and spawn_index <= last:
+			st["spawned"] = int(st["spawned"]) + 1
+			return
+
+
+func _note_wave_kill(enemy: EnemyRuntime) -> void:
+	for st: Dictionary in _wave_states:
+		if _enemy_in_wave(enemy, st):
+			st["killed"] = int(st["killed"]) + 1
+			return
+
+
+func _note_wave_leak(enemy: EnemyRuntime) -> void:
+	for st: Dictionary in _wave_states:
+		if _enemy_in_wave(enemy, st):
+			st["leaked"] = int(st["leaked"]) + 1
+			return
+
+
+## 敌人实例 id 与生成序号同序（_next_enemy_instance_id 从 1 起、逐条 +1），
+## 因此可以用 spawnIndex 区间精确归属波次。
+func _enemy_in_wave(enemy: EnemyRuntime, st: Dictionary) -> bool:
+	var first := int(st["spawnIndexFirst"])
+	var last := int(st["spawnIndexLast"])
+	if first < 0:
+		return false
+	var idx := enemy.instance_id - 1
+	return idx >= first and idx <= last
 
 
 ## 敌人移动（仅 MOVING 状态）。BLOCKED / ATTACKING 不移动。
@@ -516,14 +1162,14 @@ func _move_enemies(step: float) -> void:
 
 
 ## 释放无效阻挡关系：
-##   - 阻挡者已失能/已不存在 → 其挂接的敌人恢复移动（BLOCKED → MOVING）
+##   - 阻挡者已离场（撤退/失能移除）或已失能 → 其挂接的敌人恢复移动（BLOCKED → MOVING）
 ##   - 敌人已死亡/已消失 → 从阻挡者列表移除
 ##
 ## 注意：判定以**敌人侧**的 blocked_by_character_id 为准，而不是只依赖角色侧的
-## blocking_enemy_ids。因为 CharacterRuntime.take_damage() 在失能时会立即清空
-## 自己的阻挡列表，若此处只看该列表就会漏掉"敌人仍停在原地"的情况。
+## blocking_enemy_ids。因为角色一旦离场或失能，其阻挡列表可能已被清空，
+## 若此处只看该列表就会漏掉「敌人仍停在原地」的情况。
 func _release_invalid_blocks() -> void:
-	# 1) 敌人侧：阻挡者已失能或不存在 → 恢复移动
+	# 1) 敌人侧：阻挡者已离场/失能 → 恢复移动
 	for e: EnemyRuntime in enemies:
 		if e.state != BattleTypes.EnemyState.BLOCKED \
 			and e.state != BattleTypes.EnemyState.ATTACKING:
@@ -588,7 +1234,7 @@ func _find_available_blocker(e: EnemyRuntime) -> CharacterRuntime:
 		# 接触判定：敌人中心与角色所在格中心的距离 ≤ 接触线
 		if e.logical_x - float(c.column) > block_contact_line_tiles:
 			continue
-		# 多个候选时取"更靠近核心"的那名（column 更小）
+		# 多个候选时取「更靠近核心」的那名（column 更小）
 		if best == null or c.column < best.column:
 			best = c
 	return best
@@ -609,15 +1255,13 @@ func _resolve_character_attacks(step: float) -> void:
 		var applied := target.take_damage(dmg)
 		c.total_damage_dealt += applied
 		c.attack_cooldown = c.attack_interval
-		GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
-			% [c.display_name, target.enemy_id, applied, target.hp])
 
 
 ## 目标选择（V2.1.4 D-11）：
 ##   ① 最接近防守核心的敌人（logicalX 最小）
 ##   ② 当前正在阻挡的敌人
-##   ③ 更早进入攻击范围的敌人（以 instance_id 升序近似"更早"，保证确定性）
-## 攻击范围：同路线"前方" rangeTiles 以内（V2.1.4 D-13：同路线前方 1.25 格以内）。
+##   ③ 更早进入攻击范围的敌人（以 instance_id 升序近似「更早」，保证确定性）
+## 攻击范围：同路线「前方」rangeTiles 以内（V2.1.4 D-13：同路线前方 1.25 格以内）。
 ## 例外：当前被该角色阻挡的敌人**始终可攻击**。
 func _select_target_for(c: CharacterRuntime) -> EnemyRuntime:
 	var candidates: Array[EnemyRuntime] = []
@@ -654,7 +1298,7 @@ func _select_target_for(c: CharacterRuntime) -> EnemyRuntime:
 
 ## 敌人攻击（被阻挡时攻击阻挡者）
 ## 状态说明：敌人一旦被阻挡即保持 BLOCKED（V2.1.4 F-四十五 状态机中 ATTACKING 表示
-## "正在出手"的瞬间态）。为保持 P0.2 逻辑简单且确定，攻击结算不切换主状态，
+## 「正在出手」的瞬间态）。为保持逻辑简单且确定，攻击结算不切换主状态，
 ## 仅通过 attack_cooldown 控制出手节奏；BLOCKED 期间持续攻击其阻挡者。
 func _resolve_enemy_attacks(step: float) -> void:
 	for e: EnemyRuntime in enemies:
@@ -667,20 +1311,15 @@ func _resolve_enemy_attacks(step: float) -> void:
 			continue
 		var blocker := get_character(e.blocked_by_character_id)
 		if blocker == null or blocker.is_incapacitated():
-			# 阻挡者已失能：本帧不结算，状态在 _release_invalid_blocks 中被释放
+			# 阻挡者已失能/已撤退：本帧不结算，状态在 _release_invalid_blocks 中被释放
 			continue
 		var dmg := combat_math.compute_damage(e.attack, blocker.defense, e.damage_type)
 		var applied := blocker.take_damage(dmg)
 		e.total_damage_dealt += applied
 		e.attack_cooldown = e.attack_interval
-		GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
-			% [e.enemy_id, blocker.display_name, applied, blocker.hp])
-		if blocker.is_incapacitated():
-			characters_lost += 1
-			GameLog.info("StageRuntime", "%s 失去战斗能力" % blocker.display_name)
 
 
-## 清理死亡实体
+## 清理死亡实体与失能角色
 func _cleanup_dead() -> void:
 	# 敌人死亡：HP 耗尽者统一置为 DEAD 并计数（击杀统计的唯一入口）
 	var still_alive: Array[EnemyRuntime] = []
@@ -689,13 +1328,14 @@ func _cleanup_dead() -> void:
 			if e.state != BattleTypes.EnemyState.DEAD:
 				e.state = BattleTypes.EnemyState.DEAD
 				enemies_killed += 1
+				_note_wave_kill(e)
 				GameLog.debug("StageRuntime", "敌人 %s 被击败" % e.enemy_id)
 			continue
 		if e.is_active():
 			still_alive.append(e)
 	enemies = still_alive
 
-	# 角色侧同步清理：移除指向已消失敌人的阻挡引用
+	# 角色侧同步清理：移除指向已消失敌人的引用
 	for c: CharacterRuntime in characters:
 		if c.blocking_enemy_ids.is_empty():
 			continue
@@ -705,10 +1345,21 @@ func _cleanup_dead() -> void:
 				kept_ids.append(eid)
 		c.blocking_enemy_ids = kept_ids
 
-	# 角色失能：清空其残留的阻挡关系
+	# 角色因 HP 耗尽而失能 → 离场并进入再部署冷却（V2.1.4 D-27 / 表 24「死亡返还 0 AP」）
+	var still_standing: Array[CharacterRuntime] = []
 	for c: CharacterRuntime in characters:
-		if c.is_incapacitated() and not c.blocking_enemy_ids.is_empty():
+		if c.is_incapacitated():
 			c.blocking_enemy_ids.clear()
+			characters_lost += 1
+			# 失能离场同样按规格进入再部署冷却（规格未区分该计时的长度，
+			# 故与主动撤退统一按角色的 redeployTime 计时）。
+			c.redeploy_cooldown_remaining = c.redeploy_time
+			_append_removal(Removal.INCAPACITATED, c.character_id, c.instance_id, c.column, c.lane)
+			GameLog.info("StageRuntime", "%s 失去战斗能力，离场并进入 %.1f 秒再部署冷却（不返还 AP）"
+				% [c.display_name, c.redeploy_cooldown_remaining])
+			continue
+		still_standing.append(c)
+	characters = still_standing
 
 
 # ============================================================
@@ -739,6 +1390,7 @@ func apply_core_damage(enemy: EnemyRuntime) -> int:
 	var dmg := maxi(0, enemy.core_damage)
 	core_hp = maxi(0, core_hp - dmg)
 	core_damage_events += 1
+	_append_enemy_removal(Removal.REACHED_CORE, enemy)
 	GameLog.info("StageRuntime", "敌人 %s 抵达核心，核心 HP -%d -> %d"
 		% [enemy.enemy_id, dmg, core_hp])
 	return dmg
@@ -753,27 +1405,66 @@ func remove_reached_core() -> void:
 	enemies = kept
 
 
+func _append_enemy_removal(kind: int, enemy: EnemyRuntime) -> void:
+	for r: Dictionary in removals:
+		if str(r.get("entity", "")) == "enemy" \
+			and int(r.get("kind", -1)) == kind \
+			and int(r.get("entityId", -1)) == enemy.instance_id:
+			return
+	removals.append({
+		"kind": kind,
+		"entity": "enemy",
+		"entityId": enemy.instance_id,
+		"enemyId": enemy.enemy_id,
+		"lane": enemy.lane,
+		"at": snappedf(elapsed_seconds, 0.001),
+	})
+
+
+# ============================================================
+#  暂停（V2.1.4 D-35）
+# ============================================================
+
+## 暂停 / 继续。暂停后敌人移动、AP 回复、攻击、再部署冷却与 Wave 计时全部冻结；
+## 恢复后从同一状态继续推进（不补跑暂停期间的时间）。
+func set_paused(value: bool) -> void:
+	if paused == value:
+		return
+	paused = value
+	GameLog.info("StageRuntime", "战斗%s" % ("已暂停" if paused else "已继续"))
+
+
+func is_paused() -> bool:
+	return paused
+
+
 # ============================================================
 #  测试夹具（P0.1 引入；明确标注仅供测试，不得出现在正式游戏流程）
 # ============================================================
 
-## 供测试使用：按 instance_id 移除一个敌人（模拟"被清除"）。
-## P0.1 无攻击系统时用于验证胜负；P0.2 起已有真实击杀路径，
-## 本夹具仅保留以维持 P0.1 测试（禁止在正式游戏流程中调用）。
+## 供测试使用：按 instance_id 移除一个敌人（模拟「被清除」）。
+## P0.2 起已有真实击杀路径，本夹具仅保留以维持 P0.1 测试
+## （禁止在正式游戏流程中调用）。
 func despawn_for_test(instance_id: int) -> bool:
 	for i: int in range(enemies.size()):
 		if enemies[i].instance_id == instance_id:
 			enemies[i].state = BattleTypes.EnemyState.DEAD
+			_append_enemy_removal(Removal.KILLED, enemies[i])
+			_note_wave_kill(enemies[i])
 			enemies.remove_at(i)
 			return true
 	return false
 
 
 ## 供测试使用：清除场上全部敌人。
+## 语义上等价于「这些敌人已被处理完毕」，因此同样计入所属 Wave 的击杀数，
+## 否则「清场后应判胜」这类 P0.1 用例会因为 Wave 未完成而永远不判胜。
 func despawn_all_for_test() -> int:
 	var n := enemies.size()
 	for e: EnemyRuntime in enemies:
 		e.state = BattleTypes.EnemyState.DEAD
+		_append_enemy_removal(Removal.KILLED, e)
+		_note_wave_kill(e)
 	enemies.clear()
 	return n
 
@@ -799,7 +1490,13 @@ func to_debug_dict() -> Dictionary:
 		"coreDamageEvents": core_damage_events,
 		"enemiesKilled": enemies_killed,
 		"charactersLost": characters_lost,
+		"retreatCount": retreat_count,
+		"retreatRefundedAp": retreat_refunded_ap_total,
 		"deployed": characters.size(),
+		"deployedTotal": character_instances.size(),
+		"paused": paused,
+		"wave": current_wave_number(),
+		"waveTotal": total_wave_count(),
 		"enemies": enemies_dbg,
 		"characters": chars_dbg,
 	}

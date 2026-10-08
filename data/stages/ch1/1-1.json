@@ -1,8 +1,8 @@
 {
-  "schemaVersion": "1.0.0-p0.2",
+  "schemaVersion": "1.0.0-p0.3",
   "domain": "stage",
   "stageId": "1-1",
-  "_spec": "V2.1.4 CLEAN MASTER：1-1 初次锚定。教学关，验证 部署 / 阻挡 / 核心生命。",
+  "_spec": "V2.1.4 CLEAN MASTER：1-1 初次锚定。教学关，验证 部署 / 阻挡 / 主动撤退 / 再部署 / Wave 推进 / 核心生命。",
   "_note": "敌人出现时间与路线全部来自本配置，不写死在代码中（V2.1.4 D-34/D-35）。",
   "chapter": 1,
   "mapId": "ch1_classroom_sunset",
@@ -12,16 +12,38 @@
   "_startingAp_spec": "V2.1.4 D-7：开局 AP 10；与雨宫澪部署费用 10 相等，保证开局即可部署并完成教学。",
   "apRegen": 1,
   "availableCharacters": ["amamiya_mio"],
-  "_availableCharacters_spec": "V2.1.4 G-三：1-1 解锁雨宫澪。P0.2 阶段 1-1 仅她一名可部署角色。",
+  "_availableCharacters_spec": "V2.1.4 G-三：1-1 解锁雨宫澪。P0.3 阶段 1-1 仍只有她一名可部署角色。",
   "enemySpawnTimeline": [
-    { "time": 3.0, "lane": 1, "enemy": "echo_normal" },
-    { "time": 8.0, "lane": 1, "enemy": "echo_normal" },
-    { "time": 13.0, "lane": 1, "enemy": "echo_normal" },
-    { "time": 18.0, "lane": 1, "enemy": "echo_normal" },
-    { "time": 26.0, "lane": 0, "enemy": "echo_normal" },
-    { "time": 30.0, "lane": 2, "enemy": "echo_normal" }
+    { "time": 3.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
+    { "time": 8.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
+    { "time": 13.0, "lane": 1, "enemy": "echo_normal", "wave": 2 },
+    { "time": 18.0, "lane": 1, "enemy": "echo_normal", "wave": 2 },
+    { "time": 26.0, "lane": 0, "enemy": "echo_normal", "wave": 3 },
+    { "time": 30.0, "lane": 2, "enemy": "echo_normal", "wave": 3 }
   ],
-  "_timeline_rationale": "V2.1.4 G-十一 与 P4 表将『各关精确出怪秒数与数量』明确列为候选/可配置平衡参数。P0.2 约束『同一名角色不能同时部署多个实体』，而 1-1 仅雨宫澪一名可部署角色，因此她至多覆盖一条路线；若三路同时压满则单人不可能通关，与 G-十二『新档只使用雨宫澪也能完成教学』冲突。故本版时线：中段 4 个普通残响体（间隔 5s，大于其约 4.4s 的击杀耗时）承担阻挡教学；末段上/下段各 1 个用于演示『漏怪会扣核心』，在核心 5 点缓冲内不影响通关。待 P0.3 起有更多角色可部署后再扩展为多路压力。",
+  "_timeline_spec": "V2.1.4 D-31 表 34 给出示例格式 {time, lane, enemy}；本文件在其上增加 wave 字段以承载 P0.3 的 Wave 调度。enemySpawnTimeline 仍是出怪时间/路线的唯一数据源，waves 段只承载波次元数据，不重复保存出怪内容。",
+  "waves": [
+    {
+      "number": 1,
+      "label": "接触",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段 2 只，间隔 5s，承担阻挡与自动攻击教学。"
+    },
+    {
+      "number": 2,
+      "label": "再临",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段再 2 只，节奏与第 1 波一致，用于验证玩家已能稳定处理单路压力。"
+    },
+    {
+      "number": 3,
+      "label": "两翼",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "上/下段各 1 只，演示『漏怪扣核心』。单人只能覆盖一路，故本波必然漏 1 只；核心 5 点缓冲内不影响通关。"
+    }
+  ],
+  "_waveCount_spec": "V2.1.4 D-33 表 32 为第一章最终 5 波结构（普通 / +疾走 / +装甲 / 混合 / 最终波）；V2.1.4 同时把『各关精确出怪秒数与数量』列为候选可配置平衡参数。P0.3 只把现有 1-1 时间线组织成 3 个可验证 Wave，不提前引入 P1.0 的 3～5 分钟规模与装甲/疾走混编。",
+  "_timeline_rationale": "V2.1.4 约束『同一名角色不能同时部署多个实体』；1-1 仅雨宫澪一名可部署角色，因此她至多覆盖一条路线。若三路同时压满则单人不可能通关，与『新档只使用雨宫澪也能完成教学』冲突。本版 Wave 1～2 集中在中段（承担阻挡与攻击教学），Wave 3 在上/下段各 1 只演示漏怪扣核心，全部在核心 5 点缓冲内。待 P0.4 起有更多角色可部署后再扩展为多路压力。",
   "tutorialTriggers": [],
   "specialRules": [],
   "firstClearRewardId": "",
@@ -29,5 +51,5 @@
   "storyBefore": "",
   "storyAfter": "",
   "bossConfig": {},
-  "_p0.2_scope": "P0.2 已实现：部署、AP、阻挡、双方攻击、死亡与失能。未实现：主动撤退/再部署（P0.3）、技能天赋、局内强化、奖励结算。"
+  "_p0.3_scope": "P0.3 已实现：部署、AP、阻挡、双方攻击、死亡与失能、主动撤退、再部署冷却、Wave 调度、暂停、完整一局结果界面。未实现：技能天赋、局内强化、奖励结算。"
 }

@@ -4,6 +4,9 @@
 ##
 ## 注意（V2.1.4 L4）：角色运行时实例存于 StageRuntime，随战斗会话创建销毁，
 ## **不是** 全局 Autoload。
+##
+## P0.3：本类额外承载「再部署冷却」计时。计时**只在 StageRuntime 的逻辑步内推进**，
+## 因此与渲染帧率无关，并随暂停 / 胜负确定一起冻结。
 class_name CharacterRuntime
 extends RefCounted
 
@@ -36,6 +39,12 @@ var blocking_enemy_ids: Array[int] = []
 ## 是否仍在战场上（HP > 0）
 var alive: bool = true
 
+## 再部署冷却（V2.1.4 D-9 / 表 24）。
+## redeploy_time 来自 CharacterConfig.redeployTime（缺省由 balance.combat.redeploy 兜底）；
+## redeploy_cooldown_remaining 只在角色**离场后**由 StageRuntime 按逻辑步推进。
+var redeploy_time: float = 0.0
+var redeploy_cooldown_remaining: float = 0.0
+
 ## 累计造成的伤害与受到的伤害（调试与测试用）
 var total_damage_dealt: int = 0
 var total_damage_taken: int = 0
@@ -66,6 +75,9 @@ static func from_config(config: Dictionary, column: int, lane: int, instance_id:
 	var dtype := str(config.get("damageType", "PHYSICAL"))
 	if dtype == "SPECIAL":
 		c.damage_type = CombatMath.DamageType.SPECIAL
+
+	# V2.1.4 D 章表 47「再部署」列
+	c.redeploy_time = float(config.get("redeployTime", 0.0))
 
 	# 首次攻击不需要等待一个完整间隔
 	c.attack_cooldown = 0.0
@@ -116,7 +128,9 @@ func take_damage(amount: int) -> int:
 	if hp <= 0:
 		hp = 0
 		alive = false
-		# 失去战斗能力时清空阻挡关系（敌人随后按规则恢复移动）
+		# 失去战斗能力时清空阻挡关系（敌人随后按规则恢复移动）。
+		# 注意：这只清空本对象自己的列表；StageRuntime 仍以敌人侧的
+		# blocked_by_character_id 反查并释放，二者互为冗余但都必须存在。
 		blocking_enemy_ids.clear()
 	return applied
 
@@ -124,6 +138,18 @@ func take_damage(amount: int) -> int:
 ## 是否处于失能状态
 func is_incapacitated() -> bool:
 	return not alive or hp <= 0
+
+
+## 是否处于再部署冷却（离场后未到期）
+func is_redeploy_cooling() -> bool:
+	return redeploy_cooldown_remaining > 0.0
+
+
+## 再部署冷却进度（1 = 刚离场，0 = 可再部署）
+func redeploy_progress() -> float:
+	if redeploy_time <= 0.0:
+		return 0.0
+	return clampf(redeploy_cooldown_remaining / redeploy_time, 0.0, 1.0)
 
 
 func to_debug_dict() -> Dictionary:
@@ -140,4 +166,6 @@ func to_debug_dict() -> Dictionary:
 		"blockSlots": block_slots_remaining(),
 		"alive": alive,
 		"cooldown": snappedf(attack_cooldown, 0.001),
+		"redeployRemaining": snappedf(redeploy_cooldown_remaining, 0.001),
+		"redeployTime": redeploy_time,
 	}

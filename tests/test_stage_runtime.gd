@@ -45,8 +45,19 @@ func _stage_config() -> Dictionary:
 ## 生成时序测试专用夹具：不依赖 1-1 的可调平衡值，
 ## 用固定时间/路线验证"按配置出怪"这一行为本身。
 ## （1-1 的精确出怪秒数属规格 G-十一 列为候选的可配置平衡参数，会随试玩调整。）
+
+## 生成时序 / 漏怪等专项夹具：清空 waves 元数据，使波次完全由 enemySpawnTimeline 自动推导。
+## Wave 声明只服务于正式关卡数据；测试若整体替换出怪时间线，必须同步移除 Wave 声明，
+## 否则会触发「waves 声明了第 N 波但无敌人归属」的一致性报错。
+## 注意：必须 duplicate 后再改，绝不能改写 DataRegistry 里的权威字典。
+func _cfg_no_waves(cfg: Dictionary) -> Dictionary:
+	var c := cfg.duplicate(true)
+	c.erase("waves")
+	return c
+
+
 func _fixture_config() -> Dictionary:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = 5
 	cfg["startingAp"] = 10
 	cfg["apRegen"] = 1
@@ -250,7 +261,7 @@ func test_movement_is_resolution_independent() -> void:
 # ---------- 非法数据 ----------
 
 func test_invalid_enemy_id_is_reported() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["enemySpawnTimeline"] = [{"time": 1.0, "lane": 0, "enemy": "echo_does_not_exist"}]
 	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "引用不存在的敌人应报错")
@@ -259,52 +270,52 @@ func test_invalid_enemy_id_is_reported() -> void:
 
 
 func test_invalid_lane_is_reported() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["enemySpawnTimeline"] = [{"time": 1.0, "lane": 7, "enemy": "echo_normal"}]
 	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "非法 lane 应报错")
 
 
 func test_missing_core_hp_is_reported() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg.erase("coreHp")
 	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "缺少 coreHp 应报错")
 
 
 func test_zero_or_negative_core_hp_is_reported() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = 0
 	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "coreHp=0 应报错")
 
-	var cfg2 := _stage_config().duplicate(true)
+	var cfg2 := _cfg_no_waves(_stage_config())
 	cfg2["coreHp"] = -3
 	var rt2 := StageRuntime.from_config(cfg2, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt2.is_valid(), "coreHp 为负应报错")
 
 
 func test_missing_spawn_fields_are_reported() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["enemySpawnTimeline"] = [{"lane": 0, "enemy": "echo_normal"}]  # 缺 time
 	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "缺少 time 应报错")
 
-	var cfg2 := _stage_config().duplicate(true)
+	var cfg2 := _cfg_no_waves(_stage_config())
 	cfg2["enemySpawnTimeline"] = [{"time": 1.0, "enemy": "echo_normal"}]  # 缺 lane
 	var rt2 := StageRuntime.from_config(cfg2, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt2.is_valid(), "缺少 lane 应报错")
 
 
 func test_negative_spawn_time_is_reported() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["enemySpawnTimeline"] = [{"time": -1.0, "lane": 0, "enemy": "echo_normal"}]
 	var rt := StageRuntime.from_config(cfg, _enemy_table(), _grid(), _char_table(), _combat())
 	assert_false(rt.is_valid(), "负 time 应报错")
 
 
 func test_invalid_session_setup_returns_errors() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["enemySpawnTimeline"] = [{"time": 1.0, "lane": 99, "enemy": "echo_normal"}]
 	var s := BattleSession.new()
 	add_child_autofree(s)

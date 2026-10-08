@@ -1,19 +1,21 @@
-## BattleScene — P0.2 战斗场景（可视化 + 调试信息 + 键鼠部署操作）。
+## BattleScene — P0.3 战斗场景（可视化 + 键鼠操作 + 完整一局）。
 ##
 ## 严格分层的表现层（L3 Presentation）：只读取 BattleSession / StageRuntime 的状态并绘制，
-## **不含任何战斗规则**；部署合法性、AP 扣费、阻挡、伤害全部在 domain/battle 下。
+## **不含任何战斗规则**；部署合法性、AP 扣费、撤退、再部署冷却、阻挡、伤害、Wave 与胜负
+## 全部由 domain/battle 负责。表现层只做两件事——显示状态、把玩家输入转发成领域层调用。
 ##
-## P0.2 新增的键鼠操作（V2.1.4 D-6 / J2 / D-补充）：
-##   - 底部角色卡：显示雨宫澪的 AP 费用与可部署状态
-##   - 点击角色卡 或 数字键 1 选择/取消选择
-##   - 鼠标悬停格子：显示合法（高亮）/非法（红色）反馈
-##   - 左键确认部署；右键或 Esc 取消选择
-##   - 部署合法性判定**唯一入口**是 StageRuntime.query_deploy()（无副作用查询）
+## P0.3 键鼠操作（V2.1.4 D-补充 / D-25 / J2 / J4）：
+##   - 底部角色卡：费用、可部署 / 已在场 / 再部署倒计时
+##   - 点击角色卡 或 数字键 1：选择 / 取消选择
+##   - 左键点格部署；右键或 Esc 取消选择
+##   - 点击场上角色 → 打开操作面板（显示角色信息与「撤退」按钮）
+##   - 点击撤退 或 按 R：主动撤退（合法性、退款与冷却全部由领域层裁决）
+##   - Space：暂停 / 继续（V2.1.4 D-35）
+##   - 战斗结束：结果界面（胜负 / 核心 HP / 击杀 / 漏怪）+ 重新挑战 / 退出战斗
 ##
 ## 渲染缩放（V2.1.4 明文）：tileSizePx=192 是 **1920×1080 参考画布**下的参数。
 ## 切换到 720p / 2K / 4K / UI 缩放时，**仅同比缩放画布转换**，
-## 不改变射程、移动速度、阻挡/治疗/技能逻辑。本场景通过 _render_scale 实现该缩放，
-## 逻辑层（BattleGrid / StageRuntime）始终只使用无量纲的 tile。
+## 不改变射程、移动速度、阻挡/治疗/技能逻辑。
 ##
 ## 视觉为**临时占位图形**（色块/线段），非最终美术（正式资产见规格 J 章）。
 extends Node2D
@@ -37,10 +39,18 @@ const ENEMY_RUNNER_COLOR := Color(0.95, 0.68, 0.30)
 const ENEMY_ARMORED_COLOR := Color(0.62, 0.66, 0.74)
 const CHARACTER_COLOR := Color(0.35, 0.80, 0.98)   # 已部署角色（占位）
 const CHARACTER_LOST_COLOR := Color(0.40, 0.40, 0.44)
+const CHARACTER_SELECTED := Color(1.0, 0.92, 0.45)
 const CARD_COLOR := Color(0.10, 0.12, 0.22, 0.95)
 const CARD_SELECTED_COLOR := Color(0.20, 0.55, 0.95, 0.95)
+const CARD_COOLING_COLOR := Color(0.16, 0.16, 0.20, 0.95)
 const ENTRY_COLOR := Color(0.30, 0.34, 0.50)
 const HUD_BG := Color(0.04, 0.05, 0.09, 0.82)
+const PANEL_BG := Color(0.06, 0.07, 0.13, 0.96)
+const BUTTON_COLOR := Color(0.18, 0.22, 0.36)
+const BUTTON_HOVER := Color(0.28, 0.36, 0.58)
+const RETREAT_COLOR := Color(0.72, 0.30, 0.28)
+const TEXT_COLOR := Color(0.90, 0.94, 1.0)
+const DIM_TEXT := Color(0.62, 0.68, 0.82)
 
 ## 顶部 HUD 预留带高度（参考画布单位），战场排在其下方
 const HUD_BAND_HEIGHT := 250.0
@@ -49,8 +59,13 @@ const CORE_MARGIN_TILES := 1.15
 ## 底部角色卡高度（参考画布单位）
 const CARD_HEIGHT := 170.0
 
-## 本关可部署角色（P0.2 只有雨宫澪；从 StageConfig.availableCharacters 读取）
-const P02_CHARACTER_ID := "amamiya_mio"
+## 本关可部署角色（P0.3 仍只有雨宫澪；从 StageConfig.availableCharacters 读取）
+const P03_CHARACTER_ID := "amamiya_mio"
+
+## 同格多敌的**纯表现层**横向偏移（参考画布像素）。
+## V2.1.4 允许一个阻挡者挂接多个敌人；两个敌人会停在同一接触线上而完全重叠。
+## 这里只改变**绘制位置**，绝不改动逻辑坐标、射程、接触线或阻挡判定。
+const OVERLAP_OFFSET_PX := 26.0
 
 var session: BattleSession
 var grid: BattleGrid
@@ -70,23 +85,39 @@ var _hover_lane: int = -1
 ## 悬停时的部署判定结果（缓存，避免每帧重复查询）
 var _hover_deploy_ok: bool = false
 var _hover_reject_reason: String = ""
-## 最近一次部署反馈（用于屏幕提示）
+
+## 当前被选中的**场上角色**实例 id（0 = 未选中）；选中后显示操作面板
+var _selected_character_id: int = 0
+
+## 鼠标位置（用于按钮 hover 反馈）
+var _mouse_pos: Vector2 = Vector2.ZERO
+
+## 最近一次操作反馈（用于屏幕提示）
 var _feedback_text: String = ""
 var _feedback_color: Color = Color(0.8, 0.85, 0.97)
 var _feedback_timer: float = 0.0
 
-## P0.2 交互验收调试开关：命令行带 --autoplay 时自动注入真实鼠标事件，
-## 走与玩家一致的输入管线（Input.parse_input_event -> _unhandled_input）。
-## 该开关仅用于自动化验收截图，不改变任何战斗规则。
+## 上次已知的 Wave（用于显示「Wave 变化」提示）
+var _last_wave_number: int = 0
+
+## 自动演示开关：仅供**自动化回归**（--autoplay）。
+## 它走与玩家完全一致的输入管线，但**不冒充真人操作证据**；
+## 真人键鼠验收另见 docs/P0.3_验收报告.md 的实机章节。
 var _autoplay := false
 var _autoplay_phase := 0
 var _autoplay_target_col := 2
 var _autoplay_target_lane := 1
-var _autoplay_card_done := false
-var _autoplay_deploy_done := false
-var _autoplay_block_seen := false
-var _autoplay_kills_seen := false
 var _autoplay_shots: Array[String] = []
+var _autoplay_withdraw_done := false
+var _autoplay_redeploy_done := false
+var _autoplay_result_captured := false
+
+## 结果界面上的按钮（屏幕像素矩形，绘制与点击共用同一份几何）
+var _relaunch_rect: Rect2 = Rect2()
+var _quit_rect: Rect2 = Rect2()
+var _pause_rect: Rect2 = Rect2()
+var _retreat_rect: Rect2 = Rect2()
+var _card_rect: Rect2 = Rect2()
 
 
 func _ready() -> void:
@@ -97,9 +128,9 @@ func _ready() -> void:
 	_update_render_scale()
 	_build_battle()
 	for arg: String in OS.get_cmdline_user_args():
-		if arg == '--autoplay':
+		if arg == "--autoplay":
 			_autoplay = true
-			GameLog.info(TAG, 'P0.2 自动交互验收模式已启用')
+			GameLog.info(TAG, "P0.3 自动回归模式已启用（仅用于自动化，不作为真人操作证据）")
 			break
 	queue_redraw()
 
@@ -169,10 +200,12 @@ func _build_battle() -> void:
 	session.outcome_decided.connect(_on_outcome_decided)
 	session.core_hp_changed.connect(_on_core_hp_changed)
 	session.enemy_reached_core.connect(_on_enemy_reached_core)
+	session.wave_changed.connect(_on_wave_changed)
+	_last_wave_number = session.stage.current_wave_number()
 
-	GameLog.info(TAG, "P0.1 战斗场景就绪：stage=%s，核心 HP %d，计划出怪 %d，战场 3×6，渲染缩放 %.3f"
-		% [stage_config.get("stageId", "?"), session.stage.core_hp_max,
-			session.stage.planned_enemy_count(), _render_scale])
+	GameLog.info(TAG, "%s 战斗场景就绪：stage=%s，核心 HP %d，Wave %d，计划出怪 %d，战场 3×6，渲染缩放 %.3f"
+		% [App.stage_label(), stage_config.get("stageId", "?"), session.stage.core_hp_max,
+			session.stage.total_wave_count(), session.stage.planned_enemy_count(), _render_scale])
 
 
 ## 依据当前缩放与视口，计算战场在屏幕上的位置（整体居中，HUD 带位于上方）
@@ -202,9 +235,10 @@ func _build_character_table() -> Dictionary:
 	return table
 
 
-## 取 balance.combat 段（AP/伤害公式/阻挡接触线等战斗公共参数）
+## 取 balance.combat 段（AP/伤害公式/阻挡接触线/退款/再部署等战斗公共参数）
 func _combat_config() -> Dictionary:
 	return DataRegistry.get_domain("balance").get("combat", {})
+
 
 func _build_enemy_table() -> Dictionary:
 	var table := {}
@@ -220,12 +254,16 @@ func _process(delta: float) -> void:
 		return
 	var was_running := session.is_running()
 	session.tick(delta)
+	# 选中的角色可能已离场（撤退 / 失能）→ 关闭操作面板
+	if _selected_character_id != 0 and session.stage.get_character(_selected_character_id) == null:
+		_selected_character_id = 0
+	if _feedback_timer > 0.0:
+		_feedback_timer -= delta
 	_refresh_debug_lines()
+	_layout_buttons()
 	queue_redraw()
 	if was_running and session.is_decided():
 		GameLog.info(TAG, "战斗结束：%s" % BattleTypes.outcome_name(session.outcome))
-	if _feedback_timer > 0.0:
-		_feedback_timer -= delta
 	if _autoplay:
 		_drive_autoplay()
 
@@ -238,16 +276,23 @@ func _unhandled_input(event: InputEvent) -> void:
 	if session == null:
 		return
 
-	# Esc 取消选择（也是规格 J2 的取消键）
 	if event is InputEventKey and event.pressed and not event.echo:
-		var key := (event as InputEventKey).keycode
-		if key == KEY_ESCAPE:
+		var k := (event as InputEventKey).keycode
+		# 结果界面：只用界面按钮，键盘不参与（避免误触退出）
+		if session.is_decided():
+			return
+		if k == KEY_ESCAPE:
 			_cancel_selection()
 			return
+		if k == KEY_SPACE:
+			_toggle_pause()
+			return
+		if k == KEY_R:
+			_request_retreat_selected()
+			return
 		# 数字键 1 快选角色卡（规格 J2：数字 1～6 快选）
-		if key >= KEY_1 and key <= KEY_6:
-			var slot := key - KEY_1
-			if slot == 0:
+		if k >= KEY_1 and k <= KEY_6:
+			if k - KEY_1 == 0:
 				_toggle_card_selection()
 			return
 
@@ -262,18 +307,32 @@ func _unhandled_input(event: InputEvent) -> void:
 ## 鼠标移动：更新悬停格子与部署合法性反馈
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
-		_update_hover((event as InputEventMouseMotion).position)
+		_mouse_pos = (event as InputEventMouseMotion).position
+		_update_hover(_mouse_pos)
+
+
+## 暂停 / 继续（V2.1.4 D-35）
+func _toggle_pause() -> void:
+	if session == null or session.is_decided():
+		return
+	var now := session.toggle_pause()
+	_show_feedback("已暂停（Space 继续）" if now else "已继续",
+		Color(0.95, 0.85, 0.45) if now else Color(0.6, 0.9, 1.0))
 
 
 func _toggle_card_selection() -> void:
 	if session == null or session.is_decided():
 		return
-	# 角色已在场时不得再选（同一名角色不能同时部署多个实体）
-	if session.stage.get_character_by_id(P02_CHARACTER_ID) != null:
+	if session.is_paused():
+		_show_feedback("暂停中：先按 Space 继续", Color(0.95, 0.85, 0.45))
+		return
+	# 该角色已在场时不得再选（同一名角色不能同时部署多个实体）
+	if session.stage.get_character_by_id(P03_CHARACTER_ID) != null:
 		_show_feedback("该角色已在场上", Color(1.0, 0.6, 0.4))
 		_card_selected = false
 		return
 	_card_selected = not _card_selected
+	_selected_character_id = 0
 	if _card_selected:
 		_show_feedback("已选择 雨宫澪 — 左键点击合法格部署，右键/Esc 取消",
 			Color(0.5, 0.85, 1.0))
@@ -282,13 +341,72 @@ func _toggle_card_selection() -> void:
 
 
 func _cancel_selection() -> void:
-	if _card_selected:
-		_card_selected = false
+	var had := _card_selected or _selected_character_id != 0
+	_card_selected = false
+	_selected_character_id = 0
+	if had:
 		_show_feedback("已取消选择", Color(0.7, 0.75, 0.9))
 
 
+## 主动撤退当前选中的场上角色（V2.1.4 D-9）
+func _request_retreat_selected() -> void:
+	if session == null or session.is_decided():
+		return
+	if _selected_character_id == 0:
+		_show_feedback("先点击场上的角色，再选择撤退", Color(1.0, 0.75, 0.4))
+		return
+	var inst := session.stage.get_character(_selected_character_id)
+	var name_text := inst.display_name if inst != null else "该角色"
+	# 合法性 / 退款 / 冷却全部由领域层裁决，UI 只转发请求
+	var r := session.withdraw_character(_selected_character_id)
+	if r.ok:
+		_selected_character_id = 0
+		_show_feedback("%s 已撤退：返还 %d AP，再部署冷却 %.0f 秒"
+			% [name_text, r.refund_granted, r.cooldown], Color(0.55, 0.95, 0.7))
+	else:
+		_show_feedback("撤退失败：%s" % r.reason_text(), Color(1.0, 0.45, 0.4))
+
+
 func _handle_left_click(pos: Vector2) -> void:
+	if session == null:
+		return
+
+	# 战斗结束：只处理结果界面上的按钮
+	if session.is_decided():
+		_handle_result_click(pos)
+		return
+
+	# 暂停按钮
+	if _pause_rect.has_point(pos):
+		_toggle_pause()
+		return
+	# 暂停中只允许继续
+	if session.is_paused():
+		_show_feedback("暂停中：点击右上角「继续」或按 Space", Color(0.95, 0.85, 0.45))
+		return
+
+	# 操作面板上的撤退按钮
+	if _selected_character_id != 0 and _retreat_rect.has_point(pos):
+		_request_retreat_selected()
+		return
+
+	# 点击角色卡
+	if _card_rect.has_point(pos):
+		_toggle_card_selection()
+		return
+
+	# 先判断是否点到了场上的某个角色 → 打开操作面板
+	var hit := _character_at_screen(pos)
+	if hit != null:
+		_card_selected = false
+		_selected_character_id = hit.instance_id
+		_show_feedback("已选中 %s — 可点击「撤退」或按 R" % hit.display_name,
+			Color(1.0, 0.92, 0.45))
+		return
+
+	# 否则按部署处理
 	if not _card_selected:
+		_selected_character_id = 0
 		return
 	# 点击位置即目标位置：优先由点击坐标换算格子，
 	# 仅当坐标不在任何格上时退回当前悬停格。
@@ -302,7 +420,7 @@ func _handle_left_click(pos: Vector2) -> void:
 		_show_feedback("请点击战场内的部署格", Color(1.0, 0.6, 0.4))
 		return
 	# 部署合法性与扣费全部由领域层裁决，UI 只转发请求
-	var result := session.deploy_character(P02_CHARACTER_ID, column, lane)
+	var result := session.deploy_character(P03_CHARACTER_ID, column, lane)
 	if result.ok:
 		_card_selected = false
 		_show_feedback("部署成功：%s（-%d AP）" % [result.character.display_name, result.cost],
@@ -311,6 +429,34 @@ func _handle_left_click(pos: Vector2) -> void:
 			% [result.character.display_name, column, lane])
 	else:
 		_show_feedback("部署失败：%s" % result.reason_text(), Color(1.0, 0.45, 0.4))
+
+
+## 结果界面按钮：重新挑战 / 退出战斗
+func _handle_result_click(pos: Vector2) -> void:
+	if _relaunch_rect.has_point(pos):
+		GameLog.info(TAG, "玩家选择重新挑战")
+		get_tree().reload_current_scene()
+		return
+	if _quit_rect.has_point(pos):
+		GameLog.info(TAG, "玩家选择退出战斗")
+		get_tree().quit()
+
+
+## 命中测试：屏幕坐标是否落在某个在场角色身上
+func _character_at_screen(pos: Vector2) -> CharacterRuntime:
+	if session == null or grid == null:
+		return null
+	var tile := _px(grid.tile_size_px)
+	var spacing := _px(grid.lane_spacing_px)
+	var hit_r := tile * 0.34
+	for c: CharacterRuntime in session.stage.characters:
+		if c.is_incapacitated():
+			continue
+		var center := Vector2(_origin.x + tile * float(c.column),
+			_origin.y + float(c.lane) * spacing)
+		if center.distance_to(pos) <= hit_r:
+			return c
+	return null
 
 
 func _update_hover(pos: Vector2) -> void:
@@ -334,69 +480,121 @@ func _update_hover(pos: Vector2) -> void:
 				continue
 			_hover_column = column
 			_hover_lane = lane
-			if _card_selected and session.is_running():
-				var r := session.query_deploy(P02_CHARACTER_ID, column, lane)
+			if _card_selected and session.is_running() and not session.is_paused():
+				var r := session.query_deploy(P03_CHARACTER_ID, column, lane)
 				_hover_deploy_ok = r.ok
 				_hover_reject_reason = r.reason_text()
 			return
 
 
-## P0.2 自动交互验收：按阶段注入真实鼠标事件。
-## 0=悬停并截图 → 1=点角色卡 → 2=点格部署 → 3=等阻挡/攻击/击杀 → 4=等胜负
+# ============================================================
+#  按钮布局（绘制与命中共用）
+# ============================================================
+
+func _layout_buttons() -> void:
+	# 角色卡
+	_card_rect = Rect2(Vector2(_px(24.0), _viewport_size.y - _px(CARD_HEIGHT) - _px(24.0)),
+		Vector2(_px(340.0), _px(CARD_HEIGHT)))
+	# 右上角暂停 / 继续
+	var pw := _px(120.0)
+	var ph := _px(46.0)
+	_pause_rect = Rect2(Vector2(_viewport_size.x - pw - _px(24.0), _px(20.0)),
+		Vector2(pw, ph))
+	# 操作面板（选中角色时）的撤退按钮
+	if _selected_character_id != 0:
+		var panel_w := _px(300.0)
+		var panel_h := _px(210.0)
+		var panel_pos := Vector2(_viewport_size.x - panel_w - _px(24.0),
+			_viewport_size.y - panel_h - _px(24.0))
+		_retreat_rect = Rect2(
+			panel_pos + Vector2(_px(20.0), panel_h - _px(72.0)),
+			Vector2(panel_w - _px(40.0), _px(52.0))
+		)
+	else:
+		_retreat_rect = Rect2()
+	# 结果界面按钮
+	if session != null and session.is_decided():
+		var bw := _px(240.0)
+		var bh := _px(64.0)
+		var gap := _px(32.0)
+		var total := bw * 2.0 + gap
+		var bx := (_viewport_size.x - total) * 0.5
+		var by := _viewport_size.y * 0.5 + _px(90.0)
+		_relaunch_rect = Rect2(Vector2(bx, by), Vector2(bw, bh))
+		_quit_rect = Rect2(Vector2(bx + bw + gap, by), Vector2(bw, bh))
+
+
+## P0.3 自动回归：按阶段注入真实输入事件，覆盖「部署 → 撤退 → 冷却 → 换线重部署 → 胜负」。
 ## 所有点击都走 Input.parse_input_event（与玩家一致的输入管线）。
+## 该开关仅用于自动化回归，**不作为真人操作证据**。
 func _drive_autoplay() -> void:
 	match _autoplay_phase:
 		0:
 			if _feedback_timer <= 0.0 and elapsed_since_start() > 0.5:
 				_ap_hover(_autoplay_target_col, _autoplay_target_lane)
-				_ap_capture('01_deploy_before_hover')
-				_toggle_card_selection()          # 玩家点击角色卡的终点处理
-				_autoplay_card_done = true
+				_ap_capture('01_before_deploy')
+				_click_card()
 				_ap_capture('02_card_selected')
 				_autoplay_phase = 1
 		1:
-			if _autoplay_card_done:
-				_ap_hover(_autoplay_target_col, _autoplay_target_lane)
-				# 玩家左键点击格子的终点处理（部署合法性与扣费仍在领域层）
-				_handle_left_click(_cell_screen_pos(_autoplay_target_col, _autoplay_target_lane))
-				_autoplay_deploy_done = true
-				_ap_capture('03_deploy_after')
-				_autoplay_phase = 2
+			_ap_hover(_autoplay_target_col, _autoplay_target_lane)
+			_click_cell(_autoplay_target_col, _autoplay_target_lane)
+			_ap_capture('03_deployed')
+			_autoplay_phase = 2
 		2:
-			var mio := session.stage.get_character_by_id(P02_CHARACTER_ID)
+			var mio := session.stage.get_character_by_id(P03_CHARACTER_ID)
 			if mio != null and mio.blocking_enemy_ids.size() > 0:
-				if not _autoplay_block_seen:
-					_autoplay_block_seen = true
-					_ap_capture('04_blocking')
-				if session.stage.enemies_killed >= 1:
-					if not _autoplay_kills_seen:
-						_autoplay_kills_seen = true
-						_ap_capture('05_attacking')
-				if session.stage.enemies_killed >= 3:
-					_ap_capture('06_kills')
-					_autoplay_phase = 3
-			elif _autoplay_deploy_done and session.stage.enemies.size() > 0:
-				# 敌人已生成但未被阻挡（部署太晚）→ 直接记录现场
-				if not _autoplay_block_seen:
-					_autoplay_block_seen = true
-					_ap_capture('04_blocking_missed')
-					_autoplay_phase = 3
+				_ap_capture('04_blocking')
+				_autoplay_phase = 3
+			elif session.stage.enemies.size() > 0:
+				_ap_capture('04_blocking_missed')
+				_autoplay_phase = 3
 		3:
+			var mio := session.stage.get_character_by_id(P03_CHARACTER_ID)
+			if mio != null and session.stage.enemies_killed >= 1:
+				# 点击场上角色打开操作面板
+				_click_cell(mio.column, mio.lane)
+				_ap_capture('05_character_panel')
+				_autoplay_phase = 4
+			elif session.is_decided():
+				_autoplay_phase = 7
+		4:
+			if _selected_character_id != 0:
+				_request_retreat_selected()   # 玩家点击撤退按钮的终点处理
+				_ap_capture('06_after_withdraw')
+				_autoplay_withdraw_done = true
+				_autoplay_phase = 5
+			elif session.is_decided():
+				_autoplay_phase = 7
+		5:
+			# 等冷却结束（1-1 只有 35 秒，这里主要用于演示倒计时与准入规则）
+			if not _autoplay_redeploy_done and session.get_redeploy_remaining(P03_CHARACTER_ID) <= 0.0:
+				_click_card()
+				_click_cell(_autoplay_target_col + 1, _autoplay_target_lane)
+				_ap_capture('07_redeployed')
+				_autoplay_redeploy_done = true
 			if session.is_decided():
-				_ap_capture('07_outcome')
+				_autoplay_phase = 7
+			elif elapsed_since_start() > 60.0:
+				_autoplay_phase = 7
+		6:
+			pass
+		7:
+			if session.is_decided():
+				_ap_capture('08_result')
+				_autoplay_result_captured = true
 				var dbg: Dictionary = session.to_debug_dict()
 				print('')
-				print('=== P0.2 自动交互验收汇总 ===')
+				print('=== P0.3 自动回归汇总 ===')
 				print('  结果: %s  核心: %s/%s  AP: %s/%s' % [
 					dbg.get('outcome'), dbg.get('coreHp'), dbg.get('coreHpMax'),
 					dbg.get('ap'), dbg.get('apMax')])
-				print('  击杀: %s  漏怪: %s  失能: %s  已部署: %s' % [
-					dbg.get('enemiesKilled'), dbg.get('reachedCore'),
-					dbg.get('charactersLost'), dbg.get('deployed')])
-				print('  逻辑时间: %s' % dbg.get('elapsed'))
-				_autoplay_phase = 4
-		4:
-			pass
+				print('  Wave: %s/%s  击杀: %s  漏怪: %s  失能: %s  撤退: %s' % [
+					dbg.get('wave'), dbg.get('waveTotal'), dbg.get('enemiesKilled'),
+					dbg.get('reachedCore'), dbg.get('charactersLost'), dbg.get('retreatCount')])
+				print('  已部署: %s（历史实例 %s）  逻辑时间: %s' % [
+					dbg.get('deployed'), dbg.get('deployedTotal'), dbg.get('elapsed')])
+				_autoplay_phase = 8
 
 
 ## 距场景就绪的近似秒数（用于等一拍再点）
@@ -413,6 +611,37 @@ func _ap_hover(column: int, lane: int) -> void:
 	GameLog.info(TAG, '[autoplay] 悬停格 (col%d, lane%d) 窗口坐标 %s' % [column, lane, p])
 
 
+func _click_card() -> void:
+	_send_click_at(_card_rect.position + _card_rect.size * 0.5)
+	GameLog.info(TAG, '[autoplay] 点击角色卡')
+
+
+func _click_cell(column: int, lane: int) -> void:
+	var p := _cell_screen_pos(column, lane)
+	_send_click_at(p)
+	GameLog.info(TAG, '[autoplay] 点击格 (col%d, lane%d) at %s' % [column, lane, p])
+
+
+## 注入一次完整的真实鼠标左键点击（按下 + 抬起），走引擎输入管线
+func _send_click_at(p: Vector2) -> void:
+	var move := InputEventMouseMotion.new()
+	move.position = p
+	move.global_position = p
+	Input.parse_input_event(move)
+	var press := InputEventMouseButton.new()
+	press.position = p
+	press.global_position = p
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	Input.parse_input_event(press)
+	var release := InputEventMouseButton.new()
+	release.position = p
+	release.global_position = p
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	Input.parse_input_event(release)
+
+
 ## 显示屏幕反馈文案（部署成功/失败原因等）
 func _show_feedback(text: String, color: Color) -> void:
 	_feedback_text = text
@@ -420,17 +649,32 @@ func _show_feedback(text: String, color: Color) -> void:
 	_feedback_timer = 3.0
 
 
-## 截取当前画面到 p0.2_shots（autoplay 验收用）
+## 截取当前画面（autoplay 回归用）。
+## P0.3 修复帧序问题：必须等**本帧绘制完成**后再取图，
+## 否则拿到的是上一帧的 viewport 内容（P0.2 的 02_card_selected 就是这样错位的）。
+## 实现方式：先记录待截图名，等到渲染完成通知（RenderingServer frame_post_draw）再取图。
+var _pending_capture: String = ""
+
 func _ap_capture(shot_name: String) -> void:
+	_pending_capture = shot_name
+	var cb := func() -> void:
+		if _pending_capture.is_empty():
+			return
+		var name := _pending_capture
+		_pending_capture = ""
+		_do_capture(name)
+	RenderingServer.frame_post_draw.connect(cb, CONNECT_ONE_SHOT)
+
+
+func _do_capture(shot_name: String) -> void:
 	var img := get_viewport().get_texture().get_image()
-	DirAccess.make_dir_recursive_absolute('user://p0.2_shots')
-	var path := 'user://p0.2_shots/%s.png' % shot_name
+	DirAccess.make_dir_recursive_absolute('user://p0.3_shots')
+	var path := 'user://p0.3_shots/%s.png' % shot_name
 	var err := img.save_png(path)
-	_autoplay_shots.append(path)
-	GameLog.info(TAG, '[autoplay] 截图 %s（err=%d）' % [ProjectSettings.globalize_path(path), err])
+	GameLog.info(TAG, '[autoplay] 截图 %s（err=%d）'
+		% [ProjectSettings.globalize_path(path), err])
 
 
-## 屏幕像素 -> 格坐标（用于判断点击是否落在某格上）
 ## 格坐标 -> 屏幕像素（autoplay 注入/点击使用；与 _draw_board 同一换算）
 func _cell_screen_pos(column: int, lane: int) -> Vector2:
 	var tile := _px(grid.tile_size_px)
@@ -465,7 +709,9 @@ func run_headless_until_decided(max_seconds: float = 600.0) -> int:
 	return session.outcome
 
 
-# ---------- 绘制 ----------
+# ============================================================
+#  绘制
+# ============================================================
 
 func _draw() -> void:
 	if grid == null or session == null:
@@ -473,11 +719,18 @@ func _draw() -> void:
 	_draw_hud_backdrop()
 	_draw_board()
 	_draw_core()
+	_draw_deploy_feedback()
 	_draw_characters()
 	_draw_enemies()
-	_draw_deploy_feedback()
 	_draw_hud_text()
+	_draw_wave_banner()
 	_draw_character_card()
+	_draw_character_panel()
+	_draw_feedback()
+	if session.is_paused():
+		_draw_pause_overlay()
+	if session.is_decided():
+		_draw_result_overlay()
 
 
 func _draw_hud_backdrop() -> void:
@@ -558,7 +811,7 @@ func _draw_core() -> void:
 		"残响锚点", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(15.0)), CORE_COLOR)
 
 
-## 已部署角色（占位：菱形/圆角块，颜色按存活状态区分）
+## 已部署角色（占位：菱形，颜色按存活/选中状态区分）
 func _draw_characters() -> void:
 	var tile := _px(grid.tile_size_px)
 	var spacing := _px(grid.lane_spacing_px)
@@ -567,6 +820,8 @@ func _draw_characters() -> void:
 		var px_y := _origin.y + float(c.lane) * spacing
 		var size := tile * 0.44
 		var color := CHARACTER_COLOR if not c.is_incapacitated() else CHARACTER_LOST_COLOR
+		if c.instance_id == _selected_character_id:
+			color = CHARACTER_SELECTED
 		# 角色主体（占位：旋转 45° 的方块 = 菱形，区别于敌人的正方块）
 		var half := size * 0.5
 		var pts := PackedVector2Array([
@@ -576,7 +831,9 @@ func _draw_characters() -> void:
 			Vector2(px_x - half, px_y),
 		])
 		draw_colored_polygon(pts, color)
-		draw_polyline(pts + PackedVector2Array([pts[0]]), Color(1, 1, 1, 0.6), 1.5)
+		draw_polyline(pts + PackedVector2Array([pts[0]]),
+			Color(1, 1, 1, 0.85) if c.instance_id == _selected_character_id else Color(1, 1, 1, 0.6),
+			2.5 if c.instance_id == _selected_character_id else 1.5)
 
 		# HP 条（角色头顶）
 		var bar_w := tile * 0.5
@@ -598,18 +855,63 @@ func _draw_characters() -> void:
 				HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(13.0)), Color(0.95, 0.9, 0.4))
 
 
+## 敌人（占位方块，按类型着色）。
+## P0.3 表现层修复：同一接触线上的多个敌人不再完全重叠——
+## 按"同一 (lane, logicalX) 分组内的序号"给一个**纯绘制用**的横向偏移。
+## 逻辑坐标、射程、接触线与阻挡判定完全不受影响。
+func _draw_enemies() -> void:
+	var tile := _px(grid.tile_size_px)
+	var spacing := _px(grid.lane_spacing_px)
+	var seen := {}
+	for e: EnemyRuntime in session.stage.enemies:
+		if not e.is_active():
+			continue
+		# 逻辑 x 先按 V2.1.4 公式换算为参考画布像素，再同比缩放到当前屏幕
+		var ref_px_x := grid.logical_to_px_x(e.logical_x, 0.0)
+		var px_x := _origin.x + _px(ref_px_x)
+		var px_y := _origin.y + float(e.lane) * spacing
+		var size := tile * 0.42
+
+		# 纯表现层的重叠偏移：同一路线 + 同一逻辑 x（判定阈值 0.01 格）视为同栈
+		var key := "%d:%.2f" % [e.lane, e.logical_x]
+		var stack_index := int(seen.get(key, 0))
+		seen[key] = stack_index + 1
+		if stack_index > 0:
+			var direction := 1.0 if stack_index % 2 == 1 else -1.0
+			var magnitude := float((stack_index + 1) / 2)
+			px_y += direction * magnitude * _px(OVERLAP_OFFSET_PX)
+
+		var color := ENEMY_COLOR
+		if e.enemy_id == "echo_runner":
+			color = ENEMY_RUNNER_COLOR
+		elif e.enemy_id == "echo_armored":
+			color = ENEMY_ARMORED_COLOR
+		var rect := Rect2(Vector2(px_x - size * 0.5, px_y - size * 0.5), Vector2(size, size))
+		draw_rect(rect, color, true)
+		draw_rect(rect, Color(1, 1, 1, 0.55), false, 1.5)
+		# 敌人 HP 条
+		var hp_ratio := 0.0
+		if e.hp_max > 0:
+			hp_ratio = clampf(float(e.hp) / float(e.hp_max), 0.0, 1.0)
+		if hp_ratio < 1.0:
+			draw_rect(Rect2(Vector2(px_x - size * 0.5, px_y - size * 0.5 - _px(9.0)),
+				Vector2(size, _px(5.0))), Color(0.12, 0.12, 0.16), true)
+			draw_rect(Rect2(Vector2(px_x - size * 0.5, px_y - size * 0.5 - _px(9.0)),
+				Vector2(size * hp_ratio, _px(5.0))), Color(0.95, 0.45, 0.40), true)
+
+
 ## 部署反馈：选中时的合法/非法格高亮 + 悬停描边
 func _draw_deploy_feedback() -> void:
 	if not _card_selected or session == null or grid == null:
 		return
-	if not session.is_running():
+	if not session.is_running() or session.is_paused():
 		return
 	var tile := _px(grid.tile_size_px)
 	var spacing := _px(grid.lane_spacing_px)
 
 	for lane: int in range(grid.lanes):
 		for column: int in range(grid.columns):
-			var r := session.query_deploy(P02_CHARACTER_ID, column, lane)
+			var r := session.query_deploy(P03_CHARACTER_ID, column, lane)
 			var center := Vector2(_origin.x + tile * float(column),
 				_origin.y + float(lane) * spacing)
 			var rect := Rect2(center - Vector2(tile, tile) * 0.43,
@@ -638,56 +940,64 @@ func _draw_deploy_feedback() -> void:
 				int(_px(15.0)), CELL_INVALID)
 
 
-## 底部角色卡（P0.2：仅雨宫澪一张；完整六人编队属后续阶段）
+## 底部角色卡（P0.3：仍只有雨宫澪一张；完整六人编队属后续阶段）
 func _draw_character_card() -> void:
 	if session == null or session.stage == null:
 		return
-	var cfg: Dictionary = session.stage._character_configs.get(P02_CHARACTER_ID, {})
+	var cfg: Dictionary = session.stage._character_configs.get(P03_CHARACTER_ID, {})
 	if cfg.is_empty():
 		return
-	var card_h := _px(CARD_HEIGHT)
-	var card_w := _px(340.0)
-	var pos := Vector2(_px(24.0), _viewport_size.y - card_h - _px(24.0))
-	var selected := _card_selected
-	var bg := CARD_SELECTED_COLOR if selected else CARD_COLOR
-	draw_rect(Rect2(pos, Vector2(card_w, card_h)), bg, true)
-	draw_rect(Rect2(pos, Vector2(card_w, card_h)),
-		Color(0.45, 0.50, 0.70) if not selected else Color(0.6, 0.85, 1.0), false, 2.0)
-
-	var char_inst := session.stage.get_character_by_id(P02_CHARACTER_ID)
-	var deployed := char_inst != null
+	var pos := _card_rect.position
+	var size := _card_rect.size
 	var font := ThemeDB.fallback_font
+
+	var char_inst := session.stage.get_character_by_id(P03_CHARACTER_ID)
+	var deployed := char_inst != null
+	var cooldown := session.get_redeploy_remaining(P03_CHARACTER_ID)
+	var cooling := cooldown > 0.0
+
+	var bg := CARD_SELECTED_COLOR if _card_selected else (CARD_COOLING_COLOR if cooling else CARD_COLOR)
+	draw_rect(Rect2(pos, size), bg, true)
+	draw_rect(Rect2(pos, size),
+		Color(0.6, 0.85, 1.0) if _card_selected else Color(0.45, 0.50, 0.70), false, 2.0)
+
 	var tx := pos.x + _px(18.0)
 	var ty := pos.y + _px(30.0)
 
-	# 名称与职业
+	# 名称与社团
 	draw_string(font, Vector2(tx, ty), str(cfg.get("name", "—")),
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22.0)), Color(0.95, 0.97, 1.0))
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22.0)), TEXT_COLOR)
 	draw_string(font, Vector2(tx + _px(110.0), ty),
 		str(cfg.get("club", "")), HORIZONTAL_ALIGNMENT_LEFT, -1,
 		int(_px(15.0)), Color(0.7, 0.78, 0.95))
 
-	# 费用与状态
+	# 费用
 	var cost := int(cfg.get("deployCost", 0))
 	var affordable := session.stage.can_afford(cost)
-	var can_select := not deployed and affordable and session.is_running()
 	ty += _px(34.0)
 	draw_string(font, Vector2(tx, ty), "费用 %d AP" % cost,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)),
 		Color(0.55, 0.85, 1.0) if affordable else Color(0.95, 0.5, 0.4))
 
+	# V2.1.4 D-18 角色卡四态：可部署 / AP 不足 / 已部署 / 再部署（倒计时）
 	var status_text: String
 	var status_color: Color
 	if deployed:
 		status_text = "已在场"
 		status_color = Color(0.6, 0.75, 0.95)
-	elif not affordable:
-		status_text = "AP 不足"
-		status_color = Color(0.95, 0.5, 0.4)
+	elif cooling:
+		status_text = "再部署 %.1f 秒" % cooldown
+		status_color = Color(0.95, 0.80, 0.35)
 	elif not session.is_running():
 		status_text = "战斗已结束"
 		status_color = Color(0.6, 0.6, 0.65)
-	elif selected:
+	elif not affordable:
+		status_text = "AP 不足"
+		status_color = Color(0.95, 0.5, 0.4)
+	elif session.is_paused():
+		status_text = "暂停中"
+		status_color = Color(0.95, 0.85, 0.45)
+	elif _card_selected:
 		status_text = "已选中 — 点击格部署"
 		status_color = Color(0.4, 1.0, 0.65)
 	else:
@@ -697,8 +1007,19 @@ func _draw_character_card() -> void:
 	draw_string(font, Vector2(tx, ty), status_text,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), status_color)
 
+	# 再部署冷却进度条（离场后显示）
+	if cooling:
+		var bar_w := size.x - _px(36.0)
+		var bar_h := _px(8.0)
+		var bp := Vector2(tx, ty + _px(10.0))
+		draw_rect(Rect2(bp, Vector2(bar_w, bar_h)), Color(0.14, 0.14, 0.18), true)
+		var inst := session.stage.get_character_instance(P03_CHARACTER_ID)
+		var prog := inst.redeploy_progress() if inst != null else 0.0
+		draw_rect(Rect2(bp, Vector2(bar_w * (1.0 - prog), bar_h)),
+			Color(0.45, 0.85, 0.55), true)
+
 	# 关键属性
-	ty += _px(32.0)
+	ty += _px(34.0)
 	var st: Dictionary = cfg.get("baseStats", {})
 	draw_string(font, Vector2(tx, ty),
 		"HP %d  攻 %d  防 %d  阻挡 %d" % [
@@ -707,39 +1028,128 @@ func _draw_character_card() -> void:
 		], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), Color(0.72, 0.78, 0.92))
 
 	# 快捷键提示
-	draw_string(font, Vector2(pos.x + card_w - _px(110.0), pos.y + _px(30.0)),
-		"[1] 选择", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)),
-		Color(0.55, 0.62, 0.85))
-## 敌人（占位方块，按类型着色）
-func _draw_enemies() -> void:
-	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
-	for e: EnemyRuntime in session.stage.enemies:
-		if not e.is_active():
-			continue
-		# 逻辑 x 先按 V2.1.4 公式换算为参考画布像素，再同比缩放到当前屏幕
-		var ref_px_x := grid.logical_to_px_x(e.logical_x, 0.0)
-		var px_x := _origin.x + _px(ref_px_x)
-		var px_y := _origin.y + float(e.lane) * spacing
-		var size := tile * 0.42
-		var color := ENEMY_COLOR
-		if e.enemy_id == "echo_runner":
-			color = ENEMY_RUNNER_COLOR
-		elif e.enemy_id == "echo_armored":
-			color = ENEMY_ARMORED_COLOR
-		var rect := Rect2(Vector2(px_x - size * 0.5, px_y - size * 0.5), Vector2(size, size))
-		draw_rect(rect, color, true)
-		draw_rect(rect, Color(1, 1, 1, 0.55), false, 1.5)
+	draw_string(font, Vector2(pos.x + size.x - _px(110.0), pos.y + _px(30.0)),
+		"[1] 选择", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), Color(0.55, 0.62, 0.85))
 
 
-## 调试信息（路线 / 敌人位置 / 核心 HP / 运行状态）
+## 选中场上角色后的操作面板（V2.1.4 D-27 / J4 底部右：角色信息 / 技能 / 撤退）
+func _draw_character_panel() -> void:
+	if _selected_character_id == 0 or session == null or session.is_decided():
+		return
+	var c := session.stage.get_character(_selected_character_id)
+	if c == null:
+		return
+	var font := ThemeDB.fallback_font
+	var size := Vector2(_px(300.0), _px(210.0))
+	var pos := Vector2(_viewport_size.x - size.x - _px(24.0),
+		_viewport_size.y - size.y - _px(24.0))
+	draw_rect(Rect2(pos, size), PANEL_BG, true)
+	draw_rect(Rect2(pos, size), Color(0.55, 0.62, 0.85), false, 2.0)
+
+	var tx := pos.x + _px(20.0)
+	var ty := pos.y + _px(34.0)
+	draw_string(font, Vector2(tx, ty), c.display_name,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22.0)), TEXT_COLOR)
+	ty += _px(30.0)
+	draw_string(font, Vector2(tx, ty), "%s  第 %d 格" % [
+			BattleTypes.lane_name(c.lane), c.column + 1],
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(15.0)), DIM_TEXT)
+	ty += _px(28.0)
+	draw_string(font, Vector2(tx, ty), "HP %d / %d" % [c.hp, c.max_hp],
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.55, 0.95, 0.65))
+	ty += _px(24.0)
+	draw_string(font, Vector2(tx, ty), "攻击 %d  防御 %d  阻挡 %d/%d" % [
+			c.attack, c.defense, c.blocking_enemy_ids.size(), c.block_count_max],
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), Color(0.72, 0.78, 0.92))
+	ty += _px(24.0)
+	var refund := session.stage.compute_retreat_refund(
+		int(session.stage._character_configs.get(c.character_id, {}).get("deployCost", 0)))
+	draw_string(font, Vector2(tx, ty),
+		"撤退返还 %d AP，冷却 %.0f 秒" % [refund, c.redeploy_time],
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), Color(0.85, 0.80, 0.55))
+
+	# 撤退按钮
+	var hovered := _retreat_rect.has_point(_mouse_pos)
+	draw_rect(_retreat_rect, BUTTON_HOVER if hovered else RETREAT_COLOR, true)
+	draw_rect(_retreat_rect, Color(1, 1, 1, 0.45), false, 2.0)
+	var label := "撤退（R）"
+	var label_w := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
+	draw_string(font,
+		Vector2(_retreat_rect.position.x + (_retreat_rect.size.x - label_w) * 0.5,
+			_retreat_rect.position.y + _retreat_rect.size.y * 0.68),
+		label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), Color(1, 0.94, 0.94))
+
+
+## 顶部右侧：暂停 / 继续按钮 + Wave 进度
+func _draw_wave_banner() -> void:
+	if session == null or session.stage == null:
+		return
+	var font := ThemeDB.fallback_font
+	var s := session.stage
+
+	# Wave 进度（顶部中）
+	var wn := s.current_wave_number()
+	var total := s.total_wave_count()
+	var wave_text := "Wave %d / %d" % [wn, total]
+	if total == 0:
+		wave_text = "无 Wave 配置"
+	var wcol := Color(0.85, 0.90, 1.0)
+	if wn >= 1 and wn <= total:
+		wave_text += "  %s" % str(s.waves[wn - 1].get("label", ""))
+	var wsize := font.get_string_size(wave_text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(26.0))).x
+	draw_string(font, Vector2((_viewport_size.x - wsize) * 0.5, _px(44.0)), wave_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(26.0)), wcol)
+
+	# 当前波剩余与下一波预告（V2.1.4 D-33：UI 显示当前 Wave、下一波提示、当前敌人数量）
+	var remain := s.current_wave_remaining()
+	var living := s.enemies.size()
+	var info := "本波待出怪 %d ｜ 场上敌人 %d" % [remain, living]
+	var isize := font.get_string_size(info, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0))).x
+	draw_string(font, Vector2((_viewport_size.x - isize) * 0.5, _px(72.0)), info,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.72, 0.80, 0.95))
+
+	var nxt := s.next_wave_preview()
+	if not nxt.is_empty():
+		var ntext := "下一波：Wave %d %s（%d 名，%s）" % [
+			int(nxt["number"]), str(nxt["label"]), int(nxt["enemyCount"]),
+			_lanes_text(nxt["lanes"])]
+		var nsize := font.get_string_size(ntext, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0))).x
+		draw_string(font, Vector2((_viewport_size.x - nsize) * 0.5, _px(98.0)), ntext,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.95, 0.80, 0.45))
+	else:
+		var etext := "最终波 — 清空后即胜利"
+		var esize := font.get_string_size(etext, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0))).x
+		draw_string(font, Vector2((_viewport_size.x - esize) * 0.5, _px(98.0)), etext,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.55, 0.95, 0.65))
+
+	# 暂停按钮
+	if not session.is_decided():
+		var hovered := _pause_rect.has_point(_mouse_pos)
+		draw_rect(_pause_rect, BUTTON_HOVER if hovered else BUTTON_COLOR, true)
+		draw_rect(_pause_rect, Color(0.55, 0.62, 0.85), false, 2.0)
+		var pt := "继续" if session.is_paused() else "暂停 (Space)"
+		var psize := font.get_string_size(pt, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0))).x
+		draw_string(font,
+			Vector2(_pause_rect.position.x + (_pause_rect.size.x - psize) * 0.5,
+				_pause_rect.position.y + _pause_rect.size.y * 0.68),
+			pt, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)), Color(0.92, 0.95, 1.0))
+
+
+func _lanes_text(lanes: Variant) -> String:
+	var parts: Array[String] = []
+	for l: Variant in (lanes as Array):
+		parts.append(BattleTypes.lane_name(int(l)))
+	return "、".join(parts) if not parts.is_empty() else "—"
+
+
+## 调试信息（左上：AP / 核心 / 击杀等；右上：场上敌人列表）
 func _draw_hud_text() -> void:
 	var font := ThemeDB.fallback_font
 	var x := _px(18.0)
 	var y := _px(30.0)
 	var lh := _px(21.0)
 	draw_string(font, Vector2(x, y),
-		"P0.1 战斗原型 — 3 路 × 6 格（占位图形，非最终美术）",
+		"%s 战斗原型 — 3 路 × 6 格（占位图形，非最终美术）" % App.stage_label(),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), Color(0.93, 0.95, 1.0))
 	y += lh * 1.5
 	for line: String in _debug_lines:
@@ -749,7 +1159,7 @@ func _draw_hud_text() -> void:
 
 	# 敌人列表（右上，最多 10 条）
 	var ex := _viewport_size.x - _px(430.0)
-	var ey := _px(30.0)
+	var ey := _px(150.0)
 	draw_string(font, Vector2(ex, ey), "场上敌人", HORIZONTAL_ALIGNMENT_LEFT, -1,
 		int(_px(19.0)), Color(0.93, 0.95, 1.0))
 	ey += lh * 1.4
@@ -770,6 +1180,100 @@ func _draw_hud_text() -> void:
 		shown += 1
 
 
+## 操作反馈提示（底部中央）
+func _draw_feedback() -> void:
+	if _feedback_timer <= 0.0 or _feedback_text.is_empty():
+		return
+	var font := ThemeDB.fallback_font
+	var w := font.get_string_size(_feedback_text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19.0))).x
+	var pad := _px(18.0)
+	var pos := Vector2((_viewport_size.x - w) * 0.5,
+		_viewport_size.y - _px(CARD_HEIGHT) - _px(60.0))
+	draw_rect(Rect2(Vector2(pos.x - pad, pos.y - _px(24.0)),
+		Vector2(w + pad * 2.0, _px(38.0))), Color(0.04, 0.05, 0.09, 0.88), true)
+	draw_string(font, pos, _feedback_text, HORIZONTAL_ALIGNMENT_LEFT, -1,
+		int(_px(19.0)), _feedback_color)
+
+
+## 暂停遮罩（V2.1.4 D-35）
+func _draw_pause_overlay() -> void:
+	draw_rect(Rect2(Vector2.ZERO, _viewport_size), Color(0.02, 0.03, 0.06, 0.45), true)
+	var font := ThemeDB.fallback_font
+	var text := "已暂停 — 按 Space 或点击右上角「继续」"
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(34.0))).x
+	draw_string(font, Vector2((_viewport_size.x - w) * 0.5, _viewport_size.y * 0.45),
+		text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(34.0)), Color(0.98, 0.92, 0.60))
+
+
+## 结果界面（至少显示胜负、核心剩余 HP、击杀与漏怪数量 + 重新挑战 / 退出战斗）
+func _draw_result_overlay() -> void:
+	var summary := session.result_summary()
+	if summary.is_empty():
+		return
+	var font := ThemeDB.fallback_font
+	draw_rect(Rect2(Vector2.ZERO, _viewport_size), Color(0.02, 0.03, 0.06, 0.72), true)
+
+	var panel := Rect2(Vector2(_viewport_size.x * 0.5 - _px(380.0),
+			_viewport_size.y * 0.5 - _px(260.0)), Vector2(_px(760.0), _px(480.0)))
+	draw_rect(panel, PANEL_BG, true)
+	draw_rect(panel, Color(0.55, 0.62, 0.85), false, 3.0)
+
+	var victory := bool(summary["victory"])
+	var title := "胜 利" if victory else "失 败"
+	var tcol := Color(0.55, 0.95, 0.65) if victory else Color(0.95, 0.45, 0.45)
+	var cx := _viewport_size.x * 0.5
+	var tsize := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(64.0))).x
+	draw_string(font, Vector2(cx - tsize * 0.5, panel.position.y + _px(96.0)), title,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(64.0)), tcol)
+
+	var reason := "残响锚点守住了全部 Wave" if victory else "残响锚点已被击穿"
+	var rsize := font.get_string_size(reason, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
+	draw_string(font, Vector2(cx - rsize * 0.5, panel.position.y + _px(140.0)), reason,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), DIM_TEXT)
+
+	# 结算数据
+	var lines := [
+		"核心剩余 HP：%d / %d" % [int(summary["coreHp"]), int(summary["coreHpMax"])],
+		"击杀敌人：%d" % int(summary["kills"]),
+		"漏怪数量：%d" % int(summary["leaked"]),
+		"Wave 进度：%d / %d" % [int(summary["wave"]), int(summary["waveTotal"])],
+		"角色撤退：%d 次（返还 %d AP）" % [int(summary["retreats"]), int(summary["retreatAp"])],
+		"角色失能：%d" % int(summary["lost"]),
+		"战斗时长：%.1f 秒" % float(summary["elapsed"]),
+	]
+	var ly := panel.position.y + _px(196.0)
+	for line: String in lines:
+		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22.0))).x
+		draw_string(font, Vector2(cx - lw * 0.5, ly), line,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22.0)), TEXT_COLOR)
+		ly += _px(34.0)
+
+	# 按钮
+	_draw_button(_relaunch_rect, "重新挑战", Color(0.22, 0.45, 0.72))
+	_draw_button(_quit_rect, "退出战斗", Color(0.42, 0.28, 0.32))
+
+
+func _draw_button(rect: Rect2, label: String, base: Color) -> void:
+	if rect.size.x <= 0.0:
+		return
+	var font := ThemeDB.fallback_font
+	var hovered := rect.has_point(_mouse_pos)
+	draw_rect(rect, base.lightened(0.18) if hovered else base, true)
+	draw_rect(rect, Color(0.75, 0.82, 0.95), false, 2.0)
+	var s := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24.0))).x
+	draw_string(font, Vector2(rect.position.x + (rect.size.x - s) * 0.5,
+			rect.position.y + rect.size.y * 0.66),
+		label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24.0)), Color(0.96, 0.98, 1.0))
+
+
+func _draw_pause_overlay_helper() -> void:
+	pass
+
+
+# ============================================================
+#  信号回调（表现层只重绘，不改状态）
+# ============================================================
+
 func _refresh_debug_lines() -> void:
 	if session == null or session.stage == null:
 		return
@@ -779,17 +1283,19 @@ func _refresh_debug_lines() -> void:
 			s.stage_id, _render_scale,
 			grid.reference_canvas_width, grid.reference_canvas_height,
 		],
-		"运行状态：%s%s" % [
+		"运行状态：%s%s%s" % [
 			BattleTypes.outcome_name(session.outcome),
 			"（已冻结）" if session.is_frozen() else "",
+			"（暂停）" if s.is_paused() else "",
 		],
 		"核心 HP：%d / %d      漏怪结算次数：%d" % [
 			s.core_hp, s.core_hp_max, s.core_damage_events,
 		],
-		"AP：%d / %d（自然回复 %.0f/s）      已部署角色：%d      击杀：%d" % [
+		"AP：%d / %d（自然回复 %.0f/s）      场上角色：%d      击杀：%d" % [
 			s.ap, s.ap_max, s.ap_regen_per_second, s.characters.size(), s.enemies_killed,
 		],
-		"出怪：已生成 %d / 计划 %d      场上存活：%d" % [
+		"Wave %d / %d      出怪：已生成 %d / 计划 %d      场上存活：%d" % [
+			s.current_wave_number(), s.total_wave_count(),
 			s.spawned_enemy_count(), s.planned_enemy_count(), s.enemies.size(),
 		],
 		"逻辑时间：%.2f s      格尺寸：%.0f px（参考）      路间距：%.0f px（参考）" % [
@@ -800,6 +1306,7 @@ func _refresh_debug_lines() -> void:
 
 
 func _on_outcome_decided(_outcome: int) -> void:
+	_layout_buttons()
 	queue_redraw()
 
 
@@ -809,3 +1316,7 @@ func _on_core_hp_changed(_current: int, _max_hp: int) -> void:
 
 func _on_enemy_reached_core(_enemy: EnemyRuntime) -> void:
 	pass
+
+
+func _on_wave_changed(wave_number: int, total: int) -> void:
+	_show_feedback("Wave %d / %d 开始" % [wave_number, total], Color(0.95, 0.85, 0.45))

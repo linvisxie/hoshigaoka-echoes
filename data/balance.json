@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0-p0.2",
+  "schemaVersion": "1.0.0-p0.3",
   "domain": "balance",
   "layout": {
     "_note": "V2.1.4 LOCKED 规则 / PROTOTYPE 参数：tileSizePx 与 laneSpacingPx 是原型视觉可调参数，不作为技能平衡值。",
@@ -33,6 +33,18 @@
       "_note": "V2.1.4 D-3A / D-10：只有 blockCount > 0 的角色能建立阻挡。敌人推进到阻挡者前方接触线且该单位仍有剩余阻挡名额时停止移动并攻击；名额已满的敌人继续前进。阻挡判定完全基于 tile，与 Sprite 尺寸无关。",
       "contactLineTiles": 0.5,
       "_contactLineTiles_note": "敌人中心与阻挡者所在格中心的接触距离（tile）。敌人沿路线自右向左移动，当其 logicalX 与阻挡者 column 之差 ≤ 该值时判定接触。"
+    },
+    "retreat": {
+      "_note": "V2.1.4 D-9 / D 章表 24（LOCKED）：主动撤退返还『部署费用的 50%』；表 24 同时规定『死亡返还 0 AP』，D-27 规定 HP ≤ 0 时角色离场并进入再部署冷却（首章阵容深度说明称『主动撤离』）。比例由权威配置承载，不写死在代码里，便于后续角色天赋与局内强化『快速换防』（D-17 机制型强化）按角色/来源覆写。",
+      "refundRate": 0.5,
+      "refundOnIncapacitated": 0.0,
+      "_rounding": "FLOOR",
+      "_rounding_note": "费用 × 比例出现小数时向下取整，保证返还永不超过规格上限。雨宫澪 10 AP × 0.5 = 5 AP，无小数。"
+    },
+    "redeploy": {
+      "_note": "V2.1.4 表 24：普通角色再部署冷却 20 秒。角色级 redeployTime（characters.json，表 47：雨宫澪/悠真/结衣/千夏 20s、纱良 22s、凛 25s）存在时优先于本默认值。P0.3 只实现计时与准入，不做缩减类强化。",
+      "defaultSeconds": 20.0,
+      "_floorNote": "V2.1.4 表（再部署缩减）规定缩减后不得低于基础时间的 50%，属后续阶段性约束，P0.3 无缩减来源。"
     },
     "targeting": {
       "_note": "V2.1.4 D-11：角色自动寻找攻击范围内目标，基础优先级为 ① 最接近防守核心的敌人 ② 当前正在阻挡的敌人 ③ 更早进入攻击范围的敌人。",

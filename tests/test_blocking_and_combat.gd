@@ -42,8 +42,20 @@ func _combat() -> Dictionary:
 
 
 ## 构造一个"敌人按需出现在指定路线"的夹具，便于精确控制阻挡场景
+
+## 生成时序 / 漏怪等专项夹具：清空 waves 元数据，使波次完全由 enemySpawnTimeline 自动推导。
+## Wave 声明只服务于正式关卡数据；测试若整体替换出怪时间线，必须同步移除 Wave 声明，
+## 否则会触发「waves 声明了第 N 波但无敌人归属」的一致性报错。
+## 注意：必须 duplicate 后再改，绝不能改写 DataRegistry 里的权威字典。
+func _cfg_no_waves(cfg: Dictionary) -> Dictionary:
+	var c := cfg.duplicate(true)
+	c.erase("waves")
+	return c
+
+
 func _cfg_with_spawns(spawns: Array) -> Dictionary:
 	var base := DataRegistry.get_entry("stages", "1-1").duplicate(true)
+	base.erase("waves")
 	base["coreHp"] = 100
 	base["startingAp"] = 100
 	base["apRegen"] = 0

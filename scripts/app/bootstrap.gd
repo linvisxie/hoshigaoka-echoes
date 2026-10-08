@@ -6,21 +6,30 @@
 ##   3. 无头模式下打印状态后退出（CI / 自动化验证）
 ##
 ## 命令行参数（Godot 用户参数，需写在 -- 之后）：
-##   --scene=battle    直接进入 P0.1 战斗场景
+##   --scene=battle    直接进入战斗场景
 ##   --scene=bootstrap 停留在启动场景（默认）
 ## 示例：
 ##   HoshigaokaEchoes.exe -- --scene=battle
 ##
 ## 标题画面 / 校园 Hub / 前台状态流属 Alpha A0.7，不在此实现。
+##
+## P0.3 修复：场景切换不再于 _ready 内同步执行。
+## 在 _ready 里直接调用 change_scene_to_file() 会把当前场景从其父节点上摘除，
+## 而此时引擎仍在遍历子节点，于是偶发报
+## 「remove_child() can't be called at this time」。
+## 现改为 call_deferred 推迟到本帧末，避开遍历期。
 extends Node2D
 
 const TAG := "Bootstrap"
 
-## 支持的启动目标（与 SceneRouter.SCENES 的 key 对齐；battle 为本阶段新增）
+## 支持的启动目标（与 SceneRouter.SCENES 的 key 对齐；battle 为 P0.1 起新增）
 const BOOT_TARGETS := {
 	"bootstrap": "res://scenes/bootstrap/bootstrap.tscn",
 	"battle": "res://scenes/battle/battle_scene.tscn",
 }
+
+## 待切换的场景路径（空 = 不切换）
+var _pending_scene_path: String = ""
 
 
 func _ready() -> void:
@@ -48,20 +57,38 @@ func _ready() -> void:
 		return
 
 	# 非无头且有明确目标时切换场景
-	if target != "bootstrap":
-		if not BOOT_TARGETS.has(target):
-			GameLog.error(TAG, "未知的 --scene 值：%s（可选：%s）"
-				% [target, ", ".join(BOOT_TARGETS.keys())])
-			return
-		var path: String = BOOT_TARGETS[target]
-		if not ResourceLoader.exists(path):
-			GameLog.error(TAG, "场景不存在：%s" % path)
-			return
-		var err := get_tree().change_scene_to_file(path)
-		if err != OK:
-			GameLog.error(TAG, "切换场景失败：%s（错误 %d）" % [path, err])
-		else:
-			GameLog.info(TAG, "已切换到 %s" % path)
+	if target == "bootstrap":
+		return
+	if not BOOT_TARGETS.has(target):
+		GameLog.error(TAG, "未知的 --scene 值：%s（可选：%s）"
+			% [target, ", ".join(BOOT_TARGETS.keys())])
+		return
+	var path: String = BOOT_TARGETS[target]
+	if not ResourceLoader.exists(path):
+		GameLog.error(TAG, "场景不存在：%s" % path)
+		return
+
+	# 推迟到本帧末执行，避免在 _ready 的子节点遍历期内摘除场景
+	_pending_scene_path = path
+	GameLog.info(TAG, "已安排切换到 %s（延迟到本帧末）" % path)
+	call_deferred("_apply_pending_scene")
+
+
+## 在帧末真正执行场景切换（call_deferred 目标）。
+func _apply_pending_scene() -> void:
+	if _pending_scene_path.is_empty():
+		return
+	var path := _pending_scene_path
+	_pending_scene_path = ""
+	# 二次确认本节点仍在场景树内（切换前可能已被其他流程移除）
+	if not is_inside_tree():
+		GameLog.warn(TAG, "节点已不在场景树内，取消切换 %s" % path)
+		return
+	var err := get_tree().change_scene_to_file(path)
+	if err != OK:
+		GameLog.error(TAG, "切换场景失败：%s（错误 %d）" % [path, err])
+	else:
+		GameLog.info(TAG, "已切换到 %s" % path)
 
 
 ## 解析 --scene=<name> 用户参数（Godot 用户参数位于 -- 之后）。

@@ -84,8 +84,19 @@ func test_core_damage_applied_only_once_per_enemy() -> void:
 
 ## 漏怪结算专项夹具：单敌人、早出怪、不部署任何角色，
 ## 确保"敌人确实抵达核心"这一前提成立，不依赖 1-1 的可调出怪节奏。
+
+## 生成时序 / 漏怪等专项夹具：清空 waves 元数据，使波次完全由 enemySpawnTimeline 自动推导。
+## Wave 声明只服务于正式关卡数据；测试若整体替换出怪时间线，必须同步移除 Wave 声明，
+## 否则会触发「waves 声明了第 N 波但无敌人归属」的一致性报错。
+## 注意：必须 duplicate 后再改，绝不能改写 DataRegistry 里的权威字典。
+func _cfg_no_waves(cfg: Dictionary) -> Dictionary:
+	var c := cfg.duplicate(true)
+	c.erase("waves")
+	return c
+
+
 func _leak_fixture_config(core_hp: int = 5) -> Dictionary:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = core_hp
 	cfg["enemySpawnTimeline"] = [
 		{"time": 0.5, "lane": 1, "enemy": "echo_normal"},
@@ -154,7 +165,7 @@ func test_lanes_do_not_have_independent_cores() -> void:
 # ---------- 失败 ----------
 
 func test_defeat_when_core_hp_depleted() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = 1  # 一个敌人抵达即失败
 	cfg["enemySpawnTimeline"] = [{"time": 0.5, "lane": 1, "enemy": "echo_normal"}]
 
@@ -169,7 +180,7 @@ func test_defeat_when_core_hp_depleted() -> void:
 
 
 func test_defeat_triggers_only_once() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = 1
 	cfg["enemySpawnTimeline"] = [
 		{"time": 0.5, "lane": 0, "enemy": "echo_normal"},
@@ -192,7 +203,7 @@ func test_defeat_triggers_only_once() -> void:
 # ---------- 胜利 ----------
 
 func test_victory_when_all_planned_enemies_cleared() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	# 用小规模、快速抵达的配置便于测试
 	cfg["coreHp"] = 99  # 确保不会失败
 	cfg["enemySpawnTimeline"] = [
@@ -220,7 +231,7 @@ func test_victory_when_all_planned_enemies_cleared() -> void:
 
 
 func test_victory_requires_all_planned_enemies_spawned() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = 99
 	cfg["enemySpawnTimeline"] = [
 		{"time": 0.5, "lane": 0, "enemy": "echo_normal"},
@@ -240,7 +251,7 @@ func test_victory_requires_all_planned_enemies_spawned() -> void:
 
 
 func test_victory_requires_core_alive() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = 1
 	cfg["enemySpawnTimeline"] = [{"time": 0.5, "lane": 1, "enemy": "echo_normal"}]
 
@@ -261,7 +272,7 @@ func test_no_new_spawns_after_outcome_decided() -> void:
 	# 否则按规格（D-40：全部计划敌人已生成才判胜）根本不该判胜。
 	# 因此这里把出怪全部排在很早期，并在判胜后再安排一个"本不应出现"的敌人时间点，
 	# 用 cfg 的时线长度来证明冻结：判胜后即便时间继续推进也不得再生成。
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = 99
 	cfg["enemySpawnTimeline"] = [
 		{"time": 0.5, "lane": 0, "enemy": "echo_normal"},
@@ -297,7 +308,7 @@ func test_no_new_spawns_after_outcome_decided() -> void:
 
 
 func test_no_damage_after_defeat() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = 1
 	cfg["enemySpawnTimeline"] = [
 		{"time": 0.5, "lane": 0, "enemy": "echo_normal"},
@@ -319,7 +330,7 @@ func test_no_damage_after_defeat() -> void:
 
 
 func test_session_freezes_on_outcome() -> void:
-	var cfg := _stage_config().duplicate(true)
+	var cfg := _cfg_no_waves(_stage_config())
 	cfg["coreHp"] = 1
 	cfg["enemySpawnTimeline"] = [{"time": 0.5, "lane": 1, "enemy": "echo_normal"}]
 
