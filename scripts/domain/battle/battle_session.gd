@@ -292,6 +292,14 @@ func result_summary() -> Dictionary:
 		"planned": stage.planned_enemy_count(),
 		"spawned": stage.spawned_enemy_count(),
 		"elapsed": snappedf(stage.elapsed_seconds, 0.01),
+		# V2.1.4 G-八 失败与复盘设计：突破核心的敌人类型 / 最多承压路线 /
+		# 角色死亡次数 / AP 最大溢出与短缺。全部由领域层统计，表现层只显示。
+		"leakedByType": stage.leaked_by_enemy_type(),
+		"killsByType": stage.kills_by_enemy_type(),
+		"pressureByLane": stage.pressure_by_lane(),
+		"busiestLane": stage.busiest_lane(),
+		"apMax": stage.ap_max,
+		"apFinal": stage.ap,
 	}
 
 

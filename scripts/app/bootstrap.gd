@@ -1,15 +1,22 @@
-## Bootstrap — 启动场景（Phase 0 建立，P0.1 扩展）。
+## Bootstrap — 启动场景（Phase 0 建立，P0.1 扩展，P1.0 改为玩家可直接启动）。
 ##
 ## 职责：
 ##   1. 验证引擎可运行、Autoload 就绪、数据可加载
-##   2. 按命令行参数进入指定场景（P0.1 用于直接进入战斗原型）
+##   2. 按命令行参数 + 构建模式决定进入哪个场景、加载哪一关
 ##   3. 无头模式下打印状态后退出（CI / 自动化验证）
 ##
+## P1.0「玩家可直接启动」（本轮指令 四）：
+##   **不带任何参数**双击 EXE 即进入可玩战斗演示，并加载 Prototype 演示关 p1_0_demo。
+##   演示关 id / 取关方式 / 开发参数准入全部由 PrototypeEntry 决策，本文件只做执行。
+##
 ## 命令行参数（Godot 用户参数，需写在 -- 之后）：
-##   --scene=battle    直接进入战斗场景
-##   --scene=bootstrap 停留在启动场景（默认）
+##   （无）                  进入战斗场景，加载 Prototype 演示关 p1_0_demo
+##   --scene=battle         同上
+##   --scene=bootstrap      停留在启动场景（空白 Node2D，仅诊断用）
+##   --stage=<stageId>      指定关卡（**开发专用**，Retail 构建下拒绝）
 ## 示例：
-##   HoshigaokaEchoes.exe -- --scene=battle
+##   HoshigaokaEchoes.exe                                  # 直接进演示关
+##   HoshigaokaEchoes.exe -- --scene=battle --stage=1-1    # 开发：跑正式 1-1
 ##
 ## 标题画面 / 校园 Hub / 前台状态流属 Alpha A0.7，不在此实现。
 ##
@@ -35,6 +42,7 @@ var _pending_scene_path: String = ""
 func _ready() -> void:
 	GameLog.info(TAG, "启动场景就绪")
 	GameLog.info(TAG, "版本: %s" % App.APP_VERSION)
+	GameLog.info(TAG, "构建模式: %s" % BuildMode.mode_name())
 
 	var data_ok: bool = DataRegistry.is_loaded()
 	GameLog.info(TAG, "DataRegistry 就绪: %s" % str(data_ok))
@@ -46,9 +54,16 @@ func _ready() -> void:
 
 	var stage_ids := DataRegistry.get_ids("stages")
 	GameLog.info(TAG, "已登记关卡数: %d" % stage_ids.size())
+	var proto_ids := DataRegistry.get_ids(PrototypeEntry.PROTOTYPE_STAGES_KEY)
+	GameLog.info(TAG, "已登记 Prototype 演示关数: %d" % proto_ids.size())
 
-	var target := _parse_scene_arg()
-	GameLog.info(TAG, "启动目标: %s" % target)
+	# 启动计划：场景 + 关卡 + 开发参数是否放行（Retail 构建下一律不放行）
+	var plan := PrototypeEntry.plan_startup()
+	var target: String = plan.get("scene", PrototypeEntry.SCENE_BATTLE)
+	var stage_id: String = plan.get("stageId", "")
+	for note: String in plan.get("notes", []):
+		GameLog.info(TAG, note)
+	GameLog.info(TAG, "启动目标: %s（关卡 %s）" % [target, stage_id])
 
 	# 无头运行时直接退出，便于 CI / 自动化验证
 	if DisplayServer.get_name() == "headless":
@@ -57,7 +72,7 @@ func _ready() -> void:
 		return
 
 	# 非无头且有明确目标时切换场景
-	if target == "bootstrap":
+	if target == PrototypeEntry.SCENE_BOOTSTRAP:
 		return
 	if not BOOT_TARGETS.has(target):
 		GameLog.error(TAG, "未知的 --scene 值：%s（可选：%s）"
@@ -67,6 +82,9 @@ func _ready() -> void:
 	if not ResourceLoader.exists(path):
 		GameLog.error(TAG, "场景不存在：%s" % path)
 		return
+
+	# 把本关决策交给战斗场景（切换前写入，battle_scene 构建时消费）
+	PrototypeEntry.set_pending_stage_id(stage_id)
 
 	# 推迟到本帧末执行，避免在 _ready 的子节点遍历期内摘除场景
 	_pending_scene_path = path
@@ -89,16 +107,3 @@ func _apply_pending_scene() -> void:
 		GameLog.error(TAG, "切换场景失败：%s（错误 %d）" % [path, err])
 	else:
 		GameLog.info(TAG, "已切换到 %s" % path)
-
-
-## 解析 --scene=<name> 用户参数（Godot 用户参数位于 -- 之后）。
-func _parse_scene_arg() -> String:
-	for arg: String in OS.get_cmdline_user_args():
-		if arg.begins_with("--scene="):
-			return arg.substr("--scene=".length()).strip_edges()
-	# 兼容直接传 --scene <name> 的形式
-	var args := OS.get_cmdline_user_args()
-	for i: int in range(args.size()):
-		if args[i] == "--scene" and i + 1 < args.size():
-			return args[i + 1].strip_edges()
-	return "bootstrap"

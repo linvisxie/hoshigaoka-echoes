@@ -5,6 +5,12 @@
 .godot/
 *.translation
 
+# --- Godot 编辑器在 APPDATA 被重定向时生成的用户目录（P1.0 发现）---
+# 测试/导出时若把 $env:APPDATA 指到工程内，Godot 会在**当前工作目录**下
+# 再建一个 Godot/（editor_settings、export_templates 等）。它属于编辑器状态，
+# 不是工程内容，绝不入库。
+Godot/
+
 # --- 导出产物（L9：构建输出放 dist/，绝不混入 res://）---
 dist/
 build/

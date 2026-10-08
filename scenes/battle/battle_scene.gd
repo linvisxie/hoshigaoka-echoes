@@ -53,11 +53,16 @@ const TEXT_COLOR := Color(0.90, 0.94, 1.0)
 const DIM_TEXT := Color(0.62, 0.68, 0.82)
 
 ## 顶部 HUD 预留带高度（参考画布单位），战场排在其下方
-const HUD_BAND_HEIGHT := 250.0
+const HUD_BAND_HEIGHT := 200.0
 ## 核心侧留白（以格为单位，纯渲染）
 const CORE_MARGIN_TILES := 1.15
 ## 底部角色卡高度（参考画布单位）
 const CARD_HEIGHT := 170.0
+## 底部角色卡带的下边距（参考画布单位）
+const CARD_BOTTOM_MARGIN := 24.0
+## 底部卡片带总高 = 卡片 + 下边距。
+## 战场必须排在 HUD 带与卡片带**之间**，否则下段会与角色卡重叠（P1.0 实机截图发现）。
+const CARD_BAND_HEIGHT := CARD_HEIGHT + CARD_BOTTOM_MARGIN
 
 ## P0.4：底部为**多张角色卡**，每张对应一个本关可用角色；
 ## 卡序 = StageConfig.availableCharacters 顺序，数字键 1..N 快选。
@@ -75,12 +80,54 @@ const HEAL_BEAM_COLOR := Color(0.55, 1.0, 0.70, 0.85)
 ## 这里只改变**绘制位置**，绝不改动逻辑坐标、射程、接触线或阻挡判定。
 const OVERLAP_OFFSET_PX := 26.0
 
+# ============================================================
+#  P1.0 基础反馈参数（全部为表现层可调参数，不参与战斗判定）
+# ============================================================
+
+## 伤害数字寿命（秒）与同目标合并窗口（秒）
+const DAMAGE_POP_LIFETIME := 0.75
+const DAMAGE_POP_MERGE_WINDOW := 0.35
+## 同屏伤害数字上限（V2.1.4：避免伤害数字遮挡敌人、预警与路线信息）
+const DAMAGE_POP_LIMIT := 24
+## 受击闪白时长（秒）与上限
+const HIT_FLASH_SECONDS := 0.12
+const HIT_FLASH_LIMIT := 32
+## 敌人死亡粒子时长（秒）与上限
+const DEATH_PARTICLE_LIFETIME := 0.55
+const DEATH_PARTICLE_LIMIT := 24
+## 部署落位动画时长（秒）
+const DEPLOY_POP_LIFETIME := 0.45
+## 教学卡片停留时长（秒）与同屏上限
+const TUTORIAL_CARD_LIFETIME := 5.0
+const TUTORIAL_CARD_LIMIT := 2
+## 核心威胁脉冲距离（tile）：敌人进入核心前该距离内即开始轻微脉冲
+const CORE_WARN_DISTANCE_TILES := 1.0
+## 入口警示：提前量与持续时长（秒）
+const LANE_WARNING_LEAD_SECONDS := 2.0
+const LANE_WARNING_SECONDS := 1.8
+## 入口警示向前查看的出怪条数
+const WARN_LOOKAHEAD_SPAWNS := 4
+## 核心受创闪烁与脉冲时长（秒）
+const CORE_FLASH_SECONDS := 0.45
+const CORE_PULSE_SECONDS := 0.9
+
+## 敌人占位图形配色（V2.1.4 J 章色彩系统：危险/红用于高威胁，残响能量用紫/靛蓝）
+const ENEMY_NORMAL_FILL := Color(0.52, 0.30, 0.62)     # 普通：深紫主体
+const ENEMY_RUNNER_FILL := Color(0.86, 0.52, 0.22)     # 疾走：橙（速度语义）
+const ENEMY_ARMORED_FILL := Color(0.40, 0.44, 0.56)    # 装甲：冷灰（重装语义）
+const ENEMY_CORE_GLOW := Color(0.72, 0.45, 1.0)        # 残响核心高亮（紫蓝）
+const DANGER_COLOR := Color(0.98, 0.30, 0.42)          # 危险/预警（品红-红）
+const CORE_HIT_COLOR := Color(1.0, 0.45, 0.55)
+const PAPER_COLOR := Color(0.92, 0.90, 0.84)           # 纸张碎片
+
 var session: BattleSession
 var grid: BattleGrid
 
 var _viewport_size: Vector2 = Vector2(1920, 1080)
 ## 渲染缩放：视口 / 参考画布（等比，取较小者）
 var _render_scale: float = 1.0
+## 基准渲染缩放（只由视口与参考画布决定；_update_layout 每次从它重新推导）
+var _base_scale: float = 1.0
 ## column 0 格中心的像素坐标
 var _origin: Vector2 = Vector2.ZERO
 var _debug_lines: Array[String] = []
@@ -93,6 +140,57 @@ var _roster: Array[String] = []
 var _card_rects: Array[Rect2] = []
 ## 治疗反馈：{targetId, until, amount} —— 纯表现层，用于播放治疗提示
 var _heal_flashes: Array[Dictionary] = []
+
+# ============================================================
+#  P1.0 基础战斗反馈（V2.1.4 D-38 / K 章三十六 / 三十四 Prototype 实现范围）
+#  以下全部是**纯表现层**状态：只读取领域层已结算的事件，绝不反向影响战斗规则。
+# ============================================================
+
+## 伤害数字：{kind:"enemy"|"character", targetId, text, amount, lethal, at, born}
+## V2.1.4 D-38：每次攻击至少包含攻击动画 / 命中特效 / 受击闪白 / 伤害数字 / 音效。
+## 纪律（V2.1.4 J 章禁止情况）：伤害数字不得遮挡敌人、预警或路线信息——
+## 因此这里用**固定寿命 + 上浮 + 同目标合并**控制密度，且不覆盖格子中心。
+var _damage_pops: Array[Dictionary] = []
+
+## 受击闪白：{kind, targetId, until} —— 命中瞬间目标短暂变亮
+var _hit_flashes: Array[Dictionary] = []
+
+## 敌人死亡粒子：{lane, x, at, kind}
+## V2.1.4 F-四十七：死亡分解为黑色粒子、纸张与微弱紫色残光，避免大量血液。
+var _death_particles: Array[Dictionary] = []
+
+## 核心受创反馈：核心闪烁 + 脉冲（V2.1.4：核心受创必须让玩家立即注意）
+var _core_flash_until: float = 0.0
+var _core_pulse_until: float = 0.0
+## 核心受威胁脉冲强度（敌人进入核心前约 1 格时轻微脉冲，0 = 无威胁）
+var _core_warn_level: float = 0.0
+
+## 部署落位动画：{column, lane, at} —— 部署：格子高亮 → 落位动画 → AP 扣除
+var _deploy_pops: Array[Dictionary] = []
+
+## 新敌人首次登场提示卡：{enemyId, title, text, at}
+## V2.1.4 F-二十三：特殊敌人首次出现时显示一条简短介绍，仅首次出现，后续不重复打断战斗。
+var _tutorial_cards: Array[Dictionary] = []
+## 已提示过的敌人种类（每局重置；同一敌种只提示一次）
+var _seen_enemy_kinds: Dictionary = {}
+## 已触发的关卡教学条目 id（来自 StageConfig.tutorialTriggers，每局只触发一次）
+var _fired_tutorial_ids: Dictionary = {}
+## 关卡教学提示队列（来自 StageConfig.tutorialTriggers，按 at 升序）
+var _tutorial_queue: Array[Dictionary] = []
+
+## 已消费的伤害事件游标（表现层自己维护；领域层只负责累积）
+var _damage_cursor: int = 0
+## 是否显示调试明细 HUD（默认关闭：V2.1.4 J 章禁止 HUD 大面积无功能装饰小字）
+var _show_debug_hud: bool = false
+## 已播放过死亡粒子的敌人 instance_id
+var _particle_done_ids: Dictionary = {}
+
+## 危险提示：路线入口警示（V2.1.4：高威胁波次开始前，路线入口允许出现 1～2 秒警示符号）
+## {lane, until, enemyId}
+var _lane_warnings: Array[Dictionary] = []
+## 已预告过的出怪（按出怪序号去重，避免重复闪烁）
+var _warned_spawn_index: Dictionary = {}
+
 ## 当前鼠标悬停的格子（column, lane），-1 表示不在格子上
 var _hover_column: int = -1
 var _hover_lane: int = -1
@@ -167,13 +265,20 @@ func _on_viewport_changed() -> void:
 
 
 ## 计算渲染缩放（V2.1.4：仅同比缩放画布，不改逻辑）
+##
+## 分两级，避免重复收缩：
+##   _base_scale  —— 只由「视口 / 参考画布」决定，每次重算都从头开始；
+##   _render_scale —— 实际用于绘制的缩放 = _base_scale × 布局收缩系数。
+## _update_layout() 可能因窗口变化被多次调用，因此收缩系数必须每次重算，
+## 绝不能在上一次的 _render_scale 上继续相乘（否则会指数级缩小）。
 func _update_render_scale() -> void:
 	var ref_w: float = float(grid.reference_canvas_width) if grid != null else 1920.0
 	var ref_h: float = float(grid.reference_canvas_height) if grid != null else 1080.0
 	if ref_w <= 0.0 or ref_h <= 0.0:
-		_render_scale = 1.0
-		return
-	_render_scale = minf(_viewport_size.x / ref_w, _viewport_size.y / ref_h)
+		_base_scale = 1.0
+	else:
+		_base_scale = minf(_viewport_size.x / ref_w, _viewport_size.y / ref_h)
+	_render_scale = _base_scale
 
 
 ## 参考画布单位 -> 当前屏幕像素
@@ -182,14 +287,25 @@ func _px(ref_px: float) -> float:
 
 
 func _build_battle() -> void:
-	var stage_id := "1-1"
-	var stage_config: Dictionary = DataRegistry.get_entry("stages", stage_id)
+	# P1.0：关卡不再硬编码。启动入口（bootstrap / PrototypeEntry）在切换场景前写入
+	# 本次目标关卡；双击 EXE 无参数启动即落到 Prototype 演示关 p1_0_demo。
+	# 取关与兜底规则全部由 PrototypeEntry 负责，本场景不复制任何启动策略。
+	var requested := PrototypeEntry.consume_pending_stage_id()
+	var stage_id := requested if not requested.is_empty() else PrototypeEntry.default_stage_id()
+	var stage_config: Dictionary = PrototypeEntry.load_stage_config(stage_id)
+	if stage_config.is_empty():
+		# 目标关卡不可用时退回默认关卡，而不是黑屏（演示构建必须始终可玩）
+		var fallback := PrototypeEntry.default_stage_id()
+		GameLog.warn(TAG, "关卡 '%s' 不可用，退回 '%s'" % [stage_id, fallback])
+		stage_id = fallback
+		stage_config = PrototypeEntry.load_stage_config(stage_id)
 	if stage_config.is_empty():
 		GameLog.error(TAG, "找不到关卡配置：%s" % stage_id)
 		return
 
 	# P0.4 开发专用入口：仅显式开关才在**内存副本**上覆盖可用角色；
-	# 正式流程（不带 --dev-roster）完全走 data/stages/ch1/1-1.json 的原始解锁规则。
+	# 正式流程（不带 --dev-roster）完全走关卡自身的解锁规则。
+	# P1.0：Retail 构建下 PrototypeRoster.requested_triple() 恒为 false（见 build_mode.gd）。
 	stage_config = PrototypeRoster.apply_if_requested(stage_config)
 	if stage_config.has("_devRoster"):
 		GameLog.warn(TAG, "已启用开发专用编队覆盖：%s（仅内存生效，未修改任何数据文件）"
@@ -228,26 +344,80 @@ func _build_battle() -> void:
 	# 角色卡顺序 = StageConfig.availableCharacters 顺序
 	_roster = session.stage.available_characters.duplicate()
 
-	GameLog.info(TAG, "%s 战斗场景就绪：stage=%s，核心 HP %d，Wave %d，计划出怪 %d，战场 3×6，渲染缩放 %.3f，可用角色 %s"
+	# P1.0：关卡教学条目（V2.1.4 G-九：教学触发点必须数据驱动，不得硬编码在场景脚本）
+	_build_tutorial_queue(stage_config)
+
+	GameLog.info(TAG, "%s 战斗场景就绪：stage=%s，核心 HP %d，Wave %d，计划出怪 %d，战场 3×6，渲染缩放 %.3f，可用角色 %s，教学条目 %d"
 		% [App.stage_label(), stage_config.get("stageId", "?"), session.stage.core_hp_max,
 			session.stage.total_wave_count(), session.stage.planned_enemy_count(), _render_scale,
-			str(_roster)])
+			str(_roster), _tutorial_queue.size()])
 
 
-## 依据当前缩放与视口，计算战场在屏幕上的位置（整体居中，HUD 带位于上方）
+## 从 StageConfig.tutorialTriggers 构建教学提示队列（按 at 升序）。
+## 数据缺失时为空队列，不报错——教学提示是增强项，不是战斗前置条件。
+func _build_tutorial_queue(stage_config: Dictionary) -> void:
+	_tutorial_queue.clear()
+	_fired_tutorial_ids.clear()
+	var raw: Variant = stage_config.get("tutorialTriggers", [])
+	if typeof(raw) != TYPE_ARRAY:
+		return
+	for entry: Variant in (raw as Array):
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var e: Dictionary = entry
+		var tid := str(e.get("id", ""))
+		var text := str(e.get("text", ""))
+		if tid.is_empty() or text.is_empty():
+			continue
+		_tutorial_queue.append({
+			"id": tid,
+			"text": text,
+			"at": float(e.get("at", 0.0)),
+		})
+	_tutorial_queue.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return float(a["at"]) < float(b["at"])
+	)
+
+
+## 依据当前缩放与视口，计算战场在屏幕上的位置。
+##
+## 布局纪律（P1.0 实机截图修正）：
+##   可用垂直区间 = [HUD 带底, 屏幕底 - 卡片带]，
+##   战场在该区间内**居中**，且当区间不足以容纳战场时按比例收缩，
+##   从而保证「下段路线 / 部署格 / 角色 / 血条」永不与底部角色卡重叠。
 func _update_layout() -> void:
 	if grid == null:
 		return
+	# 每次布局都从基准缩放重新推导，避免收缩系数被重复累乘
+	_render_scale = _base_scale
 	var tile := _px(grid.tile_size_px)
 	var grid_w := tile * float(grid.columns - 1)
 	var core_margin := tile * CORE_MARGIN_TILES
 	var total_w := core_margin + grid_w + tile * 0.5
 	var board_h := _px(grid.lane_spacing_px) * float(grid.lanes - 1) + tile
 	var hud_h := _px(HUD_BAND_HEIGHT)
+	var card_band := _px(CARD_BAND_HEIGHT)
 
 	var left := (_viewport_size.x - total_w) * 0.5
-	var top := hud_h + (_viewport_size.y - hud_h - board_h) * 0.5
+	var avail_top := hud_h
+	var avail_h := _viewport_size.y - card_band - avail_top
+	# 区间不足时按比例收缩整个战场（仅渲染，逻辑仍以 tile 计）
+	if board_h > avail_h and board_h > 0.0:
+		var shrink := avail_h / board_h
+		shrink = clampf(shrink, 0.5, 1.0)
+		_render_scale *= shrink
+		tile = _px(grid.tile_size_px)
+		grid_w = tile * float(grid.columns - 1)
+		core_margin = tile * CORE_MARGIN_TILES
+		total_w = core_margin + grid_w + tile * 0.5
+		board_h = _px(grid.lane_spacing_px) * float(grid.lanes - 1) + tile
+		hud_h = _px(HUD_BAND_HEIGHT)
+		card_band = _px(CARD_BAND_HEIGHT)
+		left = (_viewport_size.x - total_w) * 0.5
+		avail_top = hud_h
+		avail_h = _viewport_size.y - card_band - avail_top
 
+	var top := avail_top + maxf(0.0, (avail_h - board_h) * 0.5)
 	_origin = Vector2(left + core_margin, top + tile * 0.5)
 
 
@@ -285,6 +455,7 @@ func _process(delta: float) -> void:
 		_selected_character_id = 0
 	if _feedback_timer > 0.0:
 		_feedback_timer -= delta
+	_update_feedback(delta)
 	_refresh_debug_lines()
 	_layout_buttons()
 	queue_redraw()
@@ -292,6 +463,217 @@ func _process(delta: float) -> void:
 		GameLog.info(TAG, "战斗结束：%s" % BattleTypes.outcome_name(session.outcome))
 	if _autoplay:
 		_drive_autoplay()
+
+
+# ============================================================
+#  P1.0 基础反馈：事件消费与寿命管理（纯表现层）
+# ============================================================
+
+## 每帧更新全部反馈状态。
+## 纪律：本函数**只读**领域层已结算的事件（damage_events / removals / 状态量），
+## 不写回任何战斗状态，因此不会改变战斗结果（帧率与分辨率独立性不受影响）。
+func _update_feedback(delta: float) -> void:
+	if session == null or session.stage == null:
+		return
+	var s := session.stage
+	var now := s.elapsed_seconds
+
+	_consume_damage_events()
+	_consume_kills()
+	_check_enemy_kind_intro()
+	_consume_tutorial_triggers()
+	_update_danger_warnings(now)
+
+	# 寿命推进：伤害数字 / 受击闪白 / 死亡粒子 / 部署落位
+	for i: int in range(_damage_pops.size() - 1, -1, -1):
+		if now - float(_damage_pops[i]["born"]) > DAMAGE_POP_LIFETIME:
+			_damage_pops.remove_at(i)
+	for i: int in range(_hit_flashes.size() - 1, -1, -1):
+		if float(_hit_flashes[i]["until"]) <= now:
+			_hit_flashes.remove_at(i)
+	for i: int in range(_death_particles.size() - 1, -1, -1):
+		if now - float(_death_particles[i]["at"]) > DEATH_PARTICLE_LIFETIME:
+			_death_particles.remove_at(i)
+	for i: int in range(_deploy_pops.size() - 1, -1, -1):
+		if now - float(_deploy_pops[i]["at"]) > DEPLOY_POP_LIFETIME:
+			_deploy_pops.remove_at(i)
+	for i: int in range(_tutorial_cards.size() - 1, -1, -1):
+		if now - float(_tutorial_cards[i]["at"]) > TUTORIAL_CARD_LIFETIME:
+			_tutorial_cards.remove_at(i)
+	for i: int in range(_lane_warnings.size() - 1, -1, -1):
+		if float(_lane_warnings[i]["until"]) <= now:
+			_lane_warnings.remove_at(i)
+	for i: int in range(_heal_flashes.size() - 1, -1, -1):
+		if float(_heal_flashes[i]["until"]) <= now:
+			_heal_flashes.remove_at(i)
+
+
+## 消费领域层的伤害事件，生成伤害数字与受击闪白。
+## 同目标在极短时间内多次命中会**合并**为一条（V2.1.4：避免伤害数字遮挡战场）。
+func _consume_damage_events() -> void:
+	var s := session.stage
+	var now := s.elapsed_seconds
+	while _damage_cursor < s.damage_events.size():
+		var ev: Dictionary = s.damage_events[_damage_cursor]
+		_damage_cursor += 1
+		var kind := str(ev.get("targetKind", ""))
+		var tid := int(ev.get("targetId", 0))
+		var amount := int(ev.get("amount", 0))
+		if amount <= 0 or tid <= 0:
+			continue
+		var lethal := bool(ev.get("lethal", false))
+		# 受击闪白（命中反馈的视觉通道之一）
+		_hit_flashes.append({"kind": kind, "targetId": tid, "until": now + HIT_FLASH_SECONDS})
+		# 伤害数字：同目标已有未消散的一条时累加，而不是新开一条
+		var merged := false
+		for i: int in range(_damage_pops.size() - 1, -1, -1):
+			var p: Dictionary = _damage_pops[i]
+			if str(p["kind"]) == kind and int(p["targetId"]) == tid \
+					and now - float(p["born"]) <= DAMAGE_POP_MERGE_WINDOW:
+				p["amount"] = int(p["amount"]) + amount
+				p["text"] = str(p["amount"])
+				p["born"] = now
+				p["lethal"] = bool(p["lethal"]) or lethal
+				merged = true
+				break
+		if not merged:
+			_damage_pops.append({
+				"kind": kind, "targetId": tid, "amount": amount,
+				"text": str(amount), "lethal": lethal, "born": now,
+			})
+	# 密度上限：超出的丢弃最旧的（保证同屏不刷屏）
+	while _damage_pops.size() > DAMAGE_POP_LIMIT:
+		_damage_pops.remove_at(0)
+	while _hit_flashes.size() > HIT_FLASH_LIMIT:
+		_hit_flashes.remove_at(0)
+
+
+## 消费离场记录，为被击败的敌人生成死亡粒子。
+## 只处理 KILLED（漏怪与撤退不是「被打散」，不播死亡粒子）。
+func _consume_kills() -> void:
+	var s := session.stage
+	for r: Dictionary in s.removals:
+		if int(r.get("kind", -1)) != StageRuntime.Removal.KILLED:
+			continue
+		if str(r.get("entity", "")) != "enemy":
+			continue
+		var eid := int(r.get("entityId", -1))
+		if eid <= 0 or _particle_done_ids.has(eid):
+			continue
+		_particle_done_ids[eid] = true
+		_death_particles.append({
+			"lane": int(r.get("lane", 0)),
+			"x": float(r.get("x", BattleGrid.CORE_X)),
+			"at": s.elapsed_seconds,
+			"enemyId": str(r.get("enemyId", "")),
+		})
+	while _death_particles.size() > DEATH_PARTICLE_LIMIT:
+		_death_particles.remove_at(0)
+
+
+## 触发关卡教学条目（来自 StageConfig.tutorialTriggers）。
+## 到点即出卡片；每条只触发一次（V2.1.4 G-五：每关只首次教学 1～2 个新概念）。
+func _consume_tutorial_triggers() -> void:
+	if _tutorial_queue.is_empty():
+		return
+	var now := session.stage.elapsed_seconds
+	for t: Dictionary in _tutorial_queue:
+		var tid := str(t["id"])
+		if _fired_tutorial_ids.has(tid):
+			continue
+		if now < float(t["at"]):
+			continue
+		_fired_tutorial_ids[tid] = true
+		_push_tutorial_card("", "", str(t["text"]))
+
+
+## 敌人种类首次登场提示（V2.1.4 F-二十三）。
+## 文本取自 enemies.json 的 name / _spec 语义，**不在此处硬编码数值**。
+func _check_enemy_kind_intro() -> void:
+	for e: EnemyRuntime in session.stage.enemies:
+		if _seen_enemy_kinds.has(e.enemy_id):
+			continue
+		_seen_enemy_kinds[e.enemy_id] = true
+		var cfg: Dictionary = session.stage._enemy_configs.get(e.enemy_id, {})
+		var title := str(cfg.get("name", e.enemy_id))
+		_push_tutorial_card(e.enemy_id, title, _enemy_intro_text(e.enemy_id, cfg))
+
+
+## 敌人机制一句话介绍（V2.1.4 F-二十三 要求「简短介绍」）。
+## 数值不写在这里——只描述**机制**，具体面板由 enemies.json 承载并在敌人信息面板显示。
+func _enemy_intro_text(enemy_id: String, cfg: Dictionary) -> String:
+	var speed := float(cfg.get("moveSpeed", 0.0))
+	var defense := int(cfg.get("defense", 0))
+	match enemy_id:
+		"echo_runner":
+			return "移动速度很快，请尽早处理。"
+		"echo_armored":
+			return "防御极高，物理攻击收效有限，需要前线阻挡后持续输出。"
+		"echo_normal":
+			return "基础敌人：没有特殊能力，用于学习阻挡与输出节奏。"
+		_:
+			# 未知敌种：只报可读的机制线索，不编造数值
+			if defense >= 50:
+				return "高防御单位，注意输出效率。"
+			if speed >= 0.9:
+				return "移动速度较快，注意空线。"
+			return "注意其推进路线。"
+
+
+func _push_tutorial_card(enemy_id: String, title: String, text: String) -> void:
+	_tutorial_cards.append({
+		"enemyId": enemy_id,
+		"title": title,
+		"text": text,
+		"at": session.stage.elapsed_seconds,
+	})
+	while _tutorial_cards.size() > TUTORIAL_CARD_LIMIT:
+		_tutorial_cards.remove_at(0)
+
+
+## 危险提示：敌人接近核心时核心 UI 脉冲；高威胁敌人出怪前在路线入口给警示符号。
+## V2.1.4：敌人进入核心前约 1 格，核心 UI 开始轻微脉冲；
+##         高威胁波次开始前，路线入口允许出现 1～2 秒的警示符号。
+func _update_danger_warnings(now: float) -> void:
+	var s := session.stage
+	# ① 核心威胁：任一活跃敌人的 logical_x 已进入核心前 WARN_DISTANCE_TILES 内
+	var worst := 0.0
+	for e: EnemyRuntime in s.enemies:
+		if not e.is_active():
+			continue
+		var d := e.logical_x - BattleGrid.CORE_X
+		if d <= CORE_WARN_DISTANCE_TILES:
+			worst = maxf(worst, 1.0 - clampf(d / CORE_WARN_DISTANCE_TILES, 0.0, 1.0))
+	_core_warn_level = worst
+	# ② 入口警示：对尚未生成的高威胁敌人提前警示（只警示一次）
+	var plan: Array[Dictionary] = s._spawn_plan
+	var cursor := s._spawn_cursor
+	for i: int in range(cursor, mini(cursor + WARN_LOOKAHEAD_SPAWNS, plan.size())):
+		if _warned_spawn_index.has(i):
+			continue
+		var entry: Dictionary = plan[i]
+		var lead := float(entry["time"]) - now
+		if lead < 0.0 or lead > LANE_WARNING_LEAD_SECONDS:
+			continue
+		var enemy_id := str(entry["enemy"])
+		if not _is_high_threat(enemy_id):
+			continue
+		_warned_spawn_index[i] = true
+		_lane_warnings.append({
+			"lane": int(entry["lane"]),
+			"until": now + LANE_WARNING_SECONDS,
+			"enemyId": enemy_id,
+		})
+
+
+## 是否属于「需要入口预警」的高威胁敌人。
+## 判定依据是**数据标签**（enemies.json 的 tags / weightClass），不是硬编码 ID 名单。
+func _is_high_threat(enemy_id: String) -> bool:
+	var cfg: Dictionary = session.stage._enemy_configs.get(enemy_id, {})
+	var tags: Array = cfg.get("tags", [])
+	if tags.has("FAST") or tags.has("ARMORED"):
+		return true
+	return str(cfg.get("weightClass", "")) == "HEAVY"
 
 
 # ============================================================
@@ -315,6 +697,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if k == KEY_R:
 			_request_retreat_selected()
+			return
+		# F1：调试明细开关（默认关闭；V2.1.4 J 章要求战斗 HUD 保持简洁）
+		if k == KEY_F1:
+			_show_debug_hud = not _show_debug_hud
+			_show_feedback("调试明细：%s" % ("开" if _show_debug_hud else "关"),
+				Color(0.7, 0.78, 0.92))
 			return
 		# 数字键 1..N 快选角色卡（规格 J2：数字 1～6 快选；N = 本关可用角色数）
 		if k >= KEY_1 and k <= KEY_6:
@@ -425,6 +813,9 @@ func _request_retreat_selected() -> void:
 		_selected_character_id = 0
 		_show_feedback("%s 已撤退：返还 %d AP，再部署冷却 %.0f 秒"
 			% [name_text, r.refund_granted, r.cooldown], Color(0.55, 0.95, 0.7))
+		# 实机验收需要可追溯的撤退记录（与部署日志对称）
+		GameLog.info(TAG, "玩家撤退 %s（返还 %d AP，再部署冷却 %.0f 秒）"
+			% [name_text, r.refund_granted, r.cooldown])
 	else:
 		_show_feedback("撤退失败：%s" % r.reason_text(), Color(1.0, 0.45, 0.4))
 
@@ -487,6 +878,10 @@ func _handle_left_click(pos: Vector2) -> void:
 	var result := session.deploy_character(_selected_card_id, column, lane)
 	if result.ok:
 		_selected_card_id = ""
+		# 部署反馈（V2.1.4 三十四：格子高亮 → 落位动画 → AP 扣除）
+		_deploy_pops.append({
+			"column": column, "lane": lane, "at": session.stage.elapsed_seconds,
+		})
 		_show_feedback("部署成功：%s（-%d AP）" % [result.character.display_name, result.cost],
 			Color(0.4, 1.0, 0.6))
 		GameLog.info(TAG, "玩家部署 %s 于 (col%d, lane%d)"
@@ -802,14 +1197,19 @@ func _draw() -> void:
 		return
 	_draw_hud_backdrop()
 	_draw_board()
+	_draw_lane_warnings()
 	_draw_core()
 	_draw_deploy_feedback()
+	_draw_deploy_pops()
 	_draw_characters()
 	_draw_enemies()
+	_draw_death_particles()
+	_draw_damage_pops()
 	_draw_hud_text()
 	_draw_wave_banner()
 	_draw_character_card()
 	_draw_character_panel()
+	_draw_tutorial_cards()
 	_draw_feedback()
 	if session.is_paused():
 		_draw_pause_overlay()
@@ -872,9 +1272,29 @@ func _draw_core() -> void:
 		ratio = float(session.stage.core_hp) / float(session.stage.core_hp_max)
 
 	# 核心主体
-	draw_circle(Vector2(core_x, mid_y), tile * 0.20, CORE_COLOR)
+	var now := _now()
+	# 受创闪烁：命中瞬间整条核心变亮（V2.1.4：核心受创必须让玩家立即注意）
+	var flash_k := 0.0
+	if now < _core_flash_until:
+		flash_k = (_core_flash_until - now) / CORE_FLASH_SECONDS
+	# 威胁脉冲：敌人接近核心时的低频呼吸（低强度，不刺眼）
+	var warn := 0.0
+	if _core_warn_level > 0.0 and session.is_running() and not session.is_paused():
+		warn = _core_warn_level * (0.5 + 0.5 * sin(now * 7.0))
+	var body_color := CORE_COLOR.lerp(CORE_HIT_COLOR, clampf(flash_k, 0.0, 1.0))
+	if warn > 0.0:
+		body_color = body_color.lerp(DANGER_COLOR, warn * 0.45)
+	draw_circle(Vector2(core_x, mid_y), tile * 0.20, body_color)
+	var ring_w := 3.0 + 4.0 * flash_k + 3.0 * warn
 	draw_circle(Vector2(core_x, mid_y), tile * 0.20 + tile * 0.06 * ratio,
-		Color(CORE_COLOR.r, CORE_COLOR.g, CORE_COLOR.b, 0.28), false, 3.0)
+		Color(body_color.r, body_color.g, body_color.b, 0.28 + 0.5 * flash_k + 0.3 * warn),
+		false, ring_w)
+	# 脉冲外环（核心受创时扩散一次）
+	if now < _core_pulse_until:
+		var pk := 1.0 - (_core_pulse_until - now) / CORE_PULSE_SECONDS
+		draw_circle(Vector2(core_x, mid_y), tile * (0.20 + 0.55 * pk),
+			Color(CORE_HIT_COLOR.r, CORE_HIT_COLOR.g, CORE_HIT_COLOR.b, 0.55 * (1.0 - pk)),
+			false, 4.0)
 
 	# 竖向 HP 条（贯通三路）
 	var bar_w := _px(12.0)
@@ -915,6 +1335,10 @@ func _draw_characters() -> void:
 		var color := role_color if not c.is_incapacitated() else CHARACTER_LOST_COLOR
 		if selected:
 			color = color.lerp(CHARACTER_SELECTED, 0.45)
+		# 受击闪白（V2.1.4 D-38：每次攻击必须包含受击闪白或受击动画）
+		var char_hit_k := _hit_flash_k("character", c.instance_id)
+		if char_hit_k > 0.0:
+			color = color.lerp(Color(1, 1, 1, 1), 0.75 * char_hit_k)
 		var edge := Color(1, 1, 1, 0.9) if selected else Color(1, 1, 1, 0.6)
 		var edge_w := 2.5 if selected else 1.5
 
@@ -1035,23 +1459,349 @@ func _draw_enemies() -> void:
 			var magnitude := float((stack_index + 1) / 2)
 			px_y += direction * magnitude * _px(OVERLAP_OFFSET_PX)
 
-		var color := ENEMY_COLOR
-		if e.enemy_id == "echo_runner":
-			color = ENEMY_RUNNER_COLOR
-		elif e.enemy_id == "echo_armored":
-			color = ENEMY_ARMORED_COLOR
-		var rect := Rect2(Vector2(px_x - size * 0.5, px_y - size * 0.5), Vector2(size, size))
-		draw_rect(rect, color, true)
-		draw_rect(rect, Color(1, 1, 1, 0.55), false, 1.5)
-		# 敌人 HP 条
-		var hp_ratio := 0.0
-		if e.hp_max > 0:
-			hp_ratio = clampf(float(e.hp) / float(e.hp_max), 0.0, 1.0)
-		if hp_ratio < 1.0:
-			draw_rect(Rect2(Vector2(px_x - size * 0.5, px_y - size * 0.5 - _px(9.0)),
-				Vector2(size, _px(5.0))), Color(0.12, 0.12, 0.16), true)
-			draw_rect(Rect2(Vector2(px_x - size * 0.5, px_y - size * 0.5 - _px(9.0)),
-				Vector2(size * hp_ratio, _px(5.0))), Color(0.95, 0.45, 0.40), true)
+		_draw_one_enemy(e, px_x, px_y, size, tile)
+
+
+## 绘制单个敌人的**占位图形**。
+## V2.1.4 F 章要求三种基础敌人「容易区分」；本轮指令 二·1 进一步要求
+## 「容易区分的占位图形、血条、类别提示及不同移动视觉表现」。
+## 因此这里用**形状 + 配色 + 类别标签**三重通道区分，而不是只换颜色：
+##   echo_normal  方形（模糊学生轮廓）+ 深紫 + 标签「普通」+ 边缘碎片
+##   echo_runner  前倾平行四边形（身体前倾、腿部拉长）+ 橙 + 标签「疾走」+ 速度线
+##   echo_armored 外扩六边形（被课桌/书本层层包裹）+ 冷灰 + 标签「装甲」+ 双层护甲边
+## 帧尺寸按 V2.1.4 表（weightClass→spriteFramePx）等比映射，因此重装单位视觉更大。
+func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, tile: float) -> void:
+	var cfg: Dictionary = session.stage._enemy_configs.get(e.enemy_id, {})
+	var fill := _enemy_fill_color(e.enemy_id)
+	# 受击闪白（V2.1.4 D-38：每次攻击必须包含受击闪白或受击动画）
+	var hit_k := _hit_flash_k("enemy", e.instance_id)
+	if hit_k > 0.0:
+		fill = fill.lerp(Color(1, 1, 1, 1), 0.75 * hit_k)
+	# 帧尺寸映射：64 基准 → size；96 → 1.5×（重装单位视觉更大）
+	var frame_px := float(cfg.get("spriteFramePx", 64))
+	var scale := clampf(frame_px / 64.0, 0.8, 1.6)
+	var s := size * scale
+	var half := s * 0.5
+
+	# 落地阴影（区分单位与背景，帮助读出「在移动」）
+	draw_circle(Vector2(px_x, px_y + half * 0.92), s * 0.30,
+		Color(0.0, 0.0, 0.0, 0.32))
+
+	match e.enemy_id:
+		"echo_runner":
+			_draw_enemy_runner(px_x, px_y, s, fill, e)
+		"echo_armored":
+			_draw_enemy_armored(px_x, px_y, s, fill)
+		_:
+			_draw_enemy_normal(px_x, px_y, s, fill)
+
+	# 类别标签（常驻，保证不看颜色也能分辨敌种）
+	var label := _enemy_kind_label(e.enemy_id)
+	var font := ThemeDB.fallback_font
+	var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0))).x
+	draw_string(font, Vector2(px_x - lw * 0.5, px_y + half + _px(15.0)), label,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), fill.lightened(0.35))
+
+	# 敌人 HP 条（V2.1.4：血条必须可读；受伤后才显示，满血不刷屏）
+	var hp_ratio := 1.0
+	if e.hp_max > 0:
+		hp_ratio = clampf(float(e.hp) / float(e.hp_max), 0.0, 1.0)
+	if hp_ratio < 1.0:
+		var bar_w := maxf(s, _px(34.0))
+		var bar_pos := Vector2(px_x - bar_w * 0.5, px_y - half - _px(11.0))
+		draw_rect(Rect2(bar_pos, Vector2(bar_w, _px(5.0))), Color(0.10, 0.10, 0.14), true)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w * hp_ratio, _px(5.0))),
+			Color(0.95, 0.45, 0.40), true)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w, _px(5.0))), Color(1, 1, 1, 0.35), false, 1.0)
+
+
+## 普通残响体：方形主体 + 边缘飘散碎片（V2.1.4 F-六：模糊学生轮廓、边缘不断飘散黑色碎片）
+func _draw_enemy_normal(px_x: float, px_y: float, s: float, fill: Color) -> void:
+	var half := s * 0.5
+	var rect := Rect2(Vector2(px_x - half, px_y - half), Vector2(s, s))
+	draw_rect(rect, fill, true)
+	draw_rect(rect, Color(1, 1, 1, 0.55), false, 1.5)
+	# 残响核心（高亮紫蓝）
+	draw_circle(Vector2(px_x, px_y - half * 0.15), s * 0.13, ENEMY_CORE_GLOW)
+	# 边缘碎片：三小片随呼吸轻微外移，表达「边缘不稳定」
+	var t := _now()
+	for i: int in range(3):
+		var ang := TAU * float(i) / 3.0 + t * 1.6
+		var d := half * (1.05 + 0.18 * sin(t * 3.0 + float(i)))
+		draw_rect(Rect2(Vector2(px_x + cos(ang) * d, px_y + sin(ang) * d) - Vector2(_px(3.0), _px(3.0)),
+			Vector2(_px(6.0), _px(6.0))), Color(fill.r * 0.5, fill.g * 0.5, fill.b * 0.5, 0.85), true)
+
+
+## 疾走残响体：前倾平行四边形 + 速度线（V2.1.4 F-七：身体前倾、腿部异常拉长）
+func _draw_enemy_runner(px_x: float, px_y: float, s: float, fill: Color, e: EnemyRuntime) -> void:
+	var half := s * 0.5
+	# 前倾主体：上边整体向**移动方向（左）**偏移，形成"正在冲刺"的剪影
+	var lean := s * 0.30
+	var pts := PackedVector2Array([
+		Vector2(px_x - half - lean, px_y - half),
+		Vector2(px_x + half - lean, px_y - half),
+		Vector2(px_x + half + lean * 0.4, px_y + half),
+		Vector2(px_x - half + lean * 0.4, px_y + half),
+	])
+	draw_colored_polygon(pts, fill)
+	draw_polyline(PackedVector2Array([pts[0], pts[1], pts[2], pts[3], pts[0]]),
+		Color(1, 1, 1, 0.6), 1.5)
+	# 拉长的腿部（两条短线，向后方拖）
+	draw_line(Vector2(px_x - half * 0.4, px_y + half), Vector2(px_x - half * 1.5, px_y + half * 1.7),
+		fill.darkened(0.25), 3.0)
+	draw_line(Vector2(px_x + half * 0.4, px_y + half), Vector2(px_x - half * 0.5, px_y + half * 1.9),
+		fill.darkened(0.35), 3.0)
+	# 残响核心
+	draw_circle(Vector2(px_x - lean * 0.4, px_y - half * 0.2), s * 0.12, ENEMY_CORE_GLOW)
+	# 速度线：仅在**移动中**绘制（V2.1.4 本轮要求「不同移动视觉表现」）
+	if e.state == BattleTypes.EnemyState.MOVING:
+		var t := _now()
+		for i: int in range(3):
+			var ly := px_y - half * 0.6 + float(i) * half * 0.6
+			var len := s * (0.5 + 0.25 * sin(t * 12.0 + float(i)))
+			draw_line(Vector2(px_x + half * 1.1, ly), Vector2(px_x + half * 1.1 + len, ly),
+				Color(fill.r, fill.g, fill.b, 0.55), 2.0)
+
+
+## 装甲残响体：外扩六边形 + 双层护甲边（V2.1.4 F-八：被课桌、教科书、书包、考卷层层包裹）
+func _draw_enemy_armored(px_x: float, px_y: float, s: float, fill: Color) -> void:
+	var half := s * 0.5
+	var outer := PackedVector2Array()
+	for i: int in range(6):
+		var ang := TAU * float(i) / 6.0 - PI * 0.5
+		outer.append(Vector2(px_x + cos(ang) * half * 1.12, px_y + sin(ang) * half * 1.12))
+	draw_colored_polygon(outer, fill)
+	draw_polyline(PackedVector2Array([outer[0], outer[1], outer[2], outer[3], outer[4], outer[5], outer[0]]),
+		Color(0.85, 0.88, 0.95, 0.75), 2.5)
+	# 内层护甲（层层包裹的语义）：同心六边形
+	var inner := PackedVector2Array()
+	for i: int in range(6):
+		var ang := TAU * float(i) / 6.0 - PI * 0.5
+		inner.append(Vector2(px_x + cos(ang) * half * 0.62, px_y + sin(ang) * half * 0.62))
+	draw_colored_polygon(inner, fill.darkened(0.28))
+	# 护甲板缝（横竖两条），强化"课桌/书本堆叠"观感
+	draw_line(Vector2(px_x - half * 0.95, px_y), Vector2(px_x + half * 0.95, px_y),
+		Color(0.15, 0.16, 0.22, 0.8), 2.0)
+	draw_line(Vector2(px_x, px_y - half * 0.95), Vector2(px_x, px_y + half * 0.95),
+		Color(0.15, 0.16, 0.22, 0.8), 2.0)
+	# 残响核心（被包裹在最内层）
+	draw_circle(Vector2(px_x, px_y), s * 0.14, ENEMY_CORE_GLOW)
+
+
+## 敌人配色（按 enemy_id 分派；未知敌种回落到普通配色，不崩溃）
+func _enemy_fill_color(enemy_id: String) -> Color:
+	match enemy_id:
+		"echo_runner":
+			return ENEMY_RUNNER_FILL
+		"echo_armored":
+			return ENEMY_ARMORED_FILL
+		"echo_normal":
+			return ENEMY_NORMAL_FILL
+		_:
+			return ENEMY_COLOR
+
+
+## 敌人类别提示标签（本轮指令 二·1「类别提示」）。
+## 标签文本来自 enemies.json 的 tags（数据驱动），未知敌种显示为「残响体」。
+func _enemy_kind_label(enemy_id: String) -> String:
+	var cfg: Dictionary = session.stage._enemy_configs.get(enemy_id, {})
+	var tags: Array = cfg.get("tags", [])
+	if tags.has("FAST"):
+		return "疾走"
+	if tags.has("ARMORED"):
+		return "装甲"
+	if tags.has("NORMAL"):
+		return "普通"
+	return "残响体"
+
+
+## 受击闪白强度（0 = 未受击，1 = 刚受击）
+func _hit_flash_k(kind: String, target_id: int) -> float:
+	for f: Dictionary in _hit_flashes:
+		if str(f["kind"]) == kind and int(f["targetId"]) == target_id:
+			var remain := float(f["until"]) - _now()
+			if remain > 0.0:
+				return clampf(remain / HIT_FLASH_SECONDS, 0.0, 1.0)
+	return 0.0
+
+
+## 敌人死亡粒子（V2.1.4 F-四十七：黑色粒子 + 纸张 + 微弱紫色残光，避免大量血液）
+func _draw_death_particles() -> void:
+	var spacing := _px(grid.lane_spacing_px)
+	var now := _now()
+	for p: Dictionary in _death_particles:
+		var k := clampf((now - float(p["at"])) / DEATH_PARTICLE_LIFETIME, 0.0, 1.0)
+		if k >= 1.0:
+			continue
+		var base_x := _origin.x + _px(grid.logical_to_px_x(float(p["x"]), 0.0))
+		var base_y := _origin.y + float(p["lane"]) * spacing
+		var spread := _px(46.0) * k
+		# 紫色残光（扩散圆环）
+		draw_circle(Vector2(base_x, base_y), _px(10.0) + spread * 0.7,
+			Color(0.62, 0.40, 0.95, 0.30 * (1.0 - k)), false, 3.0)
+		# 黑色粒子 + 纸张碎片（各 4 片，向上/外扩散并下坠）
+		for i: int in range(4):
+			var ang := TAU * float(i) / 4.0 + float(p["lane"])
+			var d := spread * (0.6 + 0.4 * float(i % 2))
+			var px := base_x + cos(ang) * d
+			var py := base_y + sin(ang) * d * 0.6 - _px(18.0) * (1.0 - k)
+			var sz := _px(5.0) * (1.0 - k * 0.6)
+			var col := Color(0.10, 0.10, 0.14, 0.9 * (1.0 - k)) if i % 2 == 0 \
+				else Color(PAPER_COLOR.r, PAPER_COLOR.g, PAPER_COLOR.b, 0.85 * (1.0 - k))
+			draw_rect(Rect2(Vector2(px - sz * 0.5, py - sz * 0.5), Vector2(sz, sz)), col, true)
+
+
+## 伤害数字（V2.1.4 D-38 视觉反馈；J 章禁止遮挡敌人/预警/路线信息）。
+## 位置：目标上方偏上，随寿命上浮并淡出；颜色区分「对敌伤害」与「我方受创」。
+func _draw_damage_pops() -> void:
+	var font := ThemeDB.fallback_font
+	var spacing := _px(grid.lane_spacing_px)
+	var tile := _px(grid.tile_size_px)
+	var now := _now()
+	for p: Dictionary in _damage_pops:
+		var age := now - float(p["born"])
+		var k := clampf(age / DAMAGE_POP_LIFETIME, 0.0, 1.0)
+		if k >= 1.0:
+			continue
+		var pos := _damage_pop_anchor(str(p["kind"]), int(p["targetId"]))
+		if pos.x < 0.0:
+			continue
+		var rise := _px(30.0) * k
+		var alpha := 1.0 - k * k
+		var col: Color
+		if str(p["kind"]) == "enemy":
+			col = Color(1.0, 0.86, 0.45, alpha) if bool(p.get("lethal", false)) \
+				else Color(1.0, 0.95, 0.85, alpha)
+		else:
+			col = Color(1.0, 0.42, 0.42, alpha)
+		var text := str(p["text"])
+		var fs := int(_px(22.0 if bool(p.get("lethal", false)) else 19.0))
+		var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var at := Vector2(pos.x - w * 0.5, pos.y - tile * 0.55 - rise)
+		# 深色描边保证在亮/暗背景上都可读（V2.1.4：1280×720 到 4K 都要清楚）
+		draw_string(font, at + Vector2(1.5, 1.5), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
+			Color(0, 0, 0, alpha * 0.75))
+		draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+
+
+## 伤害数字的锚点（屏幕坐标）。找不到目标时返回 x<0 表示跳过。
+func _damage_pop_anchor(kind: String, target_id: int) -> Vector2:
+	if grid == null:
+		return Vector2(-1, -1)
+	var spacing := _px(grid.lane_spacing_px)
+	if kind == "enemy":
+		var e := session.stage.get_enemy(target_id)
+		if e == null or not e.is_active():
+			return Vector2(-1, -1)
+		return Vector2(_origin.x + _px(grid.logical_to_px_x(e.logical_x, 0.0)),
+			_origin.y + float(e.lane) * spacing)
+	var c := session.stage.get_character(target_id)
+	if c == null or c.is_incapacitated():
+		return Vector2(-1, -1)
+	var tile := _px(grid.tile_size_px)
+	return Vector2(_origin.x + tile * float(c.column),
+		_origin.y + float(c.lane) * spacing)
+
+
+## 部署落位动画（V2.1.4 三十四：格子高亮 → 落位动画 → AP 扣除）
+func _draw_deploy_pops() -> void:
+	var tile := _px(grid.tile_size_px)
+	var spacing := _px(grid.lane_spacing_px)
+	var now := _now()
+	for p: Dictionary in _deploy_pops:
+		var k := clampf((now - float(p["at"])) / DEPLOY_POP_LIFETIME, 0.0, 1.0)
+		if k >= 1.0:
+			continue
+		var center := Vector2(_origin.x + tile * float(p["column"]),
+			_origin.y + float(p["lane"]) * spacing)
+		var r := tile * (0.30 + 0.42 * k)
+		draw_circle(center, r, Color(0.45, 0.95, 0.70, 0.55 * (1.0 - k)), false, 3.0)
+		# 落位十字（短暂标记该格已占用）
+		var arm := tile * 0.16 * (1.0 - k * 0.5)
+		draw_line(center - Vector2(arm, 0), center + Vector2(arm, 0),
+			Color(0.75, 1.0, 0.85, 0.7 * (1.0 - k)), 2.5)
+		draw_line(center - Vector2(0, arm), center + Vector2(0, arm),
+			Color(0.75, 1.0, 0.85, 0.7 * (1.0 - k)), 2.5)
+
+
+## 危险提示：路线入口警示符号（V2.1.4：高威胁波次开始前，路线入口出现 1～2 秒警示符号）
+func _draw_lane_warnings() -> void:
+	if _lane_warnings.is_empty():
+		return
+	var tile := _px(grid.tile_size_px)
+	var spacing := _px(grid.lane_spacing_px)
+	var entry_x := _origin.x + tile * float(grid.columns - 1) + tile * 0.62
+	var now := _now()
+	var font := ThemeDB.fallback_font
+	for w: Dictionary in _lane_warnings:
+		var remain := float(w["until"]) - now
+		if remain <= 0.0:
+			continue
+		var k := clampf(remain / LANE_WARNING_SECONDS, 0.0, 1.0)
+		var ly := _origin.y + float(w["lane"]) * spacing
+		# 入口三角警示（颜色 + 形状双通道；V2.1.4：关键机制不能只靠颜色提示）
+		var pulse := 0.55 + 0.45 * absf(sin(now * 8.0))
+		var col := Color(DANGER_COLOR.r, DANGER_COLOR.g, DANGER_COLOR.b, k * pulse)
+		var s := tile * 0.20
+		var tri := PackedVector2Array([
+			Vector2(entry_x + s, ly - s), Vector2(entry_x + s, ly + s),
+			Vector2(entry_x - s * 0.7, ly),
+		])
+		draw_colored_polygon(tri, col)
+		draw_polyline(PackedVector2Array([tri[0], tri[1], tri[2], tri[0]]),
+			Color(1, 1, 1, k * 0.8), 2.0)
+		# 文字：说明是哪种敌人（机制可读性优先）
+		var label := _enemy_kind_label(str(w["enemyId"]))
+		var fs := int(_px(15.0))
+		var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		draw_string(font, Vector2(entry_x - lw * 0.5, ly - s - _px(6.0)), label,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(DANGER_COLOR.r, DANGER_COLOR.g, DANGER_COLOR.b, k))
+
+
+## 新敌人首次登场提示卡 + 关卡教学提示（V2.1.4 F-二十三 / G-五 / J4）。
+## 位置：战场上方居中偏左，避开顶部 Wave 条与右上暂停按钮。
+func _draw_tutorial_cards() -> void:
+	if _tutorial_cards.is_empty():
+		return
+	var font := ThemeDB.fallback_font
+	var now := _now()
+	var y := _px(HUD_BAND_HEIGHT) + _px(16.0)
+	for card: Dictionary in _tutorial_cards:
+		var k := clampf((now - float(card["at"])) / TUTORIAL_CARD_LIFETIME, 0.0, 1.0)
+		if k >= 1.0:
+			continue
+		# 淡入 0.15s / 保持 / 最后 0.6s 淡出
+		var alpha := 1.0
+		if k < 0.08:
+			alpha = k / 0.08
+		elif k > 0.88:
+			alpha = (1.0 - k) / 0.12
+		alpha = clampf(alpha, 0.0, 1.0)
+		var title := str(card["title"])
+		var text := str(card["text"])
+		var fs_title := int(_px(19.0))
+		var fs_text := int(_px(17.0))
+		var w_title := 0.0
+		if not title.is_empty():
+			w_title = font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_title).x
+		var w_text := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_text).x
+		var box_w := maxf(w_title, w_text) + _px(30.0)
+		var box_h := _px(34.0) + (_px(24.0) if not title.is_empty() else 0.0)
+		var box := Rect2(Vector2(_px(24.0), y), Vector2(box_w, box_h))
+		draw_rect(box, Color(0.05, 0.06, 0.12, 0.90 * alpha), true)
+		# 左侧强调条：新敌人提示用品红（危险语义），教学提示用冰蓝（可交互语义）
+		var accent := DANGER_COLOR if not str(card["enemyId"]).is_empty() else Color(0.45, 0.78, 1.0)
+		draw_rect(Rect2(box.position, Vector2(_px(6.0), box.size.y)),
+			Color(accent.r, accent.g, accent.b, alpha), true)
+		var ty := box.position.y + _px(24.0)
+		if not title.is_empty():
+			draw_string(font, Vector2(box.position.x + _px(18.0), ty),
+				"新敌人 · %s" % title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_title,
+				Color(accent.r, accent.g, accent.b, alpha))
+			ty += _px(24.0)
+		draw_string(font, Vector2(box.position.x + _px(18.0), ty), text,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, fs_text, Color(0.92, 0.95, 1.0, alpha))
+		y += box_h + _px(10.0)
 
 
 ## 部署反馈：选中时的合法/非法格高亮 + 悬停描边
@@ -1339,42 +2089,79 @@ func _lanes_text(lanes: Variant) -> String:
 	return "、".join(parts) if not parts.is_empty() else "—"
 
 
-## 调试信息（左上：AP / 核心 / 击杀等；右上：场上敌人列表）
+## 战斗 HUD 文本（V2.1.4 J4 六区布局）：
+##   顶部左：核心 HP / 关卡        顶部中：Wave（见 _draw_wave_banner）
+##   顶部右：暂停                  底部左：AP 与回复
+##   底部中：角色卡条（见 _draw_character_card）
+##   底部右：当前角色技能 / 撤退 / 状态（见 _draw_character_panel）
+##
+## 纪律（V2.1.4 J 章）：PC 战斗 HUD 禁止大面积无功能装饰小字；
+## 因此这里**只保留玩家决策需要的信息**，调试明细折叠到 F1 开关后面。
 func _draw_hud_text() -> void:
 	var font := ThemeDB.fallback_font
-	var x := _px(18.0)
-	var y := _px(30.0)
-	var lh := _px(21.0)
-	draw_string(font, Vector2(x, y),
-		"%s 战斗原型 — 3 路 × 6 格（占位图形，非最终美术）" % App.stage_label(),
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), Color(0.93, 0.95, 1.0))
-	y += lh * 1.5
-	for line: String in _debug_lines:
-		draw_string(font, Vector2(x, y), line, HORIZONTAL_ALIGNMENT_LEFT, -1,
-			int(_px(16.0)), Color(0.80, 0.85, 0.97))
-		y += lh
+	var x := _px(20.0)
+	var y := _px(34.0)
 
-	# 敌人列表（右上，最多 10 条）
-	var ex := _viewport_size.x - _px(430.0)
-	var ey := _px(150.0)
-	draw_string(font, Vector2(ex, ey), "场上敌人", HORIZONTAL_ALIGNMENT_LEFT, -1,
-		int(_px(19.0)), Color(0.93, 0.95, 1.0))
-	ey += lh * 1.4
-	var shown := 0
-	for e: EnemyRuntime in session.stage.enemies:
-		if not e.is_active():
-			continue
-		if shown >= 10:
-			draw_string(font, Vector2(ex, ey), "…", HORIZONTAL_ALIGNMENT_LEFT, -1,
-				int(_px(15.0)), Color(0.7, 0.74, 0.86))
-			break
-		draw_string(font, Vector2(ex, ey),
-			"#%d %s lane=%d x=%.2f %s" % [
-				e.instance_id, e.enemy_id, e.lane, e.logical_x,
-				BattleTypes.enemy_state_name(e.state),
-			], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(15.0)), Color(0.80, 0.85, 0.97))
-		ey += lh * 0.92
-		shown += 1
+	# ---- 顶部左：关卡名 + 核心 HP（大号，第一眼可见） ----
+	draw_string(font, Vector2(x, y), "%s" % _stage_display_name(),
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19.0)), Color(0.78, 0.84, 0.96))
+	y += _px(28.0)
+	var core_ratio := 1.0
+	if session.stage.core_hp_max > 0:
+		core_ratio = float(session.stage.core_hp) / float(session.stage.core_hp_max)
+	var core_col := CORE_COLOR
+	if core_ratio <= 0.34:
+		core_col = DANGER_COLOR
+	elif core_ratio <= 0.67:
+		core_col = Color(0.95, 0.72, 0.35)
+	draw_string(font, Vector2(x, y), "残响锚点 %d / %d" % [
+		session.stage.core_hp, session.stage.core_hp_max],
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(26.0)), core_col)
+	# 核心生命点（用圆点数量直观表达剩余，颜色 + 数量双通道）
+	var dot_x := x
+	var dot_y := y + _px(16.0)
+	for i: int in range(session.stage.core_hp_max):
+		var filled := i < session.stage.core_hp
+		draw_circle(Vector2(dot_x + _px(9.0), dot_y), _px(6.0),
+			core_col if filled else Color(0.24, 0.26, 0.34))
+		dot_x += _px(22.0)
+
+	# ---- 底部左：AP 与回复 ----
+	var ap_y := _viewport_size.y - _px(CARD_HEIGHT) - _px(46.0)
+	draw_string(font, Vector2(_px(24.0), ap_y), "AP %d / %d" % [
+		session.stage.ap, session.stage.ap_max],
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(26.0)), Color(0.62, 0.86, 1.0))
+	draw_string(font, Vector2(_px(24.0) + _px(168.0), ap_y),
+		"回复 %.0f / 秒" % session.stage.ap_regen_per_second,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.60, 0.72, 0.90))
+	# AP 条（宽度与上限挂钩，便于读出「快满了」）
+	var ap_bar_w := _px(300.0)
+	var ap_bar := Rect2(Vector2(_px(24.0), ap_y + _px(8.0)), Vector2(ap_bar_w, _px(10.0)))
+	draw_rect(ap_bar, Color(0.12, 0.14, 0.20), true)
+	if session.stage.ap_max > 0:
+		var ap_ratio := clampf(float(session.stage.ap) / float(session.stage.ap_max), 0.0, 1.0)
+		draw_rect(Rect2(ap_bar.position, Vector2(ap_bar_w * ap_ratio, ap_bar.size.y)),
+			Color(0.42, 0.76, 0.98), true)
+	draw_rect(ap_bar, Color(0.45, 0.55, 0.75), false, 1.5)
+
+	# ---- 可选：调试明细（默认关闭，避免 HUD 装饰性小字） ----
+	if _show_debug_hud:
+		var dy := _px(HUD_BAND_HEIGHT) - _px(10.0)
+		for line: String in _debug_lines:
+			draw_string(font, Vector2(x, dy), line, HORIZONTAL_ALIGNMENT_LEFT, -1,
+				int(_px(14.0)), Color(0.62, 0.68, 0.82))
+			dy += _px(18.0)
+
+
+## 关卡显示名（来自 StageConfig；无显式名称时用 stageId）
+func _stage_display_name() -> String:
+	if session == null or session.stage == null:
+		return "—"
+	var sid := session.stage.stage_id
+	# Prototype 演示关给一个玩家可读的名字；正式关卡仍以 stageId 显示
+	if sid == "p1_0_demo":
+		return "Prototype 演示关 — 三职业 × 三种残响体"
+	return "关卡 %s" % sid
 
 
 ## 操作反馈提示（底部中央）
@@ -1402,16 +2189,23 @@ func _draw_pause_overlay() -> void:
 		text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(34.0)), Color(0.98, 0.92, 0.60))
 
 
-## 结果界面（至少显示胜负、核心剩余 HP、击杀与漏怪数量 + 重新挑战 / 退出战斗）
+## 结果界面。
+##
+## 显示内容依据 V2.1.4：
+##   D-40/D-41：胜负 + 核心剩余 HP + 击杀 / 漏怪
+##   G-八 失败与复盘设计：**突破核心的敌人类型、最多承压路线、角色死亡次数、
+##        AP 溢出/短缺**，以及「重新挑战」按钮；不使用嘲讽或惩罚性文案，
+##        让玩家感到「我知道下一次可以怎么改」。
+##   本轮指令 二·3：让玩家理解**为什么赢、为什么输**。
 func _draw_result_overlay() -> void:
 	var summary := session.result_summary()
 	if summary.is_empty():
 		return
 	var font := ThemeDB.fallback_font
-	draw_rect(Rect2(Vector2.ZERO, _viewport_size), Color(0.02, 0.03, 0.06, 0.72), true)
+	draw_rect(Rect2(Vector2.ZERO, _viewport_size), Color(0.02, 0.03, 0.06, 0.78), true)
 
-	var panel := Rect2(Vector2(_viewport_size.x * 0.5 - _px(380.0),
-			_viewport_size.y * 0.5 - _px(290.0)), Vector2(_px(760.0), _px(580.0)))
+	var panel := Rect2(Vector2(_viewport_size.x * 0.5 - _px(430.0),
+			_viewport_size.y * 0.5 - _px(340.0)), Vector2(_px(860.0), _px(680.0)))
 	draw_rect(panel, PANEL_BG, true)
 	draw_rect(panel, Color(0.55, 0.62, 0.85), false, 3.0)
 
@@ -1419,35 +2213,103 @@ func _draw_result_overlay() -> void:
 	var title := "胜 利" if victory else "失 败"
 	var tcol := Color(0.55, 0.95, 0.65) if victory else Color(0.95, 0.45, 0.45)
 	var cx := _viewport_size.x * 0.5
-	var tsize := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(64.0))).x
-	draw_string(font, Vector2(cx - tsize * 0.5, panel.position.y + _px(96.0)), title,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(64.0)), tcol)
+	var tsize := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(58.0))).x
+	draw_string(font, Vector2(cx - tsize * 0.5, panel.position.y + _px(84.0)), title,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(58.0)), tcol)
 
-	var reason := "残响锚点守住了全部 Wave" if victory else "残响锚点已被击穿"
+	# 一句话结论：让玩家立刻知道发生了什么
+	var reason := ""
+	if victory:
+		reason = "残响锚点守住了全部 %d 个 Wave" % int(summary["waveTotal"])
+	else:
+		reason = "残响锚点被击穿：%d 名敌人突破了防线" % int(summary["leaked"])
 	var rsize := font.get_string_size(reason, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
-	draw_string(font, Vector2(cx - rsize * 0.5, panel.position.y + _px(140.0)), reason,
+	draw_string(font, Vector2(cx - rsize * 0.5, panel.position.y + _px(122.0)), reason,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), DIM_TEXT)
 
-	# 结算数据
+	# ---- 主要结算数据 ----
 	var lines := [
 		"核心剩余 HP：%d / %d" % [int(summary["coreHp"]), int(summary["coreHpMax"])],
-		"击杀敌人：%d" % int(summary["kills"]),
-		"漏怪数量：%d" % int(summary["leaked"]),
+		"击杀敌人：%d / %d      漏怪：%d" % [
+			int(summary["kills"]), int(summary["planned"]), int(summary["leaked"])],
 		"Wave 进度：%d / %d" % [int(summary["wave"]), int(summary["waveTotal"])],
-		"角色撤退：%d 次（返还 %d AP）" % [int(summary["retreats"]), int(summary["retreatAp"])],
-		"角色失能：%d" % int(summary["lost"]),
+		"角色撤退：%d 次（返还 %d AP）      失能：%d" % [
+			int(summary["retreats"]), int(summary["retreatAp"]), int(summary["lost"])],
+		"治疗总量：%d HP" % int(summary["healedTotal"]),
 		"战斗时长：%.1f 秒" % float(summary["elapsed"]),
 	]
-	var ly := panel.position.y + _px(188.0)
+	var ly := panel.position.y + _px(164.0)
 	for line: String in lines:
-		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(21.0))).x
+		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
 		draw_string(font, Vector2(cx - lw * 0.5, ly), line,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(21.0)), TEXT_COLOR)
-		ly += _px(31.0)
+			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), TEXT_COLOR)
+		ly += _px(28.0)
+
+	# ---- 复盘区块（V2.1.4 G-八）：失败时解释原因，胜利时给出压力分布 ----
+	ly += _px(10.0)
+	draw_line(Vector2(panel.position.x + _px(60.0), ly - _px(14.0)),
+		Vector2(panel.position.x + panel.size.x - _px(60.0), ly - _px(14.0)),
+		Color(0.35, 0.40, 0.58), 1.5)
+	var head := "复盘：为什么会输" if not victory else "复盘：本局压力分布"
+	var hw := font.get_string_size(head, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19.0))).x
+	draw_string(font, Vector2(cx - hw * 0.5, ly + _px(4.0)), head,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19.0)),
+		Color(0.95, 0.72, 0.45) if not victory else Color(0.62, 0.85, 1.0))
+	ly += _px(30.0)
+	for line: String in _build_review_lines(summary):
+		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0))).x
+		draw_string(font, Vector2(cx - lw * 0.5, ly), line,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), Color(0.82, 0.87, 0.98))
+		ly += _px(26.0)
 
 	# 按钮
 	_draw_button(_relaunch_rect, "重新挑战", Color(0.22, 0.45, 0.72))
 	_draw_button(_quit_rect, "退出战斗", Color(0.42, 0.28, 0.32))
+
+
+## 构建复盘文案（V2.1.4 G-八）。
+## 纪律：不使用嘲讽或惩罚性文案；每条都指向「下一次可以怎么改」。
+func _build_review_lines(summary: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	var victory := bool(summary["victory"])
+	var leaked_by: Dictionary = summary.get("leakedByType", {})
+	var pressure: Dictionary = summary.get("pressureByLane", {})
+	var busiest := int(summary.get("busiestLane", -1))
+
+	# ① 突破核心的敌人类型（失败时最关键的诊断信息）
+	if not leaked_by.is_empty():
+		var parts: Array[String] = []
+		for eid: String in leaked_by.keys():
+			parts.append("%s ×%d" % [_display_enemy_name(eid), int(leaked_by[eid])])
+		out.append("突破防线的敌人：%s" % "、".join(parts))
+	elif victory:
+		out.append("没有任何敌人突破防线")
+
+	# ② 最多承压路线
+	if busiest >= 0:
+		var lane_hp := int(pressure.get(busiest, 0))
+		out.append("承受压力最大的路线：%s（累计 %d 点敌人生命）"
+			% [BattleTypes.lane_name(busiest), lane_hp])
+
+	# ③ 针对性建议（基于**本局实际数据**，不是通用套话）
+	if not victory:
+		if leaked_by.size() > 1:
+			out.append("多条路线同时被突破：注意为「下一波」预告预留远程换线时间")
+		elif not leaked_by.is_empty():
+			out.append("只有一条路线被突破：把远程或治疗调整到该路线即可")
+		if int(summary["retreats"]) == 0 and int(summary["wave"]) >= 3:
+			out.append("本局未使用过主动撤退：远程无法换线，建议用撤退重新部署")
+		if int(summary["lost"]) > 0:
+			out.append("有 %d 名角色失能：注意用治疗维持前线生命" % int(summary["lost"]))
+		if int(summary["heals"]) == 0:
+			out.append("本局没有任何治疗：治疗角色能显著延长前线存活时间")
+	else:
+		out.append("总治疗量 %d HP，前线靠治疗维持住了阻挡"
+			% int(summary["healedTotal"]))
+		if int(summary["retreats"]) > 0:
+			out.append("使用 %d 次主动撤退完成换线，这是本关的关键操作"
+				% int(summary["retreats"]))
+	return out
 
 
 func _draw_button(rect: Rect2, label: String, base: Color) -> void:
@@ -1508,12 +2370,35 @@ func _on_outcome_decided(_outcome: int) -> void:
 
 
 func _on_core_hp_changed(_current: int, _max_hp: int) -> void:
+	# 核心受创：闪烁 + 脉冲（V2.1.4：核心受创必须让玩家立即注意）
+	_core_flash_until = _now() + CORE_FLASH_SECONDS
+	_core_pulse_until = _now() + CORE_PULSE_SECONDS
 	queue_redraw()
 
 
-func _on_enemy_reached_core(_enemy: EnemyRuntime) -> void:
-	pass
+func _on_enemy_reached_core(enemy: EnemyRuntime) -> void:
+	# 漏怪反馈：在核心处播一次醒目提示（V2.1.4：核心受创走 L4 系统警报层级）
+	_core_flash_until = _now() + CORE_FLASH_SECONDS
+	_core_pulse_until = _now() + CORE_PULSE_SECONDS
+	_show_feedback("核心受创！%s 突破防线（-%d）" % [
+		_display_enemy_name(enemy.enemy_id), enemy.core_damage],
+		CORE_HIT_COLOR)
+
+
+## 敌人显示名（来自 enemies.json，不在场景里硬编码）
+func _display_enemy_name(enemy_id: String) -> String:
+	if session == null or session.stage == null:
+		return enemy_id
+	var cfg: Dictionary = session.stage._enemy_configs.get(enemy_id, {})
+	return str(cfg.get("name", enemy_id))
 
 
 func _on_wave_changed(wave_number: int, total: int) -> void:
 	_show_feedback("Wave %d / %d 开始" % [wave_number, total], Color(0.95, 0.85, 0.45))
+
+
+## 当前逻辑时刻（表现层计时统一用它，保证与战斗推进同一时基）
+func _now() -> float:
+	if session == null or session.stage == null:
+		return 0.0
+	return session.stage.elapsed_seconds

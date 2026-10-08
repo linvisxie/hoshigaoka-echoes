@@ -23,17 +23,25 @@ func _grid() -> BattleGrid:
 	return BattleGrid.from_layout(DataRegistry.get_layout())
 
 
+## 取敌人配置表（**深拷贝**）。
+##
+## 纪律（P1.0 修复）：必须 duplicate(true) 后再放入表。
+## 否则返回的是 DataRegistry 内部字典的**引用**，任何用例的就地改写都会
+## **永久污染 DataRegistry 的内存数据**，并跨文件、顺序相关地影响后续用例
+## （历史事故：test_blocking_is_independent_of_sprite_size 把 spriteFramePx
+## 就地改成 4096，导致后续读取 enemies 域的用例拿到 4096 而非 64）。
 func _enemy_table() -> Dictionary:
 	var t := {}
 	for e: Dictionary in DataRegistry.get_domain("enemies").get("enemies", []):
-		t[str(e.get("id", ""))] = e
+		t[str(e.get("id", ""))] = e.duplicate(true)
 	return t
 
 
+## 取角色配置表（**深拷贝**，理由同上）。
 func _char_table() -> Dictionary:
 	var t := {}
 	for c: Dictionary in DataRegistry.get_domain("characters").get("characters", []):
-		t[str(c.get("id", ""))] = c
+		t[str(c.get("id", ""))] = c.duplicate(true)
 	return t
 
 

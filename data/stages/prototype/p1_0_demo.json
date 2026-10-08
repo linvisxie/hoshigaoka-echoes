@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "1.0.0-p1.0",
+  "domain": "stage",
+  "stageId": "p1_0_demo",
+  "_spec": "V2.1.4 CLEAN MASTER M2 表 114：P1.0「3 基础敌人、1 张 3～5 分钟关、基础反馈」，退出标准「非开发者能理解并完成一局」。",
+  "_scope": "Prototype 演示关。**不替换**第一章正式 1-1；正式主线仍为 1-1 雨宫澪 / 1-2 疾走 / 1-3 悠真 / 1-4 装甲 / 1-6 结衣。",
+  "_dataSourceDiscipline": "本文件只承载「关卡自身规则 + 出怪时间线」，**不重复保存任何敌人或角色数值**。三敌人的 HP/攻击/防御/移动速度/攻击间隔/核心伤害唯一来自 data/enemies.json；三职业面板唯一来自 data/characters.json；AP 上限、伤害公式、阻挡接触线、撤退退款、再部署冷却唯一来自 data/balance.json。",
+  "_stageIdPlacement": "V2.1.4 B6 与 L2 规定「关卡为 data/stages/ch1/<stageId>.json」且 data/ 下不得创建同义总表。本关是 Prototype 专用关，放在 data/stages/prototype/ 下的独立子目录，由 DataRegistry 以**独立索引键** prototype_stages 加载（不进入 canonical 的 stages 索引），因此第一章 1-1～1-10 的 canonical 集合与计数保持不变。此放置方式在 V2.1.4 中无明文规定，已作为规格缺口登记于 docs/P1.0_验收报告.md。",
+  "chapter": 1,
+  "mapId": "ch1_classroom_sunset",
+  "coreHp": 5,
+  "_coreHp_spec": "V2.1.4 G-五：「普通关核心生命默认为 3；1-1 可放宽为 5 以降低新手挫败。」演示关承担「非开发者首次上手」职责，采用与 1-1 相同的放宽值 5。",
+  "startingAp": 10,
+  "_startingAp_spec": "V2.1.4 D-7 行动力 AP：开局 AP 10。与雨宫澪部署费用 10 相等，保证开局即可完成第一次部署并完成「部署 → 阻挡」教学。",
+  "apRegen": 1,
+  "_apRegen_spec": "V2.1.4 D-7：自然回复 1/秒；上限 30 来自 balance.json combat.maxAp。",
+  "availableCharacters": ["amamiya_mio", "kamiya_yuma", "ogawa_yui"],
+  "_availableCharacters_spec": "Prototype 演示关为验证「三职业与三种基础敌人完整配合」而同时提供三职业（M2 表 114 P0.4 行）。**与正式解锁数据隔离**：1-1 的 availableCharacters 仍为 [\"amamiya_mio\"]（有回归测试断言），本关不写入任何 data/stages/ch1/*.json。",
+  "enemySpawnTimeline": [
+    { "time": 3.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
+    { "time": 10.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
+    { "time": 17.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
+    { "time": 24.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
+
+    { "time": 44.0, "lane": 0, "enemy": "echo_normal", "wave": 2 },
+    { "time": 52.0, "lane": 0, "enemy": "echo_runner", "wave": 2 },
+    { "time": 60.0, "lane": 0, "enemy": "echo_normal", "wave": 2 },
+
+    { "time": 90.0, "lane": 1, "enemy": "echo_armored", "wave": 3 },
+    { "time": 100.0, "lane": 0, "enemy": "echo_normal", "wave": 3 },
+    { "time": 108.0, "lane": 0, "enemy": "echo_normal", "wave": 3 },
+
+    { "time": 140.0, "lane": 2, "enemy": "echo_normal", "wave": 4 },
+    { "time": 148.0, "lane": 2, "enemy": "echo_runner", "wave": 4 },
+    { "time": 158.0, "lane": 1, "enemy": "echo_armored", "wave": 4 },
+    { "time": 166.0, "lane": 2, "enemy": "echo_normal", "wave": 4 },
+
+    { "time": 195.0, "lane": 2, "enemy": "echo_runner", "wave": 5 },
+    { "time": 203.0, "lane": 1, "enemy": "echo_armored", "wave": 5 },
+    { "time": 211.0, "lane": 2, "enemy": "echo_normal", "wave": 5 },
+
+    { "time": 230.0, "lane": 1, "enemy": "echo_armored", "wave": 6 },
+    { "time": 248.0, "lane": 1, "enemy": "echo_normal", "wave": 6 },
+    { "time": 264.0, "lane": 1, "enemy": "echo_armored", "wave": 6 }
+  ],
+  "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段以承载 Wave 调度（与 1-1.json 同构，不建立第二套模拟器）。",
+  "_timeline_design": "压力曲线遵循 V2.1.4 F-二十二「安全阶段 → 简单敌人 → 压力增加 → 短暂喘息 → 机制组合 → 高峰 → 最终波」：W1 单路教学 → 喘息 → W2 副路引入疾走 → 喘息 → W3 主路引入装甲 → 喘息 → W4 两翼换边 → 喘息 → W5 三路同时（高峰，必须取舍）→ 喘息 → W6 主路决战（双装甲）。每段喘息 20～30 秒，用于 AP 回积与再部署冷却（20 秒）走完，因此不是空白等待。",
+  "_laneDesign": "三条路线各有实际战术价值：lane1（中段）是**锚线**，承担全部 5 只装甲残响体，需要前线长期驻守；lane0（上段）与 lane2（下段）交替成为**第二战场**，迫使远程在 W2→W3（上段）→ W4（下段）→ W5（上段）→ W6（中段）之间反复换线，每次换线必须主动撤退并等满 20 秒再部署。W5 三路同时受压而场上攻击型单位只有两名，玩家只能覆盖两条，必须判断放弃哪一路并用核心缓冲承担漏怪。",
+  "_blockSlotDiscipline": "装甲残响体的每一波都**独占主路**：雨宫澪 blockCount=2，而单只装甲残响体在其阻挡下需要约 22 秒才能击破（800 HP ÷ 40 伤害/1.5s）。若同一 22 秒窗口内主路再有第二名敌人抵达，第三名敌人将因阻挡名额耗尽而直接穿过——那会让「阻挡」这一核心教学点被数值噪声淹没。因此装甲波在主路只放一只，其余敌人放在副路由远程处理。",
+  "_balanceRationale": "V2.1.4 D-22 伤害公式 攻击×100/(100+防御) 下的验算（详见 docs/P1.0_验收报告.md 平衡章节）：悠真对装甲为 150×100/200=75，单线 4.0 格射程内累计伤害约 656 < 装甲 HP 800，因此**装甲残响体无法被远程单独击杀，必须由前线阻挡后磨掉**——这正是装甲「高防推进」的战术语义（V2.1.4 F-八）。反之前线雨宫澪对普通残响体为 100/1.1≈90.9 DPS、被普通残响体打为 36/1.2≈30 DPS，配合结衣 110/1.5≈73.3 HPS 可长期站场。装甲对雨宫澪为 47/1.5≈31.3 DPS，W6 双装甲同时阻挡约 62.6 DPS 仍低于结衣治疗量，故「前线 + 治疗」可稳定吃下最终波。",
+  "_stableClearPath": "稳定通关解（**非唯一**，已用 tools/simulate_p1_demo.gd 多战术对照验证）：雨宫澪固定 lane1 col3 作锚点；小川结衣 lane0 col2（曼哈顿 ≤3 且 maxLaneDelta=1，可同时照看 lane0 与 lane1）；神谷悠真按波次换线 —— W2/W3 守 lane0 col1 → 撤至 lane2 应对 W4 → 撤回 lane0 应对 W5 → 回 lane1 与澪合流拆 W6 双装甲。另有「放弃 lane0 而守 lane2」等等价解，二者核心损耗相同，说明本关不依赖唯一硬编码操作。",
+  "waves": [
+    {
+      "number": 1,
+      "label": "接触",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "单路 4 只普通残响体，间隔 7 秒。承担「部署 → 阻挡 → 自动攻击 → 核心生命」四件事的教学；只用一条路线，避免首次上手同时面对多线。间隔 7 秒大于雨宫澪击杀单只普通残响体所需的约 4.6 秒，因此不会出现阻挡名额耗尽。"
+    },
+    {
+      "number": 2,
+      "label": "疾走",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "副路（上段）3 只，首次引入疾走残响体（1.0 格/秒，是普通残响体 0.55 的 1.82 倍）。玩家必须意识到远程不能只守主路。"
+    },
+    {
+      "number": 3,
+      "label": "装甲",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "首次引入装甲残响体（防御 100），独占主路；同时副路出 2 只普通残响体牵制远程，检验玩家能否同时维持两条线。"
+    },
+    {
+      "number": 4,
+      "label": "两翼",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "副战场从「上段」换到「下段」，检验玩家是否读懂「下一波」路线预告并主动撤退换线；主路仍由装甲残响体施加持续输出压力。"
+    },
+    {
+      "number": 5,
+      "label": "三路",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "本关高峰：三条路线同时出怪，而场上攻击型单位只有雨宫澪与神谷悠真两名，玩家只能覆盖两条，必须主动判断放弃哪一路并用核心缓冲承担漏怪。"
+    },
+    {
+      "number": 6,
+      "label": "最终波",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "主路决战：双装甲 + 普通全部压在中段。远程必须回到中段与前线合流，否则两装甲将各自推进约 14 秒后漏怪。"
+    }
+  ],
+  "_waveCount_spec": "V2.1.4 D-33 表 32 给出第一章最终 5 波结构（普通 / +疾走 / +装甲 / 混合 / 最终波）。本演示关沿用同一**递进骨架**（普通 → +疾走 → +装甲 → 换边 → 三路混合 → 最终波），但拆为 6 波：因为演示关同时承担「三职业 × 三敌人」的教学职责，把「混合」拆成「两翼」与「三路」两段才能让玩家在高峰之前先学会换线。此偏离已登记于 docs/P1.0_验收报告.md 的规格偏离表。",
+  "_enemyCount_spec": "V2.1.4 D-30 表 33：「建议总敌人数 18～24」「目标时长 3～5 分钟」。本关 20 只（普通 ×12 / 疾走 ×3 / 装甲 ×5）、实测通关时长约 4.5 分钟，两项均落在规格区间内。",
+  "tutorialTriggers": [
+    { "at": 0.0, "id": "TUT_DEPLOY", "text": "点击底部角色卡，再点战场格子部署角色" },
+    { "at": 0.0, "id": "TUT_LANES", "text": "敌人从右侧「入口」出现，沿三条路线向左推进" },
+    { "at": 0.0, "id": "TUT_CORE", "text": "三条路线共用同一个「残响锚点」；核心生命归零即失败" },
+    { "at": 2.0, "id": "TUT_AP", "text": "部署消耗 AP；AP 每秒自然回复 1 点，上限 30" },
+    { "at": 4.0, "id": "TUT_ROLE_FRONTLINE", "text": "前线负责阻挡：把敌人拦在格子前，让它停下来打你" },
+    { "at": 6.0, "id": "TUT_ROLE_RANGED", "text": "远程负责攻击：站在前线身后，射程内持续输出" },
+    { "at": 8.0, "id": "TUT_ROLE_HEALER", "text": "治疗负责恢复：范围内生命百分比最低的受伤友军优先" },
+    { "at": 40.0, "id": "TUT_RETREAT", "text": "点击场上角色可打开操作面板主动撤退；撤退返还 50% AP，但需等 20 秒再部署" }
+  ],
+  "_tutorialTriggers_spec": "V2.1.4 G-九 关卡数据化要求把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念，避免信息过载」——本关作为 Prototype 演示关需覆盖三职业与三敌人，故按时间轴分批给出，每条只出现一次。",
+  "specialRules": [],
+  "firstClearRewardId": "",
+  "repeatRewardId": "",
+  "storyBefore": "",
+  "storyAfter": "",
+  "bossConfig": {},
+  "_outOfScope": "按 V2.1.4 F-五十七 与 M2：不实现试卷飞灵、焦虑团块、排名幽灵、沉默学生、作弊纸偶、监考者、无名优等生 Boss；不实现技能/天赋/装备/成长/局内三选一（Alpha A0.6/A0.7）。"
+}

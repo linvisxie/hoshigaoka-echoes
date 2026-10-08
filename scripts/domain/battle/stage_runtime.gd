@@ -70,6 +70,19 @@ var removals: Array[Dictionary] = []
 ## 供测试断言与表现层播放治疗反馈；只记录**实际生效**的治疗。
 var heal_events: Array[Dictionary] = []
 
+## 伤害事件记录（P1.0）：{targetKind, targetId, amount, at, damageType, lethal}。
+## 供表现层播放「伤害数字 / 受击闪白」等基础反馈（V2.1.4 D-38：每次攻击至少包含
+## 攻击动画、命中特效、受击闪白、伤害数字、音效；不能只修改血量）。
+##
+## 纪律：
+##   - 只记录**实际扣减**的 HP（amount > 0），被完全挡下或对已死目标的溢出伤害不入账；
+##   - 本数组是**表现层数据源**，不参与任何战斗判定；
+##   - 与 heal_events 一样按逻辑步累积，因此帧率与分辨率不影响其内容。
+var damage_events: Array[Dictionary] = []
+
+## 表现层读取伤害事件时的游标（表现层自己维护；领域层不关心）
+const DAMAGE_EVENT_RETENTION := 200
+
 ## 本关允许部署的角色 id（来自 StageConfig.availableCharacters）
 var available_characters: Array[String] = []
 
@@ -1314,6 +1327,7 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 	var applied := target.take_damage(dmg)
 	c.total_damage_dealt += applied
 	c.attack_cooldown = c.attack_interval
+	_record_damage_event(true, target.instance_id, applied, target.hp <= 0)
 	GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
 		% [c.display_name, target.enemy_id, applied, target.hp])
 
@@ -1348,6 +1362,32 @@ func _resolve_healer_action(c: CharacterRuntime, step: float) -> void:
 	})
 	GameLog.debug("StageRuntime", "%s 治疗 %s %d HP（剩余 HP %d/%d）"
 		% [c.display_name, target.display_name, healed, target.hp, target.max_hp])
+
+
+## 记录一次**实际生效**的伤害（P1.0 基础反馈的表现层数据源）。
+##
+## target_is_enemy: true = 敌人被打（角色输出），false = 角色被打（敌人输出）。
+## 只记录 applied > 0 的事件；表现层据此播伤害数字与受击闪白。
+## 本方法**不参与任何战斗判定**，也不改变调用点的返回值。
+func _record_damage_event(
+	target_is_enemy: bool,
+	target_instance_id: int,
+	applied: int,
+	lethal: bool
+) -> void:
+	if applied <= 0:
+		return
+	damage_events.append({
+		"targetKind": "enemy" if target_is_enemy else "character",
+		"targetId": target_instance_id,
+		"amount": applied,
+		"at": snappedf(elapsed_seconds, 0.001),
+		"lethal": lethal,
+	})
+	# 环形裁剪：只保留最近若干条，避免长局内存无上限增长。
+	# 表现层每个逻辑步都会消费新事件，因此裁剪不影响可见反馈。
+	if damage_events.size() > DAMAGE_EVENT_RETENTION:
+		damage_events = damage_events.slice(damage_events.size() - DAMAGE_EVENT_RETENTION)
 
 
 ## 治疗目标选择（V2.1.4 表 30 / 表 31）：
@@ -1459,6 +1499,7 @@ func _resolve_enemy_attacks(step: float) -> void:
 		var applied := blocker.take_damage(dmg)
 		e.total_damage_dealt += applied
 		e.attack_cooldown = e.attack_interval
+		_record_damage_event(false, blocker.instance_id, applied, blocker.is_incapacitated())
 
 
 ## 清理死亡实体与失能角色
@@ -1471,6 +1512,13 @@ func _cleanup_dead() -> void:
 				e.state = BattleTypes.EnemyState.DEAD
 				enemies_killed += 1
 				_note_wave_kill(e)
+				# 记录击杀离场（P1.0 修复）：
+				# removals 的契约是记录「击杀 / 漏怪 / 主动撤退 / 失能」四类离场，
+				# 但此前只有**测试夹具**会写 KILLED，真实击杀路径漏了这一步，
+				# 导致表现层无法据 removals 回放「敌人是怎么没的」（死亡粒子永远不触发）。
+				# 漏怪路径（apply_core_damage）一直是正常写入的，此处补齐以保持一致。
+				# 幂等：状态一旦置 DEAD 就不会再进入本分支。
+				_append_enemy_removal(Removal.KILLED, e)
 				GameLog.debug("StageRuntime", "敌人 %s 被击败" % e.enemy_id)
 			continue
 		if e.is_active():
@@ -1559,8 +1607,74 @@ func _append_enemy_removal(kind: int, enemy: EnemyRuntime) -> void:
 		"entityId": enemy.instance_id,
 		"enemyId": enemy.enemy_id,
 		"lane": enemy.lane,
+		"x": snappedf(enemy.logical_x, 0.001),
 		"at": snappedf(elapsed_seconds, 0.001),
 	})
+
+
+# ============================================================
+#  复盘统计（V2.1.4 G-八 失败与复盘设计）
+# ============================================================
+
+## 突破核心的敌人种类 → 次数。
+## V2.1.4 G-八 要求失败结算显示「突破核心的敌人类型」。
+func leaked_by_enemy_type() -> Dictionary:
+	var out := {}
+	for r: Dictionary in removals:
+		if str(r.get("entity", "")) != "enemy":
+			continue
+		if int(r.get("kind", -1)) != Removal.REACHED_CORE:
+			continue
+		var eid := str(r.get("enemyId", "?"))
+		out[eid] = int(out.get(eid, 0)) + 1
+	return out
+
+
+## 各路线累计承受的压力（按该路线生成的敌人**总 HP** 计）。
+##
+## 为什么用总 HP 而不是「敌人个数」：V2.1.4 明确「关卡难度主要来自敌人组合与出怪时机，
+## 不靠单纯堆血」，但一条路上出现 2 只装甲（1600 HP）与出现 2 只普通（840 HP）
+## 对玩家的实际压力完全不同。用总 HP 更接近「该路线需要多少输出量」。
+## 返回 {lane: totalHp}，lane 0/1/2。
+func pressure_by_lane() -> Dictionary:
+	var out := {0: 0, 1: 0, 2: 0}
+	for e: Dictionary in _spawn_plan:
+		var lane := int(e["lane"])
+		var eid := str(e["enemy"])
+		var hp := 0
+		if _enemy_configs.has(eid):
+			hp = int((_enemy_configs[eid] as Dictionary).get("hp", 0))
+		out[lane] = int(out.get(lane, 0)) + hp
+	return out
+
+
+## 承受压力最大的路线（V2.1.4 G-八「最多承压路线」）。压力并列时取编号较小的路线。
+## 无出怪时返回 -1。
+func busiest_lane() -> int:
+	if _spawn_plan.is_empty():
+		return -1
+	var p := pressure_by_lane()
+	var best_lane := -1
+	var best := -1
+	for lane: int in [0, 1, 2]:
+		var v := int(p.get(lane, 0))
+		if v > best:
+			best = v
+			best_lane = lane
+	return best_lane
+
+
+## 各敌人种类的击杀数（结算摘要用）
+func kills_by_enemy_type() -> Dictionary:
+	var out := {}
+	for r: Dictionary in removals:
+		if str(r.get("entity", "")) != "enemy":
+			continue
+		if int(r.get("kind", -1)) != Removal.KILLED:
+			continue
+		var eid := str(r.get("enemyId", "?"))
+		out[eid] = int(out.get(eid, 0)) + 1
+	return out
 
 
 # ============================================================

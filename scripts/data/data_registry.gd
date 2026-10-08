@@ -32,6 +32,22 @@ const CANONICAL_FILES := {
 const STAGES_DIR := "res://data/stages/ch1"
 const STORY_DIR := "res://data/story"
 
+## Prototype 专用关卡目录（P1.0 新增）。
+##
+## 规格依据与边界（V2.1.4 B6 / L2 / M2 表 114）：
+##   B6 与 L2 规定「关卡为 data/stages/ch1/<stageId>.json」，且 data/ 下不得创建同义总表。
+##   P1.0 需要一张**独立于第一章主线**的 3～5 分钟 Prototype 演示关（M2 表 114），
+##   而 G-十 / 表 54 明确 Prototype 阶段正式主线仍以 1-1 为垂直切片。
+##   为避免污染 canonical 的 ch1 关卡集合（tests/test_data_ssot.gd 断言 ch1 恰好 10 关、
+##   test_data_registry.gd 断言 stages 索引恰好 10 条），演示关放在独立子目录，
+##   并以**独立索引键**加载，因此 canonical 集合与计数完全不变。
+##
+## 这**不是**第二套数据源：本目录仍只存关卡正文（StageConfig），
+## 敌人/角色/平衡数值依旧唯一来自 enemies.json / characters.json / balance.json。
+## 该放置方式在 V2.1.4 中无明文规定，属规格未定义区，已登记于 docs/P1.0_验收报告.md。
+const PROTOTYPE_STAGES_DIR := "res://data/stages/prototype"
+const PROTOTYPE_STAGES_KEY := "prototype_stages"
+
 ## 每个数据域必须具备的顶层字段（Phase 0 校验基线）
 const REQUIRED_FIELDS := {
 	"terms": ["schemaVersion", "domain", "terms"],
@@ -98,13 +114,16 @@ func load_all() -> bool:
 		_domains[domain] = dict
 
 	_load_stages()
+	_load_prototype_stages()
 	_load_story()
 	_validate_references()
 
 	_loaded = true
 	if _load_errors.is_empty():
-		GameLog.info(TAG, "数据加载完成：%d 个数据域（含 %d 关、%d 剧情）"
-			% [_domains.size(), _indices.get("stages", {}).size(), _indices.get("story", {}).size()])
+		GameLog.info(TAG, "数据加载完成：%d 个数据域（含 %d 关、%d Prototype 演示关、%d 剧情）"
+			% [_domains.size(), _indices.get("stages", {}).size(),
+				_indices.get(PROTOTYPE_STAGES_KEY, {}).size(),
+				_indices.get("story", {}).size()])
 	else:
 		for e: String in _load_errors:
 			GameLog.error(TAG, e)
@@ -194,6 +213,53 @@ func _load_stages() -> void:
 			_load_errors.append("stages: stageId 重复 %s" % sid)
 			continue
 		_indices["stages"][sid] = dict
+
+
+## Prototype 专用关卡加载（P1.0）。
+## 与 _load_stages 使用**完全相同**的字段校验与索引规则，只是写入独立索引键，
+## 因此 ch1 canonical 关卡集合与计数不受影响。
+func _load_prototype_stages() -> void:
+	_indices[PROTOTYPE_STAGES_KEY] = {}
+	var dir := DirAccess.open(PROTOTYPE_STAGES_DIR)
+	if dir == null:
+		# 目录不存在不视为错误：正式零售构建可以不带 Prototype 演示关。
+		return
+	var files := dir.get_files()
+	files.sort()
+	for fname: String in files:
+		if not fname.ends_with(".json"):
+			continue
+		var path := "%s/%s" % [PROTOTYPE_STAGES_DIR, fname]
+		var data: Variant = _read_json(path)
+		if data == null or typeof(data) != TYPE_DICTIONARY:
+			_load_errors.append("prototype_stages: %s 加载失败" % path)
+			continue
+		var dict: Dictionary = data
+		var missing: Array = []
+		for field: String in STAGE_REQUIRED_FIELDS:
+			if not dict.has(field):
+				missing.append(field)
+		if not missing.is_empty():
+			_load_errors.append("prototype_stages: %s 缺少必填字段 %s" % [fname, ", ".join(missing)])
+			continue
+		var sid: String = str(dict.get("stageId", ""))
+		if sid.is_empty():
+			_load_errors.append("prototype_stages: %s 的 stageId 为空" % fname)
+			continue
+		if _indices[PROTOTYPE_STAGES_KEY].has(sid):
+			_load_errors.append("prototype_stages: stageId 重复 %s" % sid)
+			continue
+		# 与 canonical 关卡同名视为冲突：两个索引键指向同一 stageId 会让取关不确定。
+		if _indices.get("stages", {}).has(sid):
+			_load_errors.append(
+				"prototype_stages: stageId '%s' 与 ch1 正式关卡重名，禁止" % sid)
+			continue
+		_indices[PROTOTYPE_STAGES_KEY][sid] = dict
+
+
+## Prototype 演示关的全部 ID（无则返回空数组）
+func get_prototype_stage_ids() -> Array:
+	return get_ids(PROTOTYPE_STAGES_KEY)
 
 
 func _load_story() -> void:
