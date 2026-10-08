@@ -99,6 +99,30 @@ func test_load_restores_committed_save() -> void:
 	)
 
 
+func test_has_valid_save_rejects_structurally_invalid_file() -> void:
+	# 写入一个 JSON 合法但结构不合规的存档（缺 flow_state）
+	var f := FileAccess.open("user://save/savegame.json", FileAccess.WRITE)
+	f.store_string('{"schema_version": 1}')
+	f.close()
+
+	var svc2: Node = load("res://scripts/save/save_service.gd").new()
+	add_child_autofree(svc2)
+	assert_false(
+		svc2.has_valid_save(),
+		"JSON 合法但缺 flow_state 的存档不应被视为有效"
+	)
+	# has_valid_save 只做校验、不写日志；此断言无需处理预期错误
+
+
+func test_has_valid_save_accepts_wellformed_file() -> void:
+	var save: Dictionary = _svc.build_default_save()
+	assert_true(_svc.commit(save), "提交应成功")
+
+	var svc2: Node = load("res://scripts/save/save_service.gd").new()
+	add_child_autofree(svc2)
+	assert_true(svc2.has_valid_save(), "合规存档应被视为有效")
+
+
 func test_load_falls_back_to_backup_when_main_corrupted() -> void:
 	# 建立有效主存档 + backup
 	var first: Dictionary = _svc.build_default_save()

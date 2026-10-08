@@ -88,12 +88,18 @@ func build_default_save() -> Dictionary:
 	}
 
 
-## 是否存在有效存档（结构合法 + schema 可读）。
+## 是否存在有效存档（JSON 可解析 + schema 校验通过）。
+## 注意：这里只做校验，不执行迁移（迁移在 load_game 中进行），
+## 因此一个"来自旧 schema 但可迁移"的存档仍视为有效。
 func has_valid_save() -> bool:
 	if not FileAccess.file_exists(SAVE_PATH):
 		return false
 	var data: Variant = _read_json(SAVE_PATH)
-	return data != null and typeof(data) == TYPE_DICTIONARY
+	if data == null or typeof(data) != TYPE_DICTIONARY:
+		return false
+	var save: Dictionary = data
+	var result := _validate(save)
+	return bool(result.get("ok", false))
 
 
 ## 取内存中的当前存档（未加载时返回空字典）。
