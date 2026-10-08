@@ -1,20 +1,30 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-p0.1",
   "domain": "stage",
   "stageId": "1-1",
-  "_phase0": "Phase 0 占位。关卡自身规则、availableCharacters、enemySpawnTimeline、storyBefore/storyAfter ID 和 stage_rewards.json 的奖励 ID 引用；禁止内联第二份奖励正文。Alpha A0.3 起填充。",
+  "_spec": "V2.1.4 CLEAN MASTER：1-1 初次锚定。P0.1 只配置核心/AP/出怪时间线；availableCharacters 与奖励仍属 Alpha 阶段，保持占位。",
+  "_note": "P0.1 仅使用 coreHp、startingAp、apRegen、enemySpawnTimeline。敌人出现时间与路线全部来自本配置，不写死在代码中（V2.1.4 D-34/D-35）。",
   "chapter": 1,
-  "mapId": "",
-  "coreHp": 0,
-  "startingAp": 0,
-  "apRegen": 0,
+  "mapId": "ch1_classroom_sunset",
+  "coreHp": 5,
+  "_coreHp_spec": "V2.1.4 G-五：普通关核心生命默认 3；1-1 放宽为 5 以降低新手挫败。",
+  "startingAp": 10,
+  "apRegen": 1,
   "availableCharacters": [],
-  "enemySpawnTimeline": [],
+  "enemySpawnTimeline": [
+    { "time": 2.0, "lane": 1, "enemy": "echo_normal" },
+    { "time": 6.0, "lane": 0, "enemy": "echo_normal" },
+    { "time": 10.0, "lane": 2, "enemy": "echo_normal" },
+    { "time": 16.0, "lane": 1, "enemy": "echo_normal" },
+    { "time": 22.0, "lane": 0, "enemy": "echo_runner" },
+    { "time": 26.0, "lane": 2, "enemy": "echo_runner" }
+  ],
   "tutorialTriggers": [],
   "specialRules": [],
   "firstClearRewardId": "",
   "repeatRewardId": "",
   "storyBefore": "",
   "storyAfter": "",
-  "bossConfig": {}
+  "bossConfig": {},
+  "_p0.1_scope": "P0.1 不实现：玩家单位部署、AP 消耗、阻挡、攻击、技能、Wave UI、奖励结算。enemySpawnTimeline 的 lane 取 0/1/2（上/中/下）。"
 }

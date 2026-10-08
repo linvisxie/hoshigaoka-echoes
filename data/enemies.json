@@ -1,6 +1,58 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-p0.1",
   "domain": "enemies",
-  "_phase0": "Phase 0 占位。enemyId、面板、标签、机制、weightClass、spriteFramePx。",
-  "enemies": []
+  "_note": "敌人唯一数据源（V2.1.4 B6 SSOT）。数值取自 V2.1.4 CLEAN MASTER F 章。P0.1 仅使用 moveSpeed 与 coreDamage（移动与漏怪结算）；hp/attack/defense 等字段按规格登记但不参与 P0.1 逻辑（战斗攻击属 P0.2）。",
+  "enemies": [
+    {
+      "id": "echo_normal",
+      "name": "普通残响体",
+      "tier": 1,
+      "tags": ["NORMAL", "MELEE"],
+      "weightClass": "MEDIUM",
+      "spriteFramePx": 64,
+      "hp": 420,
+      "attack": 65,
+      "defense": 20,
+      "moveSpeed": 0.55,
+      "attackInterval": 1.2,
+      "attackRange": "MELEE",
+      "coreDamage": 1,
+      "abilityIds": [],
+      "_spec": "V2.1.4 F-六 普通残响体"
+    },
+    {
+      "id": "echo_runner",
+      "name": "疾走残响体",
+      "tier": 1,
+      "tags": ["FAST", "MELEE"],
+      "weightClass": "LIGHT",
+      "spriteFramePx": 64,
+      "hp": 260,
+      "attack": 50,
+      "defense": 10,
+      "moveSpeed": 1.0,
+      "attackInterval": 1.0,
+      "attackRange": "MELEE",
+      "coreDamage": 1,
+      "abilityIds": [],
+      "_spec": "V2.1.4 F-七 疾走残响体"
+    },
+    {
+      "id": "echo_armored",
+      "name": "装甲残响体",
+      "tier": 2,
+      "tags": ["ARMORED", "MELEE"],
+      "weightClass": "HEAVY",
+      "spriteFramePx": 96,
+      "hp": 800,
+      "attack": 85,
+      "defense": 100,
+      "moveSpeed": 0.35,
+      "attackInterval": 1.5,
+      "attackRange": "MELEE",
+      "coreDamage": 1,
+      "abilityIds": [],
+      "_spec": "V2.1.4 F-八 装甲残响体"
+    }
+  ]
 }

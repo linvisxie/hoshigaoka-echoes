@@ -6,9 +6,10 @@ extends Node
 
 const TAG := "SceneRouter"
 
-## 已登记的场景路径（Phase 0 仅 bootstrap；后续阶段逐步登记）
+## 已登记的场景路径（P0.1 起含 battle；title/home 待 Alpha A0.7）
 const SCENES := {
 	"bootstrap": "res://scenes/bootstrap/bootstrap.tscn",
+	"battle": "res://scenes/battle/battle_scene.tscn",
 	"title": "res://scenes/title/title.tscn",
 	"home": "res://scenes/home/home.tscn",
 }
