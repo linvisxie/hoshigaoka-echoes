@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0.0-phase0",
+  "domain": "character_growth",
+  "_phase0": "Phase 0 占位。经验/突破成长曲线。",
+  "growthProfiles": []
+}

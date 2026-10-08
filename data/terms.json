@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0.0-phase0",
+  "domain": "terms",
+  "_phase0": "Phase 0 占位。中文显示名、内部术语、状态名。Alpha 补齐。",
+  "terms": {}
+}

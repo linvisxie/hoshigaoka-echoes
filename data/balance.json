@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0.0-phase0",
+  "domain": "balance",
+  "layout": {
+    "_note": "V2.1.4 LOCKED 规则 / PROTOTYPE 参数：tileSizePx 与 laneSpacingPx 是原型视觉可调参数，不作为技能平衡值。",
+    "referenceCanvas": {
+      "width": 1920,
+      "height": 1080
+    },
+    "tileSizePx": 192,
+    "laneSpacingPx": 192,
+    "lanes": 3,
+    "columns": 6,
+    "boardReferenceWidthPx": 1152
+  },
+  "combat": {
+    "_note": "V2.1.4 D 章：战斗逻辑以格(tile)为无量纲单位；此处仅登记 Prototype 基线值。",
+    "startingAp": 10,
+    "maxAp": 30,
+    "apRegenPerSecond": 1,
+    "coreHpDefault": 3,
+    "squadLimit": 6,
+    "fieldDeployLimit": 5,
+    "_pending": "A2 相关其余参数、减益下限等依 V2.1.4 由 balance.json 承载，Alpha 阶段补齐。"
+  }
+}

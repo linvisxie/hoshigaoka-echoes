@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0.0-phase0",
+  "domain": "equipment",
+  "_phase0": "Phase 0 占位。装备固定模板（V2.1.4：首发不随机生成词条）。",
+  "equipment": []
+}

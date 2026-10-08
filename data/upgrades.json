@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0.0-phase0",
+  "domain": "upgrades",
+  "_phase0": "Phase 0 占位。强化 ID、标签、层级、效果、权重。Alpha A0.6 才实现。",
+  "upgrades": []
+}

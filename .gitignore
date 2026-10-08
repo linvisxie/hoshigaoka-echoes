@@ -1,0 +1,40 @@
+# 《星丘残响》Hoshigaoka Echoes — Git 忽略规则
+# 依据 V2.1.4 M6：禁止把 .godot 缓存、dist 构建、Steam 凭证、密钥、临时包提交仓库
+
+# --- Godot 引擎缓存与导入产物 ---
+.godot/
+*.translation
+
+# --- 导出产物（L9：构建输出放 dist/，绝不混入 res://）---
+dist/
+build/
+*.exe
+*.pck
+*.zip
+export_presets.cfg.bak
+
+# --- IDE / 编辑器 ---
+.vscode/
+.idea/
+*.swp
+*~
+
+# --- 操作系统 ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# --- 敏感凭证（N4 / O3：凭证绝不入库）---
+*.key
+*.pem
+*.pfx
+*.p12
+steam_appid.txt
+steam_build_credentials*
+.env
+.env.*
+
+# --- 临时文件 ---
+*.tmp
+*.log
+crash_*.txt

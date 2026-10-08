@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0.0-phase0",
+  "domain": "upgrade_costs",
+  "_phase0": "Phase 0 占位。等级/技能/突破成本。",
+  "upgradeCosts": []
+}

@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0.0-phase0",
+  "domain": "characters",
+  "_phase0": "Phase 0 占位。characterId、职业、基础面板、部署费、可用技能 ID、解锁关卡；不得重复保存技能效果/倍率。",
+  "characters": []
+}

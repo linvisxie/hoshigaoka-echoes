@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0.0-phase0",
+  "domain": "skills",
+  "_phase0": "Phase 0 占位。skillId、主动/被动效果、CD、攻击几何(rangeShape/rangeTiles/maxLaneDelta/targetLimit/direction/includeSelf)、可配置参数。",
+  "skills": []
+}

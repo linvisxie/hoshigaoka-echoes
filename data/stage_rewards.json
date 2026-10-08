@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0.0-phase0",
+  "domain": "stage_rewards",
+  "_phase0": "Phase 0 占位。首通/重复/章节奖励；奖励数值只在此文件。",
+  "rewards": []
+}
