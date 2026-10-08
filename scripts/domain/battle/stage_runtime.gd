@@ -66,6 +66,10 @@ var characters: Array[CharacterRuntime] = []
 ## 离场记录（击杀 / 漏怪 / 主动撤退 / 失能）。供测试与结算摘要使用。
 var removals: Array[Dictionary] = []
 
+## 治疗事件记录（P0.4）：{healerId, targetId, amount, at}。
+## 供测试断言与表现层播放治疗反馈；只记录**实际生效**的治疗。
+var heal_events: Array[Dictionary] = []
+
 ## 本关允许部署的角色 id（来自 StageConfig.availableCharacters）
 var available_characters: Array[String] = []
 
@@ -121,6 +125,8 @@ var deploy_success_count: int = 0
 var deploy_reject_count: int = 0
 var retreat_count: int = 0
 var retreat_refunded_ap_total: int = 0
+## 全队累计实际治疗量（P0.4）
+var total_healing_done: int = 0
 ## 战斗时长上限（秒）。超过后不再生成敌人，避免「敌人被永久阻挡」导致对局永不结束。
 var _max_battle_seconds: float = 0.0
 
@@ -241,6 +247,9 @@ static func from_config(
 	else:
 		rt._errors.append("StageConfig 缺少 availableCharacters")
 
+	# ---- 角色行为分类与治疗参数校验（P0.4 三职业统一框架）----
+	rt._validate_character_behaviors()
+
 	# ---- 出怪时间线（唯一数据源）----
 	rt._spawn_plan = rt._validate_spawn_timeline(stage_config, enemy_table)
 	rt._max_battle_seconds = rt._compute_max_battle_seconds()
@@ -251,6 +260,44 @@ static func from_config(
 
 
 ## 校验并规范化出怪时间线，返回按时间升序的条目数组。
+## 校验角色配置中的行为分类与治疗参数（P0.4 三职业统一框架）。
+## 设计纪律：行为必须由数据显式声明，**禁止按 classType 字符串猜**；
+## 声明非法时在构建期报错，而不是静默退化成默认行为。
+func _validate_character_behaviors() -> void:
+	for cid: String in _character_configs.keys():
+		var cfg: Dictionary = _character_configs[cid]
+		if not cfg.has("behavior"):
+			_errors.append("角色 %s 缺少 behavior（P0.4 起必填：FRONTLINE / RANGED / HEALER）" % cid)
+			continue
+		var text := str(cfg["behavior"])
+		var behavior := CharacterRuntime.parse_behavior(text)
+		if behavior < 0:
+			_errors.append("角色 %s 的 behavior 非法（'%s'），必须是 FRONTLINE / RANGED / HEALER"
+				% [cid, text])
+			continue
+
+		var range_cfg: Dictionary = cfg.get("attackRange", {})
+		if range_cfg.is_empty():
+			_errors.append("角色 %s 缺少 attackRange（射程与治疗范围必须由数据声明）" % cid)
+			continue
+
+		if behavior == CharacterRuntime.Behavior.HEALER:
+			if int(cfg.get("healPower", 0)) <= 0:
+				_errors.append("治疗角色 %s 缺少正的 healPower" % cid)
+			if str(range_cfg.get("shape", "")) != "manhattan":
+				_errors.append("治疗角色 %s 的 attackRange.shape 必须是 manhattan（V2.1.4 表 30）" % cid)
+			if not range_cfg.has("maxLaneDelta"):
+				_errors.append("治疗角色 %s 必须显式声明 maxLaneDelta（跨线不得由几何距离推导）" % cid)
+		else:
+			# 输出角色不得携带治疗力，避免出现第二套治疗来源
+			if int(cfg.get("healPower", 0)) > 0:
+				_errors.append("非治疗角色 %s 不应声明 healPower" % cid)
+
+		# 阻挡能力必须与规格一致：远程 / 治疗为 0（表 25 / 28 / 30）
+		if behavior != CharacterRuntime.Behavior.FRONTLINE and int(cfg.get("blockCount", 0)) > 0:
+			_errors.append("非前线角色 %s 的 blockCount 必须为 0（V2.1.4 表 25 / 表 28 / 表 30）" % cid)
+
+
 func _validate_spawn_timeline(
 	stage_config: Dictionary,
 	enemy_table: Dictionary
@@ -1077,8 +1124,8 @@ func _step(step: float, reached: Array[EnemyRuntime]) -> void:
 			reached.append(e)
 			apply_core_damage(e)
 
-	# 9. 攻击
-	_resolve_character_attacks(step)
+	# 9. 角色行动（三职业统一分派：输出走攻击路径，治疗走治疗路径）
+	_resolve_character_actions(step)
 	_resolve_enemy_attacks(step)
 
 	# 10. Wave 推进
@@ -1241,20 +1288,115 @@ func _find_available_blocker(e: EnemyRuntime) -> CharacterRuntime:
 
 
 ## 角色自动攻击（V2.1.4 D-11 目标优先级）
+## 角色行动统一入口（P0.4 三职业框架）。
+## 前线与远程共用同一条攻击路径（二者差别只在数据：射程与阻挡数）；
+## 治疗型走治疗路径。**不为任何单个角色写专属分支。**
+func _resolve_character_actions(step: float) -> void:
+	for c: CharacterRuntime in characters:
+		if c.is_incapacitated():
+			continue
+		if c.is_healer():
+			_resolve_healer_action(c, step)
+		else:
+			_resolve_attacker_action(c, step)
+
+
+## 输出型（前线 / 远程）的单次行动结算。
+## 射程、阻挡能力、伤害类型全部来自配置，行为本身不携带任何数值。
+func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
+	c.attack_cooldown = maxf(0.0, c.attack_cooldown - step)
+	if c.attack_cooldown > 0.0:
+		return
+	var target := _select_target_for(c)
+	if target == null:
+		return
+	var dmg := combat_math.compute_damage(c.attack, target.defense, c.damage_type)
+	var applied := target.take_damage(dmg)
+	c.total_damage_dealt += applied
+	c.attack_cooldown = c.attack_interval
+	GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
+		% [c.display_name, target.enemy_id, applied, target.hp])
+
+
+## 治疗型的单次行动结算（V2.1.4 D 章二十三 治疗公式 / 表 30 范围与间隔）。
+## 纪律：
+##   ① 只治疗**仍在场**的友军（已离场者不在 characters 中，天然排除）；
+##   ② 实际治疗 = 治疗力 × 技能倍率，且不得超过目标最大 HP（由 receive_healing 夹取）；
+##   ③ 全部满血时不执行治疗，且**不消耗间隔**（否则会出现「空转掉一次治疗」）；
+##   ④ 冷却与间隔同样只在固定逻辑步内推进。
+func _resolve_healer_action(c: CharacterRuntime, step: float) -> void:
+	c.attack_cooldown = maxf(0.0, c.attack_cooldown - step)
+	if c.attack_cooldown > 0.0:
+		return
+	var target := _select_heal_target_for(c)
+	if target == null:
+		# 无可治疗目标（全部满血 / 范围内无人）→ 不进入冷却，等下一次逻辑步再试
+		return
+	var amount := c.compute_heal_amount()
+	var healed := target.receive_healing(amount)
+	if healed <= 0:
+		return
+	c.total_healing_done += healed
+	total_healing_done += healed
+	c.last_heal_at = elapsed_seconds
+	c.attack_cooldown = c.heal_interval
+	heal_events.append({
+		"healerId": c.instance_id,
+		"targetId": target.instance_id,
+		"amount": healed,
+		"at": snappedf(elapsed_seconds, 0.001),
+	})
+	GameLog.debug("StageRuntime", "%s 治疗 %s %d HP（剩余 HP %d/%d）"
+		% [c.display_name, target.display_name, healed, target.hp, target.max_hp])
+
+
+## 治疗目标选择（V2.1.4 表 30 / 表 31）：
+##   范围：曼哈顿距离 ≤ rangeTiles；跨线数 ≤ maxLaneDelta（独立于几何距离判定）；
+##   优先级：当前**生命百分比最低**的受伤友军；
+##   并列时按 instance_id 升序，保证确定性。
+func _select_heal_target_for(c: CharacterRuntime) -> CharacterRuntime:
+	var best: CharacterRuntime = null
+	var best_ratio := 2.0
+	for other: CharacterRuntime in characters:
+		if other.instance_id == c.instance_id:
+			continue
+		if not other.is_wounded():
+			continue
+		if not _is_in_heal_range(c, other):
+			continue
+		var ratio := other.hp_ratio()
+		if ratio < best_ratio - 0.000001:
+			best_ratio = ratio
+			best = other
+		elif best != null and absf(ratio - best_ratio) <= 0.000001 				and other.instance_id < best.instance_id:
+			best = other
+	return best
+
+
+## 目标是否落在治疗范围内。
+## 先判跨线（maxLaneDelta，规格要求作为独立规则显式限制），再判曼哈顿距离。
+func _is_in_heal_range(c: CharacterRuntime, other: CharacterRuntime) -> bool:
+	var lane_delta := absi(c.lane - other.lane)
+	if lane_delta > c.max_lane_delta:
+		return false
+	if c.heal_uses_manhattan:
+		var manhattan := absi(c.column - other.column) + lane_delta
+		return float(manhattan) <= c.attack_range_tiles + 0.0001
+	# 非曼哈顿形状（P0.4 未使用）：退化为同路直线距离，避免出现未定义的判定
+	if lane_delta != 0:
+		return false
+	return float(absi(c.column - other.column)) <= c.attack_range_tiles + 0.0001
+
+
+## 兼容旧调用点：仅执行输出型角色的攻击结算。
+## （保留名称以免破坏 P0.2/P0.3 既有测试语义；新代码应使用 _resolve_character_actions）
 func _resolve_character_attacks(step: float) -> void:
 	for c: CharacterRuntime in characters:
 		if c.is_incapacitated():
 			continue
-		c.attack_cooldown = maxf(0.0, c.attack_cooldown - step)
-		if c.attack_cooldown > 0.0:
+		if c.is_healer():
 			continue
-		var target := _select_target_for(c)
-		if target == null:
-			continue
-		var dmg := combat_math.compute_damage(c.attack, target.defense, c.damage_type)
-		var applied := target.take_damage(dmg)
-		c.total_damage_dealt += applied
-		c.attack_cooldown = c.attack_interval
+		_resolve_attacker_action(c, step)
 
 
 ## 目标选择（V2.1.4 D-11）：
@@ -1492,6 +1634,8 @@ func to_debug_dict() -> Dictionary:
 		"charactersLost": characters_lost,
 		"retreatCount": retreat_count,
 		"retreatRefundedAp": retreat_refunded_ap_total,
+		"healCount": heal_events.size(),
+		"healedTotal": total_healing_done,
 		"deployed": characters.size(),
 		"deployedTotal": character_instances.size(),
 		"paused": paused,

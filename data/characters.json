@@ -1,7 +1,8 @@
 {
-  "schemaVersion": "1.0.0-p0.3",
+  "schemaVersion": "1.0.0-p0.4",
   "domain": "characters",
-  "_note": "角色唯一数据源（V2.1.4 B6 SSOT）。数值取自 V2.1.4 CLEAN MASTER D 章表 26 / 表 47 / E 章三十五。本文件不得重复保存技能效果或倍率（技能归 skills.json）。",
+  "_note": "角色唯一数据源（V2.1.4 B6 SSOT）。数值取自 V2.1.4 CLEAN MASTER D 章表 26 / 表 28 / 表 30 / 表 47 / E 章三十五。本文件不得重复保存技能效果或倍率（技能归 skills.json）。",
+  "_behavior_note": "behavior 是 P0.4 三职业统一运行框架的**行为分类**，只表达基础战斗行为（前线/远程/治疗），不等同于职业；阻挡能力由 blockCount 独立决定，射程/治疗范围由 attackRange 独立决定。禁止按 classType 字符串猜行为。",
   "characters": [
     {
       "id": "amamiya_mio",
@@ -10,12 +11,9 @@
       "grade": "高二",
       "club": "剑道部",
       "classType": "KENDO",
+      "behavior": "FRONTLINE",
       "roleTags": ["FRONTLINE", "SINGLE"],
-      "baseStats": {
-        "hp": 1000,
-        "attack": 120,
-        "defense": 80
-      },
+      "baseStats": { "hp": 1000, "attack": 120, "defense": 80 },
       "attackInterval": 1.1,
       "attackRange": {
         "shape": "lane_band",
@@ -38,6 +36,79 @@
         "portrait": "char_amamiya_mio_portrait_01.png"
       },
       "_spec": "V2.1.4 D-13 雨宫澪 / E-三十五 角色 01"
+    },
+    {
+      "id": "kamiya_yuma",
+      "name": "神谷悠真",
+      "nameShort": "悠真",
+      "grade": "高二",
+      "club": "弓道部",
+      "classType": "KYUDO",
+      "behavior": "RANGED",
+      "roleTags": ["RANGED", "SINGLE"],
+      "baseStats": { "hp": 620, "attack": 150, "defense": 30 },
+      "attackInterval": 1.3,
+      "attackRange": {
+        "shape": "lane_band",
+        "direction": "forward",
+        "rangeTiles": 4.0,
+        "maxLaneDelta": 0,
+        "_note": "V2.1.4 表 28：同路线前方 4.0 格以内；不跨线。阻挡 0，是纯远程输出，不得作为近战阻挡单位使用。"
+      },
+      "blockCount": 0,
+      "_blockCount_spec": "V2.1.4 表 28『阻挡 0』；表 25 同列『神谷悠真 阻挡 0』。",
+      "deployCost": 12,
+      "redeployTime": 20.0,
+      "damageType": "PHYSICAL",
+      "skillIds": [],
+      "talentIds": [],
+      "unlockStage": "1-3",
+      "_unlockStage_spec": "V2.1.4 G-三 / 表 51：神谷悠真 1-2 剧情出现、1-3 常规可部署。P0.4 不得为测试方便把他解锁到 1-1。",
+      "spriteFramePx": 64,
+      "artRefs": {
+        "battleIdle": "char_kamiya_yuma_battle_idle_01.png",
+        "portrait": "char_kamiya_yuma_portrait_01.png"
+      },
+      "_spec": "V2.1.4 表 28 神谷悠真 / 表 47 第 2 行"
+    },
+    {
+      "id": "ogawa_yui",
+      "name": "小川结衣",
+      "nameShort": "结衣",
+      "grade": "高二",
+      "club": "保健委员",
+      "classType": "HEALTH_COMMITTEE",
+      "behavior": "HEALER",
+      "roleTags": ["HEAL", "SUPPORT"],
+      "baseStats": { "hp": 720, "attack": 0, "defense": 35 },
+      "_attack_note": "结衣无普通攻击（表 47 的『治疗 110』位于攻/治疗列），故 baseStats.attack = 0，改由 healPower 提供治疗力。",
+      "healPower": 110,
+      "_healPower_spec": "V2.1.4 表 30『治疗力 110』/ 表 47『治疗 110』。",
+      "healInterval": 1.5,
+      "_healInterval_spec": "V2.1.4 表 30『治疗间隔 1.5 秒』。",
+      "attackInterval": 1.5,
+      "attackRange": {
+        "shape": "manhattan",
+        "direction": "any",
+        "rangeTiles": 3.0,
+        "maxLaneDelta": 1,
+        "_note": "V2.1.4 D-3A / 表 30：治疗范围曼哈顿 ≤3 格，最多跨相邻 1 条路线（maxLaneDelta=1），不允许上路直接治疗下路。跨线限制必须独立于几何距离判定。"
+      },
+      "blockCount": 0,
+      "_blockCount_spec": "V2.1.4 表 30『阻挡 0』。",
+      "deployCost": 14,
+      "redeployTime": 20.0,
+      "damageType": "PHYSICAL",
+      "skillIds": [],
+      "talentIds": [],
+      "unlockStage": "1-6",
+      "_unlockStage_spec": "V2.1.4 G-三 / 表 51：小川结衣 1-6 剧情出现并常规可部署。P0.4 不得为测试方便把她解锁到 1-1。",
+      "spriteFramePx": 64,
+      "artRefs": {
+        "battleIdle": "char_ogawa_yui_battle_idle_01.png",
+        "portrait": "char_ogawa_yui_portrait_01.png"
+      },
+      "_spec": "V2.1.4 表 30 小川结衣 / 表 47 第 3 行"
     }
   ]
 }

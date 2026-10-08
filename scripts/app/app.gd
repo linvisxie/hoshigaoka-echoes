@@ -15,7 +15,8 @@ const PHASE := "Prototype"
 
 ## 当前 Prototype 子阶段（V2.1.4 M2 表 114 的退出标准逐级对应）
 ## P0.1 战场与移动 / P0.2 部署与战斗 / P0.3 撤退·再部署·Wave·完整一局
-const PROTOTYPE_STAGE := "P0.3"
+## P0.4 神谷悠真 + 小川结衣 + 三职业基础战斗（前线 / 远程 / 治疗）
+const PROTOTYPE_STAGE := "P0.4"
 
 ## 规格版本（唯一权威总规格）
 const SPEC_VERSION := "V2.1.4 CLEAN MASTER"

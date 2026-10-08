@@ -6,6 +6,7 @@
 ##   P0.1：承载 Victory / Defeat 确定性状态机（V2.1.4 D-40 / D-41），固定逻辑步长驱动
 ##   P0.2：转发角色部署 / AP 查询等玩家操作到 StageRuntime；胜负一旦确定即冻结
 ##   P0.3：转发主动撤退 / 暂停；按「全部 Wave 完成且场上无存活敌人」判定胜利
+##   P0.4：转发治疗事件；三职业（前线/远程/治疗）共用同一套部署与推进路径
 ##
 ## 所有战斗结果均由领域层（StageRuntime / CombatMath）计算，本类不复制规则。
 class_name BattleSession
@@ -33,6 +34,8 @@ signal wave_changed(wave_number: int, total: int)
 signal redeploy_changed(character_id: String, remaining: float)
 ## 暂停状态变化（paused）
 signal pause_changed(paused: bool)
+## 治疗生效（healer, target, amount）——P0.4 三职业框架
+signal character_healed(healer: CharacterRuntime, target: CharacterRuntime, amount: int)
 
 var outcome: int = BattleTypes.Outcome.RUNNING
 var stage: StageRuntime
@@ -182,7 +185,17 @@ func tick(delta_seconds: float) -> void:
 		if c.redeploy_cooldown_remaining > 0.0:
 			cd_before[c.character_id] = c.redeploy_cooldown_remaining
 
+	var heals_before := stage.heal_events.size()
 	var reached: Array[EnemyRuntime] = stage.advance(delta_seconds)
+
+	# 治疗事件派发（P0.4）：只派发本次推进内**新产生**的实际治疗
+	if stage.heal_events.size() > heals_before:
+		for i: int in range(heals_before, stage.heal_events.size()):
+			var ev: Dictionary = stage.heal_events[i]
+			var healer := stage.get_character(int(ev["healerId"]))
+			var tgt := stage.get_character(int(ev["targetId"]))
+			if healer != null and tgt != null:
+				character_healed.emit(healer, tgt, int(ev["amount"]))
 
 	# 漏怪结算：领域层已在同一逻辑步内结算核心伤害（core_hp 已是真值），
 	# 此处再调一次 apply_core_damage 仅作幂等兜底，并负责派发信号。
@@ -272,6 +285,8 @@ func result_summary() -> Dictionary:
 		"lost": stage.characters_lost,
 		"retreats": stage.retreat_count,
 		"retreatAp": stage.retreat_refunded_ap_total,
+		"heals": stage.heal_events.size(),
+		"healedTotal": stage.total_healing_done,
 		"wave": stage.current_wave_number(),
 		"waveTotal": stage.total_wave_count(),
 		"planned": stage.planned_enemy_count(),
