@@ -27,6 +27,14 @@ const SPEC_VERSION := "V2.1.4 CLEAN MASTER"
 ## 成长状态；不注册为 Autoload（L4 的单例表未包含该职责），避免扩大全局单例面。
 var growth: CharacterGrowthService = null
 
+## 构建 growth 时所用的存档世代号（见 SaveService.save_generation()）。
+##
+## 用途（A0.4 加固）：成长服务在构建时把角色等级/经验读进内存。若之后存档被
+## **重新加载**（例如启动时的延迟读档、或 backup 回退），这份内存状态就过期了；
+## 此时若把它写回，会用旧面板覆盖新存档里的角色进度。
+## 因此每次取用前比对世代号，不一致就重建。
+var _growth_generation: int = -1
+
 
 func _ready() -> void:
 	GameLog.info(TAG, "%s %s (%s %s) 启动"
@@ -46,11 +54,11 @@ func _ready() -> void:
 ## 纪律：失败不阻断启动（成长是增强项），但必须把错误打到日志里，
 ## 绝不让"成长静默失效"变成玩家看到的数值异常。
 func _init_growth() -> void:
-	if growth != null:
-		return
 	if not DataRegistry.is_loaded():
 		GameLog.error(TAG, "成长系统初始化失败：DataRegistry 未就绪")
 		return
+	# 始终以当前存档为准重建：setup() 会清空并按存档重新填充，
+	# 因此重复调用是安全的（幂等）。
 	growth = CharacterGrowthService.new()
 	var errs := growth.setup()
 	if not errs.is_empty():
@@ -58,6 +66,7 @@ func _init_growth() -> void:
 			GameLog.error(TAG, "成长系统初始化失败：%s" % e)
 		growth = null
 		return
+	_growth_generation = SaveService.save_generation()
 	var levels := PackedStringArray()
 	for cid: String in growth.all_character_ids():
 		var p: CharacterProgress = growth.get_progress(cid)
@@ -69,10 +78,16 @@ func _init_growth() -> void:
 
 
 ## 确保成长系统已就绪（供 UI / 战斗在需要时按需触发一次构建）。
-## 返回是否可用。幂等：已就绪时立即返回 true。
+## 返回是否可用。幂等：已就绪且存档世代未变时立即返回 true。
+##
+## **存档世代校验**：若存档被重新加载过（世代号变化），此处会重建成长服务，
+## 保证调用方拿到的角色面板一定来自当前存档，而不是上一份存档的残留。
 func ensure_growth() -> bool:
 	if growth != null and growth.is_ready():
-		return true
+		if _growth_generation == SaveService.save_generation():
+			return true
+		GameLog.info(TAG, "存档世代已变化（%d → %d），重建成长系统以对齐当前存档"
+			% [_growth_generation, SaveService.save_generation()])
 	_init_growth()
 	return growth != null and growth.is_ready()
 

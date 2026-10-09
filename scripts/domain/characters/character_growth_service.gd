@@ -301,9 +301,15 @@ func write_to_save(save: Dictionary) -> void:
 func commit() -> bool:
 	var save := SaveService.get_current()
 	if save.is_empty():
-		# 无存档时先建一份，保证成长状态有地方落盘
-		SaveService.new_game()
+		# 内存为空：先尝试从磁盘读回既有进度（**绝不用新档覆盖**），
+		# 只有磁盘上确实没有任何存档时才建立新档。
+		if not SaveService.ensure_loaded():
+			GameLog.error(TAG, "存档不可用（磁盘存档无法读取），本次成长状态未提交")
+			return false
 		save = SaveService.get_current()
+		if save.is_empty():
+			GameLog.error(TAG, "存档不可用，本次成长状态未提交")
+			return false
 	write_to_save(save)
 	return SaveService.commit(save)
 

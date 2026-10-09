@@ -107,11 +107,25 @@ func test_has_valid_save_rejects_structurally_invalid_file() -> void:
 
 	var svc2: Node = load("res://scripts/save/save_service.gd").new()
 	add_child_autofree(svc2)
+	# A0.4 加固后，SaveService._ready 会尝试把磁盘存档读进内存；
+	# 这里刻意放了不合规存档，因此启动加载按设计失败并记录错误日志。
+	# 这些是**预期行为**（正是本用例要验证的"不合规存档不被接受"），
+	# 取出并标记 handled，避免被 GUT 计为"意外错误"。
+	var errs: Array = get_errors()
+	assert_gt(errs.size(), 0, "不合规存档在启动加载时应产生错误记录")
+	for e in errs:
+		e.handled = true
+
 	assert_false(
 		svc2.has_valid_save(),
 		"JSON 合法但缺 flow_state 的存档不应被视为有效"
 	)
-	# has_valid_save 只做校验、不写日志；此断言无需处理预期错误
+	# 关键安全性断言：读取失败**不得**退化成"内存里有一份新档"
+	# （否则后续结算会把这份空档写盘，覆盖玩家进度）。
+	assert_true(
+		svc2.get_current().is_empty(),
+		"启动加载失败时内存存档必须保持为空，不得静默建新档"
+	)
 
 
 func test_has_valid_save_accepts_wellformed_file() -> void:
