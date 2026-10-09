@@ -1058,6 +1058,10 @@ class RetreatResult:
 ## 返回值已按 FLOOR 取整，保证不会超过「费用 × 比例」这一规格上限。
 func compute_retreat_refund(deploy_cost: int, rate: float = -1.0) -> int:
 	var effective := retreat_refund_rate if rate < 0.0 else rate
+	# A0.6：「快速换防」提高默认返还比例；调用方显式传入 rate 时以传入值为准
+	# （供未来角色天赋/局内强化按来源覆写，见 L2040 撤退比例的覆写设计）。
+	if upgrades != null and rate < 0.0:
+		effective = upgrades.retreat_refund_rate(retreat_refund_rate)
 	if deploy_cost <= 0 or effective <= 0.0:
 		return 0
 	var raw := float(deploy_cost) * effective
@@ -1369,7 +1373,8 @@ func _step(step: float, reached: Array[EnemyRuntime]) -> void:
 
 	# 1. AP 自然回复（按步长精确累积，不按帧）
 	if ap_regen_per_second > 0.0 and ap < ap_max:
-		_ap_accumulator += ap_regen_per_second * step
+		# A0.6：局内强化只乘在回复**速率**上，累积器与取整逻辑完全不变
+		_ap_accumulator += ap_regen_per_second * _ap_regen_mult() * step
 		while _ap_accumulator >= 1.0 and ap < ap_max:
 			_ap_accumulator -= 1.0
 			ap += 1
@@ -1638,7 +1643,7 @@ func _resolve_ranged_enemy_actions(step: float) -> void:
 		e.attack_cooldown = maxf(0.0, e.attack_cooldown - step)
 		if e.attack_cooldown > 0.0:
 			continue
-		var dmg := combat_math.compute_damage(e.attack, target.defense, e.damage_type)
+		var dmg := combat_math.compute_damage(e.attack, _defense_of_target(target), e.damage_type)
 		var applied := target.take_damage(dmg)
 		e.total_damage_dealt += applied
 		e.attack_cooldown = e.attack_interval
@@ -1919,7 +1924,9 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 	if target == null:
 		return
 	# A0.2：有效攻击力受「攻击」类减益影响并夹取下限（L556 的 40% 下限作用于攻击力本身）
-	var atk := float(c.effective_attack())
+	# A0.6：攻击倍率乘在 effective_attack() 之后（减益夹取仍先生效，
+	# 即「先按 L556 算有效攻击，再乘局内强化」，不绕过 40% 下限规则）
+	var atk := float(c.effective_attack()) * _atk_mult(c)
 	var dmg := combat_math.compute_damage(atk, target.defense, c.damage_type)
 	var applied := target.take_damage(dmg)
 	c.total_damage_dealt += applied
@@ -1947,7 +1954,7 @@ func _resolve_healer_action(c: CharacterRuntime, step: float) -> void:
 	if target == null:
 		# 无可治疗目标（全部满血 / 范围内无人）→ 不进入冷却，等下一次逻辑步再试
 		return
-	var amount := c.compute_heal_amount()
+	var amount := int(round(float(c.compute_heal_amount()) * _heal_mult(c)))
 	var healed := target.receive_healing(amount)
 	if healed <= 0:
 		return
@@ -2117,7 +2124,7 @@ func _resolve_enemy_attacks(step: float) -> void:
 		if blocker == null or blocker.is_incapacitated():
 			# 阻挡者已失能/已撤退：本帧不结算，状态在 _release_invalid_blocks 中被释放
 			continue
-		var dmg := combat_math.compute_damage(e.attack, blocker.defense, e.damage_type)
+		var dmg := combat_math.compute_damage(e.attack, _defense_of_target(blocker), e.damage_type)
 		var applied := blocker.take_damage(dmg)
 		e.total_damage_dealt += applied
 		e.attack_cooldown = e.attack_interval
@@ -2174,6 +2181,53 @@ func _cleanup_dead() -> void:
 			continue
 		still_standing.append(c)
 	characters = still_standing
+
+
+## 局内强化（Alpha A0.6）。null = 本关未开放强化系统。
+##
+## 关键不变量（有回归测试逐条钉死）：
+##   ① 本字段为 null 时，**所有倍率入口恒等于 1.0 / 基础比例**，
+##      伤害、AP 回复、撤退返还与接入前逐位一致 —— 即对 1-1～1-4 与既有测试零影响。
+##   ② 倍率只在既有结算公式的**输入端**乘一次，不新增任何判定分支、
+##      不改伤害公式本身（D-22 公式 LOCKED）。
+##   ③ 离开关卡即随本对象销毁（L2118「局内强化离开关卡后清空」），不落盘。
+var upgrades: InBattleUpgrades = null
+
+
+## 取某单位的攻击倍率（无强化系统时恒为 1.0）。
+func _atk_mult(c: CharacterRuntime) -> float:
+	if upgrades == null:
+		return 1.0
+	return upgrades.attack_multiplier(CharacterRuntime.behavior_name(c.behavior))
+
+
+## 取某目标的防御有效值（前线防御类强化只作用于角色，敌人不受玩家强化影响）。
+func _defense_of_target(c: CharacterRuntime) -> float:
+	if upgrades == null:
+		return float(c.defense)
+	return float(c.defense) * upgrades.defense_multiplier(
+		CharacterRuntime.behavior_name(c.behavior))
+
+
+## 取治疗者的治疗倍率（无强化系统时恒为 1.0）。
+func _heal_mult(c: CharacterRuntime) -> float:
+	if upgrades == null:
+		return 1.0
+	return upgrades.heal_multiplier(CharacterRuntime.behavior_name(c.behavior))
+
+
+## 部署或重建角色后调用：把已选强化的持续型增益挂到该实例上。
+## 当前实现走"结算时读取"路径（见 _atk_mult 等），不注入 StatusEffect，
+## 因此本函数暂为空实现占位——留注释说明，避免误以为漏了接线。
+func _apply_upgrades_to_instance(_c: CharacterRuntime) -> void:
+	pass
+
+
+## AP 自然回复倍率（阶段级；无强化系统时恒为 1.0）。
+func _ap_regen_mult() -> float:
+	if upgrades == null:
+		return 1.0
+	return upgrades.ap_regen_multiplier()
 
 
 # ============================================================
