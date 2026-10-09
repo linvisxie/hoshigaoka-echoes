@@ -1,0 +1,35 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T05:28:21.340659",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [
+      "vfx_deploy"
+    ],
+    "actualDrawLedger": {
+      "char_anim:idle": 1,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 1,
+      "res://assets/vfx/vfx_deploy.png": 1,
+      "vfx:vfx_deploy": 1
+    },
+    "characters": [
+      {
+        "code": "amamiya_mio",
+        "column": 2,
+        "hp": 1000,
+        "id": 1,
+        "lane": 1
+      }
+    ],
+    "enemies": [],
+    "missedDamageEvents": 0,
+    "outcome": "进行中",
+    "renderFrame": 139,
+    "stage": "p1_0_demo",
+    "time": 1.35
+  },
+  "image": "D:\\星丘残响\\_testenv\\takeover-20261010-sol\\shot-demo\\active_vfx_deploy.png"
+}

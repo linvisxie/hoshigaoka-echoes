@@ -1,0 +1,76 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T05:28:33.908325",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [
+      "vfx_deploy",
+      "vfx_impact",
+      "vfx_arrow"
+    ],
+    "actualDrawLedger": {
+      "char_anim:attack": 212,
+      "char_anim:hit": 59,
+      "char_anim:idle": 1234,
+      "enemy_anim:attack": 141,
+      "enemy_anim:death": 51,
+      "enemy_anim:hit": 89,
+      "enemy_anim:idle": 221,
+      "enemy_anim:move": 909,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_attack.png": 211,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_hit.png": 59,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 1232,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_attack.png": 1,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_idle.png": 2,
+      "res://assets/art/enemies/echo_normal/echo_normal_attack.png": 141,
+      "res://assets/art/enemies/echo_normal/echo_normal_death.png": 51,
+      "res://assets/art/enemies/echo_normal/echo_normal_hit.png": 89,
+      "res://assets/art/enemies/echo_normal/echo_normal_idle.png": 221,
+      "res://assets/art/enemies/echo_normal/echo_normal_move.png": 909,
+      "res://assets/vfx/vfx_arrow.png": 1,
+      "res://assets/vfx/vfx_death.png": 80,
+      "res://assets/vfx/vfx_deploy.png": 62,
+      "res://assets/vfx/vfx_impact.png": 291,
+      "res://assets/vfx/vfx_slash.png": 193,
+      "vfx:vfx_arrow": 1,
+      "vfx:vfx_death": 80,
+      "vfx:vfx_deploy": 62,
+      "vfx:vfx_impact": 291,
+      "vfx:vfx_slash": 193
+    },
+    "characters": [
+      {
+        "code": "amamiya_mio",
+        "column": 2,
+        "hp": 892,
+        "id": 1,
+        "lane": 1
+      },
+      {
+        "code": "kamiya_yuma",
+        "column": 1,
+        "hp": 620,
+        "id": 2,
+        "lane": 1
+      }
+    ],
+    "enemies": [
+      {
+        "code": "echo_normal",
+        "hp": 295,
+        "id": 2,
+        "lane": 1,
+        "x": 3.4966666666667
+      }
+    ],
+    "missedDamageEvents": 0,
+    "outcome": "进行中",
+    "renderFrame": 1640,
+    "stage": "p1_0_demo",
+    "time": 12.7166666666669
+  },
+  "image": "D:\\星丘残响\\_testenv\\takeover-20261010-sol\\shot-demo\\deployed_kamiya_yuma.png"
+}

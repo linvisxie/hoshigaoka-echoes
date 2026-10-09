@@ -1,0 +1,21 @@
+{
+  "labels": [
+    "active_vfx_arrow",
+    "active_vfx_death",
+    "active_vfx_deploy",
+    "active_vfx_heal",
+    "active_vfx_impact",
+    "active_vfx_slash",
+    "deployed_amamiya_mio",
+    "deployed_kamiya_yuma",
+    "deployed_ogawa_yui",
+    "enemy_present_echo_armored",
+    "enemy_present_echo_normal",
+    "enemy_present_echo_runner"
+  ],
+  "ownedPids": [
+    24788,
+    26900
+  ],
+  "duration": 100.0470000000023
+}

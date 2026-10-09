@@ -1,0 +1,56 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T05:28:27.137614",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [
+      "vfx_impact",
+      "vfx_slash"
+    ],
+    "actualDrawLedger": {
+      "char_anim:attack": 1,
+      "char_anim:idle": 642,
+      "enemy_anim:hit": 1,
+      "enemy_anim:idle": 1,
+      "enemy_anim:move": 415,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_attack.png": 1,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 642,
+      "res://assets/art/enemies/echo_normal/echo_normal_hit.png": 1,
+      "res://assets/art/enemies/echo_normal/echo_normal_idle.png": 1,
+      "res://assets/art/enemies/echo_normal/echo_normal_move.png": 415,
+      "res://assets/vfx/vfx_deploy.png": 59,
+      "res://assets/vfx/vfx_impact.png": 1,
+      "res://assets/vfx/vfx_slash.png": 1,
+      "vfx:vfx_deploy": 59,
+      "vfx:vfx_impact": 1,
+      "vfx:vfx_slash": 1
+    },
+    "characters": [
+      {
+        "code": "amamiya_mio",
+        "column": 2,
+        "hp": 1000,
+        "id": 1,
+        "lane": 1
+      }
+    ],
+    "enemies": [
+      {
+        "code": "echo_normal",
+        "hp": 320,
+        "id": 1,
+        "lane": 1,
+        "x": 3.17583333333336
+      }
+    ],
+    "missedDamageEvents": 0,
+    "outcome": "进行中",
+    "renderFrame": 781,
+    "stage": "p1_0_demo",
+    "time": 6.31666666666665
+  },
+  "image": "D:\\星丘残响\\_testenv\\takeover-20261010-sol\\shot-demo\\active_vfx_slash.png"
+}

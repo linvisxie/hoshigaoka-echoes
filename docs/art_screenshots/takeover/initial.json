@@ -1,0 +1,13 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T05:28:19.762491",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "scene": "battle",
+    "stage": "p1_0_demo"
+  },
+  "image": "D:\\星丘残响\\_testenv\\takeover-20261010-sol\\shot-demo\\initial.png"
+}

@@ -1,0 +1,43 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T05:28:23.228302",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [],
+    "actualDrawLedger": {
+      "char_anim:idle": 227,
+      "enemy_anim:idle": 1,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 227,
+      "res://assets/art/enemies/echo_normal/echo_normal_idle.png": 1,
+      "res://assets/vfx/vfx_deploy.png": 59,
+      "vfx:vfx_deploy": 59
+    },
+    "characters": [
+      {
+        "code": "amamiya_mio",
+        "column": 2,
+        "hp": 1000,
+        "id": 1,
+        "lane": 1
+      }
+    ],
+    "enemies": [
+      {
+        "code": "echo_normal",
+        "hp": 420,
+        "id": 1,
+        "lane": 1,
+        "x": 4.9175
+      }
+    ],
+    "missedDamageEvents": 0,
+    "outcome": "进行中",
+    "renderFrame": 365,
+    "stage": "p1_0_demo",
+    "time": 3.14999999999999
+  },
+  "image": "D:\\星丘残响\\_testenv\\takeover-20261010-sol\\shot-demo\\enemy_present_echo_normal.png"
+}

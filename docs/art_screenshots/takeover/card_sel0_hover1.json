@@ -1,0 +1,44 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T05:57:10.895643",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [],
+    "actualDrawLedger": {},
+    "canvas": [
+      1920.0,
+      1080.0
+    ],
+    "cardRects": [
+      [
+        24.0,
+        886.0,
+        300.0,
+        170.0
+      ],
+      [
+        340.0,
+        886.0,
+        300.0,
+        170.0
+      ],
+      [
+        656.0,
+        886.0,
+        300.0,
+        170.0
+      ]
+    ],
+    "characters": [],
+    "enemies": [],
+    "missedDamageEvents": 0,
+    "outcome": "进行中",
+    "renderFrame": 314,
+    "stage": "p1_0_demo",
+    "time": 2.45
+  },
+  "image": "D:\\星丘残响\\_testenv\\takeover-20261010-sol\\shot-hover3\\card_sel0_hover1.png"
+}
