@@ -1,6 +1,110 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-a0.4",
   "domain": "stage_rewards",
-  "_phase0": "Phase 0 占位。首通/重复/章节奖励；奖励数值只在此文件。",
-  "rewards": []
+  "_spec": "V2.1.4 H 章十八 表 68（奖励层级）/ 十九 表 69（普通关卡奖励基线）/ 二十 表 70（第一章首次通关奖励规划）/ 二十一-A 表 71（零重复刷取资源验收预算）/ 二十二（重复游玩与刷取原则）。",
+  "_ssot": "本文件是「首通 / 重复 / 章节奖励」的唯一数据源（B6）。关卡只引用奖励 ID（firstClearRewardId / repeatRewardId），**禁止在 StageConfig 里内联金额**。",
+  "_layering": "V2.1.4 表 68 的奖励层级与本文件的对应关系：即时战斗奖励 = 各关 StageConfig 的 battleRewards（每次通关都发，属关卡自身规则，仍归关卡文件）；首次通关奖励 = 本文件的 firstClear 段（只发一次）；重复通关奖励 = 本文件的 repeat 段（可重复发）。章节任务奖励 / 挑战奖励 / 角色故事奖励属后续阶段。",
+  "_budget": "V2.1.4 表 71「1-1～1-10 首通总预算」：学园币约 5200（±10%）、学习记录 8500 EXP 等值（±10%）、社团徽章固定 6、残响结晶固定 3、装备零件 15～24。**校验口径**：首通总预算 = Σ(各关 battleRewards) + Σ(各关 firstClear)，即「全部结算与首通奖励」。已由 tools/verify_a0_4_economy.gd 实测校验。",
+  "_budget_math": "学园币：Σ battleRewards = 10 × 160 = 1600；Σ firstClear = 3600；合计 5200 ✓（正好落在 5200±10%）。学习记录：Σ battleRewards = 10 × 2 本短篇 = 20 本 = 2000 EXP；Σ firstClear = 2000(档案×1) + 9×500(笔记×1) = 6500 EXP；合计 8500 EXP ✓。社团徽章：1-4 ×3 + 1-5 ×3 = 6 ✓。残响结晶：1-7 ×1 + 1-10 ×2 = 3 ✓。装备零件：Σ battleRewards = 10 × 2 = 20，落在 15～24 ✓（首通不再额外给零件，避免越界）。",
+  "_pending_equipment": "V2.1.4 表 70 规定 1-2「优秀级基础武器」、1-6「治疗饰品」、1-9「固定稀有级通用饰品 equip_ch1_1_9_rare_accessory」、1-10「Boss 纪念物」。装备与纪念物的发放需要 equipment.json / mementos.json 与实例化系统，属 Alpha A0.5 与 A0.8。本文件已用 `equipmentId` / `mementoId` 字段**登记 ID 引用**（不写数值），奖励发放器遇到未实现的资源类型时只记日志、不报错，待对应阶段接入。",
+  "rewards": [
+    {
+      "id": "reward_1_1_first",
+      "name": "1-1 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-1",
+      "_spec": "V2.1.4 表 70：1-1「雨宫澪基础培养资源」/ 系统作用「理解升级」。表 71 的首通预算把学习记录的大头放在这里，使玩家在打完第一关后就能立刻升几级、理解成长系统。",
+      "currencies": { "school_coin": 500, "study_record_archive": 1 }
+    },
+    {
+      "id": "reward_1_2_first",
+      "name": "1-2 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-2",
+      "_spec": "V2.1.4 表 70：1-2「优秀级基础武器」/ 系统作用「首次接触装备」。",
+      "currencies": { "school_coin": 300, "study_record_note": 1 },
+      "equipmentId": "equip_ch1_1_2_fine_weapon",
+      "_equipmentId_note": "待 Alpha A0.5 装备系统接入（本阶段只登记 ID 引用，不写数值）。"
+    },
+    {
+      "id": "reward_1_3_first",
+      "name": "1-3 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-3",
+      "_spec": "V2.1.4 表 70：1-3「解锁神谷悠真 + 学习记录」/ 系统作用「扩充阵容」。角色解锁已由 characters.json 的 unlockStage=1-3 与关卡 availableCharacters 落实，本奖励只发资源。",
+      "currencies": { "school_coin": 350, "study_record_note": 1 }
+    },
+    {
+      "id": "reward_1_4_first",
+      "name": "1-4 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-4",
+      "_spec": "V2.1.4 表 70：1-4「社团徽章 ×3」/ 系统作用「为首次突破做准备」。H 章七 表 60：突破 I 需要社团徽章 3，因此本关首通正好够一名角色完成突破 I。",
+      "currencies": { "school_coin": 400, "study_record_note": 1, "club_badge": 3 }
+    },
+    {
+      "id": "reward_1_5_first",
+      "name": "1-5 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-5",
+      "_spec": "V2.1.4 表 70：1-5「剧情成立观测会 + 精英奖励（社团徽章 ×3）」/ 系统作用「成立观测会 / 获得突破材料 / 铺垫藤原凛」。剧情部分属 Alpha A0.7，本奖励只发资源。",
+      "currencies": { "school_coin": 450, "study_record_note": 1, "club_badge": 3 }
+    },
+    {
+      "id": "reward_1_6_first",
+      "name": "1-6 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-6",
+      "_spec": "V2.1.4 表 70：1-6「解锁小川结衣 + 治疗饰品」/ 系统作用「形成基础队伍」。角色解锁由 characters.json 的 unlockStage=1-6 落实。",
+      "currencies": { "school_coin": 350, "study_record_note": 1 },
+      "equipmentId": "equip_ch1_1_6_heal_accessory",
+      "_equipmentId_note": "待 Alpha A0.5 装备系统接入。"
+    },
+    {
+      "id": "reward_1_7_first",
+      "name": "1-7 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-7",
+      "_spec": "V2.1.4 表 70：1-7「解锁藤原凛 + 残响结晶 ×1」/ 系统作用「展示高级材料」。表 71：残响结晶固定 3 = 1-7 的 1 + 1-10 的 2。",
+      "currencies": { "school_coin": 350, "study_record_note": 1, "echo_crystal": 1 }
+    },
+    {
+      "id": "reward_1_8_first",
+      "name": "1-8 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-8",
+      "_spec": "V2.1.4 表 70：1-8「解锁水濑纱良」/ 系统作用「引入特殊伤害」。",
+      "currencies": { "school_coin": 300, "study_record_note": 1 }
+    },
+    {
+      "id": "reward_1_9_first",
+      "name": "1-9 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-9",
+      "_spec": "V2.1.4 表 70 + L1678：「首通 1-9 的稀有级通用饰品为确定性固定奖励，固定 ID 在 stage_rewards.json 唯一发放，词条由 equipment.json / equipment_affixes.json 定义。装备图纸系统未列入首发，不得将『或』留给 Codex 自行选择。」因此本奖励的 equipmentId 是**唯一确定值**，不是候选列表。",
+      "currencies": { "school_coin": 300, "study_record_note": 1 },
+      "equipmentId": "equip_ch1_1_9_rare_accessory",
+      "_equipmentId_note": "待 Alpha A0.5 装备系统接入；ID 已按规格逐字固定。"
+    },
+    {
+      "id": "reward_1_10_first",
+      "name": "1-10 首通奖励",
+      "kind": "FIRST_CLEAR",
+      "stageId": "1-10",
+      "_spec": "V2.1.4 表 70：1-10「Boss 纪念物 + 白石千夏 + 残响结晶 ×2」/ 系统作用「完成第一章成长闭环」。H 章二十二：「Boss 纪念物首次通关直接获得，不设置 1% 掉率。」角色解锁由 characters.json 落实。",
+      "currencies": { "school_coin": 300, "study_record_note": 1, "echo_crystal": 2 },
+      "mementoId": "memento_ch1_boss_cleared",
+      "_mementoId_note": "待 Alpha A0.8 / A1.0 接入（mementos.json 尚未填充）。"
+    },
+
+    {
+      "id": "reward_repeat_standard",
+      "name": "普通关重复通关奖励",
+      "kind": "REPEAT",
+      "_spec": "V2.1.4 H 章二十二：「重复通关提供稳定但适中的基础材料。」表 69 的普通结算范围是「即时战斗奖励」（每次通关都发，已写在各关 battleRewards）；本奖励是**额外**的重复奖励，取值刻意低于即时奖励，避免「刷取收益压过首通」。",
+      "currencies": { "school_coin": 60, "equipment_part": 1 }
+    }
+  ],
+  "_stageBinding": "各关的 firstClearRewardId / repeatRewardId 由关卡文件引用；本文件与关卡文件通过 ID 关联，DataRegistry 加载时校验引用完整性。",
+  "_chapterRewards_note": "章节任务奖励（表 68）属后续阶段；本文件暂不登记。"
 }

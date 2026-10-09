@@ -12,24 +12,78 @@
   "startingAp": 10,
   "_startingAp_spec": "V2.1.4 D-7：开局 AP 10。",
   "apRegen": 1,
-  "availableCharacters": ["amamiya_mio", "kamiya_yuma"],
+  "availableCharacters": [
+    "amamiya_mio",
+    "kamiya_yuma"
+  ],
   "_availableCharacters_spec": "V2.1.4 G-三 / 表 51：1-4 尚无新角色解锁（小川结衣 1-6）。表 53 的 1-4 奖励是「基础装备材料 + 社团徽章 ×3」，属经济奖励而非角色解锁。",
   "enemySpawnTimeline": [
-    { "time": 4.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-    { "time": 11.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-    { "time": 19.0, "lane": 1, "enemy": "echo_runner", "wave": 1 },
-
-    { "time": 36.0, "lane": 1, "enemy": "echo_armored", "wave": 2 },
-    { "time": 50.0, "lane": 1, "enemy": "echo_normal", "wave": 2 },
-
-    { "time": 70.0, "lane": 1, "enemy": "echo_normal", "wave": 3 },
-    { "time": 78.0, "lane": 1, "enemy": "echo_runner", "wave": 3 },
-    { "time": 90.0, "lane": 1, "enemy": "echo_normal", "wave": 3 },
-
-    { "time": 112.0, "lane": 1, "enemy": "echo_armored", "wave": 4 },
-    { "time": 124.0, "lane": 1, "enemy": "echo_runner", "wave": 4 },
-    { "time": 146.0, "lane": 0, "enemy": "echo_normal", "wave": 4 }
-  
+    {
+      "time": 4.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 11.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 19.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 1
+    },
+    {
+      "time": 36.0,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 50.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 70.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 78.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 3
+    },
+    {
+      "time": 90.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 112.0,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 4
+    },
+    {
+      "time": 124.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 4
+    },
+    {
+      "time": 146.0,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 4
+    }
   ],
   "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段承载 Wave 调度。",
   "_timeline_candidate": "出怪秒数与数量属 V2.1.4 G-十一 明列的候选可配置平衡参数；本文件给出首轮值，已用 tools/simulate_ch1_stages.gd 验证。",
@@ -64,19 +118,40 @@
   "_balanceNote": "装甲残响体设计参数（唯一来源 data/enemies.json）：HP 800 / 攻 85 / 防 100 / 移速 0.35 / 间隔 1.5。反算：它打雨宫澪（防 80）为 85×100/180 ≈ 47 伤害/1.5 秒 ≈ 31.3 DPS；雨宫澪 1000 HP 可扛约 32 秒，足够两人合力击杀（约 15 秒）。**若只有一人**：雨宫澪单独需 14 次 × 1.1 秒 ≈ 15.4 秒，仍可击杀但极慢，期间她还会被持续攻击——这正是「两人同线」优于「一人苦撑」的量化依据。",
   "_softCounterNote": "V2.1.4 F-五十五：目标是软克制，「装甲敌人科学部更有效，但物理阵容仍能通过」——本关用纯物理阵容（澪 + 悠真）**可以通关**，只是效率明显更低。这与「禁止没有某角色就完全不能过关」一致。",
   "tutorialTriggers": [
-    { "at": 0.0, "id": "TUT_1_4_NEW", "text": "本关新敌人：装甲残响体——防御极高，生命 800" },
-    { "at": 30.0, "id": "TUT_1_4_DEF", "text": "装甲残响体：物理伤害会被高防御大幅削减，单人很难打死" },
-    { "at": 44.0, "id": "TUT_1_4_FOCUS", "text": "应对办法是集火：把前线与远程放在同一条路线一起打它" },
-    { "at": 100.0, "id": "TUT_1_4_SLOW", "text": "装甲残响体推进很慢（0.35 格/秒），可以先把别路的敌人处理完再回来" }
+    {
+      "at": 0.0,
+      "id": "TUT_1_4_NEW",
+      "text": "本关新敌人：装甲残响体——防御极高，生命 800"
+    },
+    {
+      "at": 30.0,
+      "id": "TUT_1_4_DEF",
+      "text": "装甲残响体：物理伤害会被高防御大幅削减，单人很难打死"
+    },
+    {
+      "at": 44.0,
+      "id": "TUT_1_4_FOCUS",
+      "text": "应对办法是集火：把前线与远程放在同一条路线一起打它"
+    },
+    {
+      "at": 100.0,
+      "id": "TUT_1_4_SLOW",
+      "text": "装甲残响体推进很慢（0.35 格/秒），可以先把别路的敌人处理完再回来"
+    }
   ],
   "_tutorialTriggers_spec": "V2.1.4 G-九 把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念」。本关只教「高防御」与「集火」。",
   "specialRules": [],
-  "firstClearRewardId": "",
+  "firstClearRewardId": "reward_1_4_first",
   "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID，不在 StageConfig 里写金额。表 53 规定 1-4 首通「基础装备材料 + 社团徽章 ×3」——待 A0.4 经济阶段填充 stage_rewards.json 后接入（社团徽章是突破 I 的材料，H 章七）。",
-  "repeatRewardId": "",
+  "repeatRewardId": "reward_repeat_standard",
   "storyBefore": "",
   "storyAfter": "",
   "_story_note": "V2.1.4 G-九：剧情在 story/*.json 管理，属 Alpha A0.7。",
   "bossConfig": {},
-  "_outOfScope": "不引入试卷飞灵/监考者（数据不存在）、不实现装备系统（A0.5）、不实现局内三选一（A0.6）。"
+  "_outOfScope": "不引入试卷飞灵/监考者（数据不存在）、不实现装备系统（A0.5）、不实现局内三选一（A0.6）。",
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  }
 }

@@ -2400,36 +2400,34 @@ func _on_outcome_decided(_outcome: int) -> void:
 	queue_redraw()
 
 
-## 结算奖励（Alpha A0.1）。
+## 结算奖励（Alpha A0.1 引入，A0.4 改由 StageRewardService 统一负责）。
 ##
-## 数值来源优先级：
-##   ① StageConfig.battleRewards（关卡自带的即时战斗奖励，V2.1.4 H 章十八「即时战斗奖励」）
-##   ② 关卡未配置时不发（不编造数值）
-##
-## 幂等：`_rewards_granted` 保证同一场景实例只发一次。
+## 纪律：
+##   - 数值唯一来自关卡 StageConfig.battleRewards 与 stage_rewards.json；
+##   - 首通奖励**只发一次**（以存档的 firstClearClaimed 为准，幂等）；
+##   - 失败不发任何奖励；
+##   - 全部事务式落盘。
+## 本函数只负责「把结算结果转发给服务 + 显示反馈」，不含任何金额。
 func _grant_battle_rewards() -> void:
 	if _rewards_granted:
 		return
 	_rewards_granted = true
-	if session == null or session.outcome != BattleTypes.Outcome.VICTORY:
+	if session == null:
 		return
-	if not App.ensure_growth():
-		GameLog.warn(TAG, "成长系统不可用，跳过结算奖励发放")
+	var victory := session.outcome == BattleTypes.Outcome.VICTORY
+	var res := StageRewardService.settle(_stage_config_for_rewards, victory)
+	if not res.ok:
+		GameLog.error(TAG, "关卡结算失败：%s" % res.reason)
+		_show_feedback("结算异常：%s" % res.reason, Color(0.98, 0.4, 0.4))
 		return
-	var cfg: Dictionary = _stage_config_for_rewards
-	var rewards: Dictionary = cfg.get("battleRewards", {})
-	if rewards.is_empty():
-		GameLog.info(TAG, "本关未配置 battleRewards，本次不发放结算资源")
-		return
-	App.growth.grant(rewards)
-	if not App.growth.commit():
-		GameLog.error(TAG, "结算奖励已入账内存但存档写入失败")
+	if not res.rewarded:
+		GameLog.info(TAG, "本次无奖励发放（%s）" % res.reason)
 		return
 	var parts: PackedStringArray = PackedStringArray()
-	for cid: String in rewards.keys():
-		parts.append("%s ×%d" % [_currency_display_name(cid), int(rewards[cid])])
-	GameLog.info(TAG, "结算奖励已发放：%s" % ", ".join(parts))
-	_show_feedback("结算奖励：%s" % ", ".join(parts), Color(0.55, 0.95, 0.7))
+	for cid: String in res.granted.keys():
+		parts.append("%s ×%d" % [_currency_display_name(cid), int(res.granted[cid])])
+	_show_feedback("%s奖励：%s" % ["首通" if res.first_clear else "结算", "、".join(parts)],
+		Color(0.55, 0.95, 0.7))
 
 
 ## 资源显示名（唯一来自 currencies.json）

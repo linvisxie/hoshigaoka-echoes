@@ -13,22 +13,71 @@
   "_startingAp_spec": "V2.1.4 D-7：开局 AP 10。",
   "apRegen": 1,
   "_apRegen_spec": "V2.1.4 D-7：自然回复 1/秒；上限 30 来自 balance.json combat.maxAp。",
-  "availableCharacters": ["amamiya_mio"],
+  "availableCharacters": [
+    "amamiya_mio"
+  ],
   "_availableCharacters_spec": "V2.1.4 G-三 / 表 51：1-2 尚未解锁任何新角色，仍只有雨宫澪。神谷悠真 1-3 才常规可部署。",
   "enemySpawnTimeline": [
-    { "time": 4.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-    { "time": 10.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-    { "time": 17.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-
-    { "time": 30.0, "lane": 1, "enemy": "echo_runner", "wave": 2 },
-    { "time": 38.0, "lane": 1, "enemy": "echo_normal", "wave": 2 },
-    { "time": 46.0, "lane": 1, "enemy": "echo_runner", "wave": 2 },
-
-    { "time": 62.0, "lane": 1, "enemy": "echo_normal", "wave": 3 },
-    { "time": 62.0, "lane": 1, "enemy": "echo_normal", "wave": 3 },
-    { "time": 74.0, "lane": 1, "enemy": "echo_runner", "wave": 3 },
-    { "time": 86.0, "lane": 0, "enemy": "echo_normal", "wave": 3 }
-  
+    {
+      "time": 4.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 10.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 17.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 30.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 38.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 46.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 62.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 62.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 74.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 3
+    },
+    {
+      "time": 86.0,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    }
   ],
   "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段以承载 Wave 调度（与 1-1.json 同构）。",
   "_timeline_candidate": "各关精确出怪秒数与数量属 V2.1.4 G-十一 明列的**候选可配置平衡参数**（「这些内容不在纸面阶段强行锁死，待第一个可玩 Prototype 后依据实际手感调整」）。本文件给出首轮值，并已用 tools/simulate_ch1_stages.gd 验证存在稳定通关解。",
@@ -56,19 +105,40 @@
   "_enemyCount_spec": "10 只（普通 ×7 / 疾走 ×3），低于 V2.1.4 D-30 表 33「建议总敌人数 18～24」——因为 1-2 是**教学关**且只有 1 名可部署角色，敌人数按 G-五「每关只首次教学 1～2 个新概念，避免信息过载」压缩。",
   "_balanceNote": "雨宫澪对普通残响体 100 伤害/1.1 秒；对疾走残响体 120×100/110 = 109 伤害。疾走残响体 HP 260，需 3 次命中约 2.2 秒；但它从入口推进到中段 col3 接触线只需约 2 秒，因此**若雨宫澪不在它所在的路线，它必然漏怪**。这正是「高速敌人」的教学语义。",
   "tutorialTriggers": [
-    { "at": 0.0, "id": "TUT_1_2_GOAL", "text": "本关新敌人：疾走残响体——移动速度是普通残响体的近两倍" },
-    { "at": 26.0, "id": "TUT_1_2_FAST", "text": "疾走残响体从右侧入口冲到防线只需约 2 秒：请提前判断它走哪一路" },
-    { "at": 58.0, "id": "TUT_1_2_LANES", "text": "雨宫澪只能守一条路线；两路同时来敌时，先保威胁最大的那一路" },
-    { "at": 60.0, "id": "TUT_1_2_CORE", "text": "漏怪会直接扣核心生命；三路共享同一个残响锚点" }
+    {
+      "at": 0.0,
+      "id": "TUT_1_2_GOAL",
+      "text": "本关新敌人：疾走残响体——移动速度是普通残响体的近两倍"
+    },
+    {
+      "at": 26.0,
+      "id": "TUT_1_2_FAST",
+      "text": "疾走残响体从右侧入口冲到防线只需约 2 秒：请提前判断它走哪一路"
+    },
+    {
+      "at": 58.0,
+      "id": "TUT_1_2_LANES",
+      "text": "雨宫澪只能守一条路线；两路同时来敌时，先保威胁最大的那一路"
+    },
+    {
+      "at": 60.0,
+      "id": "TUT_1_2_CORE",
+      "text": "漏怪会直接扣核心生命；三路共享同一个残响锚点"
+    }
   ],
   "_tutorialTriggers_spec": "V2.1.4 G-九 把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念」。本关只教「疾走敌人的速度」与「空线意识」两件事。",
   "specialRules": [],
-  "firstClearRewardId": "",
+  "firstClearRewardId": "reward_1_2_first",
   "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID，不在 StageConfig 里写金额。表 53 规定 1-2 解锁「敌人图鉴」——该奖励需 stage_rewards.json 填充后接入，属 Alpha A0.4 经济阶段。",
-  "repeatRewardId": "",
+  "repeatRewardId": "reward_repeat_standard",
   "storyBefore": "",
   "storyAfter": "",
   "_story_note": "V2.1.4 G-九：关卡前后故事效果在 story/*.json 中管理，不在奖励表复制 storyFlag。剧情节点属 Alpha A0.7，本阶段留空。",
   "bossConfig": {},
-  "_outOfScope": "本关不引入装甲残响体（1-4 才引入）、不引入试卷飞灵与监考者（data/enemies.json 中尚无其数值，属 A0.2 敌人生态阶段）、不实现局内三选一（Alpha A0.6）。"
+  "_outOfScope": "本关不引入装甲残响体（1-4 才引入）、不引入试卷飞灵与监考者（data/enemies.json 中尚无其数值，属 A0.2 敌人生态阶段）、不实现局内三选一（Alpha A0.6）。",
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  }
 }

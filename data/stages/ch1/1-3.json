@@ -13,26 +13,90 @@
   "startingAp": 10,
   "_startingAp_spec": "V2.1.4 D-7：开局 AP 10。雨宫澪 10 + 神谷悠真 12 = 22，因此开局只能先放一人，第二人需等 AP 回复——这正是「部署顺序」的教学点。",
   "apRegen": 1,
-  "availableCharacters": ["amamiya_mio", "kamiya_yuma"],
+  "availableCharacters": [
+    "amamiya_mio",
+    "kamiya_yuma"
+  ],
   "_availableCharacters_spec": "V2.1.4 G-三 / 表 51：1-3 解锁神谷悠真（「1-2 剧情出现、1-3 常规可部署」）。小川结衣 1-6 才解锁。",
   "enemySpawnTimeline": [
-    { "time": 4.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-    { "time": 11.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-    { "time": 18.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-
-    { "time": 34.0, "lane": 1, "enemy": "echo_runner", "wave": 2 },
-    { "time": 41.0, "lane": 1, "enemy": "echo_normal", "wave": 2 },
-    { "time": 49.0, "lane": 1, "enemy": "echo_runner", "wave": 2 },
-
-    { "time": 64.0, "lane": 1, "enemy": "echo_normal", "wave": 3 },
-    { "time": 64.0, "lane": 1, "enemy": "echo_normal", "wave": 3 },
-    { "time": 76.0, "lane": 1, "enemy": "echo_runner", "wave": 3 },
-    { "time": 88.0, "lane": 2, "enemy": "echo_normal", "wave": 3 },
-
-    { "time": 104.0, "lane": 1, "enemy": "echo_runner", "wave": 4 },
-    { "time": 112.0, "lane": 1, "enemy": "echo_runner", "wave": 4 },
-    { "time": 124.0, "lane": 1, "enemy": "echo_normal", "wave": 4 }
-  
+    {
+      "time": 4.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 11.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 18.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 34.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 41.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 49.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 64.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 64.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 76.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 3
+    },
+    {
+      "time": 88.0,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 104.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 4
+    },
+    {
+      "time": 112.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 4
+    },
+    {
+      "time": 124.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    }
   ],
   "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段承载 Wave 调度。",
   "_timeline_candidate": "出怪秒数与数量属 V2.1.4 G-十一 明列的候选可配置平衡参数；本文件给出首轮值，已用 tools/simulate_ch1_stages.gd 验证。",
@@ -66,19 +130,40 @@
   "_enemyCount_spec": "13 只（普通 ×8 / 疾走 ×5），低于 D-30 的 18～24——1-3 仍是前段教学关，且只有 2 名可部署角色。",
   "_balanceNote": "悠真对普通残响体 125 伤害（150×100/120）、对疾走 136 伤害；射程 4.0 格意味着他在 col1 能覆盖 x∈[1,5] 的整条路线，因此**放在 col1 比放 col3 更有效**（col3 只能覆盖 [3,4.25]）。本关的设计意图是让玩家自己发现这一点。悠真 blockCount=0，不能阻挡——所以必须有人在前排。",
   "tutorialTriggers": [
-    { "at": 0.0, "id": "TUT_1_3_UNLOCK", "text": "神谷悠真加入：远程输出，射程 4.0 格，但无法阻挡敌人" },
-    { "at": 28.0, "id": "TUT_1_3_RANGE", "text": "把悠真放在前线身后：他的射程能覆盖整条路线，越靠后越安全" },
-    { "at": 44.0, "id": "TUT_1_3_COMBO", "text": "同一条路线可以同时部署前线与远程：一个挡住，一个输出" },
-    { "at": 98.0, "id": "TUT_1_3_CHOICE", "text": "两名角色覆盖不了三条路线：优先守住压力最大的那一路" }
+    {
+      "at": 0.0,
+      "id": "TUT_1_3_UNLOCK",
+      "text": "神谷悠真加入：远程输出，射程 4.0 格，但无法阻挡敌人"
+    },
+    {
+      "at": 28.0,
+      "id": "TUT_1_3_RANGE",
+      "text": "把悠真放在前线身后：他的射程能覆盖整条路线，越靠后越安全"
+    },
+    {
+      "at": 44.0,
+      "id": "TUT_1_3_COMBO",
+      "text": "同一条路线可以同时部署前线与远程：一个挡住，一个输出"
+    },
+    {
+      "at": 98.0,
+      "id": "TUT_1_3_CHOICE",
+      "text": "两名角色覆盖不了三条路线：优先守住压力最大的那一路"
+    }
   ],
   "_tutorialTriggers_spec": "V2.1.4 G-九 把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念」。本关只教「远程射程与站位」与「同线协同」。",
   "specialRules": [],
-  "firstClearRewardId": "",
+  "firstClearRewardId": "reward_1_3_first",
   "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID。表 53 规定 1-3 解锁「神谷悠真 + 学习记录」——角色解锁已通过 availableCharacters 与 characters.json 的 unlockStage 落实；奖励数值待 A0.4 接入。",
-  "repeatRewardId": "",
+  "repeatRewardId": "reward_repeat_standard",
   "storyBefore": "",
   "storyAfter": "",
   "_story_note": "V2.1.4 G-九：剧情在 story/*.json 管理，属 Alpha A0.7。",
   "bossConfig": {},
-  "_outOfScope": "不引入装甲（1-4）、不引入试卷飞灵/监考者（数据不存在）、不实现编队 UI（表 53 的「编队功能」属 A0.6/A0.7）、不实现局内三选一（A0.6）。"
+  "_outOfScope": "不引入装甲（1-4）、不引入试卷飞灵/监考者（数据不存在）、不实现编队 UI（表 53 的「编队功能」属 A0.6/A0.7）、不实现局内三选一（A0.6）。",
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  }
 }

@@ -372,6 +372,63 @@ func _validate_references() -> void:
 
 	_validate_growth_references()
 	_validate_core_hp_against_balance()
+	_validate_reward_references()
+
+
+## 校验关卡引用的奖励 ID 与奖励表引用的资源 ID（Alpha A0.4）。
+##
+## 覆盖三类：
+##   ① 关卡的 firstClearRewardId / repeatRewardId 必须存在于 stage_rewards.json；
+##   ② 奖励条目 currencies 里的每个资源 id 必须存在于 currencies.json（含学习记录三档）；
+##   ③ 同一 stageId 不得出现两条 FIRST_CLEAR 奖励（否则「首通只发一次」的语义会被破坏）。
+func _validate_reward_references() -> void:
+	var currency_ids := {}
+	for c: Dictionary in get_domain("currencies").get("currencies", []):
+		currency_ids[str(c.get("id", ""))] = true
+	for item: Dictionary in get_domain("currencies").get("studyRecordItems", []):
+		currency_ids[str(item.get("id", ""))] = true
+
+	var rewards: Array = get_domain("stage_rewards").get("rewards", [])
+	var reward_ids := {}
+	var first_clear_by_stage := {}
+	for r: Dictionary in rewards:
+		var rid := str(r.get("id", ""))
+		if rid.is_empty():
+			_load_errors.append("stage_rewards: 存在 id 为空的奖励条目")
+			continue
+		if reward_ids.has(rid):
+			_load_errors.append("stage_rewards: 奖励 id 重复 '%s'" % rid)
+			continue
+		reward_ids[rid] = true
+
+		for cid: String in (r.get("currencies", {}) as Dictionary).keys():
+			if not currency_ids.has(cid):
+				_load_errors.append("stage_rewards: 奖励 %s 引用了不存在的资源 '%s'" % [rid, cid])
+
+		if str(r.get("kind", "")) == "FIRST_CLEAR":
+			var sid := str(r.get("stageId", ""))
+			if sid.is_empty():
+				_load_errors.append("stage_rewards: 首通奖励 %s 缺少 stageId" % rid)
+			elif first_clear_by_stage.has(sid):
+				_load_errors.append(
+					"stage_rewards: 关卡 %s 有两条首通奖励（%s 与 %s），「首通只发一次」语义不成立"
+					% [sid, first_clear_by_stage[sid], rid])
+			else:
+				first_clear_by_stage[sid] = rid
+
+	var all_stages := {}
+	for sid: String in _indices.get("stages", {}).keys():
+		all_stages[sid] = _indices["stages"][sid]
+	for sid: String in _indices.get(PROTOTYPE_STAGES_KEY, {}).keys():
+		all_stages[sid] = _indices[PROTOTYPE_STAGES_KEY][sid]
+
+	for sid: String in all_stages.keys():
+		var st: Dictionary = all_stages[sid]
+		for key: String in ["firstClearRewardId", "repeatRewardId"]:
+			var v := str(st.get(key, ""))
+			if not v.is_empty() and not reward_ids.has(v):
+				_load_errors.append("引用错误: 关卡 %s 的 %s '%s' 不在 stage_rewards.json"
+					% [sid, key, v])
 
 
 ## 校验关卡 coreHp 与 balance.json 声明的默认值一致（Alpha A0.3 新增）。

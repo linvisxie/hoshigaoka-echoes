@@ -13,27 +13,91 @@
   "startingAp": 10,
   "_startingAp_spec": "V2.1.4 D-7：开局 AP 10。雨宫澪 10 + 神谷悠真 12 = 22，开局只能放一人，第二人需等约 12 秒 AP 回复。这个等待窗口本身就是「部署顺序」的教学内容。",
   "apRegen": 1,
-  "availableCharacters": ["amamiya_mio", "kamiya_yuma"],
+  "availableCharacters": [
+    "amamiya_mio",
+    "kamiya_yuma"
+  ],
   "_availableCharacters_spec": "V2.1.4 G-三 / 表 51：1-5 无新角色解锁；小川结衣 1-6 才可部署。**因此本关必然无治疗**——这不是缺陷，而是表 54 明文要求的验收条件。",
   "_noHealerConstraint": "本关只有 2 名可部署角色（前线 1 + 远程 1），且无治疗。因此设计上**不得出现「两条路线同时需要阻挡」**（表 54：「同屏不得要求两个永久前线」），否则在无治疗条件下不可能稳定通关。",
   "enemySpawnTimeline": [
-    { "time": 4.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-    { "time": 12.0, "lane": 1, "enemy": "echo_runner", "wave": 1 },
-    { "time": 21.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
-
-    { "time": 40.0, "lane": 1, "enemy": "echo_armored", "wave": 2 },
-    { "time": 54.0, "lane": 1, "enemy": "echo_normal", "wave": 2 },
-
-    { "time": 76.0, "lane": 1, "enemy": "echo_runner", "wave": 3 },
-    { "time": 84.0, "lane": 1, "enemy": "echo_runner", "wave": 3 },
-    { "time": 94.0, "lane": 0, "enemy": "echo_normal", "wave": 3 },
-
-    { "time": 116.0, "lane": 1, "enemy": "echo_armored", "wave": 4 },
-    { "time": 130.0, "lane": 1, "enemy": "echo_normal", "wave": 4 },
-
-    { "time": 152.0, "lane": 1, "enemy": "echo_armored", "wave": 5 },
-    { "time": 164.0, "lane": 1, "enemy": "echo_runner", "wave": 5 },
-    { "time": 176.0, "lane": 1, "enemy": "echo_normal", "wave": 5 }
+    {
+      "time": 4.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 12.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 1
+    },
+    {
+      "time": 21.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 40.0,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 54.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 76.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 3
+    },
+    {
+      "time": 84.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 3
+    },
+    {
+      "time": 94.0,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 116.0,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 4
+    },
+    {
+      "time": 130.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 152.0,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 5
+    },
+    {
+      "time": 164.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 5
+    },
+    {
+      "time": 176.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    }
   ],
   "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段承载 Wave 调度。",
   "_timeline_candidate": "出怪秒数与数量属 V2.1.4 G-十一 明列的候选可配置平衡参数；本文件给出首轮值，已用 tools/simulate_ch1_stages.gd 实测存在「雨宫澪 + 神谷悠真、无治疗」的稳定通关解。",
@@ -75,10 +139,26 @@
   "_balanceNote": "**无治疗条件下的耐久账（唯一来源 data/enemies.json 与 characters.json）**：装甲打雨宫澪（防 80）为 85×100/180 ≈ 47 伤害/1.5 秒 ≈ 31.3 DPS；普通为 65×100/180 ≈ 36/1.2 秒 = 30 DPS；疾走为 50×100/180 ≈ 28/1.0 秒 = 28 DPS。雨宫澪 HP 1000 且无治疗：单只装甲持续攻击时可存活约 32 秒，而两人合力击杀装甲约需 7～15 秒（澪 60 伤害/1.1 秒 + 悠真 75 伤害/1.3 秒 ≈ 112 DPS）。三只装甲在时间上分散（间隔 40/116/152 秒），每只都能在澪的 HP 耗尽前被击杀。**若玩家不集火、让敌人堆积**，多只同时攻击会把承伤叠加到 60～90 DPS，澪将在 11～16 秒内倒下——这就是「必须集火」的量化依据。悠真 HP 620 但 blockCount=0，敌人只打阻挡自己的角色，因此他不会承伤，唯一约束是射程与站位。",
   "_stableClearPath": "稳定通关解（已用 tools/simulate_ch1_stages.gd 实测）：雨宫澪固定中段 col3 作锚点；神谷悠真中段 col1（射程 4.0 覆盖整条中段）。开局 10 AP 先放澪；约 12 秒后 AP 到 12 放悠真。全程不换线，上段那只普通残响体**放弃**（-1 核心，核心 3→2）。三只装甲均在中段被两人集火击杀。",
   "tutorialTriggers": [
-    { "at": 0.0, "id": "TUT_1_5_NOHEAL", "text": "本关没有治疗角色：前线的生命无法恢复，请尽量减少她挨打的时间" },
-    { "at": 34.0, "id": "TUT_1_5_FOCUS", "text": "装甲残响体必须集火：让远程与前线打同一条路线，缩短它的存活时间" },
-    { "at": 70.0, "id": "TUT_1_5_TRADEOFF", "text": "有些路线守不住：用核心生命换取中段的稳定，也是正确的选择" },
-    { "at": 146.0, "id": "TUT_1_5_FINAL", "text": "最终波有三只装甲：保持集火，不要让它们堆在防线上" }
+    {
+      "at": 0.0,
+      "id": "TUT_1_5_NOHEAL",
+      "text": "本关没有治疗角色：前线的生命无法恢复，请尽量减少她挨打的时间"
+    },
+    {
+      "at": 34.0,
+      "id": "TUT_1_5_FOCUS",
+      "text": "装甲残响体必须集火：让远程与前线打同一条路线，缩短它的存活时间"
+    },
+    {
+      "at": 70.0,
+      "id": "TUT_1_5_TRADEOFF",
+      "text": "有些路线守不住：用核心生命换取中段的稳定，也是正确的选择"
+    },
+    {
+      "at": 146.0,
+      "id": "TUT_1_5_FINAL",
+      "text": "最终波有三只装甲：保持集火，不要让它们堆在防线上"
+    }
   ],
   "_tutorialTriggers_spec": "V2.1.4 G-九 把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念」。本关教「无治疗条件下的耐久管理」与「集火时机」。",
   "specialRules": [
@@ -89,12 +169,17 @@
     }
   ],
   "_specialRules_note": "V2.1.4 L2211 规定「1-5 首次固定三选一教学：远程攻击 +15% / 前线防御 +20% / AP 回复 +10%」。局内强化属 Alpha A0.6，本阶段**不实现**，故 specialRules 只登记垂直切片约束。",
-  "firstClearRewardId": "",
+  "firstClearRewardId": "reward_1_5_first",
   "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID，不在 StageConfig 里写金额。表 53 规定 1-5 首通「精英标记；社团徽章 ×3」——待 A0.4 经济阶段填充后接入（社团徽章是突破 I 的材料，H 章七 表 60）。",
-  "repeatRewardId": "",
+  "repeatRewardId": "reward_repeat_standard",
   "storyBefore": "",
   "storyAfter": "",
   "_story_note": "V2.1.4 G-九：剧情在 story/*.json 管理，属 Alpha A0.7。表 53 的「成立观测会」剧情属 A0.7。",
   "bossConfig": {},
-  "_outOfScope": "不引入监考者精英怪（数据不存在，已登记偏离）、不引入试卷飞灵、不实现技能系统、不实现局内三选一（A0.6）、不实现精英 UI 标记。"
+  "_outOfScope": "不引入监考者精英怪（数据不存在，已登记偏离）、不引入试卷飞灵、不实现技能系统、不实现局内三选一（A0.6）、不实现精英 UI 标记。",
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  }
 }
