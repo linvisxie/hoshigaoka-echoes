@@ -466,6 +466,66 @@ func test_budget_total_unchanged_by_hardening() -> void:
 
 
 # ============================================================
+#  存档世代：防止"用旧面板覆盖新存档"的静默数据损坏
+# ============================================================
+
+## 存档被整体替换（restore / load）时必须递增世代号，
+## 否则按旧存档构建的成长服务会被判定为仍然有效，
+## 并在下一次提交时把过期等级写回存档。
+func test_restore_bumps_generation_so_growth_is_rebuilt() -> void:
+	var gen_before := SaveService.save_generation()
+	SaveService.restore(SaveService.get_current().duplicate(true))
+	assert_gt(
+		SaveService.save_generation(), gen_before,
+		"restore() 必须递增存档世代号（否则成长服务会用过期面板覆盖新存档）"
+	)
+
+
+## 读档同样必须递增世代号。
+func test_load_bumps_generation() -> void:
+	var save: Dictionary = SaveService.build_default_save()
+	assert_true(SaveService.commit(save), "提交应成功")
+	var gen_before := SaveService.save_generation()
+	# 直接让**单例**读档（世代号是每个 SaveService 实例自己的状态，
+	# 用另一个新实例读档不会改变单例的世代号）。
+	assert_true(SaveService.load_game(), "读档应成功")
+	assert_gt(
+		SaveService.save_generation(), gen_before,
+		"load_game() 必须递增存档世代号"
+	)
+
+
+## 端到端：磁盘上有高等级角色时，重启 + 结算**不得**把等级清回 Lv.1。
+##
+## 这是 tools/verify_a0_4_save_safety.tscn 在实机路径上抓到的真实缺陷：
+## restore() 曾不递增世代号，导致按旧（空）存档构建的成长服务在结算时
+## 用 Lv.1 覆盖了磁盘上的 Lv.10。
+func test_settlement_does_not_clobber_loaded_character_level() -> void:
+	var save: Dictionary = SaveService.build_default_save()
+	save["progression"]["characters"] = {
+		"amamiya_mio": {"level": 10, "exp": 37, "breakthrough": 1},
+	}
+	assert_true(SaveService.commit(save), "玩家存档应写入成功")
+
+	# 模拟重启
+	var svc := _new_service()
+	assert_true(svc.load_game(), "读档应成功")
+	# 让单例持有这份存档（等价于真实启动路径）
+	SaveService.restore(svc.get_current())
+
+	var cfg: Dictionary = DataRegistry.get_entry("stages", "1-1")
+	var res := StageRewardService.settle(cfg, true, true)
+	assert_true(res.ok, "结算应成功：%s" % res.reason)
+
+	var mio: Dictionary = SaveService.get_current()["progression"]["characters"]["amamiya_mio"]
+	assert_eq(
+		int(mio["level"]), 10,
+		"结算不得把已读入的 Lv.10 覆盖回 Lv.1（成长服务必须按当前世代重建）"
+	)
+	assert_eq(int(mio["breakthrough"]), 1, "突破阶数同样不得被覆盖")
+
+
+# ============================================================
 #  夹具
 # ============================================================
 

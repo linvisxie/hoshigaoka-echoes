@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqa4savesafety1"]
+
+[ext_resource type="Script" path="res://tools/verify_a0_4_save_safety.gd" id="1_safety"]
+
+[node name="VerifyA04SaveSafety" type="Node"]
+script = ExtResource("1_safety")

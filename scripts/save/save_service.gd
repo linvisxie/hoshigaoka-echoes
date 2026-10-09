@@ -230,8 +230,14 @@ func snapshot() -> Dictionary:
 
 
 ## 用快照整体替换内存存档（配合 snapshot() 使用）。
+##
+## 这里**必须递增世代号**：它是一次整体替换，任何缓存了旧存档内容的派生服务
+## （目前是 App.growth）都必须被判定为过期。若不递增，App.ensure_growth() 会继续
+## 使用按旧存档构建的成长面板，并在下一次 commit 时把过期等级写回存档——
+## 这正是"用旧面板覆盖新存档角色等级"的那类静默数据损坏。
 func restore(snap: Dictionary) -> void:
 	_current = snap
+	_generation += 1
 
 
 ## 确保内存中有一份可用存档；**优先从磁盘读取，绝不用新档覆盖既有进度**。
