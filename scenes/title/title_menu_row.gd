@@ -32,6 +32,9 @@ const HL_EDGE := Color(0.58, 0.90, 1.0)
 const ARROW_COLOR := Color(0.68, 0.93, 1.0)
 const DISABLED_BAR := Color(0.32, 0.35, 0.42, 0.35)
 const DISABLED_EDGE := Color(0.45, 0.48, 0.56, 0.70)
+## 文字描边色：标题画面背景是亮部天空，纯色文字（尤其英文副标签）会被冲淡，
+## 因此所有文字都先画一圈深色描边保证对比度。
+const OUTLINE := Color(0.03, 0.04, 0.09, 0.85)
 
 ## 菜单项 id（与 title.gd 的 MENU_ITEMS[].id 对齐；由 .tscn 赋值）
 @export var item_id: String = ""
@@ -105,6 +108,19 @@ func _gui_input(event: InputEvent) -> void:
 				activated.emit(item_id)
 
 
+## 带描边的文字绘制：先沿 8 个方向画描边，再画正文。
+## 这是保证「亮背景 + 细体英文」可读性的最稳做法（描边宽度随缩放同比）。
+func _draw_text_outlined(font: Font, pos: Vector2, text: String, fs: int, col: Color) -> void:
+	var o := maxf(1.0, _px(2.0))
+	for dx: float in [-o, 0.0, o]:
+		for dy: float in [-o, 0.0, o]:
+			if is_zero_approx(dx) and is_zero_approx(dy):
+				continue
+			draw_string(font, pos + Vector2(dx, dy), text,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, fs, OUTLINE)
+	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+
+
 func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	if font == null:
@@ -154,18 +170,18 @@ func _draw() -> void:
 	var zh_size := int(_px(36.0))
 	var baseline := cy + _px(13.0)
 	var zh_x := _px(78.0)
-	draw_string(font, Vector2(zh_x, baseline), label_zh,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size, TEXT_COLOR if interactive else TEXT_DISABLED)
+	_draw_text_outlined(font, Vector2(zh_x, baseline), label_zh,
+		zh_size, TEXT_COLOR if interactive else TEXT_DISABLED)
 
 	# 禁用原因（如「未实现」）：紧跟在中文标签右侧
 	if disabled and not disabled_note.is_empty():
 		var zh_w := font.get_string_size(label_zh, HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size).x
-		draw_string(font, Vector2(zh_x + zh_w + _px(14.0), cy + _px(10.0)), disabled_note,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(28.0)), NOTE_COLOR)
+		_draw_text_outlined(font, Vector2(zh_x + zh_w + _px(14.0), cy + _px(10.0)), disabled_note,
+			int(_px(28.0)), NOTE_COLOR)
 
 	# 英文副标签：右对齐
 	if not label_en.is_empty():
 		var en_size := int(_px(28.0))
 		var en_w := font.get_string_size(label_en, HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
-		draw_string(font, Vector2(size.x - _px(20.0) - en_w, cy + _px(10.0)), label_en,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, en_size, EN_COLOR if interactive else EN_DISABLED)
+		_draw_text_outlined(font, Vector2(size.x - _px(20.0) - en_w, cy + _px(10.0)), label_en,
+			en_size, EN_COLOR if interactive else EN_DISABLED)

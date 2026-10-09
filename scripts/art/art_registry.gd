@@ -155,6 +155,36 @@ static func enemy_base(enemy_id: String) -> Texture2D:
 	return load_texture("%s/enemies/%s/%s_base.png" % [ART_ROOT, enemy_id, enemy_id])
 
 
+# ============================================================ 特效（VFX）
+
+## 特效帧条均为 8 帧，单帧边长见下表（与 art_src/tools/build_vfx.py 一致）。
+const VFX_FRAMES := 8
+const VFX_FRAME_PX := {
+	"vfx_slash": 96,
+	"vfx_heal": 96,
+	"vfx_death": 96,
+	"vfx_deploy": 96,
+	"vfx_impact": 96,
+	"vfx_arrow": 128,
+}
+
+
+## 特效单帧（按播放进度 progress 0..1 取帧）。
+## 与角色/敌人动画不同，特效是**一次性播放**，因此用进度而非循环时间。
+static func vfx_frame(name: String, progress: float) -> AtlasTexture:
+	var p := clampf(progress, 0.0, 0.9999)
+	var idx := int(p * float(VFX_FRAMES))
+	return frame_at("%s/vfx/%s.png" % [ART_ROOT, name], idx, VFX_FRAMES)
+
+
+static func has_vfx(name: String) -> bool:
+	return load_texture("%s/vfx/%s.png" % [ART_ROOT, name]) != null
+
+
+static func vfx_size_px(name: String) -> int:
+	return int(VFX_FRAME_PX.get(name, 96))
+
+
 # ============================================================ 背景 / UI
 
 ## 关卡背景贴图（未知关卡退回默认环境，绝不返回 null 造成黑屏）。

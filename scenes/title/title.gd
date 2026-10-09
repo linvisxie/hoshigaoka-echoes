@@ -41,7 +41,8 @@ const TEXT := Color(0.93, 0.96, 1.0)
 const DIM := Color(0.62, 0.68, 0.82)
 const ACCENT := Color(0.58, 0.90, 1.0)
 const WARN := Color(0.95, 0.72, 0.35)
-const PANEL_BG := Color(0.04, 0.05, 0.10, 0.42)
+## 文字描边色：背景是亮部黄昏天空，正文一律带描边保证对比度
+const OUTLINE := Color(0.03, 0.04, 0.09, 0.85)
 
 ## 标题与题词（纯展示文本；版本号与英文副标按概念图固定）
 const TITLE_ZH := "星丘残响"
@@ -345,23 +346,34 @@ func _draw_background() -> void:
 
 
 ## 纯色渐变回退：黄昏橙紫天空 + 校门剪影 + 星光裂隙。
-## 只使用 draw_rect / draw_colored_polygon / draw_circle，保证无外部依赖、绝不打空。
+## 只使用 draw_polygon / draw_rect / draw_circle，保证无外部依赖、绝不打空。
+## 天空同样用**逐顶点颜色插值**，避免出现横向色带。
 func _draw_gradient_fallback() -> void:
-	var steps := 64
-	var band_h := _viewport.y / float(steps)
-	for i: int in range(steps):
-		var t := float(i) / float(steps - 1)
-		var col: Color
-		if t < 0.55:
-			col = GRAD_TOP.lerp(GRAD_MID, t / 0.55)
-		elif t < 0.85:
-			col = GRAD_MID.lerp(GRAD_LOW, (t - 0.55) / 0.30)
-		else:
-			col = GRAD_LOW.lerp(GRAD_BOTTOM, (t - 0.85) / 0.15)
-		draw_rect(Rect2(0.0, float(i) * band_h, _viewport.x, band_h + 1.0), col, true)
+	var w := _viewport.x
+	var h := _viewport.y
+	var stops := [
+		{"y": 0.0, "c": GRAD_TOP},
+		{"y": 0.55, "c": GRAD_MID},
+		{"y": 0.85, "c": GRAD_LOW},
+		{"y": 1.0, "c": GRAD_BOTTOM},
+	]
+	for i: int in range(stops.size() - 1):
+		var a: Dictionary = stops[i]
+		var b: Dictionary = stops[i + 1]
+		var y0 := float(a["y"]) * h
+		var y1 := float(b["y"]) * h
+		draw_polygon(
+			PackedVector2Array([Vector2(0.0, y0), Vector2(w, y0), Vector2(w, y1), Vector2(0.0, y1)]),
+			PackedColorArray([
+				a["c"], a["c"], b["c"], b["c"],
+			]))
 
 
-## 大气层：星光裂隙 + 校门剪影 + 四角压暗（贴图存在与否都会绘制，属装饰而非替代品）
+## 大气层：星光裂隙 + 渐隐遮罩（贴图存在与否都会绘制，属装饰而非替代品）
+##
+## 注意：这里**一律使用渐变细带**而不是单块半透明 draw_rect——
+## 单块矩形会在贴图上留下肉眼可见的硬边（实测截图里表现为一条竖缝 + 一条横缝），
+## 而细带渐隐不会产生任何可见接缝。
 func _draw_atmosphere() -> void:
 	var cx := _viewport.x * 0.5
 	var cy := _viewport.y * 0.52
@@ -370,19 +382,65 @@ func _draw_atmosphere() -> void:
 		var r := (0.10 + 0.055 * float(i)) * minf(_viewport.x, _viewport.y)
 		var a := RIFT_COLOR.a * (1.0 - float(i) / 6.0)
 		draw_circle(Vector2(cx, cy), r, Color(RIFT_COLOR.r, RIFT_COLOR.g, RIFT_COLOR.b, a * 0.35))
-	# 地平线以下压暗
-	draw_rect(Rect2(0.0, _viewport.y * 0.72, _viewport.x, _viewport.y * 0.28),
-		Color(0.04, 0.04, 0.09, 0.45), true)
-	# 左上 / 左下压暗，保证标题与菜单的文字对比度
-	draw_rect(Rect2(0.0, 0.0, _px(880.0), _viewport.y), Color(0.02, 0.03, 0.07, 0.30), true)
-	draw_rect(Rect2(0.0, 0.0, _viewport.x, _px(150.0)), Color(0.02, 0.03, 0.07, 0.22), true)
+	var shade := Color(0.02, 0.03, 0.07)
+	# 左侧渐隐：保证标题与菜单文字在亮部天空上依然清晰
+	_draw_h_fade(Rect2(0.0, 0.0, _px(1180.0), _viewport.y), 0.46, 0.0, shade)
+	# 顶部渐隐
+	_draw_v_fade(Rect2(0.0, 0.0, _viewport.x, _px(240.0)), 0.28, 0.0, shade)
+	# 底部渐隐（地平线以下压暗，让题词与版本行稳定可读）
+	_draw_v_fade(Rect2(0.0, _viewport.y * 0.60, _viewport.x, _viewport.y * 0.40), 0.0, 0.50, shade)
+
+
+## 竖直方向渐隐。
+##
+## 用**带逐顶点颜色的单个多边形**绘制：Godot 会在顶点之间插值颜色，
+## 因此得到的是真正平滑的渐变。
+## （曾用「细带堆叠」近似，实测在天空亮部会留下肉眼可见的横向条纹，已弃用。）
+func _draw_v_fade(rect: Rect2, top_alpha: float, bottom_alpha: float, col: Color) -> void:
+	var x0 := rect.position.x
+	var x1 := rect.position.x + rect.size.x
+	var y0 := rect.position.y
+	var y1 := rect.position.y + rect.size.y
+	draw_polygon(
+		PackedVector2Array([Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1)]),
+		PackedColorArray([
+			Color(col.r, col.g, col.b, top_alpha), Color(col.r, col.g, col.b, top_alpha),
+			Color(col.r, col.g, col.b, bottom_alpha), Color(col.r, col.g, col.b, bottom_alpha),
+		]))
+
+
+## 水平方向渐隐（同样用逐顶点颜色插值，避免条纹）
+func _draw_h_fade(rect: Rect2, left_alpha: float, right_alpha: float, col: Color) -> void:
+	var x0 := rect.position.x
+	var x1 := rect.position.x + rect.size.x
+	var y0 := rect.position.y
+	var y1 := rect.position.y + rect.size.y
+	draw_polygon(
+		PackedVector2Array([Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1)]),
+		PackedColorArray([
+			Color(col.r, col.g, col.b, left_alpha), Color(col.r, col.g, col.b, right_alpha),
+			Color(col.r, col.g, col.b, right_alpha), Color(col.r, col.g, col.b, left_alpha),
+		]))
+
+
+## 带描边的文字绘制：先沿 8 个方向画深色描边，再画正文。
+## 标题画面的背景是**亮部黄昏天空**，纯色文字（尤其细体英文）会被冲淡，
+## 因此正文一律带描边；描边宽度随缩放同比。
+func _draw_text_outlined(font: Font, pos: Vector2, text: String, fs: int, col: Color) -> void:
+	var o := maxf(1.0, _px(2.0))
+	for dx: float in [-o, 0.0, o]:
+		for dy: float in [-o, 0.0, o]:
+			if is_zero_approx(dx) and is_zero_approx(dy):
+				continue
+			draw_string(font, pos + Vector2(dx, dy), text,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, fs, OUTLINE)
+	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
 
 
 func _draw_title_block(font: Font) -> void:
 	var x := _px(96.0)
 	# 中文大标题
-	draw_string(font, Vector2(x, _px(196.0)), TITLE_ZH,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(104.0)), TEXT)
+	_draw_text_outlined(font, Vector2(x, _px(196.0)), TITLE_ZH, int(_px(104.0)), TEXT)
 	# 英文副标（带字距感：逐字绘制 + 手动间距）
 	var ey := _px(252.0)
 	var esize := int(_px(30.0))
@@ -390,46 +448,44 @@ func _draw_title_block(font: Font) -> void:
 	for ch: String in TITLE_EN.split(""):
 		if ch.is_empty():
 			continue
-		draw_string(font, Vector2(ex, ey), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, esize, ACCENT)
+		_draw_text_outlined(font, Vector2(ex, ey), ch, esize, ACCENT)
 		ex += font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, esize).x + _px(3.0)
 	# 一行小字
-	draw_string(font, Vector2(x, _px(300.0)), TITLE_SUB,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(28.0)), DIM)
+	_draw_text_outlined(font, Vector2(x, _px(300.0)), TITLE_SUB, int(_px(28.0)), DIM)
 	# 标题下的分隔线
 	var line_y := _px(330.0)
 	draw_line(Vector2(x, line_y), Vector2(x + _px(560.0), line_y),
 		Color(0.58, 0.90, 1.0, 0.45), maxf(1.0, _px(2.0)))
 
 
-## 左侧菜单背后的半透明竖条（让菜单文字在任何背景上都可读）
+## 左侧菜单的可读性由 _draw_atmosphere() 的左侧渐隐负责。
+## 这里**刻意不画实心面板**：实测单块半透明 draw_rect 会在背景贴图上留下
+## 肉眼可见的硬边（竖缝 + 横缝），渐隐方案没有任何可见接缝。
 func _draw_left_panel(_font: Font) -> void:
-	var top := _px(MENU_TOP - 40.0)
-	var h := _px(float(MENU_ITEMS.size()) * MENU_ROW_H
-		+ float(maxi(0, MENU_ITEMS.size() - 1)) * MENU_GAP + 80.0)
-	draw_rect(Rect2(0.0, top, _px(MENU_LEFT + MENU_WIDTH + 20.0), h), PANEL_BG, true)
-	draw_rect(Rect2(_px(MENU_LEFT + MENU_WIDTH + 20.0), top, maxf(1.0, _px(2.0)), h),
-		Color(0.58, 0.90, 1.0, 0.30), true)
+	pass
 
 
 func _draw_epigraph(font: Font) -> void:
 	var size := int(_px(30.0))
 	var w := font.get_string_size(EPIGRAPH, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	draw_string(font, Vector2(_viewport.x - _px(96.0) - w, _viewport.y - _px(96.0)), EPIGRAPH,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(0.90, 0.88, 0.80))
+	_draw_text_outlined(font, Vector2(_viewport.x - _px(96.0) - w, _viewport.y - _px(96.0)),
+		EPIGRAPH, size, Color(0.90, 0.88, 0.80))
 
 
 ## 左下角版本行：版本号取自 App.APP_VERSION（不硬编码）
 func _draw_version(font: Font) -> void:
 	var text := "Ver %s · PC / Steam · Godot %s" % [
 		App.APP_VERSION, str(Engine.get_version_info().get("string", "unknown"))]
-	draw_string(font, Vector2(_px(96.0), _viewport.y - _px(48.0)), text,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(28.0)), DIM)
+	_draw_text_outlined(font, Vector2(_px(96.0), _viewport.y - _px(48.0)), text,
+		int(_px(28.0)), DIM)
 
 
 func _draw_hint(font: Font) -> void:
+	# 操作提示 / 临时反馈放在底部**单独一行**（参考画布 y=928），
+	# 与左下版本行、右下题词互不重叠（实测同基线会撞车）。
 	var text := _feedback if _feedback_timer > 0.0 else "↑ ↓ 选择　Enter / Space 确认　鼠标可直接点击"
 	var col := _feedback_color if _feedback_timer > 0.0 else Color(0.58, 0.64, 0.78)
 	var size := int(_px(28.0))
 	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	draw_string(font, Vector2((_viewport.x - w) * 0.5, _viewport.y - _px(48.0)), text,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+	_draw_text_outlined(font, Vector2((_viewport.x - w) * 0.5, _viewport.y - _px(152.0)),
+		text, size, col)
