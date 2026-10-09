@@ -371,6 +371,46 @@ func _validate_references() -> void:
 		_validate_stage_enemy_refs(stage_id, _indices[PROTOTYPE_STAGES_KEY][stage_id])
 
 	_validate_growth_references()
+	_validate_core_hp_against_balance()
+
+
+## 校验关卡 coreHp 与 balance.json 声明的默认值一致（Alpha A0.3 新增）。
+##
+## 为什么需要：`balance.combat.coreHpDefault` / `coreHpStage1_1` 此前是**死数据**——
+## 全项目无任何引用，关卡核心值各自硬编码，规格声明无法被验证。
+## 本校验让「普通关默认 3、1-1 放宽为 5」这条规则**可执行**：
+##   允许两种情形 —— ① coreHp 等于默认值；② 在关卡内用 `_coreHp_spec` 显式声明偏离理由。
+## 二者皆不满足即报错，避免「某关悄悄把核心改成 9」这类无声偏离规格。
+func _validate_core_hp_against_balance() -> void:
+	var combat: Dictionary = get_domain("balance").get("combat", {})
+	if not combat.has("coreHpDefault"):
+		return
+	var default_hp := int(combat["coreHpDefault"])
+
+	var all_stages := {}
+	for sid: String in _indices.get("stages", {}).keys():
+		all_stages[sid] = _indices["stages"][sid]
+	for sid: String in _indices.get(PROTOTYPE_STAGES_KEY, {}).keys():
+		all_stages[sid] = _indices[PROTOTYPE_STAGES_KEY][sid]
+
+	for sid: String in all_stages.keys():
+		var st: Dictionary = all_stages[sid]
+		if not st.has("coreHp"):
+			continue
+		# 只校验**已填充内容**的关卡。
+		# 1-6～1-10 仍是 Phase 0 占位（enemySpawnTimeline 为空、coreHp=0），
+		# 它们的内容由后续 Alpha 阶段填充，此处不应报错——否则「占位」会被当成「违规」。
+		var timeline: Variant = st.get("enemySpawnTimeline", [])
+		if typeof(timeline) != TYPE_ARRAY or (timeline as Array).is_empty():
+			continue
+		var hp := int(st["coreHp"])
+		if hp == default_hp:
+			continue
+		if st.has("_coreHp_spec") and not str(st["_coreHp_spec"]).strip_edges().is_empty():
+			continue
+		_load_errors.append(
+			"关卡 %s 的 coreHp=%d 偏离 balance.combat.coreHpDefault=%d，但未提供 _coreHp_spec 说明理由"
+			% [sid, hp, default_hp])
 
 
 ## 关卡出怪与可用角色的引用完整性（V2.1.4 B6：引用关系必须可验证）。

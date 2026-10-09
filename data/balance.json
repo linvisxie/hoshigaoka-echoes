@@ -19,7 +19,9 @@
     "maxAp": 30,
     "apRegenPerSecond": 1,
     "coreHpDefault": 3,
+    "_coreHpDefault_note": "V2.1.4 G-五：普通关核心生命默认为 3；1-1 可放宽为 5。**本字段是规格声明的默认值，不是运行时读取源**——每关的 coreHp 唯一来自该关 StageConfig（B6 SSOT：关卡自身规则归关卡文件）。DataRegistry 加载时会校验「所有普通关的 coreHp 要么等于本默认值、要么在关卡里显式声明了 _coreHp_spec 偏离理由」，从而让这条声明可被验证，而不是一句死数据。",
     "coreHpStage1_1": 5,
+    "_coreHpStage1_1_note": "V2.1.4 G-五：1-1 放宽为 5 以降低新手挫败。同样只作规格声明与校验基准，运行时读 1-1.json 的 coreHp。",
     "squadLimit": 6,
     "fieldDeployLimit": 5,
     "damage": {
