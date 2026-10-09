@@ -25,13 +25,22 @@ const TEXT_COLOR := Color(0.93, 0.96, 1.0)
 const TEXT_DISABLED := Color(0.46, 0.49, 0.57)
 const EN_COLOR := Color(0.60, 0.74, 0.94)
 const EN_DISABLED := Color(0.40, 0.43, 0.50)
-const NOTE_COLOR := Color(0.95, 0.72, 0.35)
-const HL_BAR_SELECTED := Color(0.20, 0.55, 0.95, 0.82)
-const HL_BAR_HOVER := Color(0.20, 0.55, 0.95, 0.30)
+## 选中态高亮条：概念图里是**深蓝→冰蓝的横向渐隐条**（左浓右淡），不是实心蓝块。
+## 实心块会在明亮的黄昏背景上显得很"UI 模板"，渐隐条与背景的紫蓝调更协调。
+const HL_BAR_SELECTED := Color(0.16, 0.42, 0.88, 0.88)
+const HL_BAR_SELECTED_END := Color(0.30, 0.62, 0.98, 0.06)
+## 悬停态：**刻意比选中态淡得多**（并且不画左侧冰蓝竖条、不画 ▶），
+## 这样「鼠标滑过」与「当前选中」一眼可分——上一轮两者看起来一样。
+const HL_BAR_HOVER := Color(0.20, 0.45, 0.85, 0.26)
+const HL_BAR_HOVER_END := Color(0.24, 0.50, 0.90, 0.02)
 const HL_EDGE := Color(0.58, 0.90, 1.0)
 const ARROW_COLOR := Color(0.68, 0.93, 1.0)
+## 禁用项标注（「未实现」）的琥珀色
+const NOTE_COLOR_DISABLED := Color(0.95, 0.72, 0.35)
 const DISABLED_BAR := Color(0.32, 0.35, 0.42, 0.35)
 const DISABLED_EDGE := Color(0.45, 0.48, 0.56, 0.70)
+## 禁用项左侧的「!」小标记色（与概念图里设置齿轮的告警小点同调）
+const NOTE_MARK := Color(0.95, 0.72, 0.35, 0.90)
 ## 文字描边色：标题画面背景是亮部天空，纯色文字（尤其英文副标签）会被冲淡，
 ## 因此所有文字都先画一圈深色描边保证对比度。
 const OUTLINE := Color(0.03, 0.04, 0.09, 0.85)
@@ -99,13 +108,14 @@ func _on_mouse_exited() -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
-	# 禁用行：吞掉点击但不发出任何激活信号（这就是「不可点」的实现）
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
 			accept_event()
-			if not disabled:
-				activated.emit(item_id)
+			# 禁用行也**发出信号**：由 TitleScreen 统一决定「拒绝并给提示」。
+			# 这里绝不能静默吞掉点击——上一轮就是这样，点了「设置」屏幕上
+			# 什么反馈都没有，玩家会以为界面卡住了（实测截图确认）。
+			activated.emit(item_id)
 
 
 ## 带描边的文字绘制：先沿 8 个方向画描边，再画正文。
@@ -128,26 +138,33 @@ func _draw() -> void:
 	var row := Rect2(Vector2.ZERO, size)
 	var cy := size.y * 0.5
 	var interactive := not disabled
-	var highlight := interactive and (selected or hovered)
+	# 悬停与选中**是两种不同的视觉**：选中 = 左浓右淡的冰蓝渐隐条 + 左侧冰蓝竖条；
+	# 悬停（且未选中）= 更淡的渐隐条，没有竖条。因此鼠标滑过与当前选中一眼可分。
+	var is_selected := interactive and selected
+	var is_hover := interactive and hovered and not selected
 
-	if highlight:
-		draw_rect(row, HL_BAR_SELECTED if selected else HL_BAR_HOVER, true)
+	if is_selected:
+		_draw_hl_bar(row, HL_BAR_SELECTED, HL_BAR_SELECTED_END)
 		draw_rect(Rect2(row.position, Vector2(_px(6.0), row.size.y)), HL_EDGE, true)
+	elif is_hover:
+		_draw_hl_bar(row, HL_BAR_HOVER, HL_BAR_HOVER_END)
 	elif disabled and selected:
 		# 禁用行即使被选中也不给蓝色高亮，只用一条暗灰条表达「不可用」
 		draw_rect(row, DISABLED_BAR, true)
 		draw_rect(Rect2(row.position, Vector2(_px(6.0), row.size.y)), DISABLED_EDGE, true)
 
-	# 选中三角（▶）：用多边形绘制，不依赖字体里的特殊字形
-	if selected:
-		var ax := -_px(30.0)
+	# 选中三角（▶）：用多边形绘制，不依赖字体里的特殊字形。
+	# 位置与**中文主标签**对齐（在图标左侧），而不是贴着行左缘——
+	# 上一轮它落在 x=-30，被行的左边界裁掉一半。
+	if is_selected:
+		var ax := _px(56.0)
 		var s := _px(13.0)
 		var tri := PackedVector2Array([
 			Vector2(ax - s * 0.5, cy - s),
 			Vector2(ax + s * 0.7, cy),
 			Vector2(ax - s * 0.5, cy + s),
 		])
-		draw_colored_polygon(tri, ARROW_COLOR if interactive else TEXT_DISABLED)
+		draw_colored_polygon(tri, ARROW_COLOR)
 
 	# 图标（缺失时退化为菱形占位，不崩、不空）
 	var icon_size := _px(44.0)
@@ -173,15 +190,29 @@ func _draw() -> void:
 	_draw_text_outlined(font, Vector2(zh_x, baseline), label_zh,
 		zh_size, TEXT_COLOR if interactive else TEXT_DISABLED)
 
-	# 禁用原因（如「未实现」）：紧跟在中文标签右侧
+	# 禁用原因（如「未实现」）：紧跟在中文标签右侧，并在图标右上角点一个琥珀小点
 	if disabled and not disabled_note.is_empty():
 		var zh_w := font.get_string_size(label_zh, HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size).x
 		_draw_text_outlined(font, Vector2(zh_x + zh_w + _px(14.0), cy + _px(10.0)), disabled_note,
-			int(_px(28.0)), NOTE_COLOR)
+			int(_px(26.0)), NOTE_COLOR_DISABLED)
+		draw_circle(icon_pos + Vector2(icon_size * 0.88, icon_size * 0.16), _px(5.0), NOTE_MARK)
 
 	# 英文副标签：右对齐
 	if not label_en.is_empty():
 		var en_size := int(_px(28.0))
 		var en_w := font.get_string_size(label_en, HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
-		_draw_text_outlined(font, Vector2(size.x - _px(20.0) - en_w, cy + _px(10.0)), label_en,
+		_draw_text_outlined(font, Vector2(size.x - _px(24.0) - en_w, cy + _px(10.0)), label_en,
 			en_size, EN_COLOR if interactive else EN_DISABLED)
+
+
+## 选中/悬停高亮条：**左侧实、向右渐隐**（逐顶点颜色插值，不会有硬边）。
+func _draw_hl_bar(row: Rect2, col_from: Color, col_to: Color) -> void:
+	var x0 := row.position.x
+	var x1 := row.position.x + row.size.x
+	var y0 := row.position.y
+	var y1 := row.position.y + row.size.y
+	draw_polygon(
+		PackedVector2Array([
+			Vector2(x0, y0), Vector2(x1, y0), Vector2(x1, y1), Vector2(x0, y1),
+		]),
+		PackedColorArray([col_from, col_to, col_to, col_from]))

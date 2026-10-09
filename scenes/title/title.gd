@@ -44,12 +44,31 @@ const WARN := Color(0.95, 0.72, 0.35)
 ## 文字描边色：背景是亮部黄昏天空，正文一律带描边保证对比度
 const OUTLINE := Color(0.03, 0.04, 0.09, 0.85)
 
+## 主标题专用色（对照概念图：冰白亮芯 + 冷紫蓝中描边 + 深蓝黑外描边 + 淡青辉光）
+const TITLE_FILL := Color(0.96, 0.98, 1.00)
+const TITLE_OUTER := Color(0.05, 0.05, 0.16, 0.92)
+const TITLE_MID := Color(0.36, 0.42, 0.92, 0.85)
+const TITLE_GLOW := Color(0.55, 0.78, 1.00, 0.10)
+
 ## 标题与题词（纯展示文本；版本号与英文副标按概念图固定）
 const TITLE_ZH := "星丘残响"
 const TITLE_EN := "HOSHIOKA · RESONANCE"
 const TITLE_SUB := "—— 那些消失在夏夜里的声音"
-const EPIGRAPH := "哪怕世界会遗忘，这里的声音，也会留下回响。"
+## 题词按概念图拆成两行右对齐（第二行更长，自然形成错落）
+const EPIGRAPH_L1 := "哪怕世界会遗忘，"
+const EPIGRAPH_L2 := "这里的声音，也会留下回响。"
 const SETTINGS_NOTE := "未实现"
+
+## 参考画布下的标题块度量（对照概念图逐项量取后换算到 1920×1080）
+const TITLE_X := 96.0
+const TITLE_SIZE := 150.0
+const TITLE_BASELINE := 250.0
+const TITLE_EN_SIZE := 32.0
+const TITLE_EN_BASELINE := 336.0
+## fallback_font 无字距（tracking）控制，英文副标逐字绘制时手工加这么多间距
+const TITLE_EN_TRACKING := 8.0
+const TITLE_SUB_SIZE := 30.0
+const TITLE_SUB_BASELINE := 392.0
 
 ## 菜单单一数据源：顺序即上下键顺序。
 ## disabled=true 的项**不可点**（设置页属后续阶段，本轮不实现、不伪造）。
@@ -65,11 +84,15 @@ const MENU_ITEMS := [
 ]
 
 ## 参考画布下的菜单几何（左对齐的竖排）
+## 行距对照概念图放宽（原 88+12=100 偏挤；概念图约为行高 92 + 间距 34）。
+## 垂直预算（参考画布 1080）：第 4 行下沿 = 462 + 3×126 + 92 = 932，
+## 与底部提示行（基线 964，字顶约 945）留 13px 净空；再往下才是版本行（1032）。
+## 三者（菜单 / 提示行 / 版本行）互不重叠——改动本组常量后必须重新核对这条等式。
 const MENU_LEFT := 96.0
-const MENU_TOP := 486.0
-const MENU_WIDTH := 660.0
-const MENU_ROW_H := 88.0
-const MENU_GAP := 12.0
+const MENU_TOP := 462.0
+const MENU_WIDTH := 780.0
+const MENU_ROW_H := 92.0
+const MENU_GAP := 34.0
 
 var _viewport: Vector2 = Vector2(REF_W, REF_H)
 var _scale: float = 1.0
@@ -383,12 +406,14 @@ func _draw_atmosphere() -> void:
 		var a := RIFT_COLOR.a * (1.0 - float(i) / 6.0)
 		draw_circle(Vector2(cx, cy), r, Color(RIFT_COLOR.r, RIFT_COLOR.g, RIFT_COLOR.b, a * 0.35))
 	var shade := Color(0.02, 0.03, 0.07)
-	# 左侧渐隐：保证标题与菜单文字在亮部天空上依然清晰
-	_draw_h_fade(Rect2(0.0, 0.0, _px(1180.0), _viewport.y), 0.46, 0.0, shade)
-	# 顶部渐隐
-	_draw_v_fade(Rect2(0.0, 0.0, _viewport.x, _px(240.0)), 0.28, 0.0, shade)
+	# 左侧渐隐：保证标题与菜单文字在亮部天空上依然清晰。
+	# 不透明度对照概念图逐轮下调（0.46 → 0.30）：概念图是**明亮温暖的黄昏**，
+	# 上一轮的压暗把樱花与校舍糊掉了，这里只保留「够文字读」的最低量。
+	_draw_h_fade(Rect2(0.0, 0.0, _viewport.x, _viewport.y), 0.30, 0.0, shade)
+	# 顶部渐隐（0.28 → 0.14，同样是为了不压暗天空与樱花）
+	_draw_v_fade(Rect2(0.0, 0.0, _viewport.x, _viewport.y), 0.14, 0.0, shade)
 	# 底部渐隐（地平线以下压暗，让题词与版本行稳定可读）
-	_draw_v_fade(Rect2(0.0, _viewport.y * 0.60, _viewport.x, _viewport.y * 0.40), 0.0, 0.50, shade)
+	_draw_v_fade(Rect2(0.0, _viewport.y, _viewport.x, _viewport.y), 0.0, 0.50, shade)
 
 
 ## 竖直方向渐隐。
@@ -438,24 +463,85 @@ func _draw_text_outlined(font: Font, pos: Vector2, text: String, fs: int, col: C
 
 
 func _draw_title_block(font: Font) -> void:
-	var x := _px(96.0)
-	# 中文大标题
-	_draw_text_outlined(font, Vector2(x, _px(196.0)), TITLE_ZH, int(_px(104.0)), TEXT)
-	# 英文副标（带字距感：逐字绘制 + 手动间距）
-	var ey := _px(252.0)
-	var esize := int(_px(30.0))
+	var x := _px(TITLE_X)
+	var zh_size := int(_px(TITLE_SIZE))
+
+	# 中文大标题：概念图里是**冰白亮芯 + 冷紫蓝描边 + 淡青辉光**的厚重标题字。
+	# 项目用的是 ThemeDB.fallback_font，**没有真正的粗体字面**，
+	# 因此用「多层描边 + 轻微偏移重绘」模拟字重：
+	#   ① 淡青辉光（最外，两层 3px 偏移）
+	#   ② 深蓝黑外描边（3px，保证压在亮部天空上依然成形）
+	#   ③ 冷紫蓝中描边（1.5px，概念图里标题边缘的紫蓝调）
+	#   ④ 冰白亮芯（沿 8 方向 0.75px 微偏移重绘 → 笔画加粗约 1.5px，模拟 bold）
+	var zh_pos := Vector2(x, _px(TITLE_BASELINE))
+	_draw_title_glow(font, zh_pos, TITLE_ZH, zh_size)
+	_draw_text_outlined_at(font, zh_pos, TITLE_ZH, zh_size, TITLE_OUTER, _px(3.0))
+	_draw_text_outlined_at(font, zh_pos, TITLE_ZH, zh_size, TITLE_MID, _px(1.5))
+	for off: Vector2 in [Vector2(0.0, 0.0), Vector2(1.0, 0.0), Vector2(-1.0, 0.0),
+			Vector2(0.0, 1.0), Vector2(0.0, -1.0)]:
+		draw_string(font, zh_pos + off * _px(0.75), TITLE_ZH,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size, TITLE_FILL)
+
+	# 英文副标：fallback_font 没有字距控制，因此**逐字绘制**并手工加 tracking，
+	# 让 HOSHIOKA · RESONANCE 像概念图那样疏朗，而不是挤成一团。
+	var en_size := int(_px(TITLE_EN_SIZE))
+	var ey := _px(TITLE_EN_BASELINE)
 	var ex := x
-	for ch: String in TITLE_EN.split(""):
-		if ch.is_empty():
-			continue
-		_draw_text_outlined(font, Vector2(ex, ey), ch, esize, ACCENT)
-		ex += font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, esize).x + _px(3.0)
+	var en_w := 0.0
+	for i: int in range(TITLE_EN.length()):
+		var ch := TITLE_EN.substr(i, 1)
+		var cw := font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
+		_draw_text_outlined(font, Vector2(ex, ey), ch, en_size, ACCENT)
+		ex += cw + _px(TITLE_EN_TRACKING)
+		en_w += cw + _px(TITLE_EN_TRACKING)
+	en_w -= _px(TITLE_EN_TRACKING)
+	# 副标下的分隔线：宽度**精确等于副标本身**、向右渐隐，
+	# 左端与主标题、下方小字同一左缘（三者对齐）。
+	_draw_title_rule(Vector2(x, ey + _px(14.0)), en_w, 0.0, 0.50)
+
 	# 一行小字
-	_draw_text_outlined(font, Vector2(x, _px(300.0)), TITLE_SUB, int(_px(28.0)), DIM)
-	# 标题下的分隔线
-	var line_y := _px(330.0)
-	draw_line(Vector2(x, line_y), Vector2(x + _px(560.0), line_y),
-		Color(0.58, 0.90, 1.0, 0.45), maxf(1.0, _px(2.0)))
+	_draw_text_outlined(font, Vector2(x, _px(TITLE_SUB_BASELINE)), TITLE_SUB,
+		int(_px(TITLE_SUB_SIZE)), DIM)
+
+
+## 主标题的淡青辉光：在 8 个方向画两层低不透明度副本，形成柔光边缘。
+func _draw_title_glow(font: Font, pos: Vector2, text: String, fs: int) -> void:
+	for d: float in [2.0, 3.4]:
+		var o := _px(d)
+		for dx: float in [-o, 0.0, o]:
+			for dy: float in [-o, 0.0, o]:
+				if is_zero_approx(dx) and is_zero_approx(dy):
+					continue
+				draw_string(font, pos + Vector2(dx, dy), text,
+					HORIZONTAL_ALIGNMENT_LEFT, -1, fs, TITLE_GLOW)
+
+
+## 指定描边宽度的文字绘制（与 _draw_text_outlined 同一套做法，宽度可控）。
+func _draw_text_outlined_at(font: Font, pos: Vector2, text: String, fs: int,
+		col: Color, o: float) -> void:
+	for dx: float in [-o, 0.0, o]:
+		for dy: float in [-o, 0.0, o]:
+			if is_zero_approx(dx) and is_zero_approx(dy):
+				continue
+			draw_string(font, pos + Vector2(dx, dy), text,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+
+
+## 标题块用的细装饰线：从 from_alpha 渐隐到 to_alpha，避免生硬的实心横线。
+func _draw_title_rule(from: Vector2, width: float, from_alpha: float, to_alpha: float) -> void:
+	var c := Color(ACCENT.r, ACCENT.g, ACCENT.b)
+	var x0 := from.x
+	var x1 := from.x + _px(width)
+	var y := from.y
+	draw_polygon(
+		PackedVector2Array([
+			Vector2(x0, y), Vector2(x1, y),
+			Vector2(x1, y + maxf(1.0, _px(2.0))), Vector2(x0, y + maxf(1.0, _px(2.0))),
+		]),
+		PackedColorArray([
+			Color(c.r, c.g, c.b, from_alpha), Color(c.r, c.g, c.b, to_alpha),
+			Color(c.r, c.g, c.b, to_alpha), Color(c.r, c.g, c.b, from_alpha),
+		]))
 
 
 ## 左侧菜单的可读性由 _draw_atmosphere() 的左侧渐隐负责。
@@ -466,10 +552,18 @@ func _draw_left_panel(_font: Font) -> void:
 
 
 func _draw_epigraph(font: Font) -> void:
+	# 概念图里题词是**右下角两行右对齐**（第二行更长，自然错落）。
+	# 右缘与版本行、提示行互不重叠：题词在 y≈884/924，提示行在 y≈942。
 	var size := int(_px(30.0))
-	var w := font.get_string_size(EPIGRAPH, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	_draw_text_outlined(font, Vector2(_viewport.x - _px(96.0) - w, _viewport.y - _px(96.0)),
-		EPIGRAPH, size, Color(0.90, 0.88, 0.80))
+	var lh := _px(40.0)
+	var right := _viewport.x - _px(96.0)
+	var col := Color(0.90, 0.88, 0.80)
+	var w2 := font.get_string_size(EPIGRAPH_L2, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	_draw_text_outlined(font, Vector2(right - w2, _viewport.y - _px(156.0) + lh),
+		EPIGRAPH_L2, size, col)
+	var w1 := font.get_string_size(EPIGRAPH_L1, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	_draw_text_outlined(font, Vector2(right - w1, _viewport.y - _px(156.0)), EPIGRAPH_L1,
+		size, col)
 
 
 ## 左下角版本行：版本号取自 App.APP_VERSION（不硬编码）
@@ -481,11 +575,14 @@ func _draw_version(font: Font) -> void:
 
 
 func _draw_hint(font: Font) -> void:
-	# 操作提示 / 临时反馈放在底部**单独一行**（参考画布 y=928），
-	# 与左下版本行、右下题词互不重叠（实测同基线会撞车）。
+	# 操作提示 / 临时反馈放在底部**单独一行**（参考画布基线 964，字号 26）。
+	# 与左下版本行（基线 1032）、右下题词第二行（基线 924）互不重叠：
+	# 提示行字顶约 945，在菜单第 4 行下沿（932）之下、题词第二行（924）之下，
+	# 且提示行居中、题词靠右，横向也不重叠。
+	# **不得**把提示行下移到版本行同一基线上（那是上一轮修过的重叠 bug）。
 	var text := _feedback if _feedback_timer > 0.0 else "↑ ↓ 选择　Enter / Space 确认　鼠标可直接点击"
 	var col := _feedback_color if _feedback_timer > 0.0 else Color(0.58, 0.64, 0.78)
-	var size := int(_px(28.0))
+	var size := int(_px(26.0))
 	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	_draw_text_outlined(font, Vector2((_viewport.x - w) * 0.5, _viewport.y - _px(152.0)),
+	_draw_text_outlined(font, Vector2((_viewport.x - w) * 0.5, _viewport.y - _px(116.0)),
 		text, size, col)

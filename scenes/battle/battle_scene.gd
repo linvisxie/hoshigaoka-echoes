@@ -304,6 +304,14 @@ var _warned_spawn_index: Dictionary = {}
 ## **领域层已结算事件**生成，不预测、不伪造；素材缺失时绘制端自动跳过。
 var _vfx: Array[Dictionary] = []
 
+## 动画状态机（本轮指令 第三条）：instanceId -> AnimState
+## 纯表现层；只读领域层计数器，不写回任何战斗状态。
+var _char_anim: Dictionary = {}
+var _enemy_anim: Dictionary = {}
+
+## 本帧「刚受击」的单位集合（由 _consume_damage_events 填充，绘制端读取后清空）
+var _hit_this_frame: Dictionary = {}
+
 ## 当前鼠标悬停的格子（column, lane），-1 表示不在格子上
 var _hover_column: int = -1
 var _hover_lane: int = -1
@@ -654,6 +662,8 @@ func _consume_damage_events() -> void:
 		var lethal := bool(ev.get("lethal", false))
 		# 受击闪白（命中反馈的视觉通道之一）
 		_hit_flashes.append({"kind": kind, "targetId": tid, "until": now + HIT_FLASH_SECONDS})
+		# 标记本帧受击（供动画状态机读取）——键为 "kind:id"
+		_hit_this_frame["%s:%d" % [kind, tid]] = true
 		# ---- 正式特效（本轮美术施工）：命中火花，绑定真实伤害事件 ----
 		# 纪律：只在**领域层已结算的伤害事件**上播放，不预测、不伪造；
 		# 素材缺失时 vfx_frame 返回 null，绘制端自动跳过（美术非硬依赖）。
@@ -1419,6 +1429,10 @@ func _draw() -> void:
 		_draw_pause_overlay()
 	if session.is_decided():
 		_draw_result_overlay()
+	# 本帧的受击标记已消费完毕 —— 清空，保证下一帧不会误判为"又挨打了"
+	_hit_this_frame.clear()
+	# 开发/验收模式：检查"有资源但从未触发"的动画与特效（本轮指令 第四条）
+	_track_art_reachability()
 
 
 # ============================================================
@@ -1713,6 +1727,7 @@ func _draw_core() -> void:
 func _draw_characters() -> void:
 	var tile := _px(grid.tile_size_px)
 	var spacing := _px(grid.lane_spacing_px)
+	var now := _now()
 	for c: CharacterRuntime in session.stage.characters:
 		var px_x := _origin.x + tile * float(c.column)
 		var px_y := _origin.y + float(c.lane) * spacing
@@ -1744,12 +1759,18 @@ func _draw_characters() -> void:
 				mod = mod.lerp(Color(2.6, 2.6, 2.6, 1.0), 0.75 * char_hit_k)
 			if selected:
 				mod = mod.lerp(Color(1.35, 1.30, 0.86, 1.0), 0.45)
-			# 待机动画：低帧率呼吸起伏（帧由 anim.py 从同一底图确定性派生，绝无漂移）
-			var anim_name := "idle"
-			if c.is_incapacitated():
-				anim_name = "death"
-			var frame_tex: Texture2D = ArtRegistry.character_frame(
-				c.character_id, anim_name, _now())
+			# ---- 动画状态机（本轮指令 第三条）----
+			# 由 AnimState 依据领域层已结算事实选择动画：
+			# 受击 > 攻击/治疗 > 待机；失能为不可逆终态。
+			# 一次性动画按 progress 取帧，循环动画按绝对时间取帧。
+			var st := _char_anim_state(c, now)
+			var frame_tex: Texture2D = null
+			if st.is_one_shot():
+				frame_tex = ArtRegistry.character_frame_progress(
+					c.character_id, st.anim, st.progress(now))
+			else:
+				frame_tex = ArtRegistry.character_frame(
+					c.character_id, st.anim, now)
 			if frame_tex != null:
 				sprite = frame_tex
 			_draw_sprite_anchored(sprite, Vector2(px_x, px_y), tile * 0.80, mod, 0.44)
@@ -1863,6 +1884,147 @@ func _character_sprite(c: CharacterRuntime) -> Texture2D:
 	return ArtRegistry.character_base(c.character_id)
 
 
+## 取（必要时创建）角色动画状态机，并按本帧事实推进。
+## 纯表现层：只读 CharacterRuntime 的计数器，绝不写回。
+func _char_anim_state(c: CharacterRuntime, now: float) -> AnimState:
+	var st: AnimState = _char_anim.get(c.instance_id)
+	if st == null:
+		st = AnimState.new()
+		st.reset(now)
+		_char_anim[c.instance_id] = st
+	var hit := _hit_this_frame.has("character:%d" % c.instance_id)
+	st.tick_character(c, now, hit)
+	return st
+
+
+## 取（必要时创建）敌人动画状态机，并按本帧事实推进。
+func _enemy_anim_state(e: EnemyRuntime, now: float) -> AnimState:
+	var st: AnimState = _enemy_anim.get(e.instance_id)
+	if st == null:
+		st = AnimState.new()
+		st.reset(now)
+		_enemy_anim[e.instance_id] = st
+	var hit := _hit_this_frame.has("enemy:%d" % e.instance_id)
+	st.tick_enemy(e, now, hit)
+	return st
+
+
+# ============================================================
+#  美术可达性追踪（本轮指令 第四条：解决"静默失效"）
+# ============================================================
+#
+# 问题背景：上一轮发生过 VFX 路径写错导致 6 组特效**从未加载**，
+# 而游戏不崩、不报错、stderr 全空 —— 被"安全回退"完美掩盖。
+#
+# 对策：运行期记录**每个美术资源是否真的被绘制过**。
+#   * 生产模式：只记录，不打扰玩家；
+#   * 开发/验收模式：启动时报告"应存在但从未加载"，退出时报告
+#     "加载了但从未触发"（= 有资源却用不上的静默失效）。
+#
+# 纪律：只读 ArtRegistry，不修改任何资源与战斗状态。
+
+## 已实际绘制过的资源键集合
+var _art_drawn: Dictionary = {}
+## 启动时校验过的缺失资源（应存在但加载不到）
+var _art_missing: Array[String] = []
+## 是否已做过启动校验
+var _art_checked: bool = false
+
+
+## 启动校验：把本场景**应当用到**的全部资源预加载一遍，报告缺失的。
+func _verify_art_available() -> void:
+	_art_checked = true
+	var expected: Array[String] = []
+	# 角色：3 名 × 5 动画 + 基准 + 头像
+	for cid: String in ["amamiya_mio", "kamiya_yuma", "ogawa_yui"]:
+		expected.append(ArtRegistry.character_strip_path(cid, "idle"))
+		for a: String in ["idle", "move", "attack", "hit", "death"]:
+			expected.append(ArtRegistry.character_strip_path(cid, a))
+		expected.append("%s/characters/%s/%s_portrait_64.png" % [
+			ArtRegistry.ART_ROOT, cid, cid])
+	# 敌人：7 种 × 5 动画
+	for eid: String in ["echo_normal", "echo_runner", "echo_armored",
+			"echo_exam_sheet", "echo_silent", "echo_copy", "echo_invigilator"]:
+		for a: String in ["idle", "move", "attack", "hit", "death"]:
+			expected.append(ArtRegistry.enemy_strip_path(eid, a))
+	# 特效：6 组
+	for v: String in ["vfx_slash", "vfx_heal", "vfx_death",
+			"vfx_deploy", "vfx_impact", "vfx_arrow"]:
+		expected.append(ArtRegistry.vfx_strip_path(v))
+	# 背景：5 张
+	for b: String in ["bg_title_gate", "bg_env_classroom_dusk", "bg_env_corridor_dusk",
+			"bg_env_gym_night", "bg_env_rooftop_rift"]:
+		expected.append("%s/environments/%s.png" % [ArtRegistry.ART_ROOT, b])
+
+	var missing: Array[String] = []
+	for p: String in expected:
+		if not ResourceLoader.exists(p):
+			missing.append(p)
+	_art_missing = missing
+	if missing.is_empty():
+		GameLog.info(TAG, "美术资源校验通过：%d 项全部存在" % expected.size())
+	else:
+		# 开发期必须**明确报错**，而不是静默回退
+		for m: String in missing:
+			GameLog.error(TAG, "美术资源缺失（应存在但未加载）：%s" % m)
+		GameLog.error(TAG, "美术资源校验失败：%d/%d 项缺失" % [missing.size(), expected.size()])
+
+
+## 记录一次实际绘制（键为资源路径）。
+func _mark_drawn(path: String) -> void:
+	if not _art_drawn.has(path):
+		_art_drawn[path] = 0
+	_art_drawn[path] = int(_art_drawn[path]) + 1
+
+
+## 运行期可达性追踪：把"本帧画过什么"累计起来，供收尾报告使用。
+func _track_art_reachability() -> void:
+	if not _art_checked:
+		_verify_art_available()
+	# 角色与敌人动画：记录当前状态机选中的动画
+	for iid: int in _char_anim.keys():
+		var st: AnimState = _char_anim[iid]
+		_mark_drawn("char_anim:%s" % st.anim)
+	for iid: int in _enemy_anim.keys():
+		var st: AnimState = _enemy_anim[iid]
+		_mark_drawn("enemy_anim:%s" % st.anim)
+	for v: Dictionary in _vfx:
+		_mark_drawn("vfx:%s" % str(v["name"]))
+
+
+## 导出美术可达性报告（供验收脚本读取；纯诊断，不改变任何状态）。
+func art_reachability_report() -> Dictionary:
+	var used: Array[String] = []
+	for k: String in _art_drawn.keys():
+		used.append("%s=%d" % [k, int(_art_drawn[k])])
+	used.sort()
+	return {
+		"missingAtStartup": _art_missing,
+		"drawn": used,
+		"drawnCount": _art_drawn.size(),
+	}
+
+
+## 收尾报告：把"从未触发"的资源打到日志（开发/验收模式用）。
+func report_unreachable_art() -> void:
+	var r := art_reachability_report()
+	if not _art_missing.is_empty():
+		GameLog.error(TAG, "启动时缺失的美术资源 %d 项：%s"
+			% [_art_missing.size(), ", ".join(_art_missing)])
+	# 期望会被触发的动画集合（本轮指令 3.1~3.4）
+	var expected_anims: Array[String] = ["idle", "attack", "hit", "death"]
+	for a: String in expected_anims:
+		var seen := int(_art_drawn.get("char_anim:%s" % a, 0)) \
+			+ int(_art_drawn.get("enemy_anim:%s" % a, 0))
+		if seen == 0:
+			GameLog.warn(TAG, "动画从未触发：%s（有资源但本局未进入该状态）" % a)
+	for v: String in ["vfx_slash", "vfx_heal", "vfx_death",
+			"vfx_deploy", "vfx_impact", "vfx_arrow"]:
+		if int(_art_drawn.get("vfx:%s" % v, 0)) == 0:
+			GameLog.warn(TAG, "特效从未触发：%s" % v)
+	GameLog.info(TAG, "美术可达性：本局实际绘制 %d 类资源" % r["drawnCount"])
+
+
 ## 以「脚底中心」为锚点绘制贴图。
 ## 锚点纪律（本轮指令 第七章 5）：角色脚底必须落在格中心下方固定比例处，
 ## 使不同身高/体型的角色在战场上站在同一条基线上，不出现"漂浮"。
@@ -1951,8 +2113,13 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 			emod = emod.lerp(Color(2.8, 2.8, 2.8, 1.0), 0.75 * hit_k)
 		if not e.is_active():
 			emod = Color(0.5, 0.45, 0.62, 0.55)
-		var eanim := "move" if e.is_active() else "death"
-		var ef: Texture2D = ArtRegistry.enemy_frame(e.enemy_id, eanim, _now())
+		# ---- 动画状态机（本轮指令 第三条）：移动/攻击/受击/消散 ----
+		var est := _enemy_anim_state(e, _now())
+		var ef: Texture2D = null
+		if est.is_one_shot():
+			ef = ArtRegistry.enemy_frame_progress(e.enemy_id, est.anim, est.progress(_now()))
+		else:
+			ef = ArtRegistry.enemy_frame(e.enemy_id, est.anim, _now())
 		if ef != null:
 			esprite = ef
 		# 敌人目标高度随 spriteFramePx 放大（96 的重装单位视觉更大）
@@ -3284,6 +3451,8 @@ func _on_outcome_decided(_outcome: int) -> void:
 	# 纪律：奖励数值来自关卡配置/奖励表，**不在此处硬编码**；
 	# 结算必须事务式落盘，且同一局只发一次。
 	_grant_battle_rewards()
+	# 收尾：报告"有资源但从未触发"的动画/特效（开发/验收模式的可达性检查）
+	report_unreachable_art()
 	queue_redraw()
 
 

@@ -117,6 +117,16 @@ static func animated(path: String, anim: String, t: float) -> AtlasTexture:
 	return frame_at(path, int(floor(t * fps)), count)
 
 
+## 按**播放进度 0..1** 取帧（用于攻击/受击这类一次性动画）。
+## 与 animated() 的区别：一次性动画不能循环，必须按进度线性走完。
+static func frame_progress(path: String, anim: String, progress: float) -> AtlasTexture:
+	var count: int = int(FRAME_COUNT.get(anim, 1))
+	if count <= 1:
+		return frame_at(path, 0, 1)
+	var p := clampf(progress, 0.0, 0.9999)
+	return frame_at(path, int(p * float(count)), count)
+
+
 # ============================================================ 角色
 
 static func character_strip_path(char_id: String, anim: String) -> String:
@@ -130,6 +140,11 @@ static func has_character(char_id: String) -> bool:
 ## 角色动画帧（缺资源返回 null）。
 static func character_frame(char_id: String, anim: String, t: float) -> AtlasTexture:
 	return animated(character_strip_path(char_id, anim), anim, t)
+
+
+## 角色一次性动画帧（攻击/受击，按进度取帧不循环）。
+static func character_frame_progress(char_id: String, anim: String, progress: float) -> AtlasTexture:
+	return frame_progress(character_strip_path(char_id, anim), anim, progress)
 
 
 static func character_base(char_id: String) -> Texture2D:
@@ -154,6 +169,11 @@ static func has_enemy(enemy_id: String) -> bool:
 
 static func enemy_frame(enemy_id: String, anim: String, t: float) -> AtlasTexture:
 	return animated(enemy_strip_path(enemy_id, anim), anim, t)
+
+
+## 敌人一次性动画帧（攻击/受击，按进度取帧不循环）。
+static func enemy_frame_progress(enemy_id: String, anim: String, progress: float) -> AtlasTexture:
+	return frame_progress(enemy_strip_path(enemy_id, anim), anim, progress)
 
 
 static func enemy_base(enemy_id: String) -> Texture2D:

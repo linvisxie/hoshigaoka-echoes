@@ -39,17 +39,55 @@ const DIM := Color(0.62, 0.68, 0.82)
 const FAINT := Color(0.42, 0.47, 0.62)
 const ACCENT := Color(0.42, 0.76, 0.98)      # 冰蓝：可交互 / AP
 const POSITIVE := Color(0.45, 0.95, 0.62)    # 薄荷绿：治疗 / 正向
+## 增量数字：比 POSITIVE 更亮，深底上更醒目（J 章：正向反馈必须一眼看到）
+const POSITIVE_DELTA := Color(0.64, 1.0, 0.76)
+## 增量闪烁的外发光色（脉冲时叠在数字外侧）
+const POSITIVE_GLOW := Color(0.40, 1.0, 0.60)
 const WARN := Color(0.95, 0.72, 0.35)
+## 资源不足：明确的暖红，与「可满足」的薄荷绿形成一眼可辨的对立。
+## 不能用 WARN（橙黄）——它同时也是普通提示色，玩家分不清"警告"与"不够"。
+const INSUFFICIENT := Color(1.0, 0.44, 0.40)
 const DANGER := Color(0.98, 0.30, 0.42)
 const BORDER := Color(0.30, 0.42, 0.66, 0.85)
 const BORDER_SOFT := Color(0.24, 0.30, 0.46, 0.80)
 const BUTTON := Color(0.16, 0.21, 0.36)
-const BUTTON_HOVER := Color(0.26, 0.40, 0.66)
+const BUTTON_HOVER := Color(0.30, 0.46, 0.74)
 const BUTTON_DISABLED := Color(0.105, 0.115, 0.155)
+## 已选中的快捷投入档位（比 hover 更实，表示"当前生效"而非"鼠标在这"）
+const BUTTON_ACTIVE := Color(0.22, 0.52, 0.52)
 const BUTTON_BORDER := Color(0.40, 0.56, 0.86)
-const BUTTON_BORDER_HOVER := Color(0.62, 0.82, 1.0)
+const BUTTON_BORDER_HOVER := Color(0.72, 0.90, 1.0)
+const BUTTON_BORDER_ACTIVE := Color(0.55, 1.0, 0.92)
 const BUTTON_BORDER_DISABLED := Color(0.24, 0.26, 0.34)
 const TEXT_DISABLED := Color(0.42, 0.45, 0.55)
+## 鼠标停在禁用按钮上：偏红描边，明确"这里点不动"，而不是无反应
+const BUTTON_BORDER_REJECT := Color(0.92, 0.42, 0.42)
+
+## 文字深色描边（ThemeDB.fallback_font 无粗体字面且是 MSDF，
+## 细笔画压在深色/亮背景上会发虚；描边不改字号就能显著提升可读性）。
+## 小字 1px、大字 2px（参考画布像素，随 _scale 同比缩放）。
+const OUTLINE_COLOR := Color(0.012, 0.020, 0.045, 0.95)
+const OUTLINE_PX_SMALL := 1.0
+const OUTLINE_PX_LARGE := 2.0
+## 达到该字号起用粗描边
+const OUTLINE_BOLD_FROM := 32.0
+
+## 数字固定宽度槽位（位数变化时后续内容不跳动）
+const NUM_SLOT_DIGITS := 6
+
+## 图标：**统一从 64px 源图缩放**，避免 32/64 混用导致同一行图标大小不一。
+const ICON_SRC_SIZE := 64
+const ICON_SIZE_CHIP := 34.0
+const ICON_SIZE_BUTTON := 30.0
+const ICON_SIZE_STAT := 32.0
+const ICON_SIZE_COST := 28.0
+const ICON_SIZE_ROW := 34.0
+const ICON_SIZE_EMBLEM := 64.0
+
+## 属性增量动画时长（秒）
+const FLOAT_LIFE := 1.4
+## 预览增量的闪烁衰减速度（每秒）
+const PULSE_DECAY := 2.2
 
 ## 背景遮罩：让背景退到 UI 之后，保证文字可读（与 battle_scene 的 BG_SCRIM 同思路）
 const SCRIM := Color(0.020, 0.028, 0.058, 0.78)
@@ -121,6 +159,22 @@ var _feedback_timer: float = 0.0
 var _preview_count: int = 0
 var _preview_item: String = "study_record_short"
 
+## 数字槽位字体（等宽数字 + 固定宽度；缺失时回退 fallback_font）
+var _num_font: Font = null
+
+## 属性增量的「闪烁 + 上浮」动画状态。
+##   _delta_pulse: 闪烁强度 0..1，预览变化时置 1，逐帧衰减到 0
+##   _delta_float: 浮起偏移（秒→像素），让 +N 短暂上浮再落位
+##   _flash_rows: 升级/突破后需要瞬时高亮的属性行，值=剩余秒数
+##   _flash_kind: 该高亮是"升级"(绿) 还是"突破"(冰蓝)
+var _delta_pulse: float = 0.0
+var _delta_float: float = 0.0
+var _delta_key: String = ""
+var _flash_rows: Dictionary = {}
+var _flash_kind: String = "levelup"
+## 上一次预览的 (角色, 份数, 道具) 组合，用于识别"预览真的变了"才触发闪烁
+var _last_preview_sig: String = ""
+
 var _viewport: Vector2 = Vector2(1920, 1080)
 var _scale: float = 1.0
 
@@ -139,7 +193,6 @@ func _ready() -> void:
 		% [_card_ids.size(), str(_svc != null and _svc.is_ready()),
 			_viewport.x, _viewport.y, _scale])
 	queue_redraw()
-
 
 ## 取当前**实际画布尺寸**（游戏单位），而不是 ProjectSettings 里的参考分辨率。
 ##
@@ -189,10 +242,33 @@ func _px(v: float) -> float:
 func _process(delta: float) -> void:
 	if _feedback_timer > 0.0:
 		_feedback_timer = maxf(0.0, _feedback_timer - delta)
+	_tick_animations(delta)
 	# 每帧重取画布尺寸：窗口拉伸 / 分辨率变化时布局随之重算（仅读 size，无副作用）
 	_refresh_viewport()
 	_layout()
 	queue_redraw()
+
+
+## 推进增量闪烁 / 上浮与属性行高亮计时（纯表现，不读也不改任何领域状态）。
+func _tick_animations(delta: float) -> void:
+	if _delta_pulse > 0.0:
+		_delta_pulse = maxf(0.0, _delta_pulse - delta * PULSE_DECAY)
+	if _delta_float > 0.0:
+		_delta_float = maxf(0.0, _delta_float - delta / FLOAT_LIFE)
+	if not _flash_rows.is_empty():
+		for k: String in _flash_rows.keys():
+			var left := float(_flash_rows[k]) - delta
+			if left <= 0.0:
+				_flash_rows.erase(k)
+			else:
+				_flash_rows[k] = left
+	# 预览组合变化时触发一次闪烁：让"数值真的变了"这件事被看见
+	var sig := "%s|%d|%s" % [_selected_id, _preview_count, _preview_item]
+	if sig != _last_preview_sig:
+		_last_preview_sig = sig
+		if _preview_count > 0:
+			_delta_pulse = 1.0
+			_delta_float = 1.0
 
 
 func _input(event: InputEvent) -> void:
@@ -211,18 +287,14 @@ func _input(event: InputEvent) -> void:
 		elif k >= KEY_1 and k <= KEY_6:
 			var idx := k - KEY_1
 			if idx < _card_ids.size():
-				_selected_id = _card_ids[idx]
-				_preview_count = 0
-				_show("已选择 %s" % _display_name(_selected_id), ACCENT)
+				_select_character(_card_ids[idx])
 
 
 func _handle_click(pos: Vector2) -> void:
 	# 角色卡
 	for i: int in range(_card_rects.size()):
 		if _card_rects[i].has_point(pos):
-			_selected_id = _card_ids[i]
-			_preview_count = 0
-			_show("已选择 %s" % _display_name(_selected_id), ACCENT)
+			_select_character(_card_ids[i])
 			return
 	# 按钮：禁用态必须**既画成灰、也点不动**（只画灰仍可点属缺陷）
 	for b: Dictionary in _btn_rects:
@@ -235,6 +307,27 @@ func _handle_click(pos: Vector2) -> void:
 			return
 		_on_button(action, b.get("arg", null))
 		return
+
+
+## 切换当前角色。**必须清空全部「属于上一个角色」的瞬时状态**：
+## 预览份数、增量闪烁、属性行高亮、预览签名。
+## 否则切人后会看到上一角色的 +N 增量或高亮残留（视觉上等于显示错数据）。
+## 背景环境由 _env_name() 依据 _selected_id 解析，切人后自然跟着换。
+func _select_character(character_id: String) -> void:
+	if character_id == _selected_id:
+		# 同一角色重复点击：只重置预览，不重复播反馈
+		_preview_count = 0
+		return
+	_selected_id = character_id
+	_preview_count = 0
+	_delta_pulse = 0.0
+	_delta_float = 0.0
+	_flash_rows.clear()
+	# 让下一帧的签名比较必然不等，避免把"切人"误判成"预览变化"而闪一下
+	_last_preview_sig = ""
+	_show("已选择 %s" % _display_name(character_id), ACCENT)
+	GameLog.info(TAG, "角色培养界面：切换到 %s（环境 %s）"
+		% [character_id, _env_name()])
 
 
 ## 按钮是否可点。**绘制与命中必须共用本判据**，否则会出现"看着是灰的、点了却生效"。
@@ -308,6 +401,8 @@ func _cycle_item() -> void:
 func _do_level_up(count: int) -> void:
 	if _selected_id.is_empty():
 		return
+	var p0 := _svc.get_progress(_selected_id)
+	var before: Dictionary = p0.compute_stats() if p0 != null else {}
 	var res := _svc.level_up_with_records(_selected_id, _preview_item, count)
 	if not bool(res.get("ok", false)):
 		_show("升级失败：%s" % str(res.get("reason", "")), DANGER)
@@ -323,6 +418,9 @@ func _do_level_up(count: int) -> void:
 	_show("%s 升至 Lv.%d，提升 %d 级%s" % [
 		_display_name(_selected_id), int(res.get("levelAfter", 0)),
 		int(res.get("levelsGained", 0)), extra], POSITIVE)
+	# 即时反馈：把真的变化了的属性行点亮一下（而不只是数字变了）
+	if p != null and not before.is_empty():
+		_flash_changed_rows(p, before, "levelup")
 	GameLog.info(TAG, "升级 %s → Lv.%d（投入 %d 份 %s，提升 %d 级，退回 %d EXP）" % [
 		_selected_id, p.level, count, _preview_item,
 		int(res.get("levelsGained", 0)), int(res.get("expRefunded", 0))])
@@ -336,6 +434,8 @@ func _do_breakthrough() -> void:
 	if not bool(q.get("ok", false)):
 		_show("无法突破：%s" % str(q.get("reason", "")), WARN)
 		return
+	var p0 := _svc.get_progress(_selected_id)
+	var before: Dictionary = p0.compute_stats() if p0 != null else {}
 	var res := _svc.do_breakthrough(_selected_id)
 	if not bool(res.get("ok", false)):
 		_show("突破失败：%s" % str(res.get("reason", "")), DANGER)
@@ -343,9 +443,14 @@ func _do_breakthrough() -> void:
 	if not _svc.commit():
 		_show("突破成功但存档写入失败（请检查磁盘）", DANGER)
 		return
+	var p := _svc.get_progress(_selected_id)
 	_show("%s 完成突破 %d（等级上限 Lv.%d）" % [
 		_display_name(_selected_id), int(res.get("breakthroughAfter", 0)),
-		_svc.get_progress(_selected_id).level_cap()], POSITIVE)
+		p.level_cap()], POSITIVE)
+	# 即时反馈：突破往往不直接改面板数值，但等级上限/节点轨道一定变了，
+	# 这里同时点亮变化的属性行，并让节点轨道重新高亮一次。
+	if p != null and not before.is_empty():
+		_flash_changed_rows(p, before, "breakthrough")
 	GameLog.info(TAG, "突破 %s → 第 %d 阶" % [_selected_id, int(res.get("breakthroughAfter", 0))])
 
 
@@ -377,11 +482,15 @@ func _currency_name(currency_id: String) -> String:
 # ============================================================ 美术资源访问（缺失即回退）
 
 ## 取图标贴图；缺失返回 null（调用方必须回退）。
+##
+## **统一从 64px 源图取**：图标资产同时提供 _32/_64 两版，若各处分别请求，
+## 同一行里会出现大小/锐度不一致的图标。固定用 64 源图再按目标尺寸缩放，
+## 保证任意位置的图标外观一致（贴图缓存按目标尺寸分开，规模有界）。
 func _icon_tex(name: String) -> Texture2D:
-	var key := "icon:" + name
+	var key := "icon:%s" % name
 	if _tex_cache.has(key):
 		return _tex_cache[key] as Texture2D
-	var t := ArtRegistry.icon(name, 64)
+	var t := ArtRegistry.icon(name, ICON_SRC_SIZE)
 	_tex_cache[key] = t
 	return t
 
@@ -435,6 +544,7 @@ func _draw_cover(tex: Texture2D, dest: Rect2) -> bool:
 
 
 ## 画图标；贴图缺失时退回同尺寸的圆角占位块（绝不空出、绝不崩溃）。
+## 图标按**正方形**绘制，因此尺寸统一即代表视觉重量一致。
 func _draw_icon(name: String, pos: Vector2, size: float, tint: Color = Color(1, 1, 1, 1)) -> void:
 	var tex := _icon_tex(name)
 	if tex == null:
@@ -442,6 +552,13 @@ func _draw_icon(name: String, pos: Vector2, size: float, tint: Color = Color(1, 
 			Rect2(pos, Vector2(size, size)))
 		return
 	draw_texture_rect(tex, Rect2(pos, Vector2(size, size)), false, tint)
+
+
+## 图标与文字的**基线对齐**助手：给定文字基线 y 与字号，返回图标左上角 y，
+## 使图标垂直中心落在文字视觉中心上（而不是让图标压着基线）。
+## 视觉中心取「基线 - 0.32×字号」，与 draw_string 的拉丁/汉字中段一致。
+func _icon_y_for_text(baseline_y: float, font_size: float, icon_size: float) -> float:
+	return baseline_y - font_size * 0.32 - icon_size * 0.5
 
 
 ## 缓存的圆角样式盒（固定配色集合，缓存规模有界）。
@@ -480,6 +597,66 @@ func _vgrad(top: Color, bottom: Color) -> GradientTexture2D:
 
 func _text_w(font: Font, text: String, size: float) -> float:
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(size)).x
+
+
+## 数字槽位字体：系统等宽字体优先（数字等宽、字形对齐），
+## 缺失时回退 fallback_font。**只影响数字排版，不改变任何数值来源。**
+func _mono_font() -> Font:
+	if _num_font != null:
+		return _num_font
+	var names := PackedStringArray([
+		"Consolas", "Cascadia Mono", "DejaVu Sans Mono",
+		"Liberation Mono", "Courier New", "monospace"])
+	for n: String in names:
+		var f := SystemFont.new()
+		f.font_names = PackedStringArray([n])
+		# 系统缺这个字族时 SystemFont 会回退到默认字体而不是报错；
+		# 这里只接受真的能给出字形的字体，避免拿到空字面。
+		if f.get_height(int(F_LABEL)) > 0.0:
+			_num_font = f
+			return _num_font
+	_num_font = ThemeDB.fallback_font
+	return _num_font
+
+
+## 数字转固定宽度字符串（右对齐补空格）。
+## 位数变化（如 97 → 1252）时，右侧内容不会左右跳动。
+func _num_slot(value: int) -> String:
+	var s := str(absi(value))
+	var pad := maxi(0, NUM_SLOT_DIGITS - s.length())
+	return " ".repeat(pad) + s if value >= 0 else "-" + " ".repeat(pad) + s
+
+
+## 描边宽度：小字 1px、大字 2px（参考画布像素，随 _scale 缩放）。
+func _outline_w(size: float) -> float:
+	return _px(OUTLINE_PX_LARGE if size >= OUTLINE_BOLD_FROM else OUTLINE_PX_SMALL)
+
+
+## 带深色描边的文字绘制（本界面**所有**文字都走这里）。
+##
+## 为什么需要：项目用 ThemeDB.fallback_font（MSDF、无粗体字面），
+## 细笔画压在校园背景/深色面板上会发虚，尤其小字号与红字告警。
+## 描边不改变字号与布局，因此不影响任何既有排版计算（_text_w 仍按无描边测量）。
+func _draw_text(font: Font, pos: Vector2, text: String, size: float, color: Color,
+		outline: bool = true) -> void:
+	var fs := int(size)
+	if fs <= 0 or text.is_empty():
+		return
+	if outline:
+		draw_string_outline(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
+			int(ceil(_outline_w(size))), OUTLINE_COLOR)
+	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, color)
+
+
+## 数字专用：等宽字体 + 右对齐到固定宽度槽 + 描边。
+## 返回实际绘制宽度（供调用方接着排版）。
+func _draw_number(pos_right: Vector2, value: int, size: float, color: Color,
+		outline: bool = true) -> float:
+	var f := _mono_font()
+	var s := str(value)
+	var w := _text_w(f, s, size)
+	_draw_text(f, Vector2(pos_right.x - w, pos_right.y), s, size, color, outline)
+	return w
 
 
 ## 依据视口与缩放计算全部矩形（绘制与命中共用）
@@ -658,8 +835,8 @@ func _draw_background() -> void:
 func _draw_center_text(text: String, color: Color) -> void:
 	var font := ThemeDB.fallback_font
 	var w := _text_w(font, text, F_LABEL)
-	draw_string(font, Vector2((_viewport.x - w) * 0.5, _viewport.y * 0.5), text,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), color)
+	_draw_text(font, Vector2((_viewport.x - w) * 0.5, _viewport.y * 0.5), text,
+		_px(F_LABEL), color)
 
 
 ## 顶部：标题 + 资源条（图标 + 数字并列）
@@ -671,15 +848,14 @@ func _draw_header(font: Font) -> void:
 		Color(0.30, 0.45, 0.72, 0.55), true)
 
 	# 标题徽记（icon_ap 仅作本页入口标识，不表示任何 AP 数值）
-	var emblem := _px(64.0)
+	var emblem := _px(ICON_SIZE_EMBLEM)
 	var ex := _px(48.0)
 	_draw_icon("icon_ap", Vector2(ex, _px(42.0)), emblem)
 	var tx := ex + emblem + _px(16.0)
-	draw_string(font, Vector2(tx, _px(88.0)), "角色培养",
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TITLE)), TEXT)
-	draw_string(font, Vector2(tx, _px(126.0)),
+	_draw_text(font, Vector2(tx, _px(88.0)), "角色培养", _px(F_TITLE), TEXT)
+	_draw_text(font, Vector2(tx, _px(126.0)),
 		"Alpha A0.1 — 等级 / 突破。技能 / 档案 / 故事属后续阶段。",
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)), DIM)
+		_px(F_TINY), DIM)
 
 	_draw_currency_bar(font)
 
@@ -693,16 +869,18 @@ func _draw_currency_bar(font: Font) -> void:
 
 	var chip_h := _px(52.0)
 	var chip_y := _px(48.0)
-	var icon_s := _px(36.0)
+	var icon_s := _px(ICON_SIZE_CHIP)
 	var gap := _px(12.0)
 
-	# 先量总宽，再整体右对齐
+	# 先量总宽，再整体右对齐。数量按**固定位数槽**测量，
+	# 这样数字从 0 变成 1200 时，整条资源栏不会左右伸缩。
 	var widths: Array[float] = []
 	var total := 0.0
 	for c: Dictionary in sorted:
 		var cid := str(c.get("id", ""))
-		var label := "%s %d" % [str(c.get("name", cid)), _svc.get_currency(cid)]
-		var w := _px(14.0) + icon_s + _px(10.0) + _text_w(font, label, F_LABEL) + _px(18.0)
+		var w := _px(14.0) + icon_s + _px(10.0) \
+			+ _text_w(font, str(c.get("name", cid)), F_LABEL) + _px(6.0) \
+			+ _text_w(_mono_font(), _num_slot(_svc.get_currency(cid)), F_LABEL) + _px(18.0)
 		widths.append(w)
 		total += w + gap
 	if not widths.is_empty():
@@ -712,14 +890,21 @@ func _draw_currency_bar(font: Font) -> void:
 	for i: int in range(sorted.size()):
 		var c: Dictionary = sorted[i]
 		var cid := str(c.get("id", ""))
-		var label := "%s %d" % [str(c.get("name", cid)), _svc.get_currency(cid)]
+		var label := str(c.get("name", cid))
 		var r := Rect2(Vector2(x, chip_y), Vector2(widths[i], chip_h))
 		draw_style_box(_sb(Color(0.08, 0.10, 0.18, 0.90), BORDER_SOFT, _px(8.0), _px(1.0)), r)
+		var text_base := r.position.y + chip_h * 0.5 + _px(8.0)
+		# 图标按文字基线对齐（而不是按 chip 中心），避免与汉字视觉错位
 		_draw_icon(str(CURRENCY_ICON.get(cid, "icon_material")),
-			Vector2(r.position.x + _px(14.0), r.position.y + (chip_h - icon_s) * 0.5), icon_s)
-		draw_string(font, Vector2(r.position.x + _px(14.0) + icon_s + _px(10.0),
-			r.position.y + chip_h * 0.5 + _px(8.0)),
-			label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), TEXT)
+			Vector2(r.position.x + _px(14.0),
+				_icon_y_for_text(text_base, F_LABEL, icon_s)), icon_s)
+		var nx := r.position.x + _px(14.0) + icon_s + _px(10.0)
+		_draw_text(font, Vector2(nx, text_base), label, _px(F_LABEL), TEXT)
+		nx += _text_w(font, label, F_LABEL) + _px(6.0)
+		# 数量：等宽字体 + 固定槽位，位数变化不跳动
+		_draw_text(_mono_font(),
+			Vector2(nx + _px(6.0), text_base), _num_slot(_svc.get_currency(cid)),
+			_px(F_LABEL), ACCENT)
 		x += widths[i] + gap
 
 
@@ -760,29 +945,35 @@ func _draw_character_card(character_id: String, rect: Rect2, index: int) -> void
 	else:
 		draw_style_box(_sb(role_color.darkened(0.58), role_color, _px(8.0), _px(2.0)), prect)
 		var ch := str(cfg.get("name", character_id)).substr(0, 1)
-		draw_string(font, Vector2(prect.position.x + (ps - _text_w(font, ch, F_TITLE)) * 0.5,
+		_draw_text(font, Vector2(prect.position.x + (ps - _text_w(font, ch, F_TITLE)) * 0.5,
 			prect.position.y + ps * 0.5 + _px(16.0)),
-			ch, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TITLE)), TEXT)
+			ch, _px(F_TITLE), TEXT)
 	draw_style_box(_sb(Color(0, 0, 0, 0), edge, _px(8.0), _px(2.0)), prect)
 
 	var tx := prect.position.x + ps + pad
 	var tw := maxf(_px(80.0), rect.position.x + rect.size.x - pad - tx)
 
 	# 姓名
-	draw_string(font, Vector2(tx, rect.position.y + rect.size.y * 0.44),
-		str(cfg.get("name", character_id)),
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_NAME)), TEXT)
+	_draw_text(font, Vector2(tx, rect.position.y + rect.size.y * 0.44),
+		str(cfg.get("name", character_id)), _px(F_NAME), TEXT)
 
 	# 等级 + 突破
 	if p != null:
-		var lv_text := "Lv.%d / %d" % [p.level, p.level_cap()]
 		var ly := rect.position.y + rect.size.y * 0.66
-		draw_string(font, Vector2(tx, ly), lv_text,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), ACCENT)
+		# 等级数字走等宽字体 + 固定槽位：Lv.7 → Lv.10 时右侧「突破 N」不跳动
+		var lv_head := "Lv."
+		var lv_head_w := _text_w(font, lv_head, F_LABEL)
+		_draw_text(font, Vector2(tx, ly), lv_head, _px(F_LABEL), ACCENT)
+		var cap_text := " / %d" % p.level_cap()
+		var num_w := _text_w(_mono_font(), _num_slot(p.level), F_LABEL)
+		_draw_text(_mono_font(), Vector2(tx + lv_head_w, ly), _num_slot(p.level),
+			_px(F_LABEL), ACCENT)
+		_draw_text(font, Vector2(tx + lv_head_w + num_w, ly), cap_text,
+			_px(F_LABEL), ACCENT)
+		var lv_text_w := lv_head_w + num_w + _text_w(font, cap_text, F_LABEL)
 		if p.breakthrough > 0:
-			draw_string(font, Vector2(tx + _text_w(font, lv_text, F_LABEL) + _px(14.0), ly),
-				"突破 %d" % p.breakthrough,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)), POSITIVE)
+			_draw_text(font, Vector2(tx + lv_text_w + _px(14.0), ly),
+				"突破 %d" % p.breakthrough, _px(F_TINY), POSITIVE)
 		# 迷你经验条
 		var bar := Rect2(Vector2(tx, rect.position.y + rect.size.y - _px(34.0)),
 			Vector2(tw, _px(12.0)))
@@ -796,14 +987,13 @@ func _draw_character_card(character_id: String, rect: Rect2, index: int) -> void
 		Vector2(rw, _px(32.0)))
 	draw_style_box(_sb(Color(role_color.r, role_color.g, role_color.b, 0.18),
 		role_color, _px(6.0), _px(1.0)), rrect)
-	draw_string(font, Vector2(rrect.position.x + _px(10.0), rrect.position.y + _px(23.0)),
-		role, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)), role_color)
+	_draw_text(font, Vector2(rrect.position.x + _px(10.0), rrect.position.y + _px(23.0)),
+		role, _px(F_TINY), role_color)
 
 	# 序号（右下）
 	var idx_label := "[%d]" % (index + 1)
-	draw_string(font, Vector2(rect.position.x + rect.size.x - pad - _text_w(font, idx_label, F_TINY),
-		rect.position.y + rect.size.y - _px(14.0)), idx_label,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)), FAINT)
+	_draw_text(font, Vector2(rect.position.x + rect.size.x - pad - _text_w(font, idx_label, F_TINY),
+		rect.position.y + rect.size.y - _px(14.0)), idx_label, _px(F_TINY), FAINT)
 
 
 ## 左下：学习记录库存（图标 + 名称 + 持有本数 + 单份 EXP）
@@ -815,8 +1005,7 @@ func _draw_study_inventory(font: Font) -> void:
 	var iy := r.position.y + pad
 	var iw := maxf(_px(120.0), r.size.x - pad * 2.0)
 
-	draw_string(font, Vector2(ix, iy + _px(24.0)), "学习记录库存",
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), TEXT)
+	_draw_text(font, Vector2(ix, iy + _px(24.0)), "学习记录库存", _px(F_LABEL), TEXT)
 
 	var items: Array = DataRegistry.get_domain("currencies").get("studyRecordItems", [])
 	var row_h := _px(56.0)
@@ -830,20 +1019,18 @@ func _draw_study_inventory(font: Font) -> void:
 			Color(0.16, 0.30, 0.50, 0.85) if picked else Color(0.08, 0.10, 0.18, 0.80),
 			ACCENT if picked else BORDER_SOFT, _px(8.0),
 			_px(2.0) if picked else _px(1.0)), rr)
-		var ic := _px(36.0)
+		var ic := _px(ICON_SIZE_ROW)
+		var row_base := rr.position.y + row_h * 0.5 + _px(9.0)
 		_draw_icon("icon_study_record",
-			Vector2(rr.position.x + _px(12.0), rr.position.y + (row_h - ic) * 0.5), ic)
-		draw_string(font, Vector2(rr.position.x + _px(12.0) + ic + _px(12.0),
-			rr.position.y + row_h * 0.5 + _px(9.0)),
-			str(item.get("name", iid)), HORIZONTAL_ALIGNMENT_LEFT, -1,
-			int(_px(F_LABEL)), TEXT if picked else DIM)
+			Vector2(rr.position.x + _px(12.0),
+				_icon_y_for_text(row_base, F_LABEL, ic)), ic)
+		_draw_text(font, Vector2(rr.position.x + _px(12.0) + ic + _px(12.0), row_base),
+			str(item.get("name", iid)), _px(F_LABEL), TEXT if picked else DIM)
 		var right := "持有 %d 本 · %d EXP/本" % [
 			_svc.get_currency(iid), int(item.get("expValue", 0))]
-		draw_string(font, Vector2(
-			rr.position.x + rr.size.x - _px(12.0) - _text_w(font, right, F_TINY),
-			rr.position.y + row_h * 0.5 + _px(9.0)),
-			right, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)),
-			ACCENT if picked else DIM)
+		_draw_text(font, Vector2(
+			rr.position.x + rr.size.x - _px(12.0) - _text_w(font, right, F_TINY), row_base),
+			right, _px(F_TINY), ACCENT if picked else DIM)
 		ry += row_h + rgap
 
 
@@ -876,8 +1063,8 @@ func _draw_growth_panel(font: Font) -> void:
 	var iw := _panel_rect.size.x - _px(64.0)
 	var rx := prect.position.x + prect.size.x + _px(32.0)
 
-	draw_string(font, Vector2(rx, iy + _px(44.0)), _display_name(_selected_id),
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TITLE)), TEXT)
+	_draw_text(font, Vector2(rx, iy + _px(44.0)), _display_name(_selected_id),
+		_px(F_TITLE), TEXT)
 
 	# 定位标签
 	var role := _role_label(behavior)
@@ -885,17 +1072,20 @@ func _draw_growth_panel(font: Font) -> void:
 	var rrect := Rect2(Vector2(rx, iy + _px(62.0)), Vector2(role_w, _px(34.0)))
 	draw_style_box(_sb(Color(role_color.r, role_color.g, role_color.b, 0.18),
 		role_color, _px(6.0), _px(1.0)), rrect)
-	draw_string(font, Vector2(rrect.position.x + _px(12.0), rrect.position.y + _px(24.0)),
-		role, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)), role_color)
+	_draw_text(font, Vector2(rrect.position.x + _px(12.0), rrect.position.y + _px(24.0)),
+		role, _px(F_TINY), role_color)
 
-	# 大号等级数字 + 上限
-	var lv_text := "Lv.%d" % p.level
-	var lv_w := _text_w(font, lv_text, F_BIG_LEVEL)
-	draw_string(font, Vector2(rx, iy + _px(150.0)), lv_text,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_BIG_LEVEL)), ACCENT)
-	draw_string(font, Vector2(rx + lv_w + _px(20.0), iy + _px(118.0)),
-		"等级上限 Lv.%d" % p.level_cap(),
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), DIM)
+	# 大号等级数字 + 上限。等级数字用等宽字体 + 固定槽位：
+	# Lv.7 → Lv.10 → Lv.40 时，右侧「等级上限 / 突破阶段」不会左右横跳。
+	var lv_head := "Lv."
+	var lv_head_w := _text_w(font, lv_head, F_BIG_LEVEL)
+	var lv_num_w := _text_w(_mono_font(), _num_slot(p.level), F_BIG_LEVEL)
+	_draw_text(font, Vector2(rx, iy + _px(150.0)), lv_head, _px(F_BIG_LEVEL), ACCENT)
+	_draw_text(_mono_font(), Vector2(rx + lv_head_w, iy + _px(150.0)),
+		_num_slot(p.level), _px(F_BIG_LEVEL), ACCENT)
+	var lv_w := lv_head_w + lv_num_w
+	_draw_text(font, Vector2(rx + lv_w + _px(20.0), iy + _px(118.0)),
+		"等级上限 Lv.%d" % p.level_cap(), _px(F_LABEL), DIM)
 
 	# 突破阶段（放在大号等级数字右侧的第二行，避免与经验条抢位）
 	var next_lv := p.next_breakthrough_level()
@@ -904,23 +1094,24 @@ func _draw_growth_panel(font: Font) -> void:
 		bt_text += "  ·  下一阶需 Lv.%d" % int(
 			(DataRegistry.get_domain("character_growth").get("breakthroughs", [])[next_lv - 1]
 				as Dictionary).get("requiredLevel", 0))
-	draw_string(font, Vector2(rx + lv_w + _px(20.0), iy + _px(150.0)), bt_text,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), TEXT)
+	_draw_text(font, Vector2(rx + lv_w + _px(20.0), iy + _px(150.0)), bt_text,
+		_px(F_LABEL), TEXT)
 
 	# ---- 经验条（标签在条上方一行，条与头像底边对齐）----
 	var need := p.exp_to_next()
 	var bar := _exp_rect
 	var exp_label := "经验  %s" % ("已满级" if need <= 0 else "%d / %d EXP" % [p.exp, need])
-	draw_string(font, Vector2(bar.position.x, bar.position.y - _px(12.0)), exp_label,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), TEXT)
+	_draw_text(font, Vector2(bar.position.x, bar.position.y - _px(12.0)), exp_label,
+		_px(F_LABEL), TEXT)
 	# 实时预览等级（只读影子推演，不改真实状态）
 	if need > 0 and _preview_count > 0:
 		var shadow := _preview_shadow(p)
 		if shadow != null and shadow.level > p.level:
 			var pv := "预览 → Lv.%d" % shadow.level
-			draw_string(font, Vector2(bar.position.x + bar.size.x - _text_w(font, pv, F_LABEL),
-				bar.position.y - _px(12.0)), pv,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), POSITIVE)
+			# 预览等级同样带脉冲，与属性行增量同步闪烁
+			var pv_col := POSITIVE_DELTA if _delta_pulse > 0.05 else POSITIVE
+			_draw_text(font, Vector2(bar.position.x + bar.size.x - _text_w(font, pv, F_LABEL),
+				bar.position.y - _px(12.0)), pv, _px(F_LABEL), pv_col)
 	_draw_exp_bar(bar, p, true)
 
 	# ---- 突破节点 ----
@@ -935,13 +1126,17 @@ func _draw_growth_panel(font: Font) -> void:
 		var action := str(b["action"])
 		var label := ""
 		var icon := ""
+		var active := false
 		match action:
 			"cycle_item":
 				label = "学习记录类型：%s（点击切换）" % _item_name(_preview_item)
 				icon = "icon_refresh"
 			"preview":
-				label = "投入 %d 份" % int(b.get("arg", 0))
+				var cnt := int(b.get("arg", 0))
+				label = "投入 %d 份" % cnt
 				icon = "icon_study_record"
+				# 当前生效的档位：与预览份数一致时高亮为"已选中"
+				active = _preview_count > 0 and cnt == _preview_count
 			"levelup":
 				label = "升级（投入 %d 份）" % maxi(1, _preview_count)
 				icon = "icon_confirm"
@@ -949,7 +1144,7 @@ func _draw_growth_panel(font: Font) -> void:
 				label = "突破"
 				icon = "icon_rift_shard"
 		# 可点状态由 _button_enabled 唯一决定：绘制与命中不会出现分歧
-		_draw_button(r, label, _button_enabled(action, b.get("arg", null)), icon)
+		_draw_button(r, label, _button_enabled(action, b.get("arg", null)), icon, active)
 
 
 ## 经验条：底槽 + 填充 + 高光 + 边框 + 文本
@@ -975,11 +1170,11 @@ func _draw_exp_bar(bar: Rect2, p: CharacterProgress, with_text: bool) -> void:
 			radius, _px(1.0)), bar)
 	if with_text and bar.size.x > _px(180.0):
 		var label := "已满级" if need <= 0 else "%d / %d" % [p.exp, need]
-		var tw := _text_w(ThemeDB.fallback_font, label, F_TINY)
-		draw_string(ThemeDB.fallback_font,
-			Vector2(bar.position.x + (bar.size.x - tw) * 0.5,
-				bar.position.y + bar.size.y * 0.5 + _px(8.0)),
-			label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)),
+		var f := _mono_font() if need > 0 else ThemeDB.fallback_font
+		var tw := _text_w(f, label, F_TINY)
+		_draw_text(f, Vector2(bar.position.x + (bar.size.x - tw) * 0.5,
+			bar.position.y + bar.size.y * 0.5 + _px(8.0)),
+			label, _px(F_TINY),
 			TEXT if ratio < 0.55 else Color(0.06, 0.09, 0.16))
 
 
@@ -991,14 +1186,14 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 	if iw <= 0.0:
 		return
 
-	draw_string(font, Vector2(ix, band.position.y + _px(24.0)), "突破节点",
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), DIM)
+	_draw_text(font, Vector2(ix, band.position.y + _px(24.0)), "突破节点",
+		_px(F_LABEL), DIM)
 
 	var levels: Array = DataRegistry.get_domain("character_growth").get("globalRules", {}) \
 		.get("breakthroughLevels", [])
 	if levels.is_empty():
-		draw_string(font, Vector2(ix, band.position.y + _px(72.0)), "（突破节点数据缺失）",
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), WARN)
+		_draw_text(font, Vector2(ix, band.position.y + _px(72.0)), "（突破节点数据缺失）",
+			_px(F_LABEL), WARN)
 		return
 
 	var node_cy := band.position.y + _px(84.0)
@@ -1008,13 +1203,21 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 	var span := maxf(_px(1.0), iw - half * 2.0)
 	var step := span / float(maxi(1, n - 1))
 
-	# 连线（已走过的段用冰蓝，未走到的段用暗色）
+	# 连线：**已走过的段**（即已达成突破之间的段）用冰蓝实线 + 底部投影，
+	# 未走到的段用暗色虚线。让"进度到哪一格"沿轨道一眼可读。
 	for i: int in range(n - 1):
 		var x0 := ix + half + step * float(i)
 		var x1 := ix + half + step * float(i + 1)
+		var a := Vector2(x0 + half * 0.7, node_cy)
+		var b := Vector2(x1 - half * 0.7, node_cy)
 		var done := (i + 1) < p.breakthrough
-		draw_line(Vector2(x0 + half * 0.7, node_cy), Vector2(x1 - half * 0.7, node_cy),
-			ACCENT if done else Color(0.22, 0.27, 0.40), _px(3.0), true)
+		if done:
+			# 已达成段：外发光 + 亮线，明确"这段已经过去"
+			draw_line(a, b, Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.28), _px(9.0), true)
+			draw_line(a, b, ACCENT, _px(4.0), true)
+		else:
+			# 未达成段：暗色虚线，与实线形成"未走通"的语义
+			_draw_dashed_line(a, b, Color(0.26, 0.32, 0.46), _px(3.0), _px(9.0), _px(7.0))
 
 	# 节点
 	for i: int in range(n):
@@ -1041,16 +1244,16 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 			draw_circle(Vector2(cx, node_cy), half * 0.42, Color(0.055, 0.065, 0.115))
 		var lv := int(levels[i])
 		var txt := "Lv.%d" % lv
-		draw_string(font, Vector2(cx - _text_w(font, txt, F_TINY) * 0.5, label_y), txt,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)),
-			ACCENT if achieved else FAINT)
+		# 节点等级：等宽字体居中 + 描边；已达成亮冰蓝，未达成冷灰
+		var f := _mono_font()
+		_draw_text(f, Vector2(cx - _text_w(f, txt, F_TINY) * 0.5, label_y), txt,
+			_px(F_TINY), ACCENT if achieved else FAINT)
 
 	# ---- 成本 / 原因 ----
 	var next := p.next_breakthrough_level()
 	var cost_y := label_y + _px(34.0)
 	if next <= 0:
-		draw_string(font, Vector2(ix, cost_y), "已完成全部突破",
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), POSITIVE)
+		_draw_text(font, Vector2(ix, cost_y), "已完成全部突破", _px(F_LABEL), POSITIVE)
 		return
 
 	var q := _svc.query_breakthrough(_selected_id)
@@ -1058,39 +1261,57 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 	var cost := p.next_breakthrough_cost()
 	var cx2 := ix
 	var head := "突破 %d 需要：" % next
-	draw_string(font, Vector2(cx2, cost_y), head,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), DIM)
+	_draw_text(font, Vector2(cx2, cost_y), head, _px(F_LABEL), DIM)
 	cx2 += _text_w(font, head, F_LABEL) + _px(8.0)
-	var icon_s := _px(28.0)
+	var icon_s := _px(ICON_SIZE_COST)
 	for cid: String in cost.keys():
 		var req := int(cost[cid])
 		if req <= 0:
 			continue
 		var have := _svc.get_currency(cid)
+		# 图标按文字基线对齐（此前是 cost_y - icon_s + 4，视觉上偏上）
 		_draw_icon(str(CURRENCY_ICON.get(cid, "icon_material")),
-			Vector2(cx2, cost_y - icon_s + _px(4.0)), icon_s)
+			Vector2(cx2, _icon_y_for_text(cost_y, F_LABEL, icon_s)), icon_s)
 		cx2 += icon_s + _px(6.0)
-		var part := "%s %d/%d" % [_currency_name(cid), have, req]
-		draw_string(font, Vector2(cx2, cost_y), part,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)),
-			POSITIVE if have >= req else WARN)
-		cx2 += _text_w(font, part, F_LABEL) + _px(22.0)
+		# 「持有/需求」用等宽数字右对齐，位数不同也不会让后面的资源名错位
+		var name_part := "%s " % _currency_name(cid)
+		_draw_text(font, Vector2(cx2, cost_y), name_part, _px(F_LABEL), DIM)
+		cx2 += _text_w(font, name_part, F_LABEL)
+		var num_part := "%d/%d" % [have, req]
+		# **资源不足必须清晰可读**：亮红 + 描边（描边由 _draw_text 统一加）
+		_draw_text(_mono_font(), Vector2(cx2, cost_y), num_part, _px(F_LABEL),
+			POSITIVE_DELTA if have >= req else INSUFFICIENT)
+		cx2 += _text_w(_mono_font(), num_part, F_LABEL) + _px(22.0)
 
 	if not q_ok:
 		var reason := str(q.get("reason", ""))
 		if not reason.is_empty():
-			draw_string(font, Vector2(ix, cost_y + _px(30.0)), "· %s" % reason,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)), WARN)
+			_draw_text(font, Vector2(ix, cost_y + _px(30.0)), "· %s" % reason,
+				_px(F_TINY), WARN)
 
 
-## 面板属性：图标 + 名称 + 当前值 + 升级预览的 +N 绿色增量
+## 画虚线（未达成段的轨道）。沿 a→b 按 dash/gap 交替绘制。
+func _draw_dashed_line(a: Vector2, b: Vector2, color: Color, width: float,
+		dash: float, gap: float) -> void:
+	var total := a.distance_to(b)
+	if total <= 0.0:
+		return
+	var dir := (b - a) / total
+	var t := 0.0
+	while t < total:
+		var t1 := minf(t + dash, total)
+		draw_line(a + dir * t, a + dir * t1, color, width, true)
+		t = t1 + gap
+
+
+## 面板属性：图标 + 名称 + 当前值 + 升级预览的 +N 绿色增量（带闪烁/上浮动画）
 func _draw_stats_section(font: Font, p: CharacterProgress) -> void:
 	var r := _stats_rect
 	draw_style_box(_sb(Color(0.075, 0.090, 0.160, 0.90), BORDER_SOFT, _px(10.0), _px(1.0)), r)
 
 	var pad := _px(20.0)
-	draw_string(font, Vector2(r.position.x + pad, r.position.y + _px(30.0)), "当前面板",
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)), DIM)
+	_draw_text(font, Vector2(r.position.x + pad, r.position.y + _px(30.0)), "当前面板",
+		_px(F_TINY), DIM)
 
 	var cur := p.compute_stats()
 	var preview := _preview_stats(p)
@@ -1106,24 +1327,70 @@ func _draw_stats_section(font: Font, p: CharacterProgress) -> void:
 	var inner_w := r.size.x - pad * 2.0
 	var cell_w := inner_w / float(shown.size())
 	var cy := r.position.y + _px(78.0)
-	var icon_s := _px(34.0)
+	var icon_s := _px(ICON_SIZE_STAT)
+	# 闪烁：预览变化后短暂放大/加亮；上浮：+N 短暂抬起再落位
+	var pulse := _delta_pulse
+	var lift := -_px(10.0) * _delta_float
 	for i: int in range(shown.size()):
 		var k: String = shown[i]
 		var x := r.position.x + pad + cell_w * float(i)
+		# 图标按属性名基线对齐
+		var name_base := cy - _px(6.0)
 		_draw_icon(str(STAT_ICON.get(k, "icon_material")),
-			Vector2(x, cy - icon_s + _px(6.0)), icon_s)
+			Vector2(x, _icon_y_for_text(name_base, F_TINY, icon_s)), icon_s)
 		var tx := x + icon_s + _px(10.0)
-		draw_string(font, Vector2(tx, cy - _px(6.0)), _stat_name(k),
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_TINY)), DIM)
+		_draw_text(font, Vector2(tx, name_base), _stat_name(k), _px(F_TINY), DIM)
+
 		var val_text := "%d" % int(cur[k])
-		draw_string(font, Vector2(tx, cy + _px(28.0)), val_text,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), TEXT)
-		# 升级预览增量：+N 绿色提示
+		# 当前值：等宽字体 + 固定槽位，位数变化时 +N 不会左右跳
+		var val_w := _text_w(_mono_font(), _num_slot(int(cur[k])), F_LABEL)
+		# 升级/突破刚发生：该属性行瞬时高亮（底色块 + 更亮的数值）
+		var flash := float(_flash_rows.get(k, 0.0))
+		if flash > 0.0:
+			var glow := Color(POSITIVE_GLOW.r, POSITIVE_GLOW.g, POSITIVE_GLOW.b,
+				0.22 * clampf(flash / 1.2, 0.0, 1.0)) \
+				if _flash_kind == "levelup" \
+				else Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.22 * clampf(flash / 1.2, 0.0, 1.0))
+			draw_style_box(_sb(glow, Color(0, 0, 0, 0), _px(6.0), 0.0),
+				Rect2(Vector2(x - _px(6.0), cy - _px(22.0)),
+					Vector2(cell_w - _px(16.0), _px(52.0))))
+		var val_col := TEXT
+		if flash > 0.0:
+			val_col = POSITIVE_DELTA if _flash_kind == "levelup" else Color(0.80, 0.94, 1.0)
+		_draw_text(_mono_font(), Vector2(tx, cy + _px(28.0)), _num_slot(int(cur[k])),
+			_px(F_LABEL), val_col)
+
+		# 升级预览增量：+N 亮绿 + 脉冲发光 + 短暂上浮
 		if preview.has(k) and int(preview[k]) > int(cur[k]):
 			var delta := "+%d" % (int(preview[k]) - int(cur[k]))
-			draw_string(font, Vector2(tx + _text_w(font, val_text, F_LABEL) + _px(12.0),
-				cy + _px(28.0)), delta,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(F_LABEL)), POSITIVE)
+			var dx := tx + val_w + _px(12.0)
+			var dy := cy + _px(28.0) + lift
+			if pulse > 0.02:
+				# 发光底衬：脉冲越强越大越亮，让"数值刚刚变了"被看见
+				var fw := _text_w(font, delta, F_LABEL)
+				draw_style_box(_sb(Color(POSITIVE_GLOW.r, POSITIVE_GLOW.g, POSITIVE_GLOW.b,
+					0.30 * pulse), Color(0, 0, 0, 0), _px(6.0), 0.0),
+					Rect2(Vector2(dx - _px(6.0), dy - _px(24.0)),
+						Vector2(fw + _px(12.0), _px(34.0))))
+			# 脉冲期间数字更亮（POSITIVE_DELTA），衰减后回到常规薄荷绿
+			var dcol := POSITIVE_DELTA.lerp(POSITIVE, clampf(1.0 - pulse, 0.0, 1.0))
+			_draw_text(font, Vector2(dx, dy), delta, _px(F_LABEL), dcol)
+
+
+## 升级/突破成功后：点亮发生变化的属性行（即时反馈，而不只是数字变了）。
+## 纯表现：只读 compute_stats 的差值，不触碰任何领域状态。
+func _flash_changed_rows(p: CharacterProgress, before: Dictionary, kind: String) -> void:
+	var after := p.compute_stats()
+	_flash_rows.clear()
+	for k: String in after.keys():
+		if not before.has(k):
+			continue
+		if int(after[k]) != int(before[k]):
+			_flash_rows[k] = 1.2
+	if not _flash_rows.is_empty():
+		_flash_kind = kind
+		_delta_pulse = 1.0
+		_delta_float = 1.0
 
 
 ## 底部反馈条
@@ -1135,22 +1402,31 @@ func _draw_feedback(font: Font) -> void:
 	var box := Rect2(Vector2(pos.x - _px(22.0), pos.y - _px(32.0)),
 		Vector2(w + _px(44.0), _px(50.0)))
 	draw_style_box(_sb(Color(0.035, 0.045, 0.085, 0.94), _feedback_color, _px(10.0), _px(2.0)), box)
-	draw_string(font, pos, _feedback, HORIZONTAL_ALIGNMENT_LEFT, -1,
-		int(_px(F_BODY)), _feedback_color)
+	_draw_text(font, pos, _feedback, _px(F_BODY), _feedback_color)
 
 
-## 按钮三态：正常 / 悬停 / 禁用（填充 + 边框 + 文字色同时变化，禁用态一眼可辨）
-func _draw_button(rect: Rect2, label: String, enabled: bool, icon: String = "") -> void:
+## 按钮状态：正常 / 悬停 / **已选中** / 禁用 / 悬停在禁用上。
+## 填充 + 边框 + 文字色三者同时变化，保证任一状态一眼可辨。
+##   active: 当前生效的档位（如「投入 5 份」正是预览中的份数）
+func _draw_button(rect: Rect2, label: String, enabled: bool, icon: String = "",
+		active: bool = false) -> void:
 	var font := ThemeDB.fallback_font
-	var hovered := enabled and rect.has_point(_mouse_pos)
+	var over := rect.has_point(_mouse_pos)
+	var hovered := enabled and over
 
 	var fill := BUTTON
 	var edge := BUTTON_BORDER
 	var txt := TEXT
 	if not enabled:
 		fill = BUTTON_DISABLED
-		edge = BUTTON_BORDER_DISABLED
+		# 鼠标停在禁用按钮上：描边转红，明确"这里点不动"，
+		# 而不是让玩家点下去之后才在底部看到原因。
+		edge = BUTTON_BORDER_REJECT if over else BUTTON_BORDER_DISABLED
 		txt = TEXT_DISABLED
+	elif active:
+		fill = BUTTON_ACTIVE
+		edge = BUTTON_BORDER_ACTIVE
+		txt = Color(1, 1, 1)
 	elif hovered:
 		fill = BUTTON_HOVER
 		edge = BUTTON_BORDER_HOVER
@@ -1162,21 +1438,29 @@ func _draw_button(rect: Rect2, label: String, enabled: bool, icon: String = "") 
 		draw_rect(Rect2(Vector2(rect.position.x + _px(3.0), rect.position.y + _px(3.0)),
 			Vector2(maxf(0.0, rect.size.x - _px(6.0)), _px(2.0))),
 			Color(1.0, 1.0, 1.0, 0.22), true)
+	# 已选中档位：左侧一条亮色指示条，与 hover 区分开
+	if active:
+		draw_style_box(_sb(BUTTON_BORDER_ACTIVE, Color(0, 0, 0, 0), _px(2.0), 0.0),
+			Rect2(Vector2(rect.position.x + _px(6.0), rect.position.y + _px(10.0)),
+				Vector2(_px(4.0), maxf(_px(4.0), rect.size.y - _px(20.0)))))
 
 	var font_sz := _px(F_LABEL)
-	var icon_s := _px(30.0)
+	var icon_s := _px(ICON_SIZE_BUTTON)
 	var tw := _text_w(font, label, F_LABEL)
 	var total := tw
 	if not icon.is_empty():
 		total += icon_s + _px(10.0)
 	var x := rect.position.x + (rect.size.x - total) * 0.5
+	# 垂直居中：用字体自身的 ascent/descent 求基线，
+	# 而不是经验常数（后者在字号或字体变化时会偏上/偏下）。
 	var mid := rect.position.y + rect.size.y * 0.5
+	var fs := int(font_sz)
+	var baseline := mid + (font.get_ascent(fs) - font.get_descent(fs)) * 0.5
 	if not icon.is_empty():
-		_draw_icon(icon, Vector2(x, mid - icon_s * 0.5), icon_s,
+		_draw_icon(icon, Vector2(x, _icon_y_for_text(baseline, F_LABEL, icon_s)), icon_s,
 			Color(1, 1, 1, 1.0 if enabled else 0.45))
 		x += icon_s + _px(10.0)
-	draw_string(font, Vector2(x, mid + font_sz * 0.36), label,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(font_sz), txt)
+	_draw_text(font, Vector2(x, baseline), label, font_sz, txt)
 
 
 # ============================================================ 预览推演（只读，不改状态）
