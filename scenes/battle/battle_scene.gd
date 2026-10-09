@@ -608,7 +608,8 @@ func _process(delta: float) -> void:
 		GameLog.info(TAG, "战斗结束：%s" % BattleTypes.outcome_name(session.outcome))
 	if _autoplay:
 		_drive_autoplay()
-		_write_art_probe()
+	# 开发/验收探针（函数内部按 _testenv 隔离自 gating；正式玩家目录不会写）
+	_write_art_probe()
 
 
 # ============================================================
@@ -2609,6 +2610,9 @@ func _draw_tutorial_cards() -> void:
 		var box_w := maxf(w_title, w_text) + _px(30.0)
 		var box_h := _px(34.0) + (_px(24.0) if not title.is_empty() else 0.0)
 		var box := Rect2(Vector2(_px(24.0), y), Vector2(box_w, box_h))
+		# 多张卡纵向堆叠：上一轮实机截图发现两卡同帧时完全重叠、文字互压。
+		# y 在每张实际绘制的卡之后推进（含 8px 间隙）。
+		y += box_h + _px(8.0)
 		draw_rect(box, Color(0.05, 0.06, 0.12, 0.90 * alpha), true)
 		# 左侧强调条：新敌人提示用品红（危险语义），教学提示用冰蓝（可交互语义）
 		var accent := DANGER_COLOR if not str(card["enemyId"]).is_empty() else Color(0.45, 0.78, 1.0)
@@ -3716,10 +3720,16 @@ func _write_art_probe() -> void:
 	DirAccess.make_dir_recursive_absolute("user://art_probe")
 	var file := FileAccess.open("user://art_probe/latest.json", FileAccess.WRITE)
 	if file != null:
+		# cardRects（画布坐标）与 canvas 尺寸：供 OS 级真实鼠标悬停取证换算用。
+		var card_rects: Array = []
+		for r: Rect2 in _card_rects:
+			card_rects.append([r.position.x, r.position.y, r.size.x, r.size.y])
 		file.store_string(JSON.stringify({"stage": session.stage.stage_id, "time": _now(),
 			"outcome": BattleTypes.outcome_name(session.outcome), "enemies": enemies,
 			"characters": characters, "activeVfx": active_vfx, "actualDrawLedger": _art_drawn,
 			"missedDamageEvents": _damage_events.missed_events,
+			"cardRects": card_rects,
+			"canvas": [get_viewport_rect().size.x, get_viewport_rect().size.y],
 			"renderFrame": Engine.get_frames_drawn()}))
 
 func _report_after_last_draw() -> void:
