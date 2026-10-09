@@ -1,0 +1,165 @@
+# 《星丘残响》美术工具链与自动化使用说明
+
+> 版本：2026-10-10（六小时无人值守美术施工产出）
+> 全部工具均为**免费/开源或本机既有**，零额外支出。
+
+## 1. 工具链总览
+
+| 环节 | 工具 | 版本 | 许可证 | 安装位置 | 是否进入发行包 |
+|---|---|---|---|---|---|
+| 图像生成 | ChatGPT 订阅通道（gpt-image-2.5-flare） | — | 用户自有订阅 | 由 DSH `generate_images` 调用 | 否（仅产源图） |
+| 像素化 / 调色板量化 | Pillow | 12.3.0 | MIT-CMU | DSH 内置 Python 运行时 | 否（仅构建期） |
+| 运行脚本 | CPython | DSH 内置 | PSF-2.0 | `~/.dsh/dsh-runtimes/.../python/python.exe` | 否 |
+| 引擎 | Godot Engine | 4.7.2-stable | MIT | `D:\星丘基础\godot\` | 是（引擎本体随导出包） |
+| 单元测试 | GUT | 9.7.1 | MIT | `addons/gut/` | 否（仅测试） |
+| 实机取证 | PowerShell + .NET `CopyFromScreen` | 系统自带 | — | `_testenv/artshot.ps1` | 否 |
+
+**没有引入任何需要付费的软件、插件、素材或按量计费 API。**
+**没有下载任何来路不明的可执行程序。** 新增的全部是自写的 Python 胶水脚本（见 §2）。
+
+## 2. 自建流水线（`D:\星丘残响\art_src\tools\`）
+
+这些是**只为本项目特有流程写的胶水代码**；通用能力（图像解码/缩放/量化、调色板索引化、
+洪泛填充、帧条拼装）全部复用 Pillow，未自研通用绘图或动画编辑器。
+
+| 脚本 | 职责 |
+|---|---|
+| `palette.py` | 全局调色板（取自概念图色板）+ `quantize_to_palette()` 索引色量化 |
+| `pixelize.py` | 高分辨率图 → **真像素图**：alpha 硬阈值 → 自动裁剪 → BOX 下采样 → 调色板量化 → 1px 描边 |
+| `anim.py` | **从单张基准图确定性派生整套动画帧**（杜绝帧间身份漂移） |
+| `build_assets.py` | 批量产出角色/敌人资产（5 套动画 × 每实体） |
+| `build_bg.py` | 背景资产（cover 裁剪到 1920×1080 + 色调归一） |
+| `slice_icons.py` | 图标表切片 + 去背景 + 透明化 + 双档输出（32/64） |
+| `build_portraits.py` | 角色头像（256 / 64 两档） |
+| `build_vfx.py` | 特效帧表切片（6 组 × 8 帧） |
+| `manifest.py` | 资产生成来源与 SHA256 清单（含概念图只读核验） |
+| `compare.py` | 改造前后对比图（只做等宽拼接与标注，不改画面内容） |
+
+### 2.1 复现整套资产
+
+```powershell
+$py = "C:\Users\linvisxie\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\python\python.exe"
+cd D:\星丘残响
+
+& $py art_src\tools\build_assets.py all      # 角色 + 敌人
+& $py art_src\tools\build_bg.py              # 背景
+& $py art_src\tools\slice_icons.py           # UI 图标
+& $py art_src\tools\build_portraits.py       # 角色头像
+& $py art_src\tools\build_vfx.py             # 战斗特效
+& $py art_src\tools\manifest.py              # 来源与完整性清单
+```
+
+流水线是**确定性**的（无随机数），同一输入 + 同一参数必然得到同一输出。
+
+### 2.2 关键设计决策
+
+**为什么"从单张基准图派生动画"而不是逐帧生成？**
+
+本轮指令第七章要求"如果自动生成素材的连续动作存在质量问题，优先制作一致、
+稳定、帧数较少但可用的像素动画，而不是大量风格漂移的假动作帧"。
+逐帧 AI 生成无法保证同一角色在不同帧之间保持身份一致（发型、服装、比例会漂移）。
+因此采用：**AI 只生成 1 张高质量基准图 → 确定性几何/色调变换派生整套动画**。
+代价是动作幅度受限于平移/缩放/色调，收益是帧间**零漂移**、脚底锚点恒定、
+配色完全一致。这是刻意的质量取舍，已在覆盖清单中标注为待精修项。
+
+**为什么背景不量化到调色板？**
+
+V2.1.4 J 章允许"高分辨率绘制背景配合像素角色的混合表现"。
+黄昏渐变需要比角色更宽的色域，强行量化会产生色带。因此背景保留宽色域，
+但统一做一次对比/饱和归一，保证跨背景色调一致。
+
+## 3. 游戏内集成层
+
+### 3.1 `scripts/art/art_registry.gd`（`class_name ArtRegistry`）
+
+统一解析入口。核心纪律：
+
+> **资源缺失时一律返回 `null`，由调用方回退到几何绘制。**
+
+这条保证了美术资产**永远不是游戏可运行的硬依赖**——删掉整个 `assets/art/`
+游戏仍能跑（只是退回几何占位观感）。这直接对应本轮指令第九章 9.4
+"不包含缺失资源引用"与"美术施工不得破坏已有功能"。
+
+主要 API：
+
+```gdscript
+ArtRegistry.character_base(char_id)              # 基准 Sprite
+ArtRegistry.character_frame(char_id, anim, t)    # 动画帧（按时间取）
+ArtRegistry.character_portrait(char_id, 64)      # 头像
+ArtRegistry.enemy_base(enemy_id)
+ArtRegistry.enemy_frame(enemy_id, anim, t)
+ArtRegistry.stage_background(stage_id)           # 按关卡取环境图
+ArtRegistry.icon(name, 32)                       # UI 图标
+ArtRegistry.vfx_frame(name, progress)            # 特效帧（按进度取）
+```
+
+内部用 `static var` 做进程级缓存，贴图只解码一次；`AtlasTexture` 按
+`路径#帧号` 缓存，避免每帧新建 Resource。
+
+### 3.2 资产目录约定
+
+```
+assets/art/characters/<charId>/<charId>_<anim>.png     横向帧条
+assets/art/characters/<charId>/<charId>_portrait_256.png
+assets/art/enemies/<enemyId>/<enemyId>_<anim>.png
+assets/art/environments/<name>.png                     1920×1080
+assets/art/ui/icons/<name>_<32|64>.png
+assets/vfx/<name>.png                                  8 帧横向条
+```
+
+动画帧数：`idle` 4 / `move` 4 / `attack` 4 / `hit` 2 / `death` 4。
+
+## 4. 实机取证
+
+`_testenv/artshot.ps1` —— 真实窗口截图驱动：
+
+```powershell
+cd D:\星丘残响\_testenv
+
+# 战斗场景（指定关卡）
+pwsh -NoProfile -File .\artshot.ps1 -Stage "1-1" -Out "shot_1-1" -W 1280 -H 720 -WaitSec 8
+
+# 部署一个角色后再截
+pwsh -NoProfile -File .\artshot.ps1 -Stage "1-1" -Out "shot_deploy" -W 1280 -H 720 `
+     -WaitSec 8 -Keys "wclick:90:643,wclick:455:456" -ExtraWait 3
+
+# 其它场景
+pwsh -NoProfile -File .\artshot.ps1 -Scene "title"     -Out "shot_title" -W 1920 -H 1080 -WaitSec 7
+pwsh -NoProfile -File .\artshot.ps1 -Scene "character" -Out "shot_char"  -W 1280 -H 720  -WaitSec 7
+```
+
+要点（均为实测踩坑）：
+- 截图走 `GetClientRect` + `ClientToScreen` **截客户区**，并按虚拟屏幕边界裁剪。
+  截整窗在 1920×1080 屏幕上跑 1080p 会越界失败（窗口 1938×1102 > 屏幕）。
+- `wclick:x:y` 用**截图坐标**点击（脚本内部换算装饰偏移）；`click:x:y` 用客户区坐标。
+- 使用独立 `APPDATA`（`_testenv\appdata_art`），**不触碰正式用户存档**。
+
+## 5. 回归测试
+
+```powershell
+$godot = "D:\星丘基础\godot\Godot_v4.7.2-stable_win64_console.exe"
+$env:APPDATA = "D:\星丘残响\_testenv\appdata_art"
+& $godot --headless --path "D:\星丘残响\hoshigaoka_echoes" `
+    -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
+```
+
+基线：**20 脚本 / 429 项 / 429 通过 / 8382 断言 / 退出码 0**。
+若测试数偏少，说明有测试文件被静默跳过 —— 新增 `class_name` 后必须先
+`--import` 刷新类缓存（本项目已两次踩到）。
+
+**注意**：`--headless --quit` 只验证 Autoload 与启动路径，**不会解析目标场景脚本**。
+要验证某场景脚本可加载，必须真正启动该场景并检查 stderr：
+```powershell
+& $godot --path <proj> --resolution 1280x720 -- --scene=character 2>&1 | Select-String "SCRIPT ERROR|Parse"
+```
+
+## 6. 授权与发行包边界
+
+- **用户提供的 3 张概念图**：已核验存在并记录 SHA256（见
+  `docs/美术资产来源清单.json`）。**商用权利未确认** → 仅作内部视觉参考，
+  **未直接作为发行资产**（没有任何一张概念图被整体铺进游戏画面）。
+- **AI 生成资产**：通过用户自有订阅通道生成，源图与处理流程全部可复现并留档。
+  最终商用条件需用户自行确认；本轮**未将其标记为已批准的 Steam 发行资产**。
+- **工具链**：全部为 MIT / PSF 等宽松许可或本机既有软件，**不进入游戏发行包**
+  （`art_src/` 位于 Godot 工程之外，`_testenv/` 亦在工程外）。
+- `.gitignore` 已排除 `dist/`、`*.exe`、`*.pck`、`.godot/`，大模型权重与临时工具未入库。
