@@ -175,12 +175,17 @@ var _max_battle_seconds: float = 0.0
 ## 从 StageConfig 与配置表构建 StageRuntime。
 ## enemy_table:    { enemyId -> EnemyConfig }
 ## character_table:{ characterId -> CharacterConfig }
+## upgrades_domain: data/upgrades.json 的内容（Alpha A0.6）。
+##   与 enemy_table/character_table 同一套路：**由调用方注入**，
+##   域层不直接读 DataRegistry（保持「领域不依赖存档/全局单例」的分层纪律）。
+##   不传（空字典）= 本局不启用局内强化，所有倍率恒为 1.0。
 static func from_config(
 	stage_config: Dictionary,
 	enemy_table: Dictionary,
 	grid: BattleGrid,
 	character_table: Dictionary = {},
-	balance_combat: Dictionary = {}
+	balance_combat: Dictionary = {},
+	upgrades_domain: Dictionary = {}
 ) -> StageRuntime:
 	var rt := StageRuntime.new()
 	rt.grid = grid
@@ -330,6 +335,11 @@ static func from_config(
 				"balance.combat.fieldDeployLimit 必须为正整数，实际 %s" % str(raw_limit))
 		else:
 			rt.field_deploy_limit = int(raw_limit)
+
+	# ---- 局内强化开放（Alpha A0.6，L2129～2138）----
+	# 只有 upgrades.json 的 openByStage 显式声明 opens > 0 的关卡才创建实例；
+	# 其余关卡保持 null ⇒ 所有倍率短路为 1.0，与接入前逐位一致。
+	rt._configure_upgrades(upgrades_domain)
 
 	# ---- 可部署角色列表 ----
 	if stage_config.has("availableCharacters"):
@@ -2233,6 +2243,132 @@ func _ap_regen_mult() -> float:
 # ============================================================
 #  查询
 # ============================================================
+
+## 按 upgrades.json 的 openByStage 决定是否启用局内强化系统。
+##
+## 纪律：
+##   * 数据未注入（tools/ 模拟器、未升级的调用方）→ 不启用，倍率恒 1.0；
+##   * 关卡未在 openByStage 中**显式**列出 → 不启用（不拿 default 当开放依据），
+##     避免"忘了配就自动开"这种静默改变既有关卡体验的行为；
+##   * 数据校验有错 → 不启用并把错误并入 _errors（宁可不开，也不带坏数据跑）。
+func _configure_upgrades(upgrades_domain: Dictionary) -> void:
+	if upgrades_domain.is_empty():
+		return
+	var plan: Variant = upgrades_domain.get("openByStage", {})
+	if typeof(plan) != TYPE_DICTIONARY:
+		_errors.append("upgrades.openByStage 必须是对象")
+		return
+	var entry: Variant = (plan as Dictionary).get(stage_id, null)
+	if typeof(entry) != TYPE_DICTIONARY:
+		return
+	var opens := int((entry as Dictionary).get("opens", 0))
+	if opens <= 0:
+		return
+	var u := InBattleUpgrades.from_data(upgrades_domain)
+	if not u.get_errors().is_empty():
+		for e: String in u.get_errors():
+			_errors.append("upgrades 数据错误：%s" % e)
+		return
+	u.total_opens = opens
+	u.rerolls_remaining = int(upgrades_domain.get("rerollsPerBattle", 0))
+	upgrades = u
+	GameLog.info("StageRuntime", "局内强化已启用：%s（开放 %d 次，免费重掷 %d 次）"
+		% [stage_id, opens, u.rerolls_remaining])
+
+
+## 本关可用队伍的「行为集合」与「标签并集」——候选算法的输入（L2051 第 1 步）。
+## 用 availableCharacters（本关可上阵的全部角色）而非当前在场角色：
+## 构筑价值应看"这支队伍能不能用"，而不是"此刻恰好站了几个人"。
+func _party_profile() -> Dictionary:
+	var behaviors: Array[String] = []
+	var tags: Array[String] = []
+	for cid: String in available_characters:
+		var cfg: Dictionary = _character_configs.get(cid, {})
+		var beh := str(cfg.get("behavior", ""))
+		if not beh.is_empty() and not behaviors.has(beh):
+			behaviors.append(beh)
+		var t: Variant = cfg.get("roleTags", [])
+		if typeof(t) == TYPE_ARRAY:
+			for v: Variant in (t as Array):
+				if not tags.has(str(v)):
+					tags.append(str(v))
+	return {"behaviors": behaviors, "tags": tags}
+
+
+## 取当前三选一候选。未启用强化系统时返回空数组。
+func upgrade_choices() -> Array[String]:
+	if upgrades == null:
+		return []
+	# 选择次数已用尽时不再提供候选：否则 UI 会弹出一个"点了也没用"的面板。
+	if upgrades.selections_used >= upgrades.total_opens:
+		return []
+	var profile := _party_profile()
+	return UpgradeCandidateRoller.roll(
+		upgrades, profile["behaviors"], profile["tags"], _upgrade_seed())
+
+
+## 1-5 首次为**固定**教学三选一（L2132），不走随机抽取。
+## 返回按 upgrades.json 声明顺序、且当前仍可选择的条目；不足 3 项时返回空，
+## 由调用方回落到随机候选（不硬凑，也不假装教学成功）。
+func tutorial_upgrade_choices(upgrades_domain: Dictionary) -> Array[String]:
+	if upgrades == null:
+		return []
+	var fixed: Variant = upgrades_domain.get("tutorialFixedChoices_1_5", null)
+	if typeof(fixed) != TYPE_DICTIONARY:
+		return []
+	var ids: Variant = (fixed as Dictionary).get("upgradeIds", [])
+	if typeof(ids) != TYPE_ARRAY or (ids as Array).size() != 3:
+		return []
+	var out: Array[String] = []
+	for v: Variant in (ids as Array):
+		var id := str(v)
+		if not upgrades.has_definition(id) or not upgrades.can_select(id):
+			return []   # 有一项不可用就整体回落，不给"缺一个"的教学
+		out.append(id)
+	return out
+
+
+## 玩家选定一项强化。未启用 / 非法 / 已满叠返回 false（不静默生效）。
+func choose_upgrade(upgrade_id: String) -> bool:
+	if upgrades == null:
+		GameLog.warn("StageRuntime", "本关未开放局内强化，忽略选择请求：%s" % upgrade_id)
+		return false
+	if upgrades.selections_used >= upgrades.total_opens:
+		GameLog.warn("StageRuntime", "本场强化选择次数已用尽（%d/%d）"
+			% [upgrades.selections_used, upgrades.total_opens])
+		return false
+	if not upgrades.apply(upgrade_id):
+		return false
+	upgrades.selections_used += 1
+	GameLog.info("StageRuntime", "局内强化已选择：%s（%d/%d 次）"
+		% [upgrade_id, upgrades.selections_used, upgrades.total_opens])
+	return true
+
+
+## 消耗一次免费重掷（L2117）。
+func reroll_upgrades() -> bool:
+	if upgrades == null or upgrades.rerolls_remaining <= 0:
+		return false
+	upgrades.rerolls_remaining -= 1
+	upgrades.reroll_count += 1
+	GameLog.info("StageRuntime", "使用免费重掷，剩余 %d 次" % upgrades.rerolls_remaining)
+	return true
+
+
+## 派生抽取种子。
+##
+## 只由「关卡 id + 已选次数 + 已重掷次数」构成 —— **刻意不含 elapsed_seconds**：
+## 若把逻辑时刻混进种子，不同帧率/不同暂停时机就会摇出不同候选，
+## 破坏既有的「不同分辨率与渲染帧率不改变战斗结果」LOCKED 保证
+## （tests/test_p0_4_three_class.gd 第 16 项钉着这条）。
+func _upgrade_seed() -> int:
+	var h := 2166136261
+	for b: int in stage_id.to_utf8_buffer():
+		h = ((h ^ b) * 16777619) & 0x7FFFFFFF
+	h = (h ^ (upgrades.selections_used * 2654435761)) & 0x7FFFFFFF
+	h = (h ^ (upgrades.reroll_count * 40503)) & 0x7FFFFFFF
+	return h
+
 
 func get_enemy(instance_id: int) -> EnemyRuntime:
 	for e: EnemyRuntime in enemies:

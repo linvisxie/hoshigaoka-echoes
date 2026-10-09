@@ -49,6 +49,12 @@ var _tier_weights: Dictionary = {}
 var _selected: Dictionary = {}
 ## 每场免费重掷次数（L2117；由数据/关卡配置给定，本类只记账）
 var rerolls_remaining: int = 0
+## 本场可选择的总次数（L2116 普通关约 2 次、Boss 关约 3 次；由 openByStage 给定）
+var total_opens: int = 0
+## 已使用（成功应用）的选择次数
+var selections_used: int = 0
+## 已消耗的重掷次数（诊断用）
+var reroll_count: int = 0
 ## 构建期校验错误（**必须被调用方读取**，否则就是"配置写错但游戏照跑"的静默失效）。
 ## 纪律：本类不自行 push_error，交由 StageRuntime / DataRegistry 决定报错级别；
 ## 但 load_errors 非空时调用方**不得**继续把该系统当作可用。
@@ -58,7 +64,8 @@ var load_errors: Array[String] = []
 func get_errors() -> Array[String]:
 	return load_errors
 
-## 从 data/upgrades.json 构建。返回错误列表（空 = 成功）。
+## 从 data/upgrades.json 构建。校验错误记入 load_errors（调用方必须读取，
+## 否则就是"配置写错但游戏照跑"的静默失效）。
 static func from_data(upgrade_domain: Dictionary) -> InBattleUpgrades:
 	var u := InBattleUpgrades.new()
 	var list: Variant = upgrade_domain.get("upgrades", [])

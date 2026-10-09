@@ -53,12 +53,14 @@ func setup(
 	enemy_table: Dictionary,
 	in_grid: BattleGrid,
 	character_table: Dictionary = {},
-	balance_combat: Dictionary = {}
+	balance_combat: Dictionary = {},
+	upgrades_domain: Dictionary = {}
 ) -> Array[String]:
 	var errs: Array[String] = []
 	grid = in_grid
 	stage = StageRuntime.from_config(
-		stage_config, enemy_table, in_grid, character_table, balance_combat
+		stage_config, enemy_table, in_grid, character_table, balance_combat,
+		upgrades_domain
 	)
 	errs.append_array(stage.get_errors())
 	_last_wave_number = stage.current_wave_number()

@@ -457,7 +457,10 @@ func _build_battle() -> void:
 	session = BattleSession.new()
 	session.name = "BattleSession"
 	add_child(session)
-	var errs := session.setup(stage_config, enemy_table, grid, _build_character_table(), _combat_config())
+	# Alpha A0.6：局内强化数据同样由表现层注入（域层不读 DataRegistry）。
+	# 未在 upgrades.json 的 openByStage 中声明的关卡拿到 null，倍率恒为 1.0。
+	var errs := session.setup(stage_config, enemy_table, grid, _build_character_table(),
+		_combat_config(), DataRegistry.get_domain("upgrades"))
 	if not errs.is_empty():
 		for e: String in errs:
 			GameLog.error(TAG, "会话构建失败：%s" % e)
