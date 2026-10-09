@@ -1726,8 +1726,11 @@ func _draw_core() -> void:
 	var body_color := CORE_COLOR.lerp(CORE_HIT_COLOR, clampf(flash_k, 0.0, 1.0))
 	if warn > 0.0:
 		body_color = body_color.lerp(DANGER_COLOR, warn * 0.45)
-	draw_circle(Vector2(core_x, mid_y), tile * 0.20, body_color)
+	# 主体：六瓣星花锚点（呼应星丘校徽，替代此前"纯圆"的工程占位观感）。
+	# 纯装饰绘制，不参与任何战斗判定；HP 语义仍由外环半径 + 竖条承担。
 	var ring_w := 3.0 + 4.0 * flash_k + 3.0 * warn
+	_draw_anchor_bloom(Vector2(core_x, mid_y), tile * 0.24, body_color,
+		0.28 + 0.5 * flash_k + 0.3 * warn, now)
 	draw_circle(Vector2(core_x, mid_y), tile * 0.20 + tile * 0.06 * ratio,
 		Color(body_color.r, body_color.g, body_color.b, 0.28 + 0.5 * flash_k + 0.3 * warn),
 		false, ring_w)
@@ -2512,6 +2515,34 @@ func _draw_star(center: Vector2, outer: float, points: int, col: Color) -> void:
 		var ang := -PI * 0.5 + PI * float(i) / float(points)
 		pts.append(center + Vector2(cos(ang), sin(ang)) * rad)
 	draw_colored_polygon(pts, col)
+
+
+## 残响锚点主体：六瓣星花（呼应星丘校徽 / 概念图的六瓣花标识）。
+## 替代此前"纯品红圆"的工程占位观感。纯装饰绘制：
+##   * 不参与任何战斗判定，HP 语义仍由外环半径与竖向 HP 条承担；
+##   * 极慢自转（0.15 rad/s）读作"共鸣呼吸"，低强度不刺眼；
+##   * 受创/威胁时由调用方传入提亮的 col 与 alpha，闪烁语义不变。
+func _draw_anchor_bloom(center: Vector2, radius: float, col: Color,
+		alpha: float, now: float) -> void:
+	if radius <= 0.0:
+		return
+	var spin := now * 0.15
+	var petal_col := Color(col.r, col.g, col.b, clampf(alpha, 0.0, 1.0))
+	for i: int in range(6):
+		var ang := spin + TAU * float(i) / 6.0
+		var dir := Vector2(cos(ang), sin(ang))
+		var perp := Vector2(-dir.y, dir.x)
+		var tip := center + dir * radius
+		var base_l := center + perp * radius * 0.26
+		var base_r := center - perp * radius * 0.26
+		var mid := center + dir * radius * 0.55
+		# 每瓣 = 两个三角形拼成的细长菱形花瓣
+		draw_colored_polygon(PackedVector2Array([base_l, tip, mid]), petal_col)
+		draw_colored_polygon(PackedVector2Array([base_r, tip, mid]), petal_col)
+	# 花芯：暖白小圆 + 冷紫描边，读作"锚点"
+	draw_circle(center, radius * 0.30, Color(1.0, 0.97, 1.0, clampf(alpha + 0.25, 0.0, 1.0)))
+	draw_circle(center, radius * 0.30, Color(col.r * 0.6, col.g * 0.5, col.b * 0.9, 0.9),
+		false, 1.5)
 
 
 ## 危险提示：路线入口警示符号（V2.1.4：高威胁波次开始前，路线入口出现 1～2 秒警示符号）
