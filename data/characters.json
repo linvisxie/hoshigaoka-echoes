@@ -68,8 +68,13 @@
         "shape": "lane_band",
         "direction": "forward",
         "rangeTiles": 4.0,
-        "maxLaneDelta": 0,
-        "_note": "V2.1.4 表 28：同路线前方 4.0 格以内；不跨线。阻挡 0，是纯远程输出，不得作为近战阻挡单位使用。"
+        "maxLaneDelta": 1,
+        "allowCrossLane": true,
+        "adjacentLaneRangeTiles": 3.0,
+        "targetLimit": 1,
+        "_note": "本路线前方 4.0 格以内（V2.1.4 表 28）。经产品裁决 DEC-C-0003 正式允许跨相邻 1 条路线（maxLaneDelta=1）：中路可覆盖上/中/下三路，边路最多覆盖本路与中路，**不允许上路直接打下路**。相邻路线射程 3.0 格属第一轮候选平衡值，需实战验证。每次普通攻击仍只选择一个目标（targetLimit=1）；跨线不增加攻击频率、不复制攻击次数。攻击方向仍须面向敌方入口（direction=forward）。阻挡 0，是纯远程输出，不得作为近战阻挡单位使用。",
+        "_crossLane_spec": "产品裁决 DEC-C-0003（docs/产品裁决记录.md，2026-10-09）正式取代 V2.1.4 中与之冲突的同路线攻击限制。跨线能力必须由角色数据显式声明，禁止仅凭 behavior=RANGED 让所有远程单位无条件获得同样跨线范围。",
+        "_adjacentLaneRangeTiles_status": "第一轮候选平衡值（CANDIDATE），需真人试玩后调表；不构成已锁定的正式数值。"
       },
       "blockCount": 0,
       "_blockCount_spec": "V2.1.4 表 28『阻挡 0』；表 25 同列『神谷悠真 阻挡 0』。",

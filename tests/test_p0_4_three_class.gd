@@ -334,7 +334,8 @@ func test_ranged_attacks_target_inside_range() -> void:
 		"攻击后应进入完整的 1.3 秒攻击冷却（冷却从出手时刻起算）")
 
 
-## 覆盖项 5b：射程外停火（4.1 格不打），且敌人走进 4.0 格后才开火；跨线不打。
+## 覆盖项 5b：射程外停火（4.1 格不打），且敌人走进 4.0 格后才开火；
+## 跨线按裁决 DEC-C-0003 攻击**相邻**路线，但**不得跨两路**（上↔下互不打）。
 func test_ranged_holds_fire_outside_range_and_across_lanes() -> void:
 	# ① 4.1 格：射程外，一个逻辑步内不得攻击、不得进入冷却
 	var rt := _runtime(_cfg_triple([]))
@@ -355,13 +356,30 @@ func test_ranged_holds_fire_outside_range_and_across_lanes() -> void:
 	rt.advance(StageRuntime.LOGIC_STEP_SECONDS)
 	assert_lt(outside.hp, hp_before, "走进射程后应开始被攻击")
 
-	# ③ 跨线不打：同为 3.0 格（射程内），但路线不同
+	# ③ 裁决 DEC-C-0003：跨**相邻**路线（lane 1 → lane 2，laneDelta=1）可以攻击。
+	#    注意相邻路线射程是 3.0 格（第一轮候选值），故目标须落在 3.0 格内。
 	var rt2 := _runtime(_cfg_triple([]))
 	assert_true(rt2.deploy_character(CHAR_YUMA, 0, 1).ok, "应能部署神谷悠真")
 	var cross := _place_enemy(rt2, 2, 3.0)
 	_step_n(rt2, 1.0)
-	assert_eq(cross.hp, cross.hp_max,
-		"跨线（lane 1 → lane 2）即使几何距离在射程内也不得攻击（表 28：不跨线）")
+	assert_lt(cross.hp, cross.hp_max,
+		"跨相邻路线（lane 1 → lane 2，laneDelta=1）应可攻击（DEC-C-0003）")
+
+	# ④ 但**不得跨两路**：上路角色打不到下路（laneDelta=2）。
+	var rt3 := _runtime(_cfg_triple([]))
+	assert_true(rt3.deploy_character(CHAR_YUMA, 0, 0).ok, "应能部署神谷悠真到上段")
+	var far := _place_enemy(rt3, 2, 3.0)
+	_step_n(rt3, 1.0)
+	assert_eq(far.hp, far.hp_max,
+		"上路 → 下路（laneDelta=2）即使几何距离在射程内也不得攻击（DEC-C-0003：不允许上路直接打下路）")
+
+	# ⑤ 相邻路线射程边界：3.0 格内可打、3.1 格不可打。
+	var rt4 := _runtime(_cfg_triple([]))
+	assert_true(rt4.deploy_character(CHAR_YUMA, 0, 1).ok, "应能部署神谷悠真")
+	var adj_out := _place_enemy(rt4, 0, 3.1)
+	_step_n(rt4, 0.1)
+	assert_eq(adj_out.hp, adj_out.hp_max,
+		"相邻路线 3.1 格（> 相邻射程 3.0）应在射程外，不得攻击")
 
 
 ## 覆盖项 6：悠真不能阻挡敌人——敌人从其所在格上穿过继续前进。

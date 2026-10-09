@@ -59,7 +59,14 @@
       "cdRecoveryPct": 0.4,
       "appliesToEnemies": false,
       "_appliesToEnemies_note": "L556 的属性清单是封闭枚举，只覆盖角色的攻击力/攻击频率/技能 CD 恢复速度三项，未给敌人侧移速或攻速下限（设计稿冲突 C-9）。故敌人不适用本下限。",
-      "_attackSpeedConversion_note": "⚠️ 首轮候选口径，需人裁决（设计稿冲突 C-3）：规格只定义「攻击频率 = 基础频率的百分数」，未定义百分数到**攻击间隔**的换算。本工程采用频率倒数关系 interval_eff = interval_base / clamp(1 + Σ攻速百分数, attackSpeedPct, +∞)。若改为「间隔 × (1+|Σ|)」，则与增益侧（+X% ⇒ ×(1+X)）不对称，会破坏 L556「减益与增益统一结算」。"
+      "_attackSpeedConversion_note": "✅ 已由产品裁决 DEC-C-0004（2026-10-09）正式裁决：采用频率倒数口径 effectiveInterval = baseInterval / effectiveAttackSpeedMultiplier。攻速百分数先在**攻击频率**口径下依 L556 叠加（不同 effectId 先相加、与增益统一结算），再夹取上下限，最后换算为间隔。规格 L556 明文把 40% 下限作用于「有效攻击频率」而非「间隔」，故频率倒数读法是与规格自洽的唯一读法；「间隔 × (1+|Σ|)」的读法在增益侧不对称，已被排除。"
+    },
+    "buffCeiling": {
+      "_note": "V2.1.4 表 81「首版建议软上限」（L2105~2113）：攻击速度加成 局内总增益原则上不超过 +80%。规格 L2113 明标「以上均为测试基线，不是最终数值」，故本项**不是 LOCKED 值**，而是可配置的测试基线。",
+      "attackSpeedPct": 1.8,
+      "_attackSpeedPct_note": "1.8 = 基础值 1.0 + 80% 软上限。生效于**攻击频率**口径（与 debuffFloor 同一口径），即 f_eff = clamp(1 + Σ攻速百分数, attackSpeedPct下限, attackSpeedPct上限)。当前构建（A0.3）尚无局内强化系统（属 A0.6），因此 +80% 上界在现版本**不可达**；本字段为 A0.6 局内构筑预留，接入前不得宣称已验收。",
+      "enforced": false,
+      "_enforced_note": "false = 上限已实现且可测试，但当前无任何生产路径能触达它（无增益来源）。A0.6 落地局内强化后应改为 true 并补实机验证。"
     },
     "_pending": "攻速/CD 软上限等依 V2.1.4 由 balance.json 承载，Alpha 阶段补齐。（减益下限已于 A0.2 落地为 combat.debuffFloor。）"
   }

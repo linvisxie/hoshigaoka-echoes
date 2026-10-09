@@ -81,6 +81,18 @@ var heal_interval: float = 1.5
 var heal_uses_manhattan: bool = false
 ## 允许的最大跨线数（来自 attackRange.maxLaneDelta，0 = 不可跨线）
 var max_lane_delta: int = 0
+## 是否显式声明允许跨线攻击（来自 attackRange.allowCrossLane）。
+##
+## 裁决 DEC-C-0003 要求：跨线能力必须由角色数据**显式声明**，
+## 禁止仅凭 behavior == RANGED 就让所有远程单位无条件获得同样的跨线范围。
+## 因此本字段默认 false，只有数据显式写 true 才生效（max_lane_delta 仍须 > 0）。
+var allow_cross_lane: bool = false
+## 相邻路线的前方射程（tile，来自 attackRange.adjacentLaneRangeTiles）。
+## 仅在本路线之外、且跨线数 ≤ max_lane_delta 时使用；未配置时回落到本路线射程。
+var adjacent_lane_range_tiles: float = 0.0
+## 单次普通攻击的目标数量上限（来自 attackRange.targetLimit，缺省 1）。
+## DEC-C-0003 明文：每次普通攻击仍只选择一个目标，跨线不增加攻击次数。
+var target_limit: int = 1
 ## 累计造成的治疗量（调试与测试用）
 var total_healing_done: int = 0
 ## 最近一次成功治疗的逻辑时刻（-1 = 从未治疗；用于表现层反馈）
@@ -113,6 +125,10 @@ var total_damage_taken: int = 0
 ## 不是可调平衡参数；正常路径一律由 StageRuntime 注入配置值）。
 const DEFAULT_DEBUFF_FLOOR := 0.4
 
+## balance.json 的 combat.buffCeiling 缺失时的兜底上限（表 81 的 +80% ⇒ 1.8）。
+## 与下限不同，这是「首版建议软上限」（L2113 明标测试基线），因此可配置。
+const DEFAULT_BUFF_CEILING := 1.8
+
 ## 挂在本角色身上的状态效果（按施加顺序）。同一 effectId 只允许存在一条（L556）。
 var status_effects: Array[StatusEffect] = []
 
@@ -122,6 +138,13 @@ var status_effects: Array[StatusEffect] = []
 ## 低于各自基础值的 40%（首轮可配置下限）。上述减益下限首章统一存于 balance.json」。
 ## 因此**权威值来自 balance.json**，代码内不复制第二份。
 var debuff_floor_pct: float = DEFAULT_DEBUFF_FLOOR
+
+## 增益上限（相对基础值的比例），来自 balance.json 的 combat.buffCeiling。
+##
+## 规格依据：表 81（L2105～2113）「攻击速度加成｜局内总增益原则上不超过 +80%」，
+## 且 L2113 明标「以上均为测试基线，不是最终数值」——故上限**可配置、非 LOCKED**。
+## 默认 1.8 = 基础 1.0 + 80%。当前构建无增益来源，该上限不可达（属 A0.6）。
+var buff_ceiling_pct: float = DEFAULT_BUFF_CEILING
 
 
 ## 从 CharacterConfig 字典构建。
@@ -181,6 +204,11 @@ static func from_config(
 		c.heal_interval = c.attack_interval
 	c.heal_uses_manhattan = str(range_cfg.get("shape", "")) == "manhattan"
 	c.max_lane_delta = int(range_cfg.get("maxLaneDelta", 0))
+	# ---- 裁决 DEC-C-0003：跨线攻击能力（必须显式声明，不按 behavior 推导）----
+	c.allow_cross_lane = bool(range_cfg.get("allowCrossLane", false))
+	c.adjacent_lane_range_tiles = float(
+		range_cfg.get("adjacentLaneRangeTiles", c.attack_range_tiles))
+	c.target_limit = maxi(1, int(range_cfg.get("targetLimit", 1)))
 
 	var dtype := str(config.get("damageType", "PHYSICAL"))
 	if dtype == "SPECIAL":
@@ -270,6 +298,54 @@ func remove_blocking(enemy_instance_id: int) -> bool:
 ## 是否正在阻挡指定敌人
 func is_blocking(enemy_instance_id: int) -> bool:
 	return blocking_enemy_ids.has(enemy_instance_id)
+
+
+# ============================================================
+#  裁决 DEC-C-0003：跨路线攻击的射程查询
+# ============================================================
+
+## 本角色对目标路线是否具备跨线攻击资格（与射程无关的**路线闸门**）。
+##
+## 判定链（缺一不可）：
+##   ① 数据显式声明 allowCrossLane = true（禁止按 behavior 推导）；
+##   ② 目标路线 != 本路线（同路线走原有路径）；
+##   ③ |lane_delta| ≤ max_lane_delta（相邻 1 条，绝不允许上路直接打下路）。
+func can_attack_lane(target_lane: int) -> bool:
+	var delta := absi(target_lane - lane)
+	if delta == 0:
+		return true
+	if not allow_cross_lane:
+		return false
+	return delta <= max_lane_delta
+
+
+## 对指定路线生效的前方射程（tile）。
+## 本路线用 rangeTiles；相邻路线用 adjacentLaneRangeTiles（未配置时回落本路线射程）。
+## 不具备跨线资格的路线返回 0.0（表示不可攻击该路线）。
+func attack_range_for_lane(target_lane: int) -> float:
+	var delta := absi(target_lane - lane)
+	if delta == 0:
+		return attack_range_tiles
+	if not can_attack_lane(target_lane):
+		return 0.0
+	if adjacent_lane_range_tiles > 0.0:
+		return adjacent_lane_range_tiles
+	return attack_range_tiles
+
+
+## 目标点（路线 + 逻辑 x）是否落在本角色的攻击范围内。
+##
+## 射程判定（与敌人侧相反方向，角色只打**前方**）：
+##   0 ≤ (target_x − column) ≤ 该路线的有效射程。
+## 纪律：距离一律以**逻辑格**计算，绝不用屏幕像素（V2.1.4 LOCKED 度量规则）。
+func is_target_in_attack_range(target_lane: int, target_x: float) -> bool:
+	var eff_range := attack_range_for_lane(target_lane)
+	if eff_range <= 0.0:
+		return false
+	var delta_x := target_x - float(column)
+	if delta_x < -0.0001:
+		return false
+	return delta_x <= eff_range + 0.0001
 
 
 ## 受到伤害。返回实际扣减的 HP。
@@ -376,27 +452,40 @@ func sum_effect_pct(category: String) -> float:
 	return total
 
 
-## 有效攻击频率系数：clamp(1 + Σ攻速百分数, debuffFloor, +∞)。
+## 有效攻击频率系数：clamp(1 + Σ攻速百分数, debuffFloor, buffCeiling)。
 ##
-## 换算口径（**首轮候选，需人裁决**）：设计稿 §1.2 / §2.4.5 M2 的
-##   f_eff = f_base × clamp(1 + Σ, 0.40, +∞)
-##   interval_eff = interval_base / clamp(1 + Σ, 0.40, +∞)
-## 即「攻击速度百分数作用于频率，攻击间隔取频率倒数」。
-## 规格（L556）只定义了频率下限，**未明文规定百分数到间隔的换算**（设计稿冲突 C-3），
-## 因此这里采用的是首轮候选口径，不是 LOCKED 规格值。
+## 换算口径已由**产品裁决 DEC-C-0004（2026-10-09）正式裁决**：
+##   攻速百分数先在**攻击频率**口径下依 L556 叠加（不同 effectId 先相加、
+##   与增益统一结算），应用已锁定的上下限，再换算为间隔：
+##     f_eff      = f_base × clamp(1 + Σ, floor, ceiling)
+##     interval_eff = interval_base / clamp(1 + Σ, floor, ceiling)
+##
+## 规格依据（L556，LOCKED）明文把下限作用于「**有效攻击频率**」：
+##   「有效攻击力、有效攻击频率、有效技能冷却恢复速度均不得低于各自基础值的 40%」
+## 因此 40% 夹取的是**频率系数**本身，而不是间隔。这一读法与规格自洽；
+## 「间隔直接 × (1+|Σ|)」的读法会使增益侧（+X% ⇒ ×(1+X)）与减益侧不对称，
+## 破坏 L556「减益与增益统一结算」，故已排除（原设计稿冲突 C-3 至此关闭）。
+##
+## 上限（表 81「首版建议软上限」攻击速度 +80% ⇒ 系数 1.8）来自 balance.json 的
+## combat.buffCeiling；规格 L2113 明标该表为「测试基线，不是最终数值」，
+## 因此上限同样可配置、非 LOCKED。
 func attack_speed_factor() -> float:
-	return maxf(debuff_floor_pct, 1.0 + sum_effect_pct(StatusEffect.CATEGORY_ATTACK_SPEED))
+	var raw := 1.0 + sum_effect_pct(StatusEffect.CATEGORY_ATTACK_SPEED)
+	return clampf(raw, debuff_floor_pct, buff_ceiling_pct)
 
 
 ## 有效攻击间隔（秒）。
 ##
-## ⚠️ 换算口径属**首轮候选（需人裁决）**：设计稿冲突 C-3 指出规格未定义
-## 「攻击速度 -X%」如何映射到攻击间隔。此处采用频率倒数关系：
-##   interval_eff = interval_base / clamp(1 + Σ攻速百分数, floor, +∞)
-## 例：-25% ⇒ clamp(0.75) ⇒ interval × 1.3333；而「间隔直接 × 1.25」的读法
-## 与增益侧（+X% ⇒ ×(1+X)）不对称，已按设计稿建议排除。
+## 裁决 DEC-C-0004 的正式口径：**频率倒数**。
+##   interval_eff = interval_base / clamp(1 + Σ攻速百分数, floor, ceiling)
+## 例：-25% ⇒ clamp(0.75) ⇒ interval × 1.3333；+80% ⇒ clamp(1.8) ⇒ interval ÷ 1.8。
+## 无任何攻速效果时恒等于 attack_interval（既有行为完全不变）。
 func effective_attack_interval() -> float:
-	return attack_interval / attack_speed_factor()
+	var factor := attack_speed_factor()
+	if factor <= 0.0:
+		# 防御性兜底：下限已由配置保证为正，此处只为避免除零
+		return attack_interval
+	return attack_interval / factor
 
 
 ## 有效攻击力：clamp(1 + Σ攻击百分数, debuffFloor, +∞) × 基础攻击，取整。
@@ -463,5 +552,7 @@ func to_debug_dict() -> Dictionary:
 		# A0.2：状态效果与攻速换算（调试/复盘用）
 		"statusEffects": effects,
 		"effectiveAttackInterval": snappedf(effective_attack_interval(), 0.0001),
+		"attackSpeedFactor": snappedf(attack_speed_factor(), 0.0001),
+		"buffCeilingPct": buff_ceiling_pct,
 		"canCastActiveSkill": can_cast_active_skill(),
 	}

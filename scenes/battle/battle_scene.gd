@@ -33,6 +33,15 @@ const CELL_BORDER := Color(0.42, 0.46, 0.68)
 const CELL_DEPLOYABLE := Color(0.30, 0.85, 0.60)   # 合法部署格高亮
 const CELL_INVALID := Color(0.90, 0.30, 0.30)      # 非法部署格
 const CELL_HOVER := Color(0.95, 0.95, 0.40)        # 悬停描边
+
+# ---- 射程覆盖预览（裁决 DEC-C-0003 / 第四阶段：射程提示）----
+# 视觉纪律：清晰但不刺眼。本路用可辨识的暖色，相邻路用更弱的冷色，
+# 两者都以低不透明度铺底，避免遮挡角色与敌人的主体。
+const RANGE_TINT_OWN := Color(0.95, 0.80, 0.35, 0.13)      # 本路覆盖填充
+const RANGE_TINT_ADJACENT := Color(0.45, 0.75, 0.95, 0.10) # 相邻路覆盖填充
+const RANGE_EDGE_OWN := Color(0.98, 0.82, 0.38, 0.85)      # 本路边框（实线）
+const RANGE_EDGE_ADJACENT := Color(0.55, 0.80, 0.98, 0.65) # 相邻路边框（虚线）
+
 const CORE_COLOR := Color(0.88, 0.34, 0.62)
 const ENEMY_COLOR := Color(0.92, 0.42, 0.38)
 const ENEMY_RUNNER_COLOR := Color(0.95, 0.68, 0.30)
@@ -1831,7 +1840,13 @@ func _draw_tutorial_cards() -> void:
 		y += box_h + _px(10.0)
 
 
-## 部署反馈：选中时的合法/非法格高亮 + 悬停描边
+## 部署反馈：选中时的合法/非法格高亮 + 悬停描边 + **射程覆盖预览**。
+##
+## 射程覆盖预览（本轮新增，第四阶段要求）：
+##   选中远程角色后，用**不刺眼**的覆盖区域显示本路与相邻路的有效射程，
+##   让玩家不看调试日志就能理解「这个角色能打到哪」。
+##   覆盖范围**完全来自领域层**的 session.query_attack_coverage()，
+##   因此 UI 不可能显示出一个实际打不到的范围（该一致性有 GUT 用例保证）。
 func _draw_deploy_feedback() -> void:
 	if _selected_card_id.is_empty() or session == null or grid == null:
 		return
@@ -1856,6 +1871,10 @@ func _draw_deploy_feedback() -> void:
 				draw_rect(rect, Color(CELL_INVALID.r, CELL_INVALID.g,
 					CELL_INVALID.b, 0.35), false, 2.0)
 
+	# ---- 射程覆盖预览（悬停格为锚点）----
+	if _hover_column >= 0 and _hover_lane >= 0:
+		_draw_range_coverage_preview(_hover_column, _hover_lane, tile, spacing)
+
 	# 悬停格：黄色描边 + 判定结果
 	if _hover_column >= 0 and _hover_lane >= 0:
 		var center := Vector2(_origin.x + tile * float(_hover_column),
@@ -1869,6 +1888,95 @@ func _draw_deploy_feedback() -> void:
 				Vector2(center.x - _px(40.0), center.y - tile * 0.55),
 				_hover_reject_reason, HORIZONTAL_ALIGNMENT_LEFT, -1,
 				int(_px(15.0)), CELL_INVALID)
+
+
+## 绘制射程覆盖预览：本路与相邻路的有效射程区域。
+##
+## 视觉纪律（指令要求「清晰、不刺眼」）：
+##   - 本路线用较饱和的色调 + 实线边框（玩家最关心的范围）；
+##   - 相邻路线用低饱和度色调 + 虚线边框（提示「可支援」而非等价）；
+##   - 覆盖区域按**连续区间**绘制（敌人不占格，真实射程是连续区间，
+##     而不是离散的格子集合），区间端点直接来自领域层的 rangeTiles。
+##   - 覆盖区域只画在合法部署格所在行上，不遮挡角色与敌人的主体。
+func _draw_range_coverage_preview(
+	column: int, lane: int, tile: float, spacing: float
+) -> void:
+	var coverage := session.query_attack_coverage(_selected_card_id, column, lane)
+	if coverage.is_empty():
+		return
+	var cell := Vector2(tile * 0.86, tile * 0.86)
+	var anchor_x := _origin.x + tile * float(column)
+	var core_margin := tile * CORE_MARGIN_TILES
+
+	for entry: Dictionary in coverage:
+		var target_lane := int(entry["lane"])
+		var eff_range := float(entry["rangeTiles"])
+		var is_adjacent := bool(entry.get("isAdjacent", false))
+		var lane_y := _origin.y + float(target_lane) * spacing
+
+		# 覆盖区间：角色格中心起，向前（右侧）延伸 eff_range 格
+		var from_x := anchor_x
+		var to_x := anchor_x + tile * eff_range
+		var band := Rect2(
+			Vector2(from_x, lane_y - cell.y * 0.44),
+			Vector2(maxf(to_x - from_x, 1.0), cell.y * 0.88))
+
+		var tint := RANGE_TINT_ADJACENT if is_adjacent else RANGE_TINT_OWN
+		draw_rect(band, tint, true)
+		# 边框：本路实线、相邻路虚线（用短线段模拟，避免依赖自定义 shader）
+		var edge := RANGE_EDGE_ADJACENT if is_adjacent else RANGE_EDGE_OWN
+		if is_adjacent:
+			_draw_dashed_rect(band, edge, 2.0, _px(8.0))
+		else:
+			draw_rect(band, edge, false, 2.0)
+
+		# 端点标记：让「射程到哪结束」一眼可见
+		draw_line(Vector2(to_x, lane_y - cell.y * 0.5),
+			Vector2(to_x, lane_y + cell.y * 0.5), edge, 2.0)
+
+		# 相邻路标注（只在相邻路显示，避免刷屏）
+		if is_adjacent:
+			draw_string(ThemeDB.fallback_font,
+				Vector2(maxf(from_x, _px(4.0)), lane_y - cell.y * 0.56),
+				"相邻路 %.1f 格" % eff_range, HORIZONTAL_ALIGNMENT_LEFT, -1,
+				int(_px(13.0)), edge)
+
+	# 本路射程标签
+	var own_range := 0.0
+	for entry: Dictionary in coverage:
+		if int(entry["lane"]) == lane:
+			own_range = float(entry["rangeTiles"])
+	if own_range > 0.0:
+		draw_string(ThemeDB.fallback_font,
+			Vector2(anchor_x + _px(6.0), lane_y_label(lane, spacing) - cell.y * 0.56),
+			"本路 %.1f 格" % own_range, HORIZONTAL_ALIGNMENT_LEFT, -1,
+			int(_px(13.0)), RANGE_EDGE_OWN)
+
+
+## 某条路线的像素 y（供标签定位复用）
+func lane_y_label(lane: int, spacing: float) -> float:
+	return _origin.y + float(lane) * spacing
+
+
+## 用短线段绘制虚线矩形边框（无 shader 依赖，任何渲染后端都可用）
+func _draw_dashed_rect(rect: Rect2, color: Color, width: float, dash: float) -> void:
+	var step := maxf(dash, 1.0)
+	# 上下边
+	var x := rect.position.x
+	while x < rect.position.x + rect.size.x:
+		var x2 := minf(x + step, rect.position.x + rect.size.x)
+		draw_line(Vector2(x, rect.position.y), Vector2(x2, rect.position.y), color, width)
+		draw_line(Vector2(x, rect.position.y + rect.size.y),
+			Vector2(x2, rect.position.y + rect.size.y), color, width)
+		x += step * 2.0
+	# 左右边
+	var y := rect.position.y
+	while y < rect.position.y + rect.size.y:
+		var y2 := minf(y + step, rect.position.y + rect.size.y)
+		draw_line(Vector2(rect.position.x, y), Vector2(rect.position.x, y2), color, width)
+		draw_line(Vector2(rect.position.x + rect.size.x, y),
+			Vector2(rect.position.x + rect.size.x, y2), color, width)
+		y += step * 2.0
 
 
 ## 底部角色卡条（P0.4：每个本关可用角色一张卡，按 availableCharacters 顺序）。

@@ -58,6 +58,22 @@ const SPEC_EXP_1_TO_10: Dictionary = {
 ## L1531：「Lv.1→10 累计 2,520 EXP」
 const SPEC_CUMULATIVE_TO_10 := 2520
 
+## V2.1.4 H 章四 表 56（L1510-1517）六段区间。
+##
+## 元素为 [键下界, 键上界, 值下界, 值上界]。
+## 读法：阶段列是等级区间，对应升级键为 [起始等级-1, 结束等级-1]；
+## 首段因键 0 不存在而从键 1 起算。
+## 该读法是唯一自洽读法——只有它能让规格 LOCKED 的表 57 九个精确值
+## 全部落回表 56 前两段区间（其他读法会让规格的精确值越出规格的区间）。
+const SPEC_EXP_BANDS: Array = [
+	[1, 4, 100, 220],
+	[5, 9, 260, 520],
+	[10, 19, 600, 1250],
+	[20, 29, 1400, 2300],
+	[30, 39, 2500, 3800],
+	[40, 49, 4000, 6000],
+]
+
 ## 每级属性增量（H 章三十七 示例 growth 段）
 const SPEC_PER_LEVEL := {"hp": 42.0, "attack": 5.2, "defense": 2.8}
 ## 治疗力增量（character_growth.json 的候选值，规格未逐字给出）
@@ -298,6 +314,95 @@ func test_exp_table_keys_1_to_50_complete() -> void:
 		var nxt := int(table.get(str(lv + 1), 0))
 		assert_lte(float(nxt), float(cur) * 2.0,
 			"Lv.%d→%d 的 EXP 不应相对上一级翻倍以上（%d → %d）" % [lv, lv + 1, cur, nxt])
+
+
+## 验收点 2（本轮新增）：全表每个键都必须落在 V2.1.4 表 56 的对应区间内。
+##
+## ⚠️ 为什么必须新增本用例：本缺口长期静默——既有测试只断言「键完整 / 键50为0 /
+## 不翻倍」，**没有任何断言校验区间**，导致旧候选表有 30 个键越出表 56 上界
+## 而测试全绿（详见 docs/Alpha_数值缺口裁决清单.md 第三节）。
+## 本用例把规格区间约束固化为可回归的判据。
+func test_exp_table_every_key_falls_within_spec_band() -> void:
+	var table: Dictionary = _growth_cfg().get("expTable", {})
+	var checked := 0
+	var violations: Array[String] = []
+
+	for band: Array in SPEC_EXP_BANDS:
+		var klo := int(band[0])
+		var khi := int(band[1])
+		var vlo := int(band[2])
+		var vhi := int(band[3])
+		for k: int in range(klo, khi + 1):
+			var key := str(k)
+			assert_true(table.has(key), "expTable 应含键 %s" % key)
+			if not table.has(key):
+				continue
+			var v := int(table[key])
+			checked += 1
+			if v < vlo or v > vhi:
+				violations.append("键%d=%d（应在 [%d, %d]）" % [k, v, vlo, vhi])
+
+	# 保证本用例确实覆盖了全部 49 个升级键，而不是空转通过
+	assert_eq(checked, SPEC_MAX_LEVEL - 1,
+		"应检查全部 %d 个升级键（键 1..49），实际 %d" % [SPEC_MAX_LEVEL - 1, checked])
+	assert_eq(violations.size(), 0,
+		"每个键都必须落在表 56 区间内，越界项：%s" % str(violations))
+
+
+## 验收点 2（本轮新增）：重建后的 Lv.11→50 段必须单调不减（不出现升级需求倒退）。
+##
+## 表 56 的区间上界与「平滑不翻倍」在旧候选值下互斥；重建后两者应同时满足。
+func test_exp_table_11_to_50_is_monotonic_within_bands() -> void:
+	var table: Dictionary = _growth_cfg().get("expTable", {})
+
+	var prev := int(table.get("9", 0))
+	var worst_ratio := 0.0
+	for k: int in range(10, 50):
+		var cur := int(table.get(str(k), 0))
+		assert_gte(float(cur), float(prev),
+			"键 %d 的 EXP（%d）不得低于上一键（%d）——升级需求不得倒退" % [k, cur, prev])
+		var ratio := float(cur) / float(prev) if prev > 0 else 0.0
+		worst_ratio = maxf(worst_ratio, ratio)
+		prev = cur
+
+	# L1532：不出现突然翻倍的「卡墙」
+	assert_lt(worst_ratio, 2.0,
+		"Lv.11→50 段的最大相邻增幅（%.4fx）应小于 2.0（L1532 不翻倍）" % worst_ratio)
+	assert_lt(worst_ratio, 1.5,
+		"本轮重建目标：最大相邻增幅应小于 1.5x（实际 %.4fx）" % worst_ratio)
+
+
+## 验收点 2（本轮新增）：旧候选值必须保留在数据文件里，便于比较与回滚。
+func test_exp_table_keeps_previous_values_for_rollback() -> void:
+	var table: Dictionary = _growth_cfg().get("expTable", {})
+	assert_true(table.has("_11to50_previous"),
+		"重建必须保留旧候选值（_11to50_previous），以便比较与回滚")
+	var prev: Dictionary = table.get("_11to50_previous", {})
+	# 该字典含 40 个数值键（10..49）+ 1 个 _note 说明键 = 41 项
+	var numeric_keys := 0
+	for k: int in range(10, 50):
+		if prev.has(str(k)):
+			numeric_keys += 1
+	assert_eq(numeric_keys, 40,
+		"旧值应含键 10..49 共 40 项（实际 %d）" % numeric_keys)
+	assert_true(prev.has("_note"), "旧值段应带 _note 说明其用途")
+	# 旧值确实越界（证明保留它有意义：可作为「已知不合规」的对照）
+	var old_violations := 0
+	for k: int in range(10, 50):
+		var v := int(prev.get(str(k), 0))
+		var band := _band_for_key(k)
+		if v < int(band[2]) or v > int(band[3]):
+			old_violations += 1
+	assert_eq(old_violations, 30,
+		"旧候选值应有 30 个键越界（与裁决清单复核一致），实际 %d" % old_violations)
+
+
+## 取某升级键所属的表 56 区间
+func _band_for_key(key: int) -> Array:
+	for band: Array in SPEC_EXP_BANDS:
+		if key >= int(band[0]) and key <= int(band[1]):
+			return band
+	return []
 
 
 # ============================================================

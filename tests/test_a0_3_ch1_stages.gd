@@ -763,8 +763,16 @@ func test_08_1_4_mio_only_fails() -> void:
 	assert_gt(int(comp.get("echo_armored", 0)), 0, "1-4 应含装甲残响体")
 
 
-## 验收点 8d：1-5 悠真分兵到上段 lane0 → 失败（中段集火不足）。
-func test_08_1_5_split_ranged_to_lane0_fails() -> void:
+## 验收点 8d：1-5 悠真分兵到上段 lane0 → **仍然通关，但明显更差**。
+##
+## ⚠️ 本用例在裁决 DEC-C-0003 后被改写。原文断言「分兵上段应失败」，其依据是
+## 「悠真只能打同路线」这一**已被正式取代**的旧限制。跨线规则落地后，放在上段的悠真
+## 仍可支援中段（相邻路线），因此「分兵上段」不再是必败解。
+##
+## 新的设计意图（更符合「站位差异应产生战术价值」这一目标）：
+##   分兵上段**仍然可行**，但代价明确——中段火力减弱、核心多掉 1 点、且前线失能。
+##   这比「换条线就直接输」更符合玩家直觉，也保留了站位的策略深度。
+func test_08_1_5_split_ranged_to_lane0_is_worse_but_viable() -> void:
 	var cfg := _stage_from_file("1-5")
 	if cfg.is_empty():
 		fail_test("应能从磁盘读到 1-5")
@@ -773,17 +781,23 @@ func test_08_1_5_split_ranged_to_lane0_fails() -> void:
 	assert_eq((res["rejects"] as Array).size(), 0,
 		"该对照战术的动作应被接受：%s" % str(res["rejects"]))
 	var s: BattleSession = res["session"]
-	assert_eq(s.outcome, BattleTypes.Outcome.DEFEAT,
-		"1-5 把悠真分兵上段应失败——中段三只装甲失去远程集火（核心 %d/%d，击杀 %d，漏怪 %d）"
+	# DEC-C-0003：跨线支援使分兵上段仍可通关（不再必败）
+	assert_eq(s.outcome, BattleTypes.Outcome.VICTORY,
+		"1-5 分兵上段在跨线规则下仍可通关（核心 %d/%d，击杀 %d，漏怪 %d）"
 		% [s.stage.core_hp, s.stage.core_hp_max, s.stage.enemies_killed, s.stage.reached_core_count])
-	assert_eq(s.stage.core_hp, 0, "1-5 的该对照解应打到核心归零")
-	# 对照必须比稳定解差
+	# 但必须比稳定解差——这是「站位有战术差异」的可验证证据
 	var stable := _run_stable("1-5")
 	if not stable.is_empty():
 		var good: BattleSession = stable["session"]
 		assert_eq(good.outcome, BattleTypes.Outcome.VICTORY, "稳定解应为胜利（对照基准）")
 		assert_lt(s.stage.enemies_killed, good.stage.enemies_killed,
-			"分兵上段的击杀数应严格少于中段集火解")
+			"分兵上段的击杀数应严格少于中段集火解（%d < %d）"
+			% [s.stage.enemies_killed, good.stage.enemies_killed])
+		assert_lt(s.stage.core_hp, good.stage.core_hp,
+			"分兵上段的核心剩余应严格少于中段集火解（%d < %d）"
+			% [s.stage.core_hp, good.stage.core_hp])
+		assert_gte(s.stage.characters_lost, 1,
+			"分兵上段应至少导致 1 名角色失能（中段火力不足的代价）")
 
 
 # ============================================================
@@ -1052,9 +1066,11 @@ func test_13_1_5_result_is_independent_of_tick_granularity() -> void:
 	# 保证比较的是真实战果，而不是三方都在空转
 	assert_eq(int((results[0] as Dictionary)["outcome"]), BattleTypes.Outcome.VICTORY,
 		"60fps 粒度下 1-5 应为胜利")
-	# A0.3 回填后 1-5 共 8 只：击杀 7 + 漏 1（上段普通残响体，刻意的取舍题）。
-	# 数值与 tools/design_a0_2_stages.gd 的实测一致（核心 2/3、击杀 7、漏怪 1）。
-	assert_eq(int((results[0] as Dictionary)["kills"]), 7,
-		"60fps 粒度下 1-5 应击杀 7 名敌人（8 只中漏 1 只上段普通）")
-	assert_eq(int((results[0] as Dictionary)["leaked"]), 1,
-		"60fps 粒度下 1-5 应恰好漏 1 只（上段取舍题）")
+	# 裁决 DEC-C-0003 后的实测：1-5 共 8 只全部击杀、**零漏怪**（核心 3/3）。
+	# 这是本轮战斗体验重构的核心成果之一——跨线支援让「合理站位守住三路」成为可实现目标。
+	assert_eq(int((results[0] as Dictionary)["kills"]), 8,
+		"60fps 粒度下 1-5 应击杀全部 8 名敌人（跨线规则下零漏怪可达）")
+	assert_eq(int((results[0] as Dictionary)["leaked"]), 0,
+		"60fps 粒度下 1-5 应零漏怪（合理站位即可守住，而非被迫放怪）")
+	assert_eq(int((results[0] as Dictionary)["coreHp"]), 3,
+		"60fps 粒度下 1-5 核心应保持满值 3/3")

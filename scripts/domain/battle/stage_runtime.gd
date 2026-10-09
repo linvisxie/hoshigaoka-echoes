@@ -108,6 +108,11 @@ var redeploy_default_seconds: float = DEFAULT_REDEPLOY_SECONDS
 ## 部署角色时注入到 CharacterRuntime，代码内不复制第二份数值。
 var debuff_floor_pct: float = CharacterRuntime.DEFAULT_DEBUFF_FLOOR
 
+## 增益上限（V2.1.4 表 81 L2108「攻击速度加成 局内总增益原则上不超过 +80%」）。
+## 权威值来自 balance.json 的 combat.buffCeiling；L2113 明标该表为测试基线，
+## 故上限可配置、非 LOCKED。部署角色时注入 CharacterRuntime。
+var buff_ceiling_pct: float = CharacterRuntime.DEFAULT_BUFF_CEILING
+
 ## 计划中的出怪条目（来自 StageConfig，禁止写死在代码）
 var _spawn_plan: Array[Dictionary] = []
 var _spawn_cursor: int = 0
@@ -286,6 +291,19 @@ static func from_config(
 					% [key, str(floor_cfg[key]), str(floor_pct)]
 					+ "当前构建只实现单一统一下限，拆分需先补实现")
 
+	# ---- 增益上限（V2.1.4 表 81 L2108：攻击速度加成局内总增益不超过 +80%）----
+	# 与下限不同，表 81 被规格 L2113 明标为「测试基线，不是最终数值」，
+	# 因此上限可配置、非 LOCKED；缺失时用代码兜底值而不报错。
+	var ceiling_cfg: Dictionary = balance_combat.get("buffCeiling", {})
+	if not ceiling_cfg.is_empty():
+		var ceiling := float(ceiling_cfg.get("attackSpeedPct", CharacterRuntime.DEFAULT_BUFF_CEILING))
+		if ceiling < 1.0:
+			rt._errors.append(
+				"balance.combat.buffCeiling.attackSpeedPct 必须 ≥ 1.0（基础值 1.0 加上正增益），实际 %s"
+				% ceiling)
+		else:
+			rt.buff_ceiling_pct = ceiling
+
 	# ---- 可部署角色列表 ----
 	if stage_config.has("availableCharacters"):
 		var ac: Variant = stage_config["availableCharacters"]
@@ -346,6 +364,53 @@ func _validate_character_behaviors() -> void:
 		# 阻挡能力必须与规格一致：远程 / 治疗为 0（表 25 / 28 / 30）
 		if behavior != CharacterRuntime.Behavior.FRONTLINE and int(cfg.get("blockCount", 0)) > 0:
 			_errors.append("非前线角色 %s 的 blockCount 必须为 0（V2.1.4 表 25 / 表 28 / 表 30）" % cid)
+
+		# ---- 裁决 DEC-C-0003：跨线攻击声明的一致性校验 ----
+		# 纪律：跨线能力必须由角色数据显式声明，禁止按 behavior 推导；
+		# 声明自相矛盾时在构建期报错，而不是静默退化成某一种行为。
+		rt_validate_cross_lane(cid, behavior, range_cfg)
+
+
+## 校验单个角色的跨线攻击声明（裁决 DEC-C-0003）。
+##
+## 规则：
+##   ① 治疗角色不得声明跨线攻击（治疗走 manhattan + maxLaneDelta 的既有路径）；
+##   ② allowCrossLane=true 必须同时满足 maxLaneDelta ≥ 1（否则声明自相矛盾）；
+##   ③ maxLaneDelta ≥ 1 但 allowCrossLane 缺失/false → 报错（防止「配了跨线却没生效」）；
+##   ④ adjacentLaneRangeTiles 不得大于本路线 rangeTiles（相邻路线不应比本路线更远）；
+##   ⑤ targetLimit 必须为 1（DEC-C-0003：每次普通攻击只选择一个目标）。
+func rt_validate_cross_lane(cid: String, behavior: int, range_cfg: Dictionary) -> void:
+	var allow := bool(range_cfg.get("allowCrossLane", false))
+	var delta := int(range_cfg.get("maxLaneDelta", 0))
+
+	if behavior == CharacterRuntime.Behavior.HEALER:
+		if allow:
+			_errors.append("治疗角色 %s 不得声明 allowCrossLane（治疗范围走 manhattan + maxLaneDelta）" % cid)
+		return
+
+	if allow and delta < 1:
+		_errors.append(
+			"角色 %s 声明 allowCrossLane=true 但 maxLaneDelta=%d；跨线必须同时给出 ≥1 的 maxLaneDelta"
+			% [cid, delta])
+	elif not allow and delta >= 1:
+		_errors.append(
+			"角色 %s 的 maxLaneDelta=%d 但未声明 allowCrossLane=true；"
+			% [cid, delta]
+			+ "DEC-C-0003 要求跨线能力显式声明，不得只改 maxLaneDelta 就期待生效")
+
+	if allow:
+		var own_range := float(range_cfg.get("rangeTiles", 0.0))
+		var adj_range := float(range_cfg.get("adjacentLaneRangeTiles", 0.0))
+		if adj_range <= 0.0:
+			_errors.append("角色 %s 声明跨线但缺少正的 adjacentLaneRangeTiles" % cid)
+		elif adj_range > own_range + 0.0001:
+			_errors.append(
+				"角色 %s 的 adjacentLaneRangeTiles（%s）不得大于本路线 rangeTiles（%s）"
+				% [cid, adj_range, own_range])
+		if int(range_cfg.get("targetLimit", 1)) != 1:
+			_errors.append(
+				"角色 %s 的 targetLimit 必须为 1（DEC-C-0003：每次普通攻击只选择一个目标），实际 %s"
+				% [cid, str(range_cfg.get("targetLimit", 1))])
 
 
 func _validate_spawn_timeline(
@@ -770,6 +835,8 @@ func deploy_character(character_id: String, column: int, lane: int) -> DeployRes
 	# A0.2：注入减益下限（权威值来自 balance.json 的 combat.debuffFloor）。
 	# 新实例不带任何状态效果（旧实例的减益不继承）。
 	inst.debuff_floor_pct = debuff_floor_pct
+	# DEC-C-0004：注入增益上限（权威值来自 balance.json 的 combat.buffCeiling）。
+	inst.buff_ceiling_pct = buff_ceiling_pct
 	characters.append(inst)
 	character_instances.append(inst)
 	r.character = inst
@@ -802,6 +869,73 @@ func get_character_at(column: int, lane: int) -> CharacterRuntime:
 		if c.column == column and c.lane == lane:
 			return c
 	return null
+
+
+# ============================================================
+#  部署预览（裁决 DEC-C-0003 / 第四阶段：射程提示）
+# ============================================================
+
+## 查询某角色若部署在 (column, lane) 时的**攻击覆盖范围**（供 UI 部署预览使用）。
+##
+## 返回 [{lane, rangeTiles, isAdjacent, cells:[{column, lane}]}, ...]，按 lane 升序。
+## 「cells」是该路线内被覆盖的**部署格**集合（仅用于可视化高亮；敌人不占格，
+## 因此真实可打范围是连续区间，格集合是面向玩家的近似提示）。
+##
+## 纪律：
+##   - 本方法**无副作用**，不部署、不扣 AP；
+##   - 覆盖范围与真实攻击判定共用同一套数据（attack_range_for_lane），
+##     因此 UI 不可能显示出一个实际打不到的范围；
+##   - 治疗角色返回其治疗覆盖（曼哈顿 + maxLaneDelta），语义与输出角色一致。
+func query_attack_coverage(character_id: String, column: int, lane: int) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not _character_configs.has(character_id):
+		return out
+	if not BattleTypes.is_valid_column(column) or not BattleTypes.is_valid_lane(lane):
+		return out
+
+	var cfg: Dictionary = _character_configs[character_id]
+	var behavior := CharacterRuntime.parse_behavior(str(cfg.get("behavior", "")))
+	var range_cfg: Dictionary = cfg.get("attackRange", {})
+	if range_cfg.is_empty():
+		return out
+
+	# 构造一个**临时探针实例**复用 CharacterRuntime 的射程判定，避免复制第二份规则。
+	# 该实例不进入 characters，不参与任何战斗结算。
+	var probe := CharacterRuntime.from_config(cfg, column, lane, 0, {})
+	var max_delta := 0
+	if behavior == CharacterRuntime.Behavior.HEALER:
+		# 治疗角色：跨线仍受 maxLaneDelta 约束，且无「前方」方向性
+		max_delta = probe.max_lane_delta
+	else:
+		max_delta = probe.max_lane_delta if probe.allow_cross_lane else 0
+
+	for d: int in range(-max_delta, max_delta + 1):
+		var target_lane := lane + d
+		if not BattleTypes.is_valid_lane(target_lane):
+			continue
+		var eff_range := probe.attack_range_for_lane(target_lane)
+		if eff_range <= 0.0:
+			continue
+		var covered: Array[Dictionary] = []
+		for col: int in range(BattleTypes.COLUMN_COUNT):
+			var in_range := false
+			if behavior == CharacterRuntime.Behavior.HEALER:
+				# 治疗覆盖：以治疗者所在格为圆心，按曼哈顿距离近似到格中心
+				var manhattan := absi(col - column) + absi(target_lane - lane)
+				in_range = float(manhattan) <= eff_range + 0.0001
+			else:
+				# 输出覆盖：目标格中心落在「前方 0 ~ 射程」区间内
+				var delta_x := float(col) - float(column)
+				in_range = delta_x >= -0.0001 and delta_x <= eff_range + 0.0001
+			if in_range:
+				covered.append({"column": col, "lane": target_lane})
+		out.append({
+			"lane": target_lane,
+			"rangeTiles": eff_range,
+			"isAdjacent": d != 0,
+			"cells": covered,
+		})
+	return out
 
 
 ## 某角色当前的再部署剩余秒数（0 = 可部署）
@@ -1861,24 +1995,34 @@ func _resolve_character_attacks(step: float) -> void:
 		_resolve_attacker_action(c, step)
 
 
-## 目标选择（V2.1.4 D-11）：
+## 目标选择（V2.1.4 D-11 目标优先级 + 裁决 DEC-C-0003 跨路线攻击）。
+##
+## 优先级（保持原有规则不变）：
 ##   ① 最接近防守核心的敌人（logicalX 最小）
 ##   ② 当前正在阻挡的敌人
 ##   ③ 更早进入攻击范围的敌人（以 instance_id 升序近似「更早」，保证确定性）
-## 攻击范围：同路线「前方」rangeTiles 以内（V2.1.4 D-13：同路线前方 1.25 格以内）。
-## 例外：当前被该角色阻挡的敌人**始终可攻击**。
+##
+## 攻击范围（裁决 DEC-C-0003）：
+##   - 本路线：前方 rangeTiles 以内（如悠真 4.0 格）；
+##   - 相邻路线：仅当角色数据显式声明 allowCrossLane 且 |laneDelta| ≤ maxLaneDelta 时，
+##     前方 adjacentLaneRangeTiles 以内（如悠真 3.0 格）；
+##   - **绝不允许上路直接打下路**（laneDelta=2 被 can_attack_lane 拒绝）。
+##
+## 例外：当前被该角色阻挡的敌人**始终可攻击**（阻挡目标必然同路线）。
+##
+## 每次普通攻击仍只选择一个目标（DEC-C-0003 明文：跨线不增加攻击频率、不复制攻击次数）。
 func _select_target_for(c: CharacterRuntime) -> EnemyRuntime:
 	var candidates: Array[EnemyRuntime] = []
 	for e: EnemyRuntime in enemies:
 		if not e.is_active():
 			continue
-		if e.lane != c.lane:
+		# 路线闸门：同路线恒定合法；跨线须由数据显式授权且不超过 maxLaneDelta
+		if not c.can_attack_lane(e.lane):
 			continue
 		var blocked_by_me := c.is_blocking(e.instance_id)
 		if not blocked_by_me:
-			# 范围判定：敌人须在角色前方且不超出射程
-			var delta := e.logical_x - float(c.column)
-			if delta < -0.0001 or delta > c.attack_range_tiles:
+			# 射程判定：按目标所在路线取有效射程（本路 vs 相邻路），全部以逻辑格计算
+			if not c.is_target_in_attack_range(e.lane, e.logical_x):
 				continue
 		candidates.append(e)
 
@@ -1897,6 +2041,7 @@ func _select_target_for(c: CharacterRuntime) -> EnemyRuntime:
 		# ③ 更早进入战场者优先（instance_id 升序）
 		return a.instance_id < b.instance_id
 	)
+	# 单次攻击只取一个目标（DEC-C-0003：targetLimit 当前恒为 1）
 	return candidates[0]
 
 

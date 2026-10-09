@@ -349,7 +349,9 @@ func test_full_stage_1_1_is_deterministic() -> void:
 	var outcomes := []
 	for i: int in range(2):
 		var s := _make_session()
-		_advance_session(s, 120.0)
+		# 推进窗口 240s：本轮 1-1 重平衡后末位敌人排在 80s（原先 30s），
+		# 120s 窗口已不足以让它走到核心完成结算。
+		_advance_session(s, 240.0)
 		outcomes.append({
 			"outcome": s.outcome,
 			"hp": s.stage.core_hp,
@@ -360,6 +362,16 @@ func test_full_stage_1_1_is_deterministic() -> void:
 	assert_eq(outcomes[0], outcomes[1],
 		"同一关卡连续两次运行应得到完全一致的结果（确定性）")
 	# 1-1：6 个敌人全部漏怪，核心 5 → 应为失败
-	assert_eq(outcomes[0]["spawned"], 6, "应生成全部 6 个敌人")
+	#
+	# ⚠️ 本轮重平衡后「不部署」的结果发生了变化，这里如实登记新事实：
+	# Wave 3 的末位敌人被排到 80s（原先 30s），以便给玩家留出 > 20 秒再部署冷却的
+	# 撤退换线窗口（第二阶段目标）。因此在**完全不部署**的情况下，核心（5 点）
+	# 会在第 5 名敌人漏怪时归零，第 6 名敌人尚未生成、战斗即告结束。
+	# 这是合理的：玩家已经失败，没有必要继续放出后续敌人。
+	# 关键不变量仍然成立——失败判定、漏怪计数与确定性。
+	assert_eq(outcomes[0]["spawned"], 5,
+		"不部署时应有 5 名敌人生成（核心 5 点被漏怪耗尽后战斗即结束，第 6 名尚未出怪）")
+	assert_eq(outcomes[0]["reached"], 5, "不部署时应有 5 名敌人抵达核心")
+	assert_eq(outcomes[0]["hp"], 0, "不部署时核心应归零")
 	assert_eq(outcomes[0]["outcome"], BattleTypes.Outcome.DEFEAT,
-		"1-1 无玩家单位时 6 个敌人漏怪应导致失败（核心 5）")
+		"1-1 无玩家单位时应失败（核心被漏怪耗尽）")

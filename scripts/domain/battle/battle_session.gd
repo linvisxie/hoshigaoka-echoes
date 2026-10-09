@@ -90,6 +90,18 @@ func query_deploy(character_id: String, column: int, lane: int) -> StageRuntime.
 	return stage.query_deploy(character_id, column, lane)
 
 
+## 查询某角色若部署在 (column, lane) 时的攻击覆盖范围（无副作用，供 UI 部署预览）。
+##
+## 返回结构与 StageRuntime.query_attack_coverage() 一致；UI 不得自行推导射程，
+## 必须经本入口读取，以保证「显示的范围」与「真实可打的范围」永远一致。
+func query_attack_coverage(
+	character_id: String, column: int, lane: int
+) -> Array[Dictionary]:
+	if stage == null:
+		return []
+	return stage.query_attack_coverage(character_id, column, lane)
+
+
 ## 执行部署。成功才扣 AP。
 func deploy_character(character_id: String, column: int, lane: int) -> StageRuntime.DeployResult:
 	if _frozen or stage == null:

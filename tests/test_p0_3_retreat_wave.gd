@@ -958,20 +958,27 @@ func test_stage_1_1_still_fails_without_deployment() -> void:
 	assert_eq(s.outcome, BattleTypes.Outcome.DEFEAT, "不部署仍应失败（对照）")
 
 
-func test_1_1_wave_gap_is_shorter_than_redeploy_cooldown() -> void:
-	# 事实记录（不是缺陷掩盖）：1-1 是 P0.3 把既有原型时间线组织成的 3 波教学关，
-	# 全程约 35 秒，而规格规定的再部署冷却为 20 秒。
-	# 因此「同一波内先撤退再立刻重新部署」在 1-1 上不可行——
-	# 玩家必须提前规划撤退时机，这正是 AP / 再部署作为阵容构筑代价的体现（D-7 / D-16）。
-	# 本用例把这一约束固化为可回归的数字，避免后续调平衡时无声漂移。
+func test_1_1_wave_gap_now_allows_redeploy_swap() -> void:
+	# ⚠️ 本用例在「三路线战斗体验重构」第二阶段被**反转**。
+	#
+	# 原用例名：test_1_1_wave_gap_is_shorter_than_redeploy_cooldown，
+	# 断言「第 1 波清场到第 3 波出怪的空档（约 13s）**短于** 20 秒冷却」，
+	# 即 1-1 上无法在关内完成撤退换线。
+	#
+	# 该断言的依据已在裁决 DEC-B-0002 中被明确限定为「**事实记录断言，非产品规则**」——
+	# 它只描述 P0.3 当时那版原型时间线的事实，并明文声明
+	# 「不得将当前约 13 秒的波次空档锁定为不可调整的产品规则」。
+	#
+	# 本轮第二阶段审查的结论：那个空档正是「机制强迫漏怪」的根因——
+	# 1-1 只有雨宫澪一人、核心 5 点，而 Wave 3 的两只敌人只隔 4 秒压上，
+	# 玩家在物理上不可能及时换线，零漏怪**不可达**。
+	# 因此按 DEC-B-0002 授予的可调性，把 Wave 3 的两只敌人改为 48s / 80s，
+	# 使空档拉长到 > 20 秒冷却，「撤退 → 换线 → 再部署」成为可行操作。
+	#
+	# 本用例现在断言**反转后的新事实**：空档足够完成一次撤退换线。
 	var rt := _runtime(_stage_config())
 	assert_eq(rt.redeploy_default_seconds, 20.0, "再部署冷却应为 20 秒（表 24）")
 
-	# 量化约束：第 1 波的清场时刻（最后一个敌人被杀）早于第 3 波出怪时刻，
-	# 中间这段空档就是玩家唯一可用的换人窗口——它比 20 秒冷却短，
-	# 因此 1-1 上不存在"同一局内先撤退换线再迎击第 3 波"的可行操作。
-	# 这是真实且符合规格的设计后果（D-9：撤退后必须等满冷却），
-	# 也说明 1-1 的换人操作只能发生在本关战斗之外；结论已写入验收报告遗留问题节。
 	var s := _session(_stage_config())
 	assert_true(s.deploy_character(CHAR_ID, 2, 1).ok, "应能部署")
 	var t := 0.0
@@ -980,7 +987,7 @@ func test_1_1_wave_gap_is_shorter_than_redeploy_cooldown() -> void:
 	for e: Dictionary in _stage_config()["enemySpawnTimeline"]:
 		if int(e.get("wave", 1)) == 3:
 			wave3_time = minf(wave3_time, float(e["time"])) if wave3_time > 0.0 else float(e["time"])
-	while s.is_running() and t < 60.0:
+	while s.is_running() and t < 120.0:
 		s.tick(StageRuntime.LOGIC_STEP_SECONDS)
 		t += StageRuntime.LOGIC_STEP_SECONDS
 		if first_wave_cleared_at < 0.0 and s.stage.wave_state_at(0).get("status", 0) == StageRuntime.WAVE_CLEARED:
@@ -989,9 +996,35 @@ func test_1_1_wave_gap_is_shorter_than_redeploy_cooldown() -> void:
 	assert_gt(first_wave_cleared_at, 0.0, "第 1 波应被完成（否则约束无从成立）")
 	assert_gt(wave3_time, first_wave_cleared_at, "第 3 波应排在第 1 波清场之后")
 	var gap := wave3_time - first_wave_cleared_at
-	assert_lt(gap, rt.redeploy_default_seconds,
-		"第 1 波清场到第 3 波出怪的空档（%.1fs）短于 %.0f 秒冷却——1-1 上无法在关内完成撤退换线"
-		% [gap, rt.redeploy_default_seconds])
+	assert_gte(gap, rt.redeploy_default_seconds,
+		"第 1 波清场到第 3 波出怪的空档（%.1fs）应不短于 %.0f 秒冷却——"
+		% [gap, rt.redeploy_default_seconds]
+		+ "1-1 上必须存在可行的撤退换线窗口（本轮重平衡目标）")
+
+	# 更直接的证据：1-1 上确实能用「撤退 → 换线 → 再部署」达成零漏怪。
+	# 与 tools/probe_cross_lane.gd 的实测量化依据一致。
+	var z := _session(_stage_config())
+	assert_true(z.deploy_character(CHAR_ID, 2, 1).ok, "零漏怪解应能部署第一人")
+	_advance_session_to(z, 30.0)
+	assert_true(z.withdraw_character_by_id(CHAR_ID).ok, "零漏怪解应在 30.0s 撤退")
+	_advance_session_to(z, 50.5)
+	assert_true(z.deploy_character(CHAR_ID, 2, 0).ok, "零漏怪解应能在 50.5s 于上段再部署")
+	_advance_session_to(z, 57.0)
+	assert_true(z.withdraw_character_by_id(CHAR_ID).ok, "零漏怪解应在 57.0s 再次撤退")
+	_advance_session_to(z, 77.5)
+	assert_true(z.deploy_character(CHAR_ID, 2, 2).ok, "零漏怪解应能在 77.5s 于下段再部署")
+	_advance_session_to(z, 240.0)
+	assert_eq(z.outcome, BattleTypes.Outcome.VICTORY, "零漏怪解应为胜利")
+	assert_eq(z.stage.reached_core_count, 0, "零漏怪解应达成零漏怪")
+	assert_eq(z.stage.core_hp, z.stage.core_hp_max, "零漏怪解核心应保持满值")
+
+
+## 把会话推进到指定逻辑时刻（若已结束则提前返回）。
+func _advance_session_to(s: BattleSession, target: float) -> void:
+	var guard := 0
+	while s.is_running() and s.stage.elapsed_seconds < target - 0.0001 and guard < 200000:
+		s.tick(StageRuntime.LOGIC_STEP_SECONDS)
+		guard += 1
 
 
 func test_withdraw_and_redeploy_loop_is_winnable() -> void:
