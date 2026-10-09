@@ -36,6 +36,14 @@ var growth: CharacterGrowthService = null
 var _growth_generation: int = -1
 
 
+func _enter_tree() -> void:
+	# Refuse GUT before test setup/teardown can destroy the actual user:// saves.
+	if TestDataGuard.is_gut_invocation(OS.get_cmdline_args()) \
+			and not TestDataGuard.is_isolated(OS.get_user_data_dir()):
+		printerr("TEST_ISOLATION_REFUSED: user:// must resolve under an absolute _testenv directory")
+		get_tree().quit(86)
+
+
 func _ready() -> void:
 	GameLog.info(TAG, "%s %s (%s %s) 启动"
 		% [APP_NAME, APP_VERSION, PHASE, PROTOTYPE_STAGE])

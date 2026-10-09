@@ -79,6 +79,8 @@ var heal_events: Array[Dictionary] = []
 ##   - 本数组是**表现层数据源**，不参与任何战斗判定；
 ##   - 与 heal_events 一样按逻辑步累积，因此帧率与分辨率不影响其内容。
 var damage_events: Array[Dictionary] = []
+## Presentation-only monotonic sequence; array retention must not reset consumers.
+var _damage_event_sequence: int = 0
 
 ## 表现层读取伤害事件时的游标（表现层自己维护；领域层不关心）
 const DAMAGE_EVENT_RETENTION := 200
@@ -1601,7 +1603,9 @@ func _resolve_ranged_enemy_actions(step: float) -> void:
 		var applied := target.take_damage(dmg)
 		e.total_damage_dealt += applied
 		e.attack_cooldown = e.attack_interval
-		_record_damage_event(false, target.instance_id, applied, target.is_incapacitated())
+		_record_damage_event(false, target.instance_id, applied, target.is_incapacitated(),
+			"enemy", e.instance_id, Vector2(e.logical_x, e.lane),
+			Vector2(target.column, target.lane), e.damage_type)
 		GameLog.debug("StageRuntime", "%s 远程攻击 %s 造成 %d 伤害（剩余 HP %d）"
 			% [e.display_name, target.display_name, applied, target.hp])
 
@@ -1883,7 +1887,9 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 	# A0.2：攻击间隔取**有效间隔**（攻速减益 → 频率倒数，含 40% 下限夹取）。
 	# 无任何攻速减益时 effective_attack_interval() 恒等于 attack_interval，行为与 P0.4 一致。
 	c.attack_cooldown = c.effective_attack_interval()
-	_record_damage_event(true, target.instance_id, applied, target.hp <= 0)
+	_record_damage_event(true, target.instance_id, applied, target.hp <= 0,
+		"character", c.instance_id, Vector2(c.column, c.lane),
+		Vector2(target.logical_x, target.lane), c.damage_type)
 	GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
 		% [c.display_name, target.enemy_id, applied, target.hp])
 
@@ -1929,16 +1935,26 @@ func _record_damage_event(
 	target_is_enemy: bool,
 	target_instance_id: int,
 	applied: int,
-	lethal: bool
+	lethal: bool,
+	source_kind: String = "",
+	source_id: int = 0,
+	source_pos: Vector2 = Vector2.ZERO,
+	target_pos: Vector2 = Vector2.ZERO,
+	damage_type: int = 0
 ) -> void:
 	if applied <= 0:
 		return
+	_damage_event_sequence += 1
 	damage_events.append({
+		"seq": _damage_event_sequence,
 		"targetKind": "enemy" if target_is_enemy else "character",
 		"targetId": target_instance_id,
 		"amount": applied,
 		"at": snappedf(elapsed_seconds, 0.001),
 		"lethal": lethal,
+		"sourceKind": source_kind, "sourceId": source_id,
+		"sourcePos": source_pos, "targetPos": target_pos,
+		"hasPosition": not source_kind.is_empty(), "damageType": damage_type,
 	})
 	# 环形裁剪：只保留最近若干条，避免长局内存无上限增长。
 	# 表现层每个逻辑步都会消费新事件，因此裁剪不影响可见反馈。
@@ -2066,7 +2082,9 @@ func _resolve_enemy_attacks(step: float) -> void:
 		var applied := blocker.take_damage(dmg)
 		e.total_damage_dealt += applied
 		e.attack_cooldown = e.attack_interval
-		_record_damage_event(false, blocker.instance_id, applied, blocker.is_incapacitated())
+		_record_damage_event(false, blocker.instance_id, applied, blocker.is_incapacitated(),
+			"enemy", e.instance_id, Vector2(e.logical_x, e.lane),
+			Vector2(blocker.column, blocker.lane), e.damage_type)
 
 
 ## 清理死亡实体与失能角色

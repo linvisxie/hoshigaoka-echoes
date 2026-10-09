@@ -284,7 +284,7 @@ var _fired_tutorial_ids: Dictionary = {}
 var _tutorial_queue: Array[Dictionary] = []
 
 ## 已消费的伤害事件游标（表现层自己维护；领域层只负责累积）
-var _damage_cursor: int = 0
+var _damage_events := DamageEventCursor.new()
 ## 是否显示调试明细 HUD（默认关闭：V2.1.4 J 章禁止 HUD 大面积无功能装饰小字）
 var _show_debug_hud: bool = false
 
@@ -315,6 +315,10 @@ var _enemy_anim: Dictionary = {}
 
 ## 本帧「刚受击」的单位集合（由 _consume_damage_events 填充，绘制端读取后清空）
 var _hit_this_frame: Dictionary = {}
+var _attack_this_frame: Dictionary = {}
+## Immutable logical-position departure snapshots, independent of domain live arrays.
+var _departures: Array[Dictionary] = []
+var _departures_seen: Dictionary = {}
 
 ## 当前鼠标悬停的格子（column, lane），-1 表示不在格子上
 var _hover_column: int = -1
@@ -604,6 +608,7 @@ func _process(delta: float) -> void:
 		GameLog.info(TAG, "战斗结束：%s" % BattleTypes.outcome_name(session.outcome))
 	if _autoplay:
 		_drive_autoplay()
+		_write_art_probe()
 
 
 # ============================================================
@@ -621,6 +626,7 @@ func _update_feedback(delta: float) -> void:
 
 	_consume_damage_events()
 	_consume_kills()
+	_update_animation_states(now)
 	_check_enemy_kind_intro()
 	_consume_tutorial_triggers()
 	_update_danger_warnings(now)
@@ -655,15 +661,14 @@ func _update_feedback(delta: float) -> void:
 func _consume_damage_events() -> void:
 	var s := session.stage
 	var now := s.elapsed_seconds
-	while _damage_cursor < s.damage_events.size():
-		var ev: Dictionary = s.damage_events[_damage_cursor]
-		_damage_cursor += 1
+	for ev: Dictionary in _damage_events.consume(s.damage_events):
 		var kind := str(ev.get("targetKind", ""))
 		var tid := int(ev.get("targetId", 0))
 		var amount := int(ev.get("amount", 0))
 		if amount <= 0 or tid <= 0:
 			continue
 		var lethal := bool(ev.get("lethal", false))
+		var event_anchor := _logical_to_screen(ev["targetPos"]) if bool(ev.get("hasPosition", false)) else _damage_pop_anchor(kind, tid)
 		# 受击闪白（命中反馈的视觉通道之一）
 		_hit_flashes.append({"kind": kind, "targetId": tid, "until": now + HIT_FLASH_SECONDS})
 		# 标记本帧受击（供动画状态机读取）——键为 "kind:id"
@@ -671,7 +676,12 @@ func _consume_damage_events() -> void:
 		# ---- 正式特效（本轮美术施工）：命中火花，绑定真实伤害事件 ----
 		# 纪律：只在**领域层已结算的伤害事件**上播放，不预测、不伪造；
 		# 素材缺失时 vfx_frame 返回 null，绘制端自动跳过（美术非硬依赖）。
-		_spawn_vfx("vfx_impact", kind, tid, now, VFX_IMPACT_LIFETIME)
+		if bool(ev.get("hasPosition", false)):
+			_spawn_vfx_at("vfx_impact", _logical_to_screen(ev["targetPos"]), now, VFX_IMPACT_LIFETIME)
+		else:
+			_spawn_vfx("vfx_impact", kind, tid, now, VFX_IMPACT_LIFETIME)
+		var source_key := "%s:%d" % [str(ev.get("sourceKind", "")), int(ev.get("sourceId", 0))]
+		_attack_this_frame[source_key] = true
 		# 攻击者出手特效：按攻击者职业选择斩击（近战）/ 箭矢（远程）。
 		# 只在该伤害事件确实来自某个玩家角色时播放（敌人打玩家不播斩击）。
 		_spawn_attacker_vfx(ev, now)
@@ -689,7 +699,7 @@ func _consume_damage_events() -> void:
 				break
 		if not merged:
 			_damage_pops.append({
-				"kind": kind, "targetId": tid, "amount": amount,
+				"kind": kind, "targetId": tid, "anchor": event_anchor, "amount": amount,
 				"text": str(amount), "lethal": lethal, "born": now,
 			})
 	# 密度上限：超出的丢弃最旧的（保证同屏不刷屏）
@@ -752,49 +762,23 @@ func _spawn_vfx(name: String, kind: String, target_id: int, now: float, life: fl
 	})
 
 
-## 攻击者出手特效（斩击 / 箭矢）。
-##
-## 数据来源限制：`damage_events` **不携带攻击者信息**（领域层只记录"谁被打"）。
-## 因此这里采用**保守推断**：仅当"敌人被打"时，才认为出手的是某个玩家角色，
-## 取距离该敌人最近的、未失能的角色作为视觉上的出手者，按其 behavior 选特效：
-##   FRONTLINE → vfx_slash（近战斩击）
-##   RANGED    → vfx_arrow（远程箭矢）
-##   HEALER    → 不出手（治疗走 heal 通道，不产生伤害事件）
-##
-## 纪律：这是**纯视觉归属**，不参与任何判定；即便推断错角色，也只是特效位置略偏，
-## 不影响伤害、命中或战斗结果。找不到角色时静默跳过。
+## Exact source from committed damage event. Unknown sources do not spawn guessed attacks.
 func _spawn_attacker_vfx(ev: Dictionary, now: float) -> void:
-	if str(ev.get("targetKind", "")) != "enemy":
-		return  # 角色被打 → 是敌人在出手，不播玩家攻击特效
-	var tid := int(ev.get("targetId", 0))
-	var target := session.stage.get_enemy(tid)
-	if target == null:
+	# Exact source instance supplied by the committed damage event, never nearest-unit guessing.
+	if str(ev.get("sourceKind", "")) != "character":
 		return
-	# 找最近的、同路优先的未失能角色
-	var best: CharacterRuntime = null
-	var best_d := INF
-	for c: CharacterRuntime in session.stage.characters:
-		if c.is_incapacitated():
-			continue
-		if not c.is_attacker():
-			continue
-		var dl := absf(float(c.lane) - float(target.lane))
-		var dx := absf(float(c.column) - target.logical_x)
-		# 同路权重更高（跨线攻击是特例，同路是常态）
-		var d := dx + dl * 10.0
-		if d < best_d:
-			best_d = d
-			best = c
-	if best == null:
+	var cid := int(ev.get("sourceId", 0))
+	var attacker: CharacterRuntime = null
+	for candidate: CharacterRuntime in session.stage.character_instances:
+		if candidate.instance_id == cid:
+			attacker = candidate
+			break
+	if attacker == null or not bool(ev.get("hasPosition", false)):
 		return
-	var vname := "vfx_slash"
-	if best.behavior == CharacterRuntime.Behavior.RANGED:
-		vname = "vfx_arrow"
-	# 出手特效锚在**攻击者**位置（这样斩击在角色身前、箭矢从角色飞出）
-	var anchor := _damage_pop_anchor("character", best.instance_id)
-	if anchor.x < 0.0:
-		return
-	_spawn_vfx_at(vname, anchor, now, VFX_ATTACK_LIFETIME)
+	var name := "vfx_arrow" if attacker.behavior == CharacterRuntime.Behavior.RANGED else "vfx_slash"
+	_spawn_vfx_at(name, _logical_to_screen(ev["sourcePos"]), now, VFX_ATTACK_LIFETIME)
+
+
 func _spawn_vfx_at(name: String, screen_pos: Vector2, now: float, life: float) -> void:
 	if _vfx.size() >= VFX_LIMIT:
 		_vfx.remove_at(0)
@@ -821,6 +805,8 @@ func _draw_vfx() -> void:
 		var fade := 1.0 - k * k
 		var dst := Rect2(center.x - s * 0.5, center.y - s * 0.5, s, s)
 		draw_texture_rect(tex, dst, false, Color(1.0, 1.0, 1.0, fade))
+		_mark_drawn("vfx:%s" % str(v["name"]))
+		_mark_drawn(ArtRegistry.vfx_strip_path(str(v["name"])))
 
 
 ## 特效寿命推进（在 _update_feedback 内调用）。
@@ -1264,127 +1250,59 @@ func _layout_buttons() -> void:
 ## P0.3 自动回归：按阶段注入真实输入事件，覆盖「部署 → 撤退 → 冷却 → 换线重部署 → 胜负」。
 ## 所有点击都走 Input.parse_input_event（与玩家一致的输入管线）。
 ## 该开关仅用于自动化回归，**不作为真人操作证据**。
-func _drive_autoplay() -> void:
-	# ---- 开发回归扩展（本轮指令 第四条：确保六组 VFX 各有真实触发路径）----
-	# 原 autoplay 只部署第 1 张卡（近战），导致远程箭矢与治疗特效**永远无法触发**，
-	# 无法证明它们真的能用。这里改为**依次部署全部可用角色**：
-	#   卡 1 → 中段；卡 2 → 上段；卡 3 → 下段
-	# 三人齐上即可覆盖 斩击/箭矢/治疗/命中/消散/部署 六组特效。
-	# 纪律：仍然只走**真实的点击路径**（_click_card/_click_cell），不直接调领域层 API。
-	if _autoplay_deploy_next():
-		return
-	_drive_autoplay_phases()
-
-
-## 自动回归：依次部署全部可用角色（覆盖远程与治疗，使六组 VFX 均可触发）。
-## 返回 true 表示本帧执行了部署动作（调用方应跳过后续 phase 逻辑）。
-##
-## 目标格：卡0→(col3,lane1)、卡1→(col3,lane0)、卡2→(col3,lane2)
-## 间隔 1.2 秒一次，避免 AP 不足或同帧多点。
+## Confirmed-input deployment driver. It never changes AP/cooldowns/level or bypasses query_deploy.
 var _autoplay_deploy_idx: int = 0
-var _autoplay_deploy_at: float = -1.0
+var _autoplay_deploy_at: float = 0.0
+var _autoplay_wall_started: int = -1
+var _autoplay_attempts: int = 0
 
-func _autoplay_deploy_next() -> bool:
-	if _autoplay_deploy_idx >= _roster.size():
-		return false
+func _drive_autoplay() -> void:
+	# Outcome handling must precede AP waits (the domain clock freezes at outcome).
+	if session.is_decided():
+		if not _autoplay_result_captured:
+			_autoplay_result_captured = true
+			_ap_capture("result")
+			GameLog.info(TAG, "[autoplay] 已确认结果：%s" % BattleTypes.outcome_name(session.outcome))
+		return
+	if _autoplay_wall_started < 0:
+		_autoplay_wall_started = Time.get_ticks_msec()
+	if Time.get_ticks_msec() - _autoplay_wall_started > 600000:
+		_autoplay = false
+		GameLog.warn(TAG, "[autoplay] 墙钟超时，停止输入；未宣称完成")
+		return
+	if session.is_paused() or _autoplay_deploy_idx >= _roster.size():
+		return
 	var now := elapsed_since_start()
-	if _autoplay_deploy_at < 0.0:
-		_autoplay_deploy_at = now + 1.0
-		return true
-	if now < _autoplay_deploy_at:
-		return true  # 还在等间隔
-	var idx := _autoplay_deploy_idx
-	# **等 AP 足够再部署**：否则会被领域层拒绝（实测：连点 3 张卡只有第 1 张成功）。
-	# 这不是绕过规则 —— 仍然是"等到资源够了再走真实点击路径"，与真人一致。
-	var cid: String = _roster[idx]
-	var cfg: Dictionary = session.stage._character_configs.get(cid, {})
-	var cost := int(cfg.get("deployCost", 0))
-	if not session.stage.can_afford(cost):
-		_autoplay_deploy_at = now + 0.5   # 再等一会儿
-		return true
-	if _card_rects.size() > idx:
-		_send_click_at(_card_rects[idx].position + _card_rects[idx].size * 0.5)
-		var lane: int = [1, 0, 2][idx % 3]
-		var col := 3
-		_ap_hover(col, lane)
+	if now < 1.0 or now < _autoplay_deploy_at:
+		return
+	var cid: String = _roster[_autoplay_deploy_idx]
+	var existing := session.stage.get_character_by_id(cid)
+	if existing != null:
+		GameLog.info(TAG, "[autoplay] 部署已确认 %s id=%d" % [cid, existing.instance_id])
+		_ap_capture("deployed_%s" % cid)
+		_autoplay_deploy_idx += 1
+		_autoplay_attempts = 0
+		return
+	var col := 2 if _autoplay_deploy_idx == 0 else 1
+	var lane := 1 if _autoplay_deploy_idx < 2 else 0
+	# For larger rosters, select a legal free slot rather than overlap the three cells.
+	var admission := session.query_deploy(cid, col, lane)
+	if not admission.ok:
+		_autoplay_deploy_at = now + 0.5
+		return
+	if _autoplay_attempts >= 8:
+		_autoplay = false
+		GameLog.warn(TAG, "[autoplay] 多次输入未确认 %s；停止并保留诊断" % cid)
+		return
+	# One input action per update; only advance after observing domain deployment.
+	if _selected_card_id != cid:
+		if _card_rects.size() <= _autoplay_deploy_idx:
+			return
+		_send_click_at(_card_rects[_autoplay_deploy_idx].get_center())
+	else:
 		_click_cell(col, lane)
-		GameLog.info(TAG, "[autoplay] 尝试部署卡%d(%s, 费用%d) -> (col%d, lane%d)"
-			% [idx + 1, cid, cost, col, lane])
-	_autoplay_deploy_idx += 1
-	_autoplay_deploy_at = now + 1.2
-	return true
-
-
-func _drive_autoplay_phases() -> void:
-	match _autoplay_phase:
-		0:
-			if _feedback_timer <= 0.0 and elapsed_since_start() > 0.5:
-				_ap_hover(_autoplay_target_col, _autoplay_target_lane)
-				_ap_capture('01_before_deploy')
-				_click_card()
-				_ap_capture('02_card_selected')
-				_autoplay_phase = 1
-		1:
-			_ap_hover(_autoplay_target_col, _autoplay_target_lane)
-			_click_cell(_autoplay_target_col, _autoplay_target_lane)
-			_ap_capture('03_deployed')
-			_autoplay_phase = 2
-		2:
-			var lead := _lead_character()
-			if lead != null and lead.blocking_enemy_ids.size() > 0:
-				_ap_capture('04_blocking')
-				_autoplay_phase = 3
-			elif session.stage.enemies.size() > 0:
-				_ap_capture('04_blocking_missed')
-				_autoplay_phase = 3
-		3:
-			var lead := _lead_character()
-			if lead != null and session.stage.enemies_killed >= 1:
-				# 点击场上角色打开操作面板
-				_click_cell(lead.column, lead.lane)
-				_ap_capture('05_character_panel')
-				_autoplay_phase = 4
-			elif session.is_decided():
-				_autoplay_phase = 7
-		4:
-			if _selected_character_id != 0:
-				_request_retreat_selected()   # 玩家点击撤退按钮的终点处理
-				_ap_capture('06_after_withdraw')
-				_autoplay_withdraw_done = true
-				_autoplay_phase = 5
-			elif session.is_decided():
-				_autoplay_phase = 7
-		5:
-			# 等冷却结束（1-1 只有 35 秒，这里主要用于演示倒计时与准入规则）
-			var lead_id := _roster[0] if not _roster.is_empty() else ""
-			if not _autoplay_redeploy_done and not lead_id.is_empty() \
-					and session.get_redeploy_remaining(lead_id) <= 0.0:
-				_click_card()
-				_click_cell(_autoplay_target_col + 1, _autoplay_target_lane)
-				_ap_capture('07_redeployed')
-				_autoplay_redeploy_done = true
-			if session.is_decided():
-				_autoplay_phase = 7
-			elif elapsed_since_start() > 60.0:
-				_autoplay_phase = 7
-		6:
-			pass
-		7:
-			if session.is_decided():
-				_ap_capture('08_result')
-				_autoplay_result_captured = true
-				var dbg: Dictionary = session.to_debug_dict()
-				print('')
-				print('=== P0.3 自动回归汇总 ===')
-				print('  结果: %s  核心: %s/%s  AP: %s/%s' % [
-					dbg.get('outcome'), dbg.get('coreHp'), dbg.get('coreHpMax'),
-					dbg.get('ap'), dbg.get('apMax')])
-				print('  Wave: %s/%s  击杀: %s  漏怪: %s  失能: %s  撤退: %s' % [
-					dbg.get('wave'), dbg.get('waveTotal'), dbg.get('enemiesKilled'),
-					dbg.get('reachedCore'), dbg.get('charactersLost'), dbg.get('retreatCount')])
-				print('  已部署: %s（历史实例 %s）  逻辑时间: %s' % [
-					dbg.get('deployed'), dbg.get('deployedTotal'), dbg.get('elapsed')])
-				_autoplay_phase = 8
+		_autoplay_attempts += 1
+	_autoplay_deploy_at = now + 0.2
 
 
 ## 本关第一位已部署角色（autoplay 与调试用；无则 null）
@@ -1471,17 +1389,9 @@ func _show_feedback(text: String, color: Color) -> void:
 ## P0.3 修复帧序问题：必须等**本帧绘制完成**后再取图，
 ## 否则拿到的是上一帧的 viewport 内容（P0.2 的 02_card_selected 就是这样错位的）。
 ## 实现方式：先记录待截图名，等到渲染完成通知（RenderingServer frame_post_draw）再取图。
-var _pending_capture: String = ""
-
 func _ap_capture(shot_name: String) -> void:
-	_pending_capture = shot_name
-	var cb := func() -> void:
-		if _pending_capture.is_empty():
-			return
-		var name := _pending_capture
-		_pending_capture = ""
-		_do_capture(name)
-	RenderingServer.frame_post_draw.connect(cb, CONNECT_ONE_SHOT)
+	# Bound name per callback: a second request cannot overwrite the first.
+	RenderingServer.frame_post_draw.connect(func() -> void: _do_capture(shot_name), CONNECT_ONE_SHOT)
 
 
 func _do_capture(shot_name: String) -> void:
@@ -1489,6 +1399,11 @@ func _do_capture(shot_name: String) -> void:
 	DirAccess.make_dir_recursive_absolute('user://p0.3_shots')
 	var path := 'user://p0.3_shots/%s.png' % shot_name
 	var err := img.save_png(path)
+	var metadata := FileAccess.open(path + ".json", FileAccess.WRITE)
+	if metadata != null:
+		metadata.store_string(JSON.stringify({"evidenceType": "Godot native viewport (not desktop)",
+			"shot": shot_name, "stage": session.stage.stage_id, "logicalTime": _now(),
+			"renderFrame": Engine.get_frames_drawn(), "actualDrawLedger": _art_drawn}, "\t"))
 	GameLog.info(TAG, '[autoplay] 截图 %s（err=%d）'
 		% [ProjectSettings.globalize_path(path), err])
 
@@ -1543,6 +1458,7 @@ func _draw() -> void:
 	_draw_deploy_pops()
 	_draw_characters()
 	_draw_enemies()
+	_draw_departures()
 	_draw_vfx()
 	_draw_death_particles()
 	_draw_damage_pops()
@@ -1556,10 +1472,6 @@ func _draw() -> void:
 		_draw_pause_overlay()
 	if session.is_decided():
 		_draw_result_overlay()
-	# 本帧的受击标记已消费完毕 —— 清空，保证下一帧不会误判为"又挨打了"
-	_hit_this_frame.clear()
-	# 开发/验收模式：检查"有资源但从未触发"的动画与特效（本轮指令 第四条）
-	_track_art_reachability()
 
 
 # ============================================================
@@ -1901,6 +1813,9 @@ func _draw_characters() -> void:
 			if frame_tex != null:
 				sprite = frame_tex
 			_draw_sprite_anchored(sprite, Vector2(px_x, px_y), tile * 0.80, mod, 0.44)
+			if frame_tex != null:
+				_mark_drawn("char_anim:%s" % st.anim)
+				_mark_drawn(ArtRegistry.character_strip_path(c.character_id, st.anim))
 			if selected:
 				_draw_selection_ring(Vector2(px_x, px_y), tile * 0.40)
 		else:
@@ -2019,8 +1934,6 @@ func _char_anim_state(c: CharacterRuntime, now: float) -> AnimState:
 		st = AnimState.new()
 		st.reset(now)
 		_char_anim[c.instance_id] = st
-	var hit := _hit_this_frame.has("character:%d" % c.instance_id)
-	st.tick_character(c, now, hit)
 	return st
 
 
@@ -2031,8 +1944,6 @@ func _enemy_anim_state(e: EnemyRuntime, now: float) -> AnimState:
 		st = AnimState.new()
 		st.reset(now)
 		_enemy_anim[e.instance_id] = st
-	var hit := _hit_this_frame.has("enemy:%d" % e.instance_id)
-	st.tick_enemy(e, now, hit)
 	return st
 
 
@@ -2064,7 +1975,7 @@ func _verify_art_available() -> void:
 	var expected: Array[String] = []
 	# 角色：3 名 × 5 动画 + 基准 + 头像
 	for cid: String in ["amamiya_mio", "kamiya_yuma", "ogawa_yui"]:
-		expected.append(ArtRegistry.character_strip_path(cid, "idle"))
+		expected.append("%s/characters/%s/%s_base.png" % [ArtRegistry.ART_ROOT, cid, cid])
 		for a: String in ["idle", "move", "attack", "hit", "death"]:
 			expected.append(ArtRegistry.character_strip_path(cid, a))
 		expected.append("%s/characters/%s/%s_portrait_64.png" % [
@@ -2085,7 +1996,7 @@ func _verify_art_available() -> void:
 
 	var missing: Array[String] = []
 	for p: String in expected:
-		if not ResourceLoader.exists(p):
+		if ArtRegistry.load_texture(p) == null:
 			missing.append(p)
 	_art_missing = missing
 	if missing.is_empty():
@@ -2101,22 +2012,18 @@ func _verify_art_available() -> void:
 func _mark_drawn(path: String) -> void:
 	if not _art_drawn.has(path):
 		_art_drawn[path] = 0
+		# Developer-only native viewport evidence, after the actual draw.
+		# Labelled separately from real Windows desktop screenshots.
+		if _autoplay and not path.begins_with("res://"):
+			_ap_capture("draw_%s" % path.replace(":", "_"))
 	_art_drawn[path] = int(_art_drawn[path]) + 1
 
 
 ## 运行期可达性追踪：把"本帧画过什么"累计起来，供收尾报告使用。
 func _track_art_reachability() -> void:
+	# Compatibility hook: selections and queued instances are NOT draw evidence.
 	if not _art_checked:
 		_verify_art_available()
-	# 角色与敌人动画：记录当前状态机选中的动画
-	for iid: int in _char_anim.keys():
-		var st: AnimState = _char_anim[iid]
-		_mark_drawn("char_anim:%s" % st.anim)
-	for iid: int in _enemy_anim.keys():
-		var st: AnimState = _enemy_anim[iid]
-		_mark_drawn("enemy_anim:%s" % st.anim)
-	for v: Dictionary in _vfx:
-		_mark_drawn("vfx:%s" % str(v["name"]))
 
 
 ## 导出美术可达性报告（供验收脚本读取；纯诊断，不改变任何状态）。
@@ -2259,7 +2166,21 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 		if ef != null:
 			esprite = ef
 		# 敌人目标高度随 spriteFramePx 放大（96 的重装单位视觉更大）
-		_draw_sprite_anchored(esprite, Vector2(px_x, px_y), tile * 0.72 * scale, emod, 0.42)
+		var eh := tile * 0.72 * scale
+		_draw_sprite_anchored(esprite, Vector2(px_x, px_y), eh, emod, 0.42)
+		if ef != null:
+			_mark_drawn("enemy_anim:%s" % est.anim)
+			_mark_drawn(ArtRegistry.enemy_strip_path(e.enemy_id, est.anim))
+		# ---- 类别识别环（本轮精修 §5：敌人轮廓辨识度）----
+		# 目的：当多种敌人同屏时，仅靠 Sprite 外形在 1280×720 下不够快。
+		# 在脚下画一圈**类别色地环**，颜色与 _enemy_fill_color 同源，
+		# 玩家可用"颜色通道"在余光中分辨敌种（形状通道仍由 Sprite 承担）。
+		# 纪律：纯装饰，画在 Sprite 之下，不参与任何判定。
+		var ring_col := _enemy_fill_color(e.enemy_id)
+		draw_circle(Vector2(px_x, px_y + eh * 0.42), eh * 0.30,
+			Color(ring_col.r, ring_col.g, ring_col.b, 0.30), true)
+		draw_circle(Vector2(px_x, px_y + eh * 0.42), eh * 0.30,
+			Color(ring_col.r, ring_col.g, ring_col.b, 0.75), false, 1.5)
 	else:
 		match e.enemy_id:
 			"echo_runner":
@@ -2270,11 +2191,15 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 				_draw_enemy_normal(px_x, px_y, s, fill)
 
 	# 类别标签（常驻，保证不看颜色也能分辨敌种）
+	# 本轮精修：字号 14→15 并加**深色描边**，解决"背景偏亮时标签糊掉"的问题。
 	var label := _enemy_kind_label(e.enemy_id)
 	var font := ThemeDB.fallback_font
-	var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0))).x
-	draw_string(font, Vector2(px_x - lw * 0.5, px_y + half + _px(15.0)), label,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), fill.lightened(0.35))
+	var lf := int(_px(15.0))
+	var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, lf).x
+	var lpos := Vector2(px_x - lw * 0.5, px_y + half + _px(16.0))
+	draw_string_outline(font, lpos, label, HORIZONTAL_ALIGNMENT_LEFT, -1, lf, 2,
+		Color(0.05, 0.04, 0.10, 0.95))
+	draw_string(font, lpos, label, HORIZONTAL_ALIGNMENT_LEFT, -1, lf, fill.lightened(0.45))
 
 	# 敌人 HP 条（V2.1.4：血条必须可读；受伤后才显示，满血不刷屏）
 	var hp_ratio := 1.0
@@ -2473,7 +2398,7 @@ func _draw_damage_pops() -> void:
 		var k := clampf(age / DAMAGE_POP_LIFETIME, 0.0, 1.0)
 		if k >= 1.0:
 			continue
-		var pos := _damage_pop_anchor(str(p["kind"]), int(p["targetId"]))
+		var pos: Vector2 = p.get("anchor", _damage_pop_anchor(str(p["kind"]), int(p["targetId"])))
 		if pos.x < 0.0:
 			continue
 		var kind := str(p["kind"])
@@ -3594,7 +3519,7 @@ func _on_outcome_decided(_outcome: int) -> void:
 	# 结算必须事务式落盘，且同一局只发一次。
 	_grant_battle_rewards()
 	# 收尾：报告"有资源但从未触发"的动画/特效（开发/验收模式的可达性检查）
-	report_unreachable_art()
+	call_deferred("_report_after_last_draw")
 	queue_redraw()
 
 
@@ -3672,3 +3597,100 @@ func _now() -> float:
 	if session == null or session.stage == null:
 		return 0.0
 	return session.stage.elapsed_seconds
+
+
+## Resolve logical tiles/lane at render time; no battle geometry is changed.
+func _logical_to_screen(pos: Vector2) -> Vector2:
+	return Vector2(_origin.x + _px(grid.tile_size_px) * pos.x,
+		_origin.y + _px(grid.lane_spacing_px) * pos.y)
+
+func _update_animation_states(now: float) -> void:
+	if not _art_checked:
+		_verify_art_available()
+	for c: CharacterRuntime in session.stage.characters:
+		var state := _char_anim_state(c, now)
+		state.tick_character(c, now, _hit_this_frame.has("character:%d" % c.instance_id),
+			_attack_this_frame.has("character:%d" % c.instance_id))
+	for e: EnemyRuntime in session.stage.enemies:
+		var state := _enemy_anim_state(e, now)
+		state.tick_enemy(e, now, _hit_this_frame.has("enemy:%d" % e.instance_id),
+			_attack_this_frame.has("enemy:%d" % e.instance_id))
+	_hit_this_frame.clear()
+	_attack_this_frame.clear()
+	for removal: Dictionary in session.stage.removals:
+		var kind := str(removal.get("entity", ""))
+		var id := int(removal.get("entityId", 0))
+		var key := "%s:%d" % [kind, id]
+		if _departures_seen.has(key):
+			continue
+		_departures_seen[key] = true
+		var reason := int(removal.get("kind", -1))
+		if reason == StageRuntime.Removal.REACHED_CORE:
+			_enemy_anim.erase(id)
+			continue
+		var state := AnimState.new()
+		state.begin_death(now)
+		var code := str(removal.get("characterId", "")) if kind == "character" else str(removal.get("enemyId", ""))
+		var x := float(removal.get("column", 0)) if kind == "character" else float(removal.get("x", 0))
+		_departures.append({"kind": kind, "id": id, "code": code, "state": state,
+			"logical": Vector2(x, float(removal.get("lane", 0))), "born": now})
+		if kind == "character": _char_anim.erase(id)
+		else: _enemy_anim.erase(id)
+	for i: int in range(_departures.size() - 1, -1, -1):
+		var state: AnimState = _departures[i]["state"]
+		if state.finished(now):
+			_departures.remove_at(i)
+	while _departures.size() > 64:
+		_departures.remove_at(0)
+
+func _draw_departures() -> void:
+	for ghost: Dictionary in _departures:
+		var state: AnimState = ghost["state"]
+		var progress := state.progress(_now())
+		var kind := str(ghost["kind"])
+		var code := str(ghost["code"])
+		var texture: Texture2D
+		if kind == "character":
+			texture = ArtRegistry.character_frame_progress(code, "death", progress)
+		else:
+			texture = ArtRegistry.enemy_frame_progress(code, "death", progress)
+		if texture == null:
+			continue
+		var height := _px(grid.tile_size_px) * (0.80 if kind == "character" else 0.72)
+		_draw_sprite_anchored(texture, _logical_to_screen(ghost["logical"]), height,
+			Color(1, 1, 1, 1.0 - progress), 0.44 if kind == "character" else 0.42)
+		if progress < 1.0:
+			_mark_drawn("%s_anim:death" % ("char" if kind == "character" else "enemy"))
+			var path := ArtRegistry.character_strip_path(code, "death") if kind == "character" else ArtRegistry.enemy_strip_path(code, "death")
+			_mark_drawn(path)
+
+var _probe_next_ms: int = 0
+
+func _write_art_probe() -> void:
+	if not TestDataGuard.is_isolated(OS.get_user_data_dir()) or Time.get_ticks_msec() < _probe_next_ms:
+		return
+	_probe_next_ms = Time.get_ticks_msec() + 100
+	var enemies: Array[Dictionary] = []
+	for e: EnemyRuntime in session.stage.enemies:
+		enemies.append({"id": e.instance_id, "code": e.enemy_id,
+			"x": e.logical_x, "lane": e.lane, "hp": e.hp})
+	var characters: Array[Dictionary] = []
+	for c: CharacterRuntime in session.stage.characters:
+		characters.append({"id": c.instance_id, "code": c.character_id,
+			"column": c.column, "lane": c.lane, "hp": c.hp})
+	var active_vfx: Array[String] = []
+	for effect: Dictionary in _vfx:
+		if _now() - float(effect["born"]) < float(effect["life"]):
+			active_vfx.append(str(effect["name"]))
+	DirAccess.make_dir_recursive_absolute("user://art_probe")
+	var file := FileAccess.open("user://art_probe/latest.json", FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify({"stage": session.stage.stage_id, "time": _now(),
+			"outcome": BattleTypes.outcome_name(session.outcome), "enemies": enemies,
+			"characters": characters, "activeVfx": active_vfx, "actualDrawLedger": _art_drawn,
+			"missedDamageEvents": _damage_events.missed_events,
+			"renderFrame": Engine.get_frames_drawn()}))
+
+func _report_after_last_draw() -> void:
+	await RenderingServer.frame_post_draw
+	report_unreachable_art()
