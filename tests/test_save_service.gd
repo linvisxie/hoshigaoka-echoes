@@ -101,9 +101,8 @@ func test_load_restores_committed_save() -> void:
 
 func test_has_valid_save_rejects_structurally_invalid_file() -> void:
 	# 写入一个 JSON 合法但结构不合规的存档（缺 flow_state）
-	var f := FileAccess.open("user://save/savegame.json", FileAccess.WRITE)
-	f.store_string('{"schema_version": 1}')
-	f.close()
+	assert_true(TestDataGuard.write_raw_save("user://save/savegame.json", '{"schema_version": 1}'),
+		"隔离运行下应可写入测试夹具")
 
 	var svc2: Node = load("res://scripts/save/save_service.gd").new()
 	add_child_autofree(svc2)
@@ -147,9 +146,8 @@ func test_load_falls_back_to_backup_when_main_corrupted() -> void:
 	assert_true(_svc.commit(second), "第二次提交应成功")
 
 	# 故意破坏主存档（此步会触发预期的 push_error，属被测行为而非缺陷）
-	var f := FileAccess.open("user://save/savegame.json", FileAccess.WRITE)
-	f.store_string("{ 这不是合法 JSON ")
-	f.close()
+	assert_true(TestDataGuard.write_raw_save("user://save/savegame.json", "{ 这不是合法 JSON "),
+		"隔离运行下应可写入损坏夹具")
 
 	var svc2: Node = load("res://scripts/save/save_service.gd").new()
 	add_child_autofree(svc2)
@@ -172,8 +170,9 @@ func test_load_falls_back_to_backup_when_main_corrupted() -> void:
 
 func _cleanup_save_files() -> void:
 	for p: String in ["user://save/savegame.json", "user://save/savegame_backup.json"]:
-		if FileAccess.file_exists(p):
-			DirAccess.remove_absolute(p)
+		# Guard refuses (returns false + error) when user:// is NOT isolated,
+		# so an accidental unisolated run can never delete the player's real saves.
+		TestDataGuard.remove_save_path(p)
 
 
 func _read_json(path: String) -> Variant:

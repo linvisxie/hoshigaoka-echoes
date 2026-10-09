@@ -125,8 +125,7 @@ func test_unreadable_save_is_never_overwritten_by_new_game() -> void:
 	assert_true(SaveService.commit(save), "存档应写入成功")
 	# 主存档损坏，且删掉 backup（使两条恢复路径都不可用）
 	_write_raw(SAVE_PATH, "{ 这不是合法 JSON")
-	if FileAccess.file_exists(BACKUP_PATH):
-		DirAccess.remove_absolute(BACKUP_PATH)
+	TestDataGuard.remove_save_path(BACKUP_PATH)
 
 	var svc := _new_service()
 	assert_false(svc.ensure_loaded(), "存档不可读时 ensure_loaded 应失败而非覆盖")
@@ -570,6 +569,9 @@ func _mark_errors_handled() -> void:
 
 
 func _write_raw(path: String, text: String) -> void:
+	# Direct write bypasses SaveService, so it needs the isolation guard itself.
+	if not TestDataGuard.may_write_save_path(path):
+		return
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	f.store_string(text)
 	f.close()
@@ -578,20 +580,21 @@ func _write_raw(path: String, text: String) -> void:
 ## 制造写盘失败：把主存档路径替换成一个**目录**，使 FileAccess.open(WRITE) 必然失败。
 ## 返回是否成功制造出该环境。
 func _block_save_path() -> bool:
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(SAVE_PATH)
+	if not TestDataGuard.remove_save_path(SAVE_PATH):
+		return false
 	var err := DirAccess.make_dir_recursive_absolute(SAVE_PATH)
 	return err == OK
 
 
 func _unblock_save_path() -> void:
 	if DirAccess.dir_exists_absolute(SAVE_PATH):
-		DirAccess.remove_absolute(SAVE_PATH)
+		# A directory left at the save path is test scaffolding, never a player file,
+		# but still only remove it when the run is isolated.
+		if not TestDataGuard.run_is_unsafe():
+			DirAccess.remove_absolute(SAVE_PATH)
 
 
 func _cleanup_save_files() -> void:
 	_unblock_save_path()
-	if FileAccess.file_exists(BACKUP_PATH):
-		DirAccess.remove_absolute(BACKUP_PATH)
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(SAVE_PATH)
+	TestDataGuard.remove_save_path(BACKUP_PATH)
+	TestDataGuard.remove_save_path(SAVE_PATH)

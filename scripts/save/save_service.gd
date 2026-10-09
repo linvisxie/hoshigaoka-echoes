@@ -369,6 +369,12 @@ func _read_json(path: String) -> Variant:
 
 
 func _write_json(path: String, data: Variant) -> bool:
+	# 存档写入的唯一咽喉。未隔离的 GUT 运行**一律拒写**：
+	# 此前 App 层的退出门不足以阻止 GUT 在退出前已执行的测试用例落盘，
+	# 而这些路径正是真实玩家的主档/备份（覆盖即不可恢复的进度损失）。
+	if TestDataGuard.run_is_unsafe():
+		GameLog.error(TAG, "TEST_ISOLATION_REFUSED: 拒绝写入 %s（user:// 不在 _testenv 下）" % path)
+		return false
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	if f == null:
 		return false

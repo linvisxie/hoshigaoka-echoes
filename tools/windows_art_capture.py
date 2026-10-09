@@ -67,7 +67,18 @@ def client(hwnd):
     origin=W.POINT(0,0); U.ClientToScreen(hwnd,C.byref(origin))
     return origin.x,origin.y,rect.right,rect.bottom
 
-def capture(hwnd,out,name,context):
+def capture(hwnd,out,name,context,attempts=4):
+    """Foreground-guarded screenshot. Retries on occlusion; refuses to save a blocked frame."""
+    last_error=None
+    for attempt in range(attempts):
+        try:
+            return _capture_once(hwnd,out,name,context)
+        except RuntimeError as exc:
+            last_error=exc; time.sleep(.35)
+    print('SKIP-OCCLUDED',name,str(last_error),flush=True)
+    return None
+
+def _capture_once(hwnd,out,name,context):
     U.ShowWindow(hwnd,9)
     U.SetWindowPos(hwnd,C.c_void_p(-1),0,0,0,0,0x0003|0x0040)
     U.SetForegroundWindow(hwnd)
@@ -91,10 +102,20 @@ def main():
     p.add_argument('--scene',default='battle',choices=['battle','title','character'])
     p.add_argument('--stage',default='1-3');p.add_argument('--duration',type=float,default=180)
     p.add_argument('--autoplay',action='store_true')
+    p.add_argument('--copy-save',type=Path,default=None,
+        help='Copy an existing savegame.json into the ISOLATED appdata before launch '
+             '(character screen needs non-zero resources; never reads/writes the real user dir)')
     a=p.parse_args(); out=a.output.resolve()
     if '_testenv' not in out.parts: raise SystemExit('Refuse non-isolated output')
     out.mkdir(parents=True,exist_ok=True)
     env=dict(os.environ,APPDATA=str(out/'appdata'))
+    if a.copy_save:
+        import shutil
+        src=a.copy_save.resolve()
+        if '_testenv' not in src.parts: raise SystemExit('Refuse: save source outside _testenv')
+        dst=out/'appdata/HoshigaokaEchoes/save'
+        dst.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(src,dst/'savegame.json')
     args=[r'D:\星丘基础\godot\Godot_v4.7.2-stable_win64_console.exe','--path',str(ROOT),
           '--resolution','1280x720','--position','30,60','--','--scene='+a.scene,'--stage='+a.stage]
     if a.autoplay: args.append('--autoplay')
