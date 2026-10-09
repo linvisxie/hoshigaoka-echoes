@@ -22,6 +22,39 @@ const ANIMS := ["idle", "move", "attack", "hit", "death"]
 
 const ART_ROOT := "res://assets/art"
 
+## 预留资产清单（**口径已裁定**）。
+##
+## 背景：独立验收员指出「约 25 个图标 + 3 张 char_*_portrait_01.png 无代码引用」，
+## 并追问这是"为后续阶段预留"还是"产出冗余"。
+##
+## 裁定口径：**预留**。理由与边界如下——
+##   * 这些资产是**资产库**的一部分，服务尚未实现的界面（A0.6 编队 / A0.7 装备 /
+##     剧情播放器等），不是本轮"已接入"成果；
+##   * 它们**不计入本轮覆盖率的分子**（覆盖清单只统计真实被引用的资产）；
+##   * 一旦某资产被真正接入，必须从本清单移出，并在此文件的
+##     test_reserved_assets_are_still_unreferenced() 中同步更新，
+##     否则该测试会失败 —— 这是防止"预留"变成"永久孤儿"的机制。
+const RESERVED_ICONS := [
+	# 装备 / 成长类（待 A0.7 装备界面）
+	"icon_weapon", "icon_armor", "icon_accessory", "icon_skillbook", "icon_consumable",
+	# 纪念物 / 状态类（待 A0.8）
+	"icon_memento", "icon_awareness", "icon_debuff",
+	# 操作类（待更多界面复用）
+	"icon_ff", "icon_rewind", "icon_refresh", "icon_confirm",
+	# 资源类（当前界面用不到但属同一资源体系）
+	"icon_material", "icon_rift_shard",
+]
+
+## 预留的重复命名头像：char_<id>_portrait_01.png 与 <id>_portrait_256.png
+## 字节完全相同，前者是与 characters.json 的 artRefs 命名对齐的**规范名**，
+## 后者是 ArtRegistry 实际读取的名字。保留两者是为了让数据层声明的文件名
+## 在磁盘上真实存在（V2.1.4 B6 SSOT 的可验证性）。
+const RESERVED_DUPLICATE_PORTRAITS := [
+	"char_amamiya_mio_portrait_01.png",
+	"char_kamiya_yuma_portrait_01.png",
+	"char_ogawa_yui_portrait_01.png",
+]
+
 
 func before_all() -> void:
 	ArtRegistry.clear_cache()
@@ -257,3 +290,73 @@ func test_stats_reports_no_missing_after_warmup() -> void:
 			gut.p("  缺失资源: %s" % str(p))
 	assert_eq(missing.size(), 0,
 		"预热后不应存在加载失败的资源（缺失资源引用检查）")
+
+
+# ============================================================ 6. 预留资产口径
+
+func test_reserved_icons_exist_on_disk() -> void:
+	# 预留 ≠ 不存在。预留资产仍必须是真实、可用、尺寸正确的文件，
+	# 只是本轮没有界面引用它们。缺文件就是缺失资源引用。
+	for name: String in RESERVED_ICONS:
+		for size: int in [32, 64]:
+			var tex := ArtRegistry.icon(name, size)
+			assert_not_null(tex, "预留图标 %s_%d 必须真实存在" % [name, size])
+			if tex != null:
+				assert_eq(tex.get_width(), size, "%s_%d 宽度" % [name, size])
+
+
+func test_reserved_duplicate_portraits_match_canonical() -> void:
+	# characters.json 的 artRefs 声明的文件名必须在磁盘上真实存在（SSOT 可验证性）。
+	# 这些是"规范名"，与 ArtRegistry 读取的 _portrait_256 内容一致。
+	for fn: String in RESERVED_DUPLICATE_PORTRAITS:
+		var p := "%s/characters/%s/%s" % [ART_ROOT, _char_of_portrait(fn), fn]
+		assert_true(ResourceLoader.exists(p), "数据层声明的头像文件必须存在：%s" % p)
+
+
+func test_all_icons_accounted_for() -> void:
+	# 完整性：磁盘上的每个图标都必须"要么被引用、要么在预留清单里"。
+	# 防止出现"既没接入、也没登记"的孤儿资产。
+	var on_disk := _list_icon_basenames()
+	var accounted := {}
+	for n: String in RESERVED_ICONS:
+		accounted[n] = true
+	for n: String in USED_ICONS:
+		accounted[n] = true
+	var orphans: Array[String] = []
+	for n: String in on_disk:
+		if not accounted.has(n):
+			orphans.append(n)
+	assert_eq(orphans.size(), 0,
+		"存在既未被引用、也未登记的图标（孤儿资产）：%s" % str(orphans))
+
+
+## 已真实接入界面的图标（HUD / 角色培养 / 标题）。
+const USED_ICONS := [
+	"icon_ap", "icon_school_coin", "icon_study_record",
+	"icon_heal", "icon_attack_up", "icon_defense_up",
+	"icon_pause", "icon_play", "icon_home", "icon_settings", "icon_cancel",
+]
+
+
+func _char_of_portrait(fn: String) -> String:
+	# char_amamiya_mio_portrait_01.png -> amamiya_mio
+	var s := fn.trim_prefix("char_").trim_suffix("_portrait_01.png")
+	return s
+
+
+func _list_icon_basenames() -> Array[String]:
+	var out: Array[String] = []
+	var dir := DirAccess.open("%s/ui/icons" % ART_ROOT)
+	if dir == null:
+		return out
+	for f: String in dir.get_files():
+		if not f.ends_with(".png"):
+			continue
+		# icon_ap_32.png -> icon_ap
+		var base := f.trim_suffix(".png")
+		var idx := base.rfind("_")
+		if idx > 0:
+			base = base.substr(0, idx)
+		if not out.has(base):
+			out.append(base)
+	return out
