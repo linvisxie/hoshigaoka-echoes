@@ -1,0 +1,85 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T05:14:25.707405",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [
+      "vfx_impact",
+      "vfx_arrow"
+    ],
+    "actualDrawLedger": {
+      "char_anim:attack": 1798,
+      "char_anim:hit": 165,
+      "char_anim:idle": 26170,
+      "enemy_anim:attack": 306,
+      "enemy_anim:death": 359,
+      "enemy_anim:hit": 728,
+      "enemy_anim:idle": 759,
+      "enemy_anim:move": 2882,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_attack.png": 661,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_hit.png": 165,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 13995,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_attack.png": 1137,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_idle.png": 12175,
+      "res://assets/art/enemies/echo_armored/echo_armored_hit.png": 1,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_attack.png": 168,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_death.png": 71,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_hit.png": 419,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_idle.png": 531,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_move.png": 937,
+      "res://assets/art/enemies/echo_normal/echo_normal_attack.png": 138,
+      "res://assets/art/enemies/echo_normal/echo_normal_death.png": 142,
+      "res://assets/art/enemies/echo_normal/echo_normal_hit.png": 244,
+      "res://assets/art/enemies/echo_normal/echo_normal_idle.png": 227,
+      "res://assets/art/enemies/echo_normal/echo_normal_move.png": 1582,
+      "res://assets/art/enemies/echo_runner/echo_runner_death.png": 146,
+      "res://assets/art/enemies/echo_runner/echo_runner_hit.png": 64,
+      "res://assets/art/enemies/echo_runner/echo_runner_idle.png": 1,
+      "res://assets/art/enemies/echo_runner/echo_runner_move.png": 363,
+      "res://assets/vfx/vfx_arrow.png": 1030,
+      "res://assets/vfx/vfx_death.png": 517,
+      "res://assets/vfx/vfx_deploy.png": 105,
+      "res://assets/vfx/vfx_impact.png": 1849,
+      "res://assets/vfx/vfx_slash.png": 622,
+      "vfx:vfx_arrow": 1030,
+      "vfx:vfx_death": 517,
+      "vfx:vfx_deploy": 105,
+      "vfx:vfx_impact": 1849,
+      "vfx:vfx_slash": 622
+    },
+    "characters": [
+      {
+        "code": "amamiya_mio",
+        "column": 2,
+        "hp": 624,
+        "id": 1,
+        "lane": 1
+      },
+      {
+        "code": "kamiya_yuma",
+        "column": 1,
+        "hp": 620,
+        "id": 2,
+        "lane": 1
+      }
+    ],
+    "enemies": [
+      {
+        "code": "echo_armored",
+        "hp": 725,
+        "id": 7,
+        "lane": 1,
+        "x": 4.9825
+      }
+    ],
+    "missedDamageEvents": 0,
+    "outcome": "进行中",
+    "renderFrame": 14960,
+    "stage": "1-5",
+    "time": 110.049999999995
+  },
+  "image": "D:\\星丘残响\\_testenv\\takeover-20261010-sol\\capture-1-5b\\enemy_present_echo_armored.png"
+}

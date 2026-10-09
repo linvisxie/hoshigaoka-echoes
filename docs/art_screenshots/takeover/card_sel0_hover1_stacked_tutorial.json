@@ -1,0 +1,57 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T05:59:40.148336",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [],
+    "actualDrawLedger": {
+      "enemy_anim:idle": 1,
+      "enemy_anim:move": 376,
+      "res://assets/art/enemies/echo_normal/echo_normal_idle.png": 1,
+      "res://assets/art/enemies/echo_normal/echo_normal_move.png": 376
+    },
+    "canvas": [
+      1920.0,
+      1080.0
+    ],
+    "cardRects": [
+      [
+        24.0,
+        886.0,
+        300.0,
+        170.0
+      ],
+      [
+        340.0,
+        886.0,
+        300.0,
+        170.0
+      ],
+      [
+        656.0,
+        886.0,
+        300.0,
+        170.0
+      ]
+    ],
+    "characters": [],
+    "enemies": [
+      {
+        "code": "echo_normal",
+        "hp": 420,
+        "id": 1,
+        "lane": 1,
+        "x": 3.4966666666667
+      }
+    ],
+    "missedDamageEvents": 0,
+    "outcome": "进行中",
+    "renderFrame": 775,
+    "stage": "p1_0_demo",
+    "time": 5.73333333333332
+  },
+  "image": "D:\\星丘残响\\_testenv\\takeover-20261010-sol\\shot-stack2\\card_sel0_hover1.png"
+}

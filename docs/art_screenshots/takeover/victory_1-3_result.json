@@ -1,0 +1,93 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T06:07:46.894342",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [
+      "vfx_impact",
+      "vfx_slash",
+      "vfx_death"
+    ],
+    "actualDrawLedger": {
+      "char_anim:attack": 2323,
+      "char_anim:hit": 266,
+      "char_anim:idle": 34667,
+      "enemy_anim:attack": 559,
+      "enemy_anim:death": 936,
+      "enemy_anim:hit": 823,
+      "enemy_anim:idle": 1094,
+      "enemy_anim:move": 3774,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_attack.png": 429,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_hit.png": 266,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 18690,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_attack.png": 1894,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_idle.png": 15977,
+      "res://assets/art/enemies/echo_exam_sheet/echo_exam_sheet_attack.png": 422,
+      "res://assets/art/enemies/echo_exam_sheet/echo_exam_sheet_death.png": 298,
+      "res://assets/art/enemies/echo_exam_sheet/echo_exam_sheet_hit.png": 206,
+      "res://assets/art/enemies/echo_exam_sheet/echo_exam_sheet_idle.png": 865,
+      "res://assets/art/enemies/echo_normal/echo_normal_attack.png": 137,
+      "res://assets/art/enemies/echo_normal/echo_normal_death.png": 414,
+      "res://assets/art/enemies/echo_normal/echo_normal_hit.png": 545,
+      "res://assets/art/enemies/echo_normal/echo_normal_idle.png": 229,
+      "res://assets/art/enemies/echo_normal/echo_normal_move.png": 3292,
+      "res://assets/art/enemies/echo_runner/echo_runner_death.png": 224,
+      "res://assets/art/enemies/echo_runner/echo_runner_hit.png": 72,
+      "res://assets/art/enemies/echo_runner/echo_runner_move.png": 482,
+      "res://assets/vfx/vfx_arrow.png": 1718,
+      "res://assets/vfx/vfx_death.png": 1309,
+      "res://assets/vfx/vfx_deploy.png": 103,
+      "res://assets/vfx/vfx_impact.png": 2446,
+      "res://assets/vfx/vfx_slash.png": 391,
+      "vfx:vfx_arrow": 1718,
+      "vfx:vfx_death": 1309,
+      "vfx:vfx_deploy": 103,
+      "vfx:vfx_impact": 2446,
+      "vfx:vfx_slash": 391
+    },
+    "canvas": [
+      1920.0,
+      1080.0
+    ],
+    "cardRects": [
+      [
+        24.0,
+        886.0,
+        300.0,
+        170.0
+      ],
+      [
+        340.0,
+        886.0,
+        300.0,
+        170.0
+      ]
+    ],
+    "characters": [
+      {
+        "code": "amamiya_mio",
+        "column": 2,
+        "hp": 556,
+        "id": 1,
+        "lane": 1
+      },
+      {
+        "code": "kamiya_yuma",
+        "column": 1,
+        "hp": 620,
+        "id": 2,
+        "lane": 1
+      }
+    ],
+    "enemies": [],
+    "missedDamageEvents": 0,
+    "outcome": "胜利",
+    "renderFrame": 19524,
+    "stage": "1-3",
+    "time": 137.200000000001
+  },
+  "image": "D:\\星丘残响\\_testenv\\takeover-20261010-sol\\shot-1-3d\\outcome_胜利.png"
+}
