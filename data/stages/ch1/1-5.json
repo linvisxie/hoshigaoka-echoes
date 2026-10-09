@@ -1,20 +1,100 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-a0.3",
   "domain": "stage",
   "stageId": "1-5",
-  "_phase0": "Phase 0 占位。关卡自身规则、availableCharacters、enemySpawnTimeline、storyBefore/storyAfter ID 和 stage_rewards.json 的奖励 ID 引用；禁止内联第二份奖励正文。Alpha A0.3 起填充。",
+  "_spec": "V2.1.4 G 章表 52：1-5 教学重点「精英敌人 / 技能时机」。表 53：1-5 解锁「精英标记；社团徽章 ×3（首通）」。表 73：推荐等级 Lv.5～7。F-十九：1-5「监考者——第一场精英战」。G 章表 54：1-5 是首章三个强制垂直切片之一。",
+  "_scope": "Alpha A0.3。本关是**垂直切片闸门**，硬性验收（表 54）：「首次挑战时小川结衣尚未可部署，因此本关必须在『雨宫澪 + 神谷悠真、推荐 Lv.5～7、无治疗』的条件下存在稳定可学会的通关解；同屏不得要求两个永久前线。监考者基础数值可调，但机制不删。」",
+  "_specDeviation": "**规格偏离（已登记，两处）**：① V2.1.4 F-十九 原定 1-5 用「监考者」作为第一场精英战，但 data/enemies.json 中**没有监考者**（规格给了面板 1600/120/65/0.3/1.8 与两个技能「注视」「时间到」，但 A0.2 敌人生态尚未施工，且精英怪需要独立技能调度与 UI 标记）。因此本关**用装甲残响体 + 疾走残响体的组合承担「高压精英波」的教学职责**：装甲提供「必须集火的高耐久单位」，疾走提供「必须提前判断的快速威胁」。教学点（资源分配与集火时机）不变，只是没有单独的精英怪实体与技能。② V2.1.4 G 章表 52 的「技能时机」与 L2211「1-5 首次固定三选一教学」都以**技能系统与局内强化**为前提，两者分别属技能系统（阶段归属未定，见 A0.1 报告缺口 8）与 Alpha A0.6。本阶段均未实现，因此 1-5 的「时机」教学落在**部署与集火的时机**上，而不是技能释放时机。",
   "chapter": 1,
-  "mapId": "",
-  "coreHp": 0,
-  "startingAp": 0,
-  "apRegen": 0,
-  "availableCharacters": [],
-  "enemySpawnTimeline": [],
-  "tutorialTriggers": [],
-  "specialRules": [],
+  "mapId": "ch1_corridor_echo",
+  "_mapId_spec": "V2.1.4 G-四：1-4～1-6 走廊残响化加剧。",
+  "coreHp": 3,
+  "_coreHp_spec": "V2.1.4 G-五：普通关核心生命默认为 3。**本关刻意不放宽**——垂直切片需要验证「无治疗条件下核心 3 点是否够用」，放宽会掩盖真实压力。",
+  "startingAp": 10,
+  "_startingAp_spec": "V2.1.4 D-7：开局 AP 10。雨宫澪 10 + 神谷悠真 12 = 22，开局只能放一人，第二人需等约 12 秒 AP 回复。这个等待窗口本身就是「部署顺序」的教学内容。",
+  "apRegen": 1,
+  "availableCharacters": ["amamiya_mio", "kamiya_yuma"],
+  "_availableCharacters_spec": "V2.1.4 G-三 / 表 51：1-5 无新角色解锁；小川结衣 1-6 才可部署。**因此本关必然无治疗**——这不是缺陷，而是表 54 明文要求的验收条件。",
+  "_noHealerConstraint": "本关只有 2 名可部署角色（前线 1 + 远程 1），且无治疗。因此设计上**不得出现「两条路线同时需要阻挡」**（表 54：「同屏不得要求两个永久前线」），否则在无治疗条件下不可能稳定通关。",
+  "enemySpawnTimeline": [
+    { "time": 4.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
+    { "time": 12.0, "lane": 1, "enemy": "echo_runner", "wave": 1 },
+    { "time": 21.0, "lane": 1, "enemy": "echo_normal", "wave": 1 },
+
+    { "time": 40.0, "lane": 1, "enemy": "echo_armored", "wave": 2 },
+    { "time": 54.0, "lane": 1, "enemy": "echo_normal", "wave": 2 },
+
+    { "time": 76.0, "lane": 1, "enemy": "echo_runner", "wave": 3 },
+    { "time": 84.0, "lane": 1, "enemy": "echo_runner", "wave": 3 },
+    { "time": 94.0, "lane": 0, "enemy": "echo_normal", "wave": 3 },
+
+    { "time": 116.0, "lane": 1, "enemy": "echo_armored", "wave": 4 },
+    { "time": 130.0, "lane": 1, "enemy": "echo_normal", "wave": 4 },
+
+    { "time": 152.0, "lane": 1, "enemy": "echo_armored", "wave": 5 },
+    { "time": 164.0, "lane": 1, "enemy": "echo_runner", "wave": 5 },
+    { "time": 176.0, "lane": 1, "enemy": "echo_normal", "wave": 5 }
+  ],
+  "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段承载 Wave 调度。",
+  "_timeline_candidate": "出怪秒数与数量属 V2.1.4 G-十一 明列的候选可配置平衡参数；本文件给出首轮值，已用 tools/simulate_ch1_stages.gd 实测存在「雨宫澪 + 神谷悠真、无治疗」的稳定通关解。",
+  "_timeline_design": "**关键设计约束**：除 Wave 3 的 1 只上段普通残响体外，**全部敌人集中在中段**。理由：本关只有 1 名前线（雨宫澪 blockCount=2），若两条路线同时需要阻挡，无治疗条件下必然崩盘，违反表 54「同屏不得要求两个永久前线」。上段那一只普通残响体是**刻意安排的取舍题**：玩家要么放它漏（-1 核心，核心 3 点可承受），要么让悠真过去处理（但中段输出会变弱）。这是「资源分配」教学，不是「必败」设计。",
+  "waves": [
+    {
+      "number": 1,
+      "label": "预热",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段普通 → 疾走 → 普通。低压开局，让玩家用 10 AP 先放雨宫澪（10 AP），并在约 12 秒后补神谷悠真。"
+    },
+    {
+      "number": 2,
+      "label": "第一次高压",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段装甲残响体（800 HP / 防 100）+ 一只普通。本波的教学点是**集火**：悠真必须在澪身后同线，否则 800 HP 需要澪单独打 14 次（约 15.4 秒），期间她持续承伤且无治疗。"
+    },
+    {
+      "number": 3,
+      "label": "空线",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段双疾走，随后上段 1 只普通。上段那一只是本关唯一的「非中段」敌人，构成取舍题：放它漏（-1 核心）还是调悠真过去。"
+    },
+    {
+      "number": 4,
+      "label": "第二次高压",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段再一只装甲 + 普通。玩家的 AP 此时已回满（30 上限），但**可部署角色只有 2 名且都已在场**，所以 AP 无法转化为额外战力——这正是「无治疗 + 双人阵容」的压力本质。"
+    },
+    {
+      "number": 5,
+      "label": "最终波",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段第三只装甲 + 疾走 + 普通连续压上。三只装甲合计 2400 HP，是本关的耐久峰值。雨宫澪在无治疗条件下会被持续消耗，因此玩家必须在前面几波尽量少让她挨打（提前集火、不要让敌人堆积）。"
+    }
+  ],
+  "_waveCount_spec": "V2.1.4 D-33 表 32 的第一章 5 波骨架（普通 / +疾走 / +装甲 / 混合 / 最终波）。1-5 作为垂直切片取满 5 波，压力曲线遵循 F-二十二：预热 → 高压 → 喘息（空线波含取舍）→ 高压 → 最终波。",
+  "_enemyCount_spec": "13 只（普通 ×7 / 疾走 ×4 / 装甲 ×3）。低于 D-30 的 18～24，因为 3 只装甲合计 2400 HP，按总击杀时间已接近普通关上限。",
+  "_balanceNote": "**无治疗条件下的耐久账（唯一来源 data/enemies.json 与 characters.json）**：装甲打雨宫澪（防 80）为 85×100/180 ≈ 47 伤害/1.5 秒 ≈ 31.3 DPS；普通为 65×100/180 ≈ 36/1.2 秒 = 30 DPS；疾走为 50×100/180 ≈ 28/1.0 秒 = 28 DPS。雨宫澪 HP 1000 且无治疗：单只装甲持续攻击时可存活约 32 秒，而两人合力击杀装甲约需 7～15 秒（澪 60 伤害/1.1 秒 + 悠真 75 伤害/1.3 秒 ≈ 112 DPS）。三只装甲在时间上分散（间隔 40/116/152 秒），每只都能在澪的 HP 耗尽前被击杀。**若玩家不集火、让敌人堆积**，多只同时攻击会把承伤叠加到 60～90 DPS，澪将在 11～16 秒内倒下——这就是「必须集火」的量化依据。悠真 HP 620 但 blockCount=0，敌人只打阻挡自己的角色，因此他不会承伤，唯一约束是射程与站位。",
+  "_stableClearPath": "稳定通关解（已用 tools/simulate_ch1_stages.gd 实测）：雨宫澪固定中段 col3 作锚点；神谷悠真中段 col1（射程 4.0 覆盖整条中段）。开局 10 AP 先放澪；约 12 秒后 AP 到 12 放悠真。全程不换线，上段那只普通残响体**放弃**（-1 核心，核心 3→2）。三只装甲均在中段被两人集火击杀。",
+  "tutorialTriggers": [
+    { "at": 0.0, "id": "TUT_1_5_NOHEAL", "text": "本关没有治疗角色：前线的生命无法恢复，请尽量减少她挨打的时间" },
+    { "at": 34.0, "id": "TUT_1_5_FOCUS", "text": "装甲残响体必须集火：让远程与前线打同一条路线，缩短它的存活时间" },
+    { "at": 70.0, "id": "TUT_1_5_TRADEOFF", "text": "有些路线守不住：用核心生命换取中段的稳定，也是正确的选择" },
+    { "at": 146.0, "id": "TUT_1_5_FINAL", "text": "最终波有三只装甲：保持集火，不要让它们堆在防线上" }
+  ],
+  "_tutorialTriggers_spec": "V2.1.4 G-九 把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念」。本关教「无治疗条件下的耐久管理」与「集火时机」。",
+  "specialRules": [
+    {
+      "id": "NO_HEALER_SLICE",
+      "text": "本关为垂直切片：可部署角色仅前线 + 远程，无治疗",
+      "_spec": "V2.1.4 表 54：1-5 硬性验收要求「在雨宫澪 + 神谷悠真、推荐 Lv.5～7、无治疗的条件下存在稳定可学会的通关解」。"
+    }
+  ],
+  "_specialRules_note": "V2.1.4 L2211 规定「1-5 首次固定三选一教学：远程攻击 +15% / 前线防御 +20% / AP 回复 +10%」。局内强化属 Alpha A0.6，本阶段**不实现**，故 specialRules 只登记垂直切片约束。",
   "firstClearRewardId": "",
+  "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID，不在 StageConfig 里写金额。表 53 规定 1-5 首通「精英标记；社团徽章 ×3」——待 A0.4 经济阶段填充后接入（社团徽章是突破 I 的材料，H 章七 表 60）。",
   "repeatRewardId": "",
   "storyBefore": "",
   "storyAfter": "",
-  "bossConfig": {}
+  "_story_note": "V2.1.4 G-九：剧情在 story/*.json 管理，属 Alpha A0.7。表 53 的「成立观测会」剧情属 A0.7。",
+  "bossConfig": {},
+  "_outOfScope": "不引入监考者精英怪（数据不存在，已登记偏离）、不引入试卷飞灵、不实现技能系统、不实现局内三选一（A0.6）、不实现精英 UI 标记。"
 }
