@@ -1,6 +1,57 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-a0.1",
   "domain": "currencies",
-  "_phase0": "Phase 0 占位。五类资源：学园币/学习记录/社团徽章/残响结晶/装备零件。",
-  "currencies": []
+  "_spec": "V2.1.4 H 章十五 表 67「经济资源总表」：首发版本主要资源控制为五类，尽量不额外制造碎片、票券、代币。",
+  "_naming_spec": "V2.1.4 H 章十六：「旧文档中的金币/通用币等表述一律映射为当前学园币。V2.1 正式 UI 名称锁定为学园币；后续如仅调整显示文案，内部 currencyId 与经济逻辑不得改变。」故内部 id 用英文 snake_case，显示名固定中文。",
+  "_ssot": "本文件是五类资源的唯一数据源（B6）。脚本/UI 不得复制第二份资源名或用途表。",
+  "_fieldNote": "V2.1.4 只给出表 67 的「资源/类型/核心用途/主要来源」四列，**未定义 JSON 字段名**。本文件首建时确定字段（id/name/kind/use/sources/displayOrder），并已登记为规格缺口，见 docs/A0.1_验收报告.md。",
+  "currencies": [
+    {
+      "id": "school_coin",
+      "name": "学园币",
+      "kind": "CURRENCY",
+      "use": "突破、技能、装备强化",
+      "sources": ["关卡", "任务", "章节"],
+      "displayOrder": 1
+    },
+    {
+      "id": "study_record",
+      "name": "学习记录",
+      "kind": "EXP_MATERIAL",
+      "_kind_note": "V2.1.4 H 章五：「学习记录不是货币，而是直接转化为角色经验。」库存以「本数」计，使用时按 studyRecordItems.expValue 折算经验。",
+      "use": "角色升级",
+      "sources": ["关卡", "任务"],
+      "displayOrder": 2
+    },
+    {
+      "id": "club_badge",
+      "name": "社团徽章",
+      "kind": "MATERIAL",
+      "use": "角色突破",
+      "sources": ["精英关", "章节任务"],
+      "displayOrder": 3
+    },
+    {
+      "id": "echo_crystal",
+      "name": "残响结晶",
+      "kind": "MATERIAL",
+      "use": "高阶突破、技能升级",
+      "sources": ["Boss", "高难", "剧情"],
+      "displayOrder": 4
+    },
+    {
+      "id": "equipment_part",
+      "name": "装备零件",
+      "kind": "MATERIAL",
+      "use": "装备强化",
+      "sources": ["关卡", "分解", "任务"],
+      "displayOrder": 5
+    }
+  ],
+  "_studyRecordItems_spec": "V2.1.4 H 章五 表 58。三档不是第六类货币，而是 study_record 这一资源的三种面额（背包中以 itemId 区分，折算经验见 expValue）。",
+  "studyRecordItems": [
+    { "id": "study_record_short", "name": "学习记录·短篇", "expValue": 100, "sources": ["普通关卡", "教学奖励"] },
+    { "id": "study_record_note", "name": "学习记录·笔记", "expValue": 500, "sources": ["精英关", "任务"] },
+    { "id": "study_record_archive", "name": "学习记录·档案", "expValue": 2000, "sources": ["Boss", "章节奖励", "高难内容"] }
+  ]
 }

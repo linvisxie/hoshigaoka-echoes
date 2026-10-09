@@ -101,6 +101,14 @@
   ],
   "_tutorialTriggers_spec": "V2.1.4 G-九 关卡数据化要求把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念，避免信息过载」——本关作为 Prototype 演示关需覆盖三职业与三敌人，故按时间轴分批给出，每条只出现一次。",
   "specialRules": [],
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  },
+  "_battleRewards_spec": "V2.1.4 H 章十八 表 68「即时战斗奖励｜关卡结算的小额通用资源」+ H 章十九 表 69「普通关卡奖励基线」：学园币 120～220、学习记录经验 100～300 EXP 等值、装备零件 0～3、社团徽章普通关不稳定掉落、残响结晶普通关不掉落。本关取学园币 160（区间中位）、学习记录·短篇 ×2 = 200 EXP（落在 100～300 区间）、装备零件 2（落在 0～3 区间）。",
+  "_battleRewards_scope": "这是**即时战斗奖励**（每次通关都发），与 firstClearRewardId（首通奖励，只发一次）是两类；后者属 Alpha A0.4 经济阶段，本关暂留空。",
+  "_economyNote": "V2.1.4 H 章十七：资源入口必须来自关卡/任务/章节，**不得由新档白送**。因此演示关不设初始库存；玩家通过反复通关积累学园币与学习记录来升级/突破。以本关奖励计：练满一名角色 Lv.1→10 需 2520 EXP ≈ 13 次通关（每次 200 EXP）；突破 I 需 800 学园币 ≈ 5 次通关。该比率属 A0.4 经济阶段的可调平衡项，已登记。",
   "firstClearRewardId": "",
   "repeatRewardId": "",
   "storyBefore": "",

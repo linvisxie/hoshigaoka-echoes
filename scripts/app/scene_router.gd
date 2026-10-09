@@ -6,10 +6,13 @@ extends Node
 
 const TAG := "SceneRouter"
 
-## 已登记的场景路径（P0.1 起含 battle；title/home 待 Alpha A0.7）
+## 已登记的场景路径。
+## P0.1 起含 battle；Alpha A0.1 起含 character（角色培养，V2.1.4 H 章三十三）。
+## title / home（校园 Hub）属 Alpha A0.7。
 const SCENES := {
 	"bootstrap": "res://scenes/bootstrap/bootstrap.tscn",
 	"battle": "res://scenes/battle/battle_scene.tscn",
+	"character": "res://scenes/menus/character_screen.tscn",
 	"title": "res://scenes/title/title.tscn",
 	"home": "res://scenes/home/home.tscn",
 }

@@ -1,6 +1,24 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-a0.1",
   "domain": "upgrade_costs",
-  "_phase0": "Phase 0 占位。等级/技能/突破成本。",
-  "upgradeCosts": []
+  "_spec": "V2.1.4 H 章七 表 60（突破成本）、H 章八 表 62（技能升级成本）。",
+  "_ssot": "本文件是「升级/突破/技能成本」的唯一数据源（B6 / H 章三十六）。",
+  "_fieldNote": "V2.1.4 只给出成本表的数值，**未定义 JSON 字段名**。本文件首建时确定字段结构，已登记为规格缺口（见 docs/A0.1_验收报告.md）。",
+  "_levelCostNote": "V2.1.4 H 章四 明文：「角色普通升级只消耗学习记录（EXP），不额外消耗学园币。」因此**不存在等级升级的货币成本表**——升级成本就是 expTable 里的 EXP。本文件不为其编造字段。",
+  "upgradeCosts": {
+    "_breakthroughNote": "突破成本与 character_growth.json 的 breakthroughs[].cost 是同一份数据。为避免两处各存一份（违反 B6 SSOT），此处**不重复保存数值**，只登记权威位置。",
+    "breakthrough": {
+      "sourceOfTruth": "character_growth.json#breakthroughs",
+      "_why": "V2.1.4 H 章三十六把「突破成本」归入 upgrade_costs.json，但同时要求「不创建新的副本或同义 JSON」。本工程取「单一权威 + 指针」方案：数值只在 character_growth.json，本文件只声明归属，DataRegistry 加载时校验两者一致（若两处同时存在数值则报错）。"
+    },
+    "_skillCosts_spec": "V2.1.4 H 章八 表 62「技能升级成本基线」逐字抄录。技能等级上限 Lv.5（H 章八：「每个角色的核心主动技能初始为 Lv.1，首发版本最高 Lv.5」）。",
+    "skill": [
+      { "fromLevel": 1, "toLevel": 2, "school_coin": 300, "echo_crystal": 1 },
+      { "fromLevel": 2, "toLevel": 3, "school_coin": 700, "echo_crystal": 1 },
+      { "fromLevel": 3, "toLevel": 4, "school_coin": 1200, "echo_crystal": 2 },
+      { "fromLevel": 4, "toLevel": 5, "school_coin": 2000, "echo_crystal": 3 }
+    ],
+    "skillMaxLevel": 5,
+    "_equipmentCosts_note": "装备强化成本属 Alpha A0.5，本阶段不登记。"
+  }
 }

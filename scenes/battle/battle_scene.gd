@@ -182,6 +182,11 @@ var _tutorial_queue: Array[Dictionary] = []
 var _damage_cursor: int = 0
 ## 是否显示调试明细 HUD（默认关闭：V2.1.4 J 章禁止 HUD 大面积无功能装饰小字）
 var _show_debug_hud: bool = false
+
+## 本关的原始 StageConfig（结算奖励等非战斗字段从这里读）
+var _stage_config_for_rewards: Dictionary = {}
+## 结算奖励幂等标记（同一场景实例只发一次）
+var _rewards_granted: bool = false
 ## 已播放过死亡粒子的敌人 instance_id
 var _particle_done_ids: Dictionary = {}
 
@@ -334,6 +339,19 @@ func _build_battle() -> void:
 			GameLog.error(TAG, "会话构建失败：%s" % e)
 		return
 
+	# Alpha A0.1：把成长面板注入领域层。
+	# 纪律：领域层不自行读取成长数据；由表现层/应用层注入，保持 L3 分层。
+	# 表为空（成长未就绪）时行为与 Prototype 固定 Lv.1 完全一致。
+	var level_stats := App.level_stats_table()
+	session.stage.set_character_level_stats(level_stats)
+	if not level_stats.is_empty():
+		var parts := PackedStringArray()
+		for cid: String in level_stats.keys():
+			var s: Dictionary = level_stats[cid]
+			parts.append("%s HP%d/攻%d/防%d" % [
+				cid, int(s.get("hp", 0)), int(s.get("attack", 0)), int(s.get("defense", 0))])
+		GameLog.info(TAG, "已注入成长面板：%s" % ", ".join(parts))
+
 	session.outcome_decided.connect(_on_outcome_decided)
 	session.core_hp_changed.connect(_on_core_hp_changed)
 	session.enemy_reached_core.connect(_on_enemy_reached_core)
@@ -346,6 +364,9 @@ func _build_battle() -> void:
 
 	# P1.0：关卡教学条目（V2.1.4 G-九：教学触发点必须数据驱动，不得硬编码在场景脚本）
 	_build_tutorial_queue(stage_config)
+
+	# Alpha A0.1：保留原始配置，供结算奖励等非战斗字段使用
+	_stage_config_for_rewards = stage_config.duplicate(true)
 
 	GameLog.info(TAG, "%s 战斗场景就绪：stage=%s，核心 HP %d，Wave %d，计划出怪 %d，战场 3×6，渲染缩放 %.3f，可用角色 %s，教学条目 %d"
 		% [App.stage_label(), stage_config.get("stageId", "?"), session.stage.core_hp_max,
@@ -703,6 +724,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_show_debug_hud = not _show_debug_hud
 			_show_feedback("调试明细：%s" % ("开" if _show_debug_hud else "关"),
 				Color(0.7, 0.78, 0.92))
+			return
+		# C：打开角色培养界面（Alpha A0.1）。正式流程由校园 Hub 进入（A0.7），
+		# 在 Hub 落地前用该快捷键提供可达路径，便于实机验收。
+		if k == KEY_C:
+			GameLog.info(TAG, "玩家打开角色培养界面")
+			SceneRouter.go_to("character")
 			return
 		# 数字键 1..N 快选角色卡（规格 J2：数字 1～6 快选；N = 本关可用角色数）
 		if k >= KEY_1 and k <= KEY_6:
@@ -2366,7 +2393,54 @@ func _refresh_debug_lines() -> void:
 
 func _on_outcome_decided(_outcome: int) -> void:
 	_layout_buttons()
+	# Alpha A0.1：胜利结算发放资源，使「战斗 → 成长」形成闭环。
+	# 纪律：奖励数值来自关卡配置/奖励表，**不在此处硬编码**；
+	# 结算必须事务式落盘，且同一局只发一次。
+	_grant_battle_rewards()
 	queue_redraw()
+
+
+## 结算奖励（Alpha A0.1）。
+##
+## 数值来源优先级：
+##   ① StageConfig.battleRewards（关卡自带的即时战斗奖励，V2.1.4 H 章十八「即时战斗奖励」）
+##   ② 关卡未配置时不发（不编造数值）
+##
+## 幂等：`_rewards_granted` 保证同一场景实例只发一次。
+func _grant_battle_rewards() -> void:
+	if _rewards_granted:
+		return
+	_rewards_granted = true
+	if session == null or session.outcome != BattleTypes.Outcome.VICTORY:
+		return
+	if not App.ensure_growth():
+		GameLog.warn(TAG, "成长系统不可用，跳过结算奖励发放")
+		return
+	var cfg: Dictionary = _stage_config_for_rewards
+	var rewards: Dictionary = cfg.get("battleRewards", {})
+	if rewards.is_empty():
+		GameLog.info(TAG, "本关未配置 battleRewards，本次不发放结算资源")
+		return
+	App.growth.grant(rewards)
+	if not App.growth.commit():
+		GameLog.error(TAG, "结算奖励已入账内存但存档写入失败")
+		return
+	var parts: PackedStringArray = PackedStringArray()
+	for cid: String in rewards.keys():
+		parts.append("%s ×%d" % [_currency_display_name(cid), int(rewards[cid])])
+	GameLog.info(TAG, "结算奖励已发放：%s" % ", ".join(parts))
+	_show_feedback("结算奖励：%s" % ", ".join(parts), Color(0.55, 0.95, 0.7))
+
+
+## 资源显示名（唯一来自 currencies.json）
+func _currency_display_name(currency_id: String) -> String:
+	for c: Dictionary in DataRegistry.get_domain("currencies").get("currencies", []):
+		if str(c.get("id", "")) == currency_id:
+			return str(c.get("name", currency_id))
+	for item: Dictionary in DataRegistry.get_domain("currencies").get("studyRecordItems", []):
+		if str(item.get("id", "")) == currency_id:
+			return str(item.get("name", currency_id))
+	return currency_id
 
 
 func _on_core_hp_changed(_current: int, _max_hp: int) -> void:

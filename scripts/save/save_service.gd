@@ -76,6 +76,11 @@ func build_default_save() -> Dictionary:
 		"progression": {},
 		"characters": {},
 		"inventory": {},
+		# 新档初始资源为空。
+		# 纪律：资源的「入口」必须来自关卡/任务/章节（V2.1.4 H 章十七 核心经济循环），
+		# 而不是新档白送——否则「打关卡才有资源」这条循环会被绕过。
+		# 想让玩家在首关之前就能体验成长系统，应通过首通奖励或教学奖励发放
+		# （见 stage_rewards.json / 关卡 battleRewards），而不是改这里。
 		"currencies": {},
 		"stages": {},
 		"story": {

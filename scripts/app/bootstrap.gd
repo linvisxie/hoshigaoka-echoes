@@ -29,10 +29,12 @@ extends Node2D
 
 const TAG := "Bootstrap"
 
-## 支持的启动目标（与 SceneRouter.SCENES 的 key 对齐；battle 为 P0.1 起新增）
+## 支持的启动目标（与 SceneRouter.SCENES 的 key 对齐）
+## battle 为 P0.1 起新增；character 为 Alpha A0.1 起新增（角色培养界面）。
 const BOOT_TARGETS := {
 	"bootstrap": "res://scenes/bootstrap/bootstrap.tscn",
 	"battle": "res://scenes/battle/battle_scene.tscn",
+	"character": "res://scenes/menus/character_screen.tscn",
 }
 
 ## 待切换的场景路径（空 = 不切换）

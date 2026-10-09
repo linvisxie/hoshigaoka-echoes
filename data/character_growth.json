@@ -1,6 +1,132 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-a0.1",
   "domain": "character_growth",
-  "_phase0": "Phase 0 占位。经验/突破成长曲线。",
-  "growthProfiles": []
+  "_spec": "V2.1.4 H 章三～七：角色等级 / 升级经验曲线 / 学习记录 / 突破系统 / 突破成本基线。",
+  "_ssot": "本文件是「等级上限、每级经验需求、突破节点、每级属性增量」的唯一数据源（B6 / H 章三十六）。UI 与角色脚本不得复制第二份成长数值。",
+  "_fieldNote": "V2.1.4 给出的成长数据示例（H 章三十七）是**单角色扁平对象**（characterId/maxLevel/breakthroughLevels/baseStats/growth），而本工程按「成长档位（profile）被角色引用」组织（L2989 CharacterConfig 含 growth_profile_id）。两者语义一致、组织方式不同；本文件首建时采用 profile 组织，已登记为规格缺口。",
+  "_levelCapNote": "V2.1.4 H 章三：「首发版本角色等级上限为 Lv.50。」H 章六：突破节点为 Lv.10/20/30/40，突破不重置等级，而是解除下一阶段等级上限。",
+  "globalRules": {
+    "maxLevel": 50,
+    "breakthroughLevels": [10, 20, 30, 40],
+    "_breakthroughLevels_spec": "V2.1.4 H 章六：角色在 Lv.10、20、30、40 到达突破节点。",
+    "_levelCapByBreakthrough_spec": "突破 I 解除至 20、II 至 30、III 至 40、IV 至 50。V2.1.4 未逐字给出该映射，按「解除下一阶段等级上限」推导；已登记为规格缺口。",
+    "levelCapByBreakthrough": { "0": 10, "1": 20, "2": 30, "3": 40, "4": 50 },
+    "_statRule_spec": "V2.1.4 H 章三：「升级主要提升 HP、攻击、防御；治疗角色同步提升治疗力。」「攻击范围、阻挡数、基础部署费用不通过普通等级自动提高。」因此本文件只承载 hp/attack/defense/healPower 四项每级增量。",
+    "statKeys": ["hp", "attack", "defense", "healPower"],
+    "_noLevelPressure_spec": "V2.1.4 H 章三十：「关卡建议等级用于表达推荐培养程度，但不作为硬门槛。」因此本工程不实现等级压制/等级门槛机制。"
+  },
+  "_expTable_spec": "V2.1.4 H 章四 表 57「首章经济模拟用 Lv.1→10 精确经验基线」逐字抄录。L1531：「Lv.1→10 累计 2,520 EXP。角色普通升级只消耗学习记录（EXP），不额外消耗学园币。」",
+  "_expTable_scope": "Lv.1→10 为**规格精确值**，逐项断言。Lv.11→50 规格只给区间（表 56），属候选；本文件按「平滑增长、不出现突然翻倍」的原则给出外推值，并明确标注 _candidate: true，供后续调表。",
+  "expTable": {
+    "_candidate": false,
+    "_cumulativeTo10": 2520,
+    "1": 100,
+    "2": 130,
+    "3": 160,
+    "4": 200,
+    "5": 260,
+    "6": 320,
+    "7": 380,
+    "8": 450,
+    "9": 520,
+    "_11to50_candidate": true,
+    "_11to50_note": "以下 Lv.11→50 为按 V2.1.4 表 56 区间外推的候选值（每 10 级区间内线性递增、区间之间平滑衔接），**不是规格精确值**，调表时只改本段。",
+    "10": 620,
+    "11": 720,
+    "12": 820,
+    "13": 930,
+    "14": 1040,
+    "15": 1160,
+    "16": 1280,
+    "17": 1410,
+    "18": 1540,
+    "19": 1680,
+    "20": 1820,
+    "21": 1980,
+    "22": 2140,
+    "23": 2310,
+    "24": 2480,
+    "25": 2660,
+    "26": 2840,
+    "27": 3030,
+    "28": 3220,
+    "29": 3420,
+    "30": 3620,
+    "31": 3840,
+    "32": 4060,
+    "33": 4290,
+    "34": 4520,
+    "35": 4760,
+    "36": 5000,
+    "37": 5250,
+    "38": 5500,
+    "39": 5760,
+    "40": 6020,
+    "41": 6300,
+    "42": 6580,
+    "43": 6870,
+    "44": 7160,
+    "45": 7460,
+    "46": 7760,
+    "47": 8070,
+    "48": 8380,
+    "49": 8700,
+    "50": 0
+  },
+  "_expTable_keySemantics": "键 N 的值 = 从 Lv.N 升到 Lv.N+1 所需 EXP。键 50 恒为 0（已满级）。",
+  "growthProfiles": [
+    {
+      "id": "growth_standard",
+      "name": "标准成长",
+      "_spec": "V2.1.4 H 章三十七 角色成长数据示例：growth = {hpPerLevel: 42, attackPerLevel: 5.2, defensePerLevel: 2.8}。",
+      "_scope": "首发三职业（雨宫澪 / 神谷悠真 / 小川结衣）共用该档位；后续角色可按角色差异化新增档位，但必须在本文件内登记，不得写进脚本。",
+      "perLevel": {
+        "hp": 42.0,
+        "attack": 5.2,
+        "defense": 2.8,
+        "healPower": 4.6
+      },
+      "_healPower_note": "V2.1.4 H 章三「治疗角色同步提升治疗力」只说明要提升、未给数值。4.6 为按 attack 增量同量级推导的候选值（治疗力基准 110 / 攻击基准 120 ≈ 0.92，5.2 × 0.92 ≈ 4.8，取 4.6 使 Lv.50 治疗力落在合理区间）。**属候选，已登记规格缺口。**",
+      "_rounding": "每级增量按 float 累加，最终面板 ROUND_HALF_UP 取整；与 D-22 伤害公式的取整口径一致。"
+    }
+  ],
+  "_breakthroughCosts_spec": "V2.1.4 H 章七 表 60「突破成本基线」逐字抄录。L1556：「以上为经济建模基准，不视为最终数值。首章最多自然推进到突破 I。」",
+  "_breakthroughEffectNote": "V2.1.4 H 章六 表 59 只给「主要解锁」的定性描述（I 基础天赋强化 / II 成长路线节点 / III 主动技能机制强化 / IV 高级成长节点），**未给突破带来的属性提升数值**。因此 A0.1 只实现「节点 + 成本 + 等级上限解除 + 解锁标记」，不实现突破属性加成。已登记为规格缺口。",
+  "breakthroughs": [
+    {
+      "level": 1,
+      "requiredLevel": 10,
+      "unlocks": ["基础天赋强化"],
+      "cost": { "school_coin": 800, "club_badge": 3, "echo_crystal": 0 }
+    },
+    {
+      "level": 2,
+      "requiredLevel": 20,
+      "unlocks": ["第一组成长路线节点"],
+      "cost": { "school_coin": 2000, "club_badge": 6, "echo_crystal": 0 }
+    },
+    {
+      "level": 3,
+      "requiredLevel": 30,
+      "unlocks": ["主动技能机制强化"],
+      "cost": { "school_coin": 4500, "club_badge": 10, "echo_crystal": 2 }
+    },
+    {
+      "level": 4,
+      "requiredLevel": 40,
+      "unlocks": ["高级成长节点与最终等级区间"],
+      "cost": { "school_coin": 8000, "club_badge": 16, "echo_crystal": 5 }
+    }
+  ],
+  "_ch1AcceptanceBudget_spec": "V2.1.4 H 章二十一-A 表 71：1-1～1-10 首通总预算（Alpha 经济验收目标）。A0.4 经济阶段用该预算做验收；A0.1 只登记，不校验。",
+  "ch1FirstClearBudget": {
+    "school_coin": 5200,
+    "school_coin_tolerance": 0.10,
+    "study_record_exp": 8500,
+    "study_record_exp_tolerance": 0.10,
+    "club_badge": 6,
+    "echo_crystal": 3,
+    "equipment_part_min": 15,
+    "equipment_part_max": 24
+  }
 }

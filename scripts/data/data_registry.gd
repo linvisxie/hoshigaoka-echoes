@@ -28,6 +28,50 @@ const CANONICAL_FILES := {
 	"stage_rewards": "res://data/stage_rewards.json",
 }
 
+## 为「条目数组型」数据域建立 id 索引（Alpha A0.1 新增）。
+##
+## 背景：`get_entry(domain, id)` 原先只对 stages / story 生效（那两类在 _load_stages /
+## _load_story 里各自填了索引），因此 `get_entry("characters", "amamiya_mio")` 会返回空字典——
+## 表现层拿不到角色名/职业/面板，只能显示裸 id。本函数把其余 canonical 域也纳入索引。
+##
+## 纪律：索引只是**内存检索视图**，不复制数据（B6：不另存第二份正文）。
+## 数组字段名与域名不一致（characters / skills / enemies / currencies / upgrades /
+## equipment / mementos / rewards），故用显式映射而不是猜字段名。
+const INDEXED_ARRAY_FIELDS := {
+	"characters": "characters",
+	"skills": "skills",
+	"enemies": "enemies",
+	"currencies": "currencies",
+	"upgrades": "upgrades",
+	"equipment": "equipment",
+	"equipment_affixes": "affixes",
+	"mementos": "mementos",
+	"stage_rewards": "rewards",
+	"character_growth": "growthProfiles",
+}
+
+
+func _build_domain_indices() -> void:
+	for domain: String in INDEXED_ARRAY_FIELDS.keys():
+		var field: String = INDEXED_ARRAY_FIELDS[domain]
+		var idx := {}
+		var entries: Variant = get_domain(domain).get(field, [])
+		if typeof(entries) != TYPE_ARRAY:
+			continue
+		for entry: Variant in (entries as Array):
+			if typeof(entry) != TYPE_DICTIONARY:
+				continue
+			var e: Dictionary = entry
+			var id := str(e.get("id", ""))
+			if id.is_empty():
+				continue
+			if idx.has(id):
+				_load_errors.append("%s: id 重复 '%s'" % [domain, id])
+				continue
+			idx[id] = e
+		_indices[domain] = idx
+
+
 ## 目录型数据域（V2.1.4：分目录，禁止同义总表）
 const STAGES_DIR := "res://data/stages/ch1"
 const STORY_DIR := "res://data/story"
@@ -116,6 +160,7 @@ func load_all() -> bool:
 	_load_stages()
 	_load_prototype_stages()
 	_load_story()
+	_build_domain_indices()
 	_validate_references()
 
 	_loaded = true
@@ -320,3 +365,72 @@ func _validate_references() -> void:
 			if not v.is_empty() and not reward_ids.has(v):
 				_load_errors.append("引用错误: 关卡 %s 的 %s '%s' 不在 stage_rewards.json"
 					% [stage_id, key, v])
+		_validate_stage_enemy_refs(stage_id, st)
+
+	for stage_id: String in _indices.get(PROTOTYPE_STAGES_KEY, {}).keys():
+		_validate_stage_enemy_refs(stage_id, _indices[PROTOTYPE_STAGES_KEY][stage_id])
+
+	_validate_growth_references()
+
+
+## 关卡出怪与可用角色的引用完整性（V2.1.4 B6：引用关系必须可验证）。
+## 出怪引用了不存在的敌人、或 availableCharacters 引用了不存在的角色，
+## 都会在战斗构建期才暴露；这里提前到加载期报错，避免"能进关但打不起来"。
+func _validate_stage_enemy_refs(stage_id: String, st: Dictionary) -> void:
+	var enemy_ids := {}
+	for e: Dictionary in get_domain("enemies").get("enemies", []):
+		enemy_ids[str(e.get("id", ""))] = true
+	var char_ids := {}
+	for c: Dictionary in get_domain("characters").get("characters", []):
+		char_ids[str(c.get("id", ""))] = true
+
+	for entry: Variant in st.get("enemySpawnTimeline", []):
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var eid := str((entry as Dictionary).get("enemy", ""))
+		if not eid.is_empty() and not enemy_ids.has(eid):
+			_load_errors.append("引用错误: 关卡 %s 出怪引用了不存在的敌人 '%s'"
+				% [stage_id, eid])
+	for cid: Variant in st.get("availableCharacters", []):
+		var id := str(cid)
+		if not id.is_empty() and not char_ids.has(id):
+			_load_errors.append("引用错误: 关卡 %s 的 availableCharacters 引用了不存在的角色 '%s'"
+				% [stage_id, id])
+
+
+## 成长系统引用校验（Alpha A0.1）。
+##   - characters.json 的 growthProfileId 必须存在于 character_growth.json；
+##   - character_growth.json 的突破成本里引用的 currencyId 必须存在于 currencies.json；
+##   - upgrade_costs.json 的技能成本同理。
+func _validate_growth_references() -> void:
+	var currency_ids := {}
+	for c: Dictionary in get_domain("currencies").get("currencies", []):
+		currency_ids[str(c.get("id", ""))] = true
+	for item: Dictionary in get_domain("currencies").get("studyRecordItems", []):
+		currency_ids[str(item.get("id", ""))] = true
+
+	var growth: Dictionary = get_domain("character_growth")
+	var profile_ids := {}
+	for p: Dictionary in growth.get("growthProfiles", []):
+		profile_ids[str(p.get("id", ""))] = true
+
+	for c: Dictionary in get_domain("characters").get("characters", []):
+		var pid := str(c.get("growthProfileId", ""))
+		if not pid.is_empty() and not profile_ids.has(pid):
+			_load_errors.append("引用错误: 角色 %s 的 growthProfileId '%s' 不在 character_growth.json"
+				% [c.get("id", "?"), pid])
+
+	for b: Dictionary in growth.get("breakthroughs", []):
+		var cost: Dictionary = b.get("cost", {})
+		for cid: String in cost.keys():
+			if not currency_ids.has(cid):
+				_load_errors.append("引用错误: 突破 %s 的成本引用了不存在的资源 '%s'"
+					% [b.get("level", "?"), cid])
+
+	var upgrade: Dictionary = get_domain("upgrade_costs").get("upgradeCosts", {})
+	for row: Dictionary in upgrade.get("skill", []):
+		for cid: String in row.keys():
+			if cid in ["fromLevel", "toLevel"]:
+				continue
+			if not currency_ids.has(cid):
+				_load_errors.append("引用错误: 技能升级成本引用了不存在的资源 '%s'" % cid)

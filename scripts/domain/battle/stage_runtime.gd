@@ -123,6 +123,13 @@ var _next_character_instance_id: int = 1
 var _enemy_configs: Dictionary = {}
 var _character_configs: Dictionary = {}
 
+## Alpha A0.1：角色 id -> 成长面板（{hp, attack, defense, healPower}）。
+##
+## 为空表示**不启用成长**（Prototype 固定 Lv.1 行为，与 P0.4 完全一致）。
+## 由调用方通过 set_character_level_stats() 注入；领域层不自行读取成长数据文件，
+## 从而保持「战斗领域不依赖存档/成长系统」的分层纪律（L3）。
+var _character_level_stats: Dictionary = {}
+
 ## 已部署角色的实例历史（含已离场者）。用于「撤退/死亡/重新部署不得复制实体」的断言。
 var character_instances: Array[CharacterRuntime] = []
 
@@ -525,6 +532,20 @@ func get_errors() -> Array[String]:
 	return _errors
 
 
+## 注入角色成长面板（Alpha A0.1）。
+##
+## stats_by_character: { characterId -> {hp, attack, defense, healPower?} }
+## 传入空字典即回到「不启用成长」（Prototype 固定 Lv.1）。
+## 纪律：本方法**只存引用数据**，不校验、不计算；面板由 CharacterProgress 负责。
+func set_character_level_stats(stats_by_character: Dictionary) -> void:
+	_character_level_stats = stats_by_character.duplicate(true)
+
+
+## 当前是否启用了成长面板
+func has_level_stats() -> bool:
+	return not _character_level_stats.is_empty()
+
+
 func is_valid() -> bool:
 	return _errors.is_empty()
 
@@ -704,7 +725,11 @@ func deploy_character(character_id: String, column: int, lane: int) -> DeployRes
 
 	# 重新部署一律创建**全新的运行时实例**（HP 满、攻击冷却就绪）；
 	# 旧实例留在 character_instances 里作为离场历史，不再出现在 characters 中。
-	var inst := CharacterRuntime.from_config(cfg, column, lane, _next_character_instance_id)
+	# Alpha A0.1：若调用方注入了成长面板（level_stats），用它覆盖 baseStats 的
+	# hp/attack/defense/healPower —— 等级因此影响战斗，而无需复制第二份角色面板。
+	var growth_stats: Dictionary = _character_level_stats.get(character_id, {})
+	var inst := CharacterRuntime.from_config(
+		cfg, column, lane, _next_character_instance_id, growth_stats)
 	_next_character_instance_id += 1
 	inst.redeploy_time = _redeploy_seconds(character_id)
 	characters.append(inst)

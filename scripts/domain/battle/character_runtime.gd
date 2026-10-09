@@ -107,7 +107,20 @@ var total_damage_taken: int = 0
 
 
 ## 从 CharacterConfig 字典构建。
-static func from_config(config: Dictionary, column: int, lane: int, instance_id: int) -> CharacterRuntime:
+##
+## stats_override（可选，P1.0/Alpha A0.1 新增）：
+##   由成长系统算出的面板（CharacterProgress.compute_stats()）。
+##   传入时覆盖 baseStats 的 hp/attack/defense/healPower，
+##   使「等级 → 战斗面板」生效，而**不需要**在数据文件里复制第二份面板。
+##   攻击范围 / 阻挡数 / 部署费用**不随等级变化**（V2.1.4 H 章三明文），
+##   因此本函数只覆盖这四项，其余一律仍读配置。
+static func from_config(
+	config: Dictionary,
+	column: int,
+	lane: int,
+	instance_id: int,
+	stats_override: Dictionary = {}
+) -> CharacterRuntime:
 	var c := CharacterRuntime.new()
 	c.instance_id = instance_id
 	c.character_id = str(config.get("id", ""))
@@ -117,9 +130,14 @@ static func from_config(config: Dictionary, column: int, lane: int, instance_id:
 
 	var stats: Dictionary = config.get("baseStats", {})
 	c.max_hp = int(stats.get("hp", 0))
-	c.hp = c.max_hp
 	c.attack = int(stats.get("attack", 0))
 	c.defense = int(stats.get("defense", 0))
+	# 成长面板覆盖（只在提供时生效；未提供时行为与 P0.4 完全一致）
+	if not stats_override.is_empty():
+		c.max_hp = int(stats_override.get("hp", c.max_hp))
+		c.attack = int(stats_override.get("attack", c.attack))
+		c.defense = int(stats_override.get("defense", c.defense))
+	c.hp = c.max_hp
 
 	c.attack_interval = float(config.get("attackInterval", 1.0))
 
@@ -137,6 +155,8 @@ static func from_config(config: Dictionary, column: int, lane: int, instance_id:
 		c.behavior = parsed
 	c.class_type = str(config.get("classType", ""))
 	c.heal_power = int(config.get("healPower", 0))
+	if not stats_override.is_empty() and stats_override.has("healPower"):
+		c.heal_power = int(stats_override["healPower"])
 	if config.has("healInterval"):
 		c.heal_interval = float(config["healInterval"])
 	else:

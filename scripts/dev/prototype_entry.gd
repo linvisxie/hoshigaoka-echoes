@@ -44,6 +44,10 @@ const ARG_STAGE_PREFIX := "--stage="
 ## 场景 key（与 bootstrap.BOOT_TARGETS 对齐）
 const SCENE_BOOTSTRAP := "bootstrap"
 const SCENE_BATTLE := "battle"
+## Alpha A0.1：角色培养界面（V2.1.4 H 章三十三）。
+## 正式流程里它由校园 Hub 的「角色」入口进入（Alpha A0.7）；
+## 在 Hub 落地之前，允许用 --scene=character 直接打开以便实机验收。
+const SCENE_CHARACTER := "character"
 
 ## 本次启动要加载的关卡 id。
 ##

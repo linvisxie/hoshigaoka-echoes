@@ -11,16 +11,21 @@ const APP_VERSION := "0.2.0-prototype"
 const APP_NAME := "HoshigaokaEchoes"
 
 ## 当前开发阶段（V2.1.4 B4 阶段术语：Prototype / Alpha / Beta / RC / Release）
-const PHASE := "Prototype"
+const PHASE := "Alpha"
 
-## 当前 Prototype 子阶段（V2.1.4 M2 表 114 的退出标准逐级对应）
-## P0.1 战场与移动 / P0.2 部署与战斗 / P0.3 撤退·再部署·Wave·完整一局
-## P0.4 神谷悠真 + 小川结衣 + 三职业基础战斗（前线 / 远程 / 治疗）
-## P1.0 玩家可直接启动的演示入口 + Prototype / Retail 构建隔离
-const PROTOTYPE_STAGE := "P1.0"
+## 当前阶段标识（V2.1.4 M2 表 114 / M3 表 115 的阶段名）
+## Prototype: P0.1 战场 / P0.2 部署 / P0.3 撤退·Wave / P0.4 三职业 / P1.0 演示关
+## Alpha:     A0.1 角色成长框架 / A0.2 敌人生态 / A0.3 1-1～1-5 与关卡选择 /
+##            A0.4 经济与奖励 / A0.5 装备 / A0.6 编队与局内构筑 /
+##            A0.7 标题·Hub·StoryRunner / A0.8 Boss / A0.9 存档 / A1.0 闭环
+const PROTOTYPE_STAGE := "A0.1"
 
 ## 规格版本（唯一权威总规格）
 const SPEC_VERSION := "V2.1.4 CLEAN MASTER"
+
+## 角色成长服务（Alpha A0.1）。在 App._ready 内构建，供前台 UI 与战斗共用同一份
+## 成长状态；不注册为 Autoload（L4 的单例表未包含该职责），避免扩大全局单例面。
+var growth: CharacterGrowthService = null
 
 
 func _ready() -> void:
@@ -31,6 +36,58 @@ func _ready() -> void:
 		% [BuildMode.mode_name(), "可用" if BuildMode.allows_dev_entries() else "已禁用"])
 	GameLog.info(TAG, "引擎: %s" % Engine.get_version_info().get("string", "unknown"))
 	GameLog.info(TAG, "用户数据目录: %s" % OS.get_user_data_dir())
+	# 注意：Autoload 的 _ready 顺序由 project.godot 的 [autoload] 段决定，
+	# App 排在 DataRegistry 之前，因此此处 DataRegistry 尚未加载。
+	# 成长系统的构建推迟到 deferred（此时全部 Autoload 的 _ready 已完成）。
+	_init_growth.call_deferred()
+
+
+## 构建角色成长服务并载入存档中的成长状态。
+## 纪律：失败不阻断启动（成长是增强项），但必须把错误打到日志里，
+## 绝不让"成长静默失效"变成玩家看到的数值异常。
+func _init_growth() -> void:
+	if growth != null:
+		return
+	if not DataRegistry.is_loaded():
+		GameLog.error(TAG, "成长系统初始化失败：DataRegistry 未就绪")
+		return
+	growth = CharacterGrowthService.new()
+	var errs := growth.setup()
+	if not errs.is_empty():
+		for e: String in errs:
+			GameLog.error(TAG, "成长系统初始化失败：%s" % e)
+		growth = null
+		return
+	var levels := PackedStringArray()
+	for cid: String in growth.all_character_ids():
+		var p: CharacterProgress = growth.get_progress(cid)
+		if p != null:
+			levels.append("%s Lv.%d%s" % [
+				cid, p.level, "" if p.breakthrough == 0 else " 突破%d" % p.breakthrough])
+	GameLog.info(TAG, "成长系统就绪：%d 名角色（%s）"
+		% [growth.all_character_ids().size(), ", ".join(levels)])
+
+
+## 确保成长系统已就绪（供 UI / 战斗在需要时按需触发一次构建）。
+## 返回是否可用。幂等：已就绪时立即返回 true。
+func ensure_growth() -> bool:
+	if growth != null and growth.is_ready():
+		return true
+	_init_growth()
+	return growth != null and growth.is_ready()
+
+
+## 供战斗注入的「角色 id -> 成长面板」表（Alpha A0.1）。
+## 返回空字典表示不启用成长（Prototype 固定 Lv.1 行为）。
+func level_stats_table() -> Dictionary:
+	var out := {}
+	if not ensure_growth():
+		return out
+	for cid: String in growth.all_character_ids():
+		var p: CharacterProgress = growth.get_progress(cid)
+		if p != null:
+			out[cid] = p.compute_stats()
+	return out
 
 
 ## 返回版本信息字典，供 UI / 诊断 / 测试使用。
