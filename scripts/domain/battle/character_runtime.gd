@@ -105,6 +105,24 @@ var redeploy_cooldown_remaining: float = 0.0
 var total_damage_dealt: int = 0
 var total_damage_taken: int = 0
 
+# ============================================================
+#  A0.2：通用状态效果容器（V2.1.4 L556～557 Debuff 结算规则）
+# ============================================================
+
+## balance.json 的 combat.debuffFloor 缺失时的兜底下限（与 L556 的规格值一致，
+## 不是可调平衡参数；正常路径一律由 StageRuntime 注入配置值）。
+const DEFAULT_DEBUFF_FLOOR := 0.4
+
+## 挂在本角色身上的状态效果（按施加顺序）。同一 effectId 只允许存在一条（L556）。
+var status_effects: Array[StatusEffect] = []
+
+## 减益下限（相对基础值的比例），来自 balance.json 的 combat.debuffFloor。
+##
+## 规格（LOCKED，L556～557）：「有效攻击力、有效攻击频率、有效技能冷却恢复速度均不得
+## 低于各自基础值的 40%（首轮可配置下限）。上述减益下限首章统一存于 balance.json」。
+## 因此**权威值来自 balance.json**，代码内不复制第二份。
+var debuff_floor_pct: float = DEFAULT_DEBUFF_FLOOR
+
 
 ## 从 CharacterConfig 字典构建。
 ##
@@ -276,10 +294,140 @@ func is_incapacitated() -> bool:
 	return not alive or hp <= 0
 
 
+# ============================================================
+#  A0.2：状态效果施加 / 推进 / 查询（V2.1.4 L556～557）
+# ============================================================
+
+## 施加一个状态效果。参数全部由调用方从配置读出（数据驱动，本类不含任何数值常量）。
+##
+## 叠加裁决（LOCKED，L556「同一 effectId 的减益不可无限叠层，重复施加默认只刷新
+## 持续时间」）：
+##   - 已存在同 effectId 且 stackPolicy = REFRESH_DURATION → 只刷新 expiresAt，不新增条目；
+##   - 已存在同 effectId 且 stackPolicy = IGNORE → 忽略本次施加。
+## 不同 effectId 一律**并存**（L556「不同 effectId 的攻击、攻击速度…减益先相加」）。
+func apply_status_effect(effect: StatusEffect, now: float) -> bool:
+	if effect == null or effect.effect_id.is_empty():
+		return false
+	for existing: StatusEffect in status_effects:
+		if existing.effect_id != effect.effect_id:
+			continue
+		if existing.stack_policy == StatusEffect.StackPolicy.IGNORE:
+			return false
+		existing.refresh(now)
+		return false
+	status_effects.append(effect)
+	return true
+
+
+## 便捷入口：直接按配置字典施加（字段名与 enemies.json 的 mechanic 段一致）。
+func apply_status_effect_from_config(cfg: Dictionary, now: float) -> bool:
+	var effect := StatusEffect.from_config(cfg, now)
+	# sourceId 允许由调用方单独提供（配置里的来源就是敌人自身）
+	if effect.source_id.is_empty():
+		effect.source_id = str(cfg.get("sourceId", ""))
+	return apply_status_effect(effect, now)
+
+
+## 按逻辑步推进状态效果：到期者移除。
+## 返回本次移除的效果 ID 列表（供表现层播放「状态结束」反馈）。
+func tick_status_effects(now: float) -> Array[String]:
+	var expired: Array[String] = []
+	var kept: Array[StatusEffect] = []
+	for e: StatusEffect in status_effects:
+		if e.is_expired(now):
+			expired.append(e.effect_id)
+		else:
+			kept.append(e)
+	status_effects = kept
+	return expired
+
+
+## 查询某 effectId 当前是否生效
+func has_status_effect(effect_id: String) -> bool:
+	for e: StatusEffect in status_effects:
+		if e.effect_id == effect_id:
+			return true
+	return false
+
+
+## 取某 effectId 的效果（不存在返回 null）
+func get_status_effect(effect_id: String) -> StatusEffect:
+	for e: StatusEffect in status_effects:
+		if e.effect_id == effect_id:
+			return e
+	return null
+
+
+## 清空全部状态效果（角色离场/再部署时使用：新实例不继承旧减益）
+func clear_status_effects() -> void:
+	status_effects.clear()
+
+
+## 某一属性分类的百分数求和（减益为负、增益为正）。
+## 控制类（SILENCE）**不参与**求和——L557 明文「控制类沉默仅禁止主动技能，
+## 不改变普通攻击频率」，故其 pct 恒为 0 且被本函数跳过。
+func sum_effect_pct(category: String) -> float:
+	var total := 0.0
+	for e: StatusEffect in status_effects:
+		if e.is_control():
+			continue
+		if e.category == category:
+			total += e.pct
+	return total
+
+
+## 有效攻击频率系数：clamp(1 + Σ攻速百分数, debuffFloor, +∞)。
+##
+## 换算口径（**首轮候选，需人裁决**）：设计稿 §1.2 / §2.4.5 M2 的
+##   f_eff = f_base × clamp(1 + Σ, 0.40, +∞)
+##   interval_eff = interval_base / clamp(1 + Σ, 0.40, +∞)
+## 即「攻击速度百分数作用于频率，攻击间隔取频率倒数」。
+## 规格（L556）只定义了频率下限，**未明文规定百分数到间隔的换算**（设计稿冲突 C-3），
+## 因此这里采用的是首轮候选口径，不是 LOCKED 规格值。
+func attack_speed_factor() -> float:
+	return maxf(debuff_floor_pct, 1.0 + sum_effect_pct(StatusEffect.CATEGORY_ATTACK_SPEED))
+
+
+## 有效攻击间隔（秒）。
+##
+## ⚠️ 换算口径属**首轮候选（需人裁决）**：设计稿冲突 C-3 指出规格未定义
+## 「攻击速度 -X%」如何映射到攻击间隔。此处采用频率倒数关系：
+##   interval_eff = interval_base / clamp(1 + Σ攻速百分数, floor, +∞)
+## 例：-25% ⇒ clamp(0.75) ⇒ interval × 1.3333；而「间隔直接 × 1.25」的读法
+## 与增益侧（+X% ⇒ ×(1+X)）不对称，已按设计稿建议排除。
+func effective_attack_interval() -> float:
+	return attack_interval / attack_speed_factor()
+
+
+## 有效攻击力：clamp(1 + Σ攻击百分数, debuffFloor, +∞) × 基础攻击，取整。
+## 40% 下限作用于「有效攻击力」本身（L556），故此处先夹取系数再乘基础值。
+func effective_attack() -> int:
+	var factor := maxf(debuff_floor_pct, 1.0 + sum_effect_pct(StatusEffect.CATEGORY_ATTACK))
+	return int(round(float(attack) * factor))
+
+
+## 有效技能冷却恢复速度系数：clamp(1 + ΣCD 百分数, debuffFloor, +∞)。
+## 当前构建尚无技能系统，本接口为 A0.6 技能系统接入预留（与 L556 的属性清单一一对应）。
+func effective_cd_recovery_factor() -> float:
+	return maxf(debuff_floor_pct, 1.0 + sum_effect_pct(StatusEffect.CATEGORY_CD_RECOVERY))
+
+
+## 当前能否主动释放技能（V2.1.4 L557：控制类沉默仅禁止主动技能）。
+##
+## 现状核实（设计稿 §2.2.5 M4）：`data/skills.json` 为 `{"skills": []}`、
+## 三角色 `skillIds` 全为 `[]`、全工程无技能系统实现，因此本方法在无沉默时恒为 true，
+## **不代表技能系统已可用**。它存在的意义是让「沉默」这一状态可被独立测试与验收，
+## 技能系统接入后无需改动任何调用点。
+func can_cast_active_skill() -> bool:
+	for e: StatusEffect in status_effects:
+		if e.is_control():
+			return false
+	return true
+
+
 ## 是否处于再部署冷却（离场后未到期）
 func is_redeploy_cooling() -> bool:
 	return redeploy_cooldown_remaining > 0.0
-
 
 ## 再部署冷却进度（1 = 刚离场，0 = 可再部署）
 func redeploy_progress() -> float:
@@ -289,6 +437,9 @@ func redeploy_progress() -> float:
 
 
 func to_debug_dict() -> Dictionary:
+	var effects: Array[Dictionary] = []
+	for e: StatusEffect in status_effects:
+		effects.append(e.to_debug_dict())
 	return {
 		"instanceId": instance_id,
 		"characterId": character_id,
@@ -309,4 +460,8 @@ func to_debug_dict() -> Dictionary:
 		"healPower": heal_power,
 		"healingDone": total_healing_done,
 		"hpRatio": snappedf(hp_ratio(), 0.001),
+		# A0.2：状态效果与攻速换算（调试/复盘用）
+		"statusEffects": effects,
+		"effectiveAttackInterval": snappedf(effective_attack_interval(), 0.0001),
+		"canCastActiveSkill": can_cast_active_skill(),
 	}

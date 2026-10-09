@@ -21,6 +21,10 @@ enum Outcome {
 ## 敌人状态机的 P0.1 子集（V2.1.4 F-四十五）
 ## P0.1 只实现 SPAWNING / MOVING / REACHED_CORE；BLOCKED / ATTACKING / CASTING / DEAD
 ## 属 P0.2（阻挡与攻击）范围，此处仅保留枚举值以免后续改结构。
+##
+## A0.2 追加 RANGED_ATTACK = 7（试卷飞灵「达到攻击距离后停下」的停止射击态）。
+## 纪律：**只允许在末尾追加**，不得改动既有 0～6 的编号——既有测试与调试输出
+## 都按编号比较，改动编号会静默破坏它们。
 enum EnemyState {
 	SPAWNING = 0,
 	MOVING = 1,
@@ -29,6 +33,8 @@ enum EnemyState {
 	CASTING = 4,
 	DEAD = 5,
 	REACHED_CORE = 6,
+	## A0.2 新增：远程敌人在射程内停住并射击的驻留态（非 BLOCKED，不占用阻挡名额）。
+	RANGED_ATTACK = 7,
 }
 
 const LANE_COUNT := 3
@@ -87,5 +93,7 @@ static func enemy_state_name(state: int) -> String:
 			return "DEAD"
 		EnemyState.REACHED_CORE:
 			return "REACHED_CORE"
+		EnemyState.RANGED_ATTACK:
+			return "RANGED_ATTACK"
 		_:
 			return "UNKNOWN"

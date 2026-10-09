@@ -41,11 +41,21 @@ const DEMO_STAGE_ID := "p1_0_demo"
 const EPS := 0.0001
 const MAX_SIM_SECONDS := 900.0
 
-## 1-2～1-5 **不得**引用的敌人 id：这些在 data/enemies.json 中根本不存在
-## （A0.2 敌人生态阶段才施工），一旦被关卡数据引用即属「引用未实现内容」。
+## 1-2～1-5 **不得**引用的敌人 id。
+##
+## A0.2 更新（设计稿冲突 C-17）：echo_exam_sheet / echo_silent / echo_copy /
+## echo_invigilator 已在 A0.2 敌人生态阶段写入 enemies.json 并实现机制，
+## 因此它们从「未实现」名单中移除；但**关卡回填由主线负责**，
+## 1-2～1-5 在这些敌人被正式回填之前仍不得引用它们。
+## echo_anxiety / echo_rank 仍属未实现（A0.2 范围外），保持在名单内。
 const UNIMPLEMENTED_ENEMIES: Array[String] = [
-	"echo_exam_sheet", "echo_anxiety", "echo_rank",
-	"echo_silent", "echo_copy", "echo_invigilator",
+	"echo_anxiety", "echo_rank",
+]
+
+## A0.2 已实现但**尚未回填到 1-2～1-5** 的敌人 id：
+## 数据已存在、机制已实现，但关卡引用由主线在回填阶段负责，故现阶段仍不得被引用。
+const IMPLEMENTED_NOT_YET_PLACED: Array[String] = [
+	"echo_exam_sheet", "echo_silent", "echo_copy", "echo_invigilator",
 ]
 
 ## 五关权威规格（V2.1.4 G 章 + 各关 JSON 的 _spec 注释）。
@@ -904,15 +914,31 @@ func test_10_stage_1_1_is_unchanged() -> void:
 #  验收点 11：1-2～1-5 不引入未实现的敌人
 # ============================================================
 
-## 验收点 11：断言 1-2～1-5 的出怪中**不出现** echo_exam_sheet / echo_anxiety /
-## echo_rank / echo_silent / echo_copy / echo_invigilator（这些在 enemies.json 中不存在）。
+## 验收点 11：断言 1-2～1-5 的出怪中**不出现** echo_anxiety / echo_rank
+## （这些在 enemies.json 中不存在），也不出现 A0.2 已实现但尚未回填的四个敌人
+## （echo_exam_sheet / echo_silent / echo_copy / echo_invigilator——数据与机制已就绪，
+##  但关卡引用由主线在回填阶段负责）。
+##
+## A0.2 变更（设计稿冲突 C-17）：原「前提校验」断言这四个敌人**不存在于** enemies.json，
+## 现改为断言它们**存在且已实现**（前提变了，设计意图——防止关卡引用不存在的敌人——保留）。
 func test_11_new_stages_do_not_reference_unimplemented_enemies() -> void:
 	var enemies := _enemy_table_from_file()
 
-	# 先证明「不存在」这句前提成立，否则本用例会空转通过
+	# 前提校验 A：仍未实现的敌人确实不在 enemies.json 中，否则本用例会空转通过
 	for enemy_id: String in UNIMPLEMENTED_ENEMIES:
 		assert_false(enemies.has(enemy_id),
-			"前提校验：%s 目前不应存在于 enemies.json（A0.2 尚未施工）" % enemy_id)
+			"前提校验：%s 目前不应存在于 enemies.json（仍属未实现）" % enemy_id)
+
+	# 前提校验 B（A0.2 反转）：已实现的四个敌人必须确实存在于 enemies.json，
+	# 否则下面的「不得被关卡引用」断言会因为数据缺失而变得毫无意义。
+	for enemy_id: String in IMPLEMENTED_NOT_YET_PLACED:
+		assert_true(enemies.has(enemy_id),
+			"前提校验：%s 应已由 A0.2 写入 enemies.json" % enemy_id)
+
+	# 不得被引用的合并名单：未实现的 + 已实现但尚未回填的
+	var forbidden: Array[String] = []
+	forbidden.append_array(UNIMPLEMENTED_ENEMIES)
+	forbidden.append_array(IMPLEMENTED_NOT_YET_PLACED)
 
 	for sid: String in ["1-2", "1-3", "1-4", "1-5"]:
 		var cfg := _stage_from_file(sid)
@@ -920,9 +946,9 @@ func test_11_new_stages_do_not_reference_unimplemented_enemies() -> void:
 			fail_test("应能从磁盘读到关卡 %s" % sid)
 			continue
 		var used := _composition_of(cfg)
-		for enemy_id: String in UNIMPLEMENTED_ENEMIES:
+		for enemy_id: String in forbidden:
 			assert_false(used.has(enemy_id),
-				"%s 不得引用尚未实现的敌人 '%s'（enemies.json 中不存在）" % [sid, enemy_id])
+				"%s 不得引用尚未回填的敌人 '%s'" % [sid, enemy_id])
 		# 反面校验：本关实际使用的敌人都必须已实现
 		for enemy_id: String in used.keys():
 			assert_true(enemies.has(enemy_id),

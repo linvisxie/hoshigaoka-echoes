@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cprobec8waveattr1"]
+
+[ext_resource type="Script" path="res://tools/probe_c8_wave_attribution.gd" id="1_c8"]
+
+[node name="ProbeC8WaveAttribution" type="Node"]
+script = ExtResource("1_c8")

@@ -373,8 +373,11 @@ func _result_tuple(s: BattleSession) -> Dictionary:
 ## （内存副本可能被其他测试的就地改写污染，见 _enemy_table_from_file 注释）。
 func test_three_enemies_match_spec_values() -> void:
 	var table := _enemy_table_from_file()
-	assert_eq(table.size(), ENEMY_SPEC.size(),
-		"enemies.json 应恰好定义 %d 种敌人（实际 %d）" % [ENEMY_SPEC.size(), table.size()])
+	# A0.2 更新：enemies.json 现已包含 A0.2 敌人生态的 4 个新敌人，
+	# 因此「恰好 3 种」改为「至少含这 3 种基础敌人」——本用例的断言对象仍是
+	# 三基础敌人的逐字段数值（下方的循环），数量断言只用于保证三者在场且不被裁剪。
+	assert_gte(table.size(), ENEMY_SPEC.size(),
+		"enemies.json 至少应含 %d 种基础敌人（实际 %d）" % [ENEMY_SPEC.size(), table.size()])
 	for enemy_id: String in ENEMY_SPEC.keys():
 		assert_true(table.has(enemy_id), "enemies.json 应含 %s" % enemy_id)
 		if not table.has(enemy_id):
@@ -420,8 +423,11 @@ func test_weight_class_drives_sprite_frame_size() -> void:
 	if typeof(data) == TYPE_DICTIONARY:
 		enemies = (data as Dictionary).get("enemies", [])
 	assert_gt(enemies.size(), 0, "enemies.json 应至少定义 1 个敌人")
-	assert_eq(enemies.size(), ENEMY_SPEC.size(),
-		"enemies.json 应恰好定义 %d 种敌人（实际 %d）" % [ENEMY_SPEC.size(), enemies.size()])
+	# A0.2 更新：数量断言改为「至少含三基础敌人」（见验收点 1a 的同款说明）；
+	# 下方循环对**全部**敌人断言 weightClass → spriteFramePx 映射，
+	# 因此新增敌人同样受该映射约束（A0.2 的 4 个新敌人均为 64/64/64/96，符合映射）。
+	assert_gte(enemies.size(), ENEMY_SPEC.size(),
+		"enemies.json 至少应含 %d 种基础敌人（实际 %d）" % [ENEMY_SPEC.size(), enemies.size()])
 	for e: Dictionary in enemies:
 		var enemy_id := str(e.get("id", ""))
 		var weight := str(e.get("weightClass", ""))

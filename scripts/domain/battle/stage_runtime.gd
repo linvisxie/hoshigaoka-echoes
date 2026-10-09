@@ -103,6 +103,11 @@ var retreat_refund_on_incapacitated: float = 0.0
 ## 再部署默认冷却（角色级 redeployTime 优先）
 var redeploy_default_seconds: float = DEFAULT_REDEPLOY_SECONDS
 
+## 减益下限（V2.1.4 L556～557 LOCKED：有效攻击力/攻击频率/CD 恢复速度不得低于
+## 各自基础值的 40%）。权威值来自 balance.json 的 combat.debuffFloor；
+## 部署角色时注入到 CharacterRuntime，代码内不复制第二份数值。
+var debuff_floor_pct: float = CharacterRuntime.DEFAULT_DEBUFF_FLOOR
+
 ## 计划中的出怪条目（来自 StageConfig，禁止写死在代码）
 var _spawn_plan: Array[Dictionary] = []
 var _spawn_cursor: int = 0
@@ -255,6 +260,31 @@ static func from_config(
 			rt.redeploy_default_seconds = secs
 	elif not balance_combat.is_empty():
 		rt._errors.append("balance.combat.redeploy 缺少 defaultSeconds")
+
+	# ---- 减益下限（V2.1.4 L556～557 LOCKED：「有效攻击力、有效攻击频率、有效技能冷却
+	#      恢复速度均不得低于各自基础值的 40%（首轮可配置下限）。上述减益下限首章
+	#      统一存于 balance.json」）----
+	# 权威值只来自 balance.json；缺段时用规格值 0.4 兜底但**不静默通过**（报错），
+	# 以便「规格要求承载于 balance.json」这条纪律可被验证。
+	var floor_cfg: Dictionary = balance_combat.get("debuffFloor", {})
+	if floor_cfg.is_empty():
+		if not balance_combat.is_empty():
+			rt._errors.append("balance.combat 缺少 debuffFloor（V2.1.4 L557 要求减益下限存于 balance.json）")
+	else:
+		var floor_pct := float(floor_cfg.get("attackSpeedPct", CharacterRuntime.DEFAULT_DEBUFF_FLOOR))
+		if floor_pct <= 0.0 or floor_pct > 1.0:
+			rt._errors.append(
+				"balance.combat.debuffFloor.attackSpeedPct 必须落在 (0, 1]，实际 %s" % floor_pct)
+		else:
+			rt.debuff_floor_pct = floor_pct
+		# 三项下限当前均为同一规格值 40%，若配置被拆成不同值则显式报错，
+		# 避免「配置改了一项、代码只读了一项」这种静默不一致。
+		for key: String in ["attackPct", "cdRecoveryPct"]:
+			if floor_cfg.has(key) and not is_equal_approx(float(floor_cfg[key]), floor_pct):
+				rt._errors.append(
+					"balance.combat.debuffFloor.%s（%s）与 attackSpeedPct（%s）不一致；"
+					% [key, str(floor_cfg[key]), str(floor_pct)]
+					+ "当前构建只实现单一统一下限，拆分需先补实现")
 
 	# ---- 可部署角色列表 ----
 	if stage_config.has("availableCharacters"):
@@ -511,6 +541,11 @@ func _build_waves(stage_config: Dictionary) -> void:
 			"spawned": 0,
 			"killed": 0,
 			"leaked": 0,
+			# A0.2：衍生体（复制体）的击杀/漏怪子计数。
+			# 它们照常计入 killed/leaked（供复盘显示「本波共处理 N 个敌人」），
+			# 但**不构成波次完成门槛**——门槛只数计划内本体（见 _update_wave_progress）。
+			"killedDerived": 0,
+			"leakedDerived": 0,
 		})
 	# 建立 timeline 游标区间（按规范化后的顺序，与 _spawn_cursor 一一对应）
 	for i: int in range(_spawn_plan.size()):
@@ -732,6 +767,9 @@ func deploy_character(character_id: String, column: int, lane: int) -> DeployRes
 		cfg, column, lane, _next_character_instance_id, growth_stats)
 	_next_character_instance_id += 1
 	inst.redeploy_time = _redeploy_seconds(character_id)
+	# A0.2：注入减益下限（权威值来自 balance.json 的 combat.debuffFloor）。
+	# 新实例不带任何状态效果（旧实例的减益不继承）。
+	inst.debuff_floor_pct = debuff_floor_pct
 	characters.append(inst)
 	character_instances.append(inst)
 	r.character = inst
@@ -1070,10 +1108,32 @@ func _update_wave_progress() -> void:
 	if int(st["spawned"]) < total:
 		# 本波仍有敌人未生成
 		return
-	if int(st["killed"]) + int(st["leaked"]) < total:
-		# 本波仍有敌人留在场上（未被击杀也未漏怪）
+	# A0.2（C-8 解决）：完成判定只数**计划内本体**（derived = 0）。
+	# 作弊纸偶的复制体是运行中新增的衍生体，它们同样会击杀/漏怪并被计入本波，
+	# 若把衍生体也计入分母（或用总数比较），本波将永远无法判为完成。
+	# 复制体仍占用阻挡名额、仍会漏怪扣核心，其击杀/漏怪照常记入本波统计（供复盘显示），
+	# 只是不构成「本波是否清空」的门槛。
+	if int(st["killed"]) + int(st["leaked"]) - int(st["killedDerived"]) - int(st["leakedDerived"]) < total:
+		# 本波仍有**本体**留在场上（未被击杀也未漏怪）
+		return
+	# 本体已清空：若衍生体仍在场，战斗不能判胜（has_living_enemies 为 true），
+	# 此时不关闭本波，等衍生体也被处理完；若衍生体已全部离场，则与旧行为完全一致。
+	if _has_living_derived_in_wave(int(st["number"])):
 		return
 	_complete_current_wave()
+
+
+## 本波是否仍有存活的衍生体（复制体）。
+##
+## 用途：区分「本体已清空」与「场上彻底干净」。若无此判定，本波会在复制体仍在场时
+## 就被关闭并开启下一波，导致两波敌人同时在场的非预期局面。
+func _has_living_derived_in_wave(wave_no: int) -> bool:
+	for e: EnemyRuntime in enemies:
+		if not e.is_active():
+			continue
+		if e.is_derived and e.wave_number == wave_no:
+			return true
+	return false
 
 
 # ============================================================
@@ -1108,16 +1168,25 @@ func advance(delta_seconds: float) -> Array[EnemyRuntime]:
 ##   1. AP 自然回复
 ##   2. 生成到期敌人
 ##   3. 推进再部署冷却
+##   3.5 A0.2 推进角色状态效果（沉默 / 攻速减益按逻辑步到期移除）
 ##   4. 释放无效阻挡关系（阻挡者离场/失能，敌人已亡）
 ##   5. 清理死亡实体（HP≤0 → DEAD，释放阻挡名额）+ 失能角色离场
+##   5.5 A0.2 敌人机制结算（时间到 / 复制 / 注视）
 ##   6. 敌人移动（仅 MOVING）
 ##   7. 建立阻挡（接触线 + 剩余名额）
+##   7.5 A0.2 沉默触发判定（触发条件依赖本步刚建立的阻挡关系）
 ##   8. 判定抵达核心
-##   9. 双方攻击结算
+##   9. 双方攻击结算（含 A0.2 远程敌人的停驻与射击）
 ##  10. Wave 完成判定
 ##
 ## 注意：清理放在「建立阻挡」之前，保证上一逻辑步内被击杀的敌人
 ## 立即释放阻挡名额，新敌人在同一逻辑步就能接上（V2.1.4 D-10）。
+##
+## A0.2 新增阶段的插入位置依据：
+##   - 状态效果在**攻击结算之前**推进，保证「3 秒沉默」按逻辑步精确到期（设计稿 §2.2.5 T4）；
+##   - 敌人机制在**清理之后、移动之前**结算：本体若已在上一逻辑步被打死，
+##     不会生成复制体（设计稿 §2.3.5 M5「已死亡不构成『低于 50% 但存活』」）；
+##   - 沉默放在**建立阻挡之后**：其触发条件正是「本步刚与角色建立阻挡关系」。
 func _step(step: float, reached: Array[EnemyRuntime]) -> void:
 	# 0. 核心已耗尽：本逻辑步不再推进任何内容（V2.1.4 D-41「立即失败」）
 	if core_hp <= 0:
@@ -1138,17 +1207,26 @@ func _step(step: float, reached: Array[EnemyRuntime]) -> void:
 	# 3. 再部署冷却（与渲染帧率完全解耦，只在逻辑步内递减）
 	_tick_redeploy_cooldowns(step)
 
+	# 3.5 A0.2：角色状态效果按逻辑步推进（到期移除）
+	_tick_character_status_effects()
+
 	# 4. 释放无效阻挡
 	_release_invalid_blocks()
 
 	# 5. 清理死亡实体（提前于建立阻挡，及时释放名额）
 	_cleanup_dead()
 
+	# 5.5 A0.2：敌人机制结算（时间到 / 复制 / 注视）
+	_process_enemy_mechanics(step)
+
 	# 6. 移动
 	_move_enemies(step)
 
 	# 7. 建立阻挡
 	_establish_blocks()
+
+	# 7.5 A0.2：沉默触发判定（依赖本步刚建立的阻挡关系）
+	_process_silence_triggers(step)
 
 	# 8. 抵达核心（仅未被阻挡的敌人可能到达）
 	#    在领域层内**立即结算**核心伤害，而不是留给上层在同一帧末尾补算：
@@ -1165,9 +1243,295 @@ func _step(step: float, reached: Array[EnemyRuntime]) -> void:
 	# 9. 角色行动（三职业统一分派：输出走攻击路径，治疗走治疗路径）
 	_resolve_character_actions(step)
 	_resolve_enemy_attacks(step)
+	# 9.5 A0.2：远程敌人（试卷飞灵）的停驻与射击结算
+	_resolve_ranged_enemy_actions(step)
 
 	# 10. Wave 推进
 	_update_wave_progress()
+
+
+# ============================================================
+#  A0.2：敌人机制结算（数据驱动；参数全部来自 enemies.json 的 mechanic 段）
+# ============================================================
+
+## 每逻辑步推进全部敌人的一次性机制与周期机制。
+##
+## 纪律：本函数**不包含任何敌人专属数值**，全部参数从 e.mechanic 读出；
+## 按 mechanic.kind / 子对象是否存在分派，而不是按 enemy_id 硬编码分支。
+func _process_enemy_mechanics(step: float) -> void:
+	# 快照：复制机制会向 enemies 追加新实例，直接遍历会边遍历边改数组。
+	var snapshot: Array[EnemyRuntime] = enemies.duplicate()
+	for e: EnemyRuntime in snapshot:
+		if not e.is_active():
+			continue
+		_process_time_up(e)
+		_process_copy_split(e)
+		_process_gaze(e, step)
+
+
+## 「时间到」（SELF_BUFF_ON_HP_THRESHOLD）：生命**低于**阈值后移速按配置百分比永久提高。
+##
+## 规格（LOCKED，v214_ordered.txt L1150）：「生命低于 40% 后移动速度提高 30%。」
+## 「低于」按严格小于处理（设计稿 C-7 的临时口径 STRICTLY_LESS_THAN）；
+## HP 恰好等于阈值时**不触发**。
+func _process_time_up(e: EnemyRuntime) -> void:
+	if e.time_up_triggered:
+		return
+	var cfg := e.time_up_config()
+	if cfg.is_empty():
+		return
+	if e.hp_max <= 0 or e.hp <= 0:
+		return
+	var threshold := float(cfg.get("triggerHpRatio", 0.0))
+	var pct := float(cfg.get("moveSpeedPct", 0.0))
+	# 严格小于：不使用 <=
+	if float(e.hp) < float(e.hp_max) * threshold:
+		e.time_up_triggered = true
+		# 以**配置基准速度**计算，避免多次触发时叠乘（triggerOnce 语义）
+		e.move_speed = e.base_move_speed * (1.0 + pct)
+		GameLog.info("StageRuntime", "%s 触发「%s」：移速 %.3f → %.3f tile/s"
+			% [e.display_name, str(cfg.get("effectId", "timeUp")),
+				e.base_move_speed, e.move_speed])
+
+
+## 「复制」（SPLIT_ON_HP_THRESHOLD）：生命**首次低于**阈值时生成 N 个低生命复制体。
+##
+## 规格（LOCKED，L1135）：「生命首次低于 50% 时生成 1 个低生命复制体。
+## 复制体拥有原敌人 35% HP，并且不能再次复制。」
+## 防递归三重保证（设计稿 §2.3.5 M2）：
+##   ① 配置层：复制体的 mechanic.canCopy 被强制为 false（make_derived_copy）；
+##   ② 实例层：copy_triggered 一生只触发一次；
+##   ③ 断言层：测试断言「本体数 × 2 == 实例总数」。
+func _process_copy_split(e: EnemyRuntime) -> void:
+	if e.copy_triggered:
+		return
+	if not e.can_copy():
+		return
+	if e.hp <= 0:
+		# 已死亡不构成「低于 50% 但存活」——不生成复制体
+		return
+	var cfg := e.split_config()
+	if cfg.is_empty():
+		return
+	var threshold := float(cfg.get("triggerHpRatio", 0.0))
+	if float(e.hp) >= float(e.hp_max) * threshold:
+		return
+	e.copy_triggered = true
+	var count := int(cfg.get("spawnCount", 1))
+	var offset := float(cfg.get("copySpawnOffsetTiles", 0.0))
+	for i: int in range(count):
+		var copy := EnemyRuntime.make_derived_copy(e, _next_enemy_instance_id, offset)
+		_next_enemy_instance_id += 1
+		enemies.append(copy)
+		GameLog.info("StageRuntime", "%s 触发复制：生成复制体 #%d（HP %d/%d，wave %d，继承本体波次）"
+			% [e.display_name, copy.instance_id, copy.hp, copy.hp_max, copy.wave_number])
+
+
+## 「注视」（PERIODIC_DEBUFF）：每 intervalSeconds 标记最近一名玩家角色，
+## 施加持续 durationSeconds 的攻速减益。
+##
+## 规格（LOCKED，L1148）：「每隔 10 秒标记最近一个玩家角色，持续 5 秒；
+## 被标记角色攻击速度 -25%。」
+## 无合法目标时**不重置冷却**（继续累积），与 _resolve_healer_action 的既有纪律一致
+## （设计稿 §2.4.5 M1）。
+func _process_gaze(e: EnemyRuntime, step: float) -> void:
+	var cfg := e.gaze_config()
+	if cfg.is_empty():
+		return
+	e.gaze_cooldown -= step
+	if e.gaze_cooldown > 0.0:
+		return
+	var target := _select_nearest_character_for_enemy(e)
+	if target == null:
+		# 无目标：冷却保持 ≤ 0，下一逻辑步继续尝试（不重置）
+		return
+	var effect_cfg := {
+		"effectId": str(cfg.get("effectId", "")),
+		"sourceId": e.enemy_id,
+		"category": str(cfg.get("category", "")),
+		"pct": float(cfg.get("attackSpeedPct", 0.0)),
+		"durationSeconds": float(cfg.get("durationSeconds", 0.0)),
+		"stackPolicy": str(cfg.get("stackPolicy", "REFRESH_DURATION")),
+	}
+	var applied := target.apply_status_effect_from_config(effect_cfg, elapsed_seconds)
+	e.gaze_cooldown = float(cfg.get("intervalSeconds", 0.0))
+	GameLog.info("StageRuntime", "%s 施加「注视」于 %s（%s，攻速 %+.0f%%，持续 %.1fs）"
+		% [e.display_name, target.display_name,
+			"新增" if applied else "刷新",
+			float(effect_cfg["pct"]) * 100.0, float(effect_cfg["durationSeconds"])])
+
+
+## 「沉默」（SILENCE_ON_FIRST_CONTACT）：首次接触玩家防线后，
+## 使最近一名角色 durationSeconds 内无法主动释放技能。
+##
+## 规格（LOCKED，L1129）：「首次接触玩家防线后，使最近一名角色 3 秒内无法主动释放技能；
+## 技能冷却 12 秒。」
+## 规格（LOCKED，L557）：「控制类沉默仅禁止主动技能，**不改变普通攻击频率**。」
+##   ⇒ 该效果 category = SILENCE、pct = 0，**不进**攻速百分数求和，**不受** 40% 下限夹取。
+##
+## 触发口径（设计稿 §2.2.5 M1 方案 A，CANDIDATE）：该敌人**首次与任一玩家角色建立
+## 阻挡关系**（blocked_by_character_id != 0）的那一逻辑步。
+## 目标口径（设计稿 §2.2.5 M2）：取触发时阻挡自己的那名角色（该解释是对 L1129
+## 「最近一名角色」的窄化，属需人裁决项 C-6）。
+func _process_silence_triggers(step: float) -> void:
+	for e: EnemyRuntime in enemies:
+		if not e.is_active():
+			continue
+		var cfg := e.silence_config()
+		if cfg.is_empty():
+			continue
+		# 冷却推进（repeatable=true 时可重复触发；默认 false 时该冷却不参与判定）
+		if e.silence_cooldown > 0.0:
+			e.silence_cooldown = maxf(0.0, e.silence_cooldown - step)
+		var repeatable := bool(cfg.get("repeatable", false))
+		if e.silence_triggered and not repeatable:
+			continue
+		if repeatable and e.silence_cooldown > 0.0:
+			continue
+		# 触发条件：首次与角色建立阻挡关系（方案 A）
+		if e.blocked_by_character_id == 0:
+			continue
+		var target := get_character(e.blocked_by_character_id)
+		if target == null or target.is_incapacitated():
+			continue
+		var effect_cfg := {
+			"effectId": str(cfg.get("effectId", "")),
+			"sourceId": e.enemy_id,
+			"category": str(cfg.get("category", "SILENCE")),
+			# L557：控制类沉默不改变任何数值，pct 恒为 0
+			"pct": 0.0,
+			"durationSeconds": float(cfg.get("durationSeconds", 0.0)),
+			"stackPolicy": str(cfg.get("stackPolicy", "REFRESH_DURATION")),
+		}
+		target.apply_status_effect_from_config(effect_cfg, elapsed_seconds)
+		e.silence_triggered = true
+		e.silence_cooldown = float(cfg.get("cooldownSeconds", 0.0))
+		GameLog.info("StageRuntime", "%s 触发「无声」：%s 在 %.1f 秒内无法主动释放技能"
+			% [e.display_name, target.display_name, float(effect_cfg["durationSeconds"])])
+
+
+## 远程敌人（试卷飞灵）的停驻与射击结算。
+##
+## 规格（LOCKED，L1102）：「达到攻击距离后停下，远程攻击前排。」
+## 规格（LOCKED，L1098）：攻击距离 3 格。
+## 规格（LOCKED，L1164，F-十七）：「远程敌人默认攻击**距离自己最近的合法目标**」。
+##
+## 纪律：
+##   - 停驻态使用新增的 EnemyState.RANGED_ATTACK，**不置为 BLOCKED**，
+##     因此不占用角色的阻挡名额（设计稿 §2.1.5 M3）；
+##   - 若角色主动贴近至接触线，沿用通用阻挡规则（_establish_blocks 已处理），
+##     此时该敌人进入 BLOCKED 并由 _resolve_enemy_attacks 结算，本函数跳过它；
+##   - 参数（rangeTiles / maxLaneDelta / 是否停驻 / 是否恢复移动）全部来自 mechanic 段。
+func _resolve_ranged_enemy_actions(step: float) -> void:
+	for e: EnemyRuntime in enemies:
+		if not e.is_active():
+			continue
+		if not e.is_ranged_attacker():
+			continue
+		# 已被通用阻挡规则接管的敌人走 _resolve_enemy_attacks 的 BLOCKED 分支
+		if e.state == BattleTypes.EnemyState.BLOCKED \
+			or e.state == BattleTypes.EnemyState.ATTACKING:
+			continue
+		# 仅 MOVING 与 RANGED_ATTACK 参与本分支（CASTING/DEAD/REACHED_CORE 不参与）
+		if e.state != BattleTypes.EnemyState.MOVING \
+			and e.state != BattleTypes.EnemyState.RANGED_ATTACK:
+			continue
+
+		var target := _select_ranged_target(e)
+		if target == null:
+			# 无合法目标：若配置允许则恢复移动（设计稿 §2.1.5 M5）
+			if e.state == BattleTypes.EnemyState.RANGED_ATTACK and e.resumes_when_no_target():
+				e.state = BattleTypes.EnemyState.MOVING
+				e.attack_cooldown = 0.0
+			continue
+
+		# 有目标：判断是否已达射程（一维 tile 距离，maxLaneDelta=0 时无需二维度量）
+		var dist := absf(float(target.column) - e.logical_x)
+		var in_range := dist <= e.ranged_range_tiles() + 0.0001
+		if not in_range:
+			# 未达射程：保持/恢复移动，本步不出手
+			if e.state == BattleTypes.EnemyState.RANGED_ATTACK:
+				e.state = BattleTypes.EnemyState.MOVING
+			continue
+
+		# 已达射程：停驻（不移动、不占阻挡名额）
+		if e.stops_when_target_in_range():
+			if e.state != BattleTypes.EnemyState.RANGED_ATTACK:
+				e.state = BattleTypes.EnemyState.RANGED_ATTACK
+				e.attack_cooldown = 0.0
+		# 攻击间隔推进与出手结算
+		e.attack_cooldown = maxf(0.0, e.attack_cooldown - step)
+		if e.attack_cooldown > 0.0:
+			continue
+		var dmg := combat_math.compute_damage(e.attack, target.defense, e.damage_type)
+		var applied := target.take_damage(dmg)
+		e.total_damage_dealt += applied
+		e.attack_cooldown = e.attack_interval
+		_record_damage_event(false, target.instance_id, applied, target.is_incapacitated())
+		GameLog.debug("StageRuntime", "%s 远程攻击 %s 造成 %d 伤害（剩余 HP %d）"
+			% [e.display_name, target.display_name, applied, target.hp])
+
+
+## 远程敌人的选敌（LOCKED，L1164「距离自己最近的合法目标」）。
+##
+## 与角色侧选敌（D-11「最接近防守核心的敌人」）方向相反，两者不可混用。
+## 「合法目标」= 仍在场、非失能、且跨线数不超过 mechanic.maxLaneDelta 的角色。
+## 「最近」= 同路线内的一维 tile 距离 |character.column − enemy.logical_x|。
+## 并列裁决（CANDIDATE，规格未给）：① column 更小者（更靠核心）优先 → ② instance_id 更小者。
+func _select_ranged_target(e: EnemyRuntime) -> CharacterRuntime:
+	var best: CharacterRuntime = null
+	var best_dist := INF
+	for c: CharacterRuntime in characters:
+		if c.is_incapacitated():
+			continue
+		if absi(c.lane - e.lane) > e.ranged_max_lane_delta():
+			continue
+		var dist := absf(float(c.column) - e.logical_x)
+		if dist < best_dist - 0.000001:
+			best_dist = dist
+			best = c
+		elif best != null and absf(dist - best_dist) <= 0.000001:
+			if c.column < best.column:
+				best = c
+			elif c.column == best.column and c.instance_id < best.instance_id:
+				best = c
+	return best
+
+
+## 敌人侧「最近一名玩家角色」选敌（用于注视 / 沉默等标记类能力）。
+##
+## 与远程攻击选敌的差别：标记类能力**不限同路线**（设计稿 §2.4.5 M1 / C-10，CANDIDATE，
+## 规格未规定标记是否受 maxLaneDelta 约束）。口径：全局最近，距离度量用
+## |character.column − enemy.logical_x|，并列时取 column 更小者、再取 instance_id 更小者。
+func _select_nearest_character_for_enemy(e: EnemyRuntime) -> CharacterRuntime:
+	var best: CharacterRuntime = null
+	var best_dist := INF
+	for c: CharacterRuntime in characters:
+		if c.is_incapacitated():
+			continue
+		var dist := absf(float(c.column) - e.logical_x)
+		if dist < best_dist - 0.000001:
+			best_dist = dist
+			best = c
+		elif best != null and absf(dist - best_dist) <= 0.000001:
+			if c.column < best.column:
+				best = c
+			elif c.column == best.column and c.instance_id < best.instance_id:
+				best = c
+	return best
+
+
+## 推进全部在场角色的状态效果（V2.1.4 L556～557：持续时间按逻辑步计）。
+##
+## 到期移除与「已失能角色不保留效果」两条都在此处理：角色离场后其运行时对象
+## 不再出现在 characters 中，效果自然不再参与结算。
+func _tick_character_status_effects() -> void:
+	for c: CharacterRuntime in characters:
+		if c.status_effects.is_empty():
+			continue
+		var expired := c.tick_status_effects(elapsed_seconds)
+		for eid: String in expired:
+			GameLog.debug("StageRuntime", "%s 的状态效果 %s 已到期" % [c.display_name, eid])
 
 
 ## 推进全部已离场实例的再部署冷却。
@@ -1196,13 +1560,18 @@ func _spawn_due() -> void:
 		var enemy_id: String = str(entry["enemy"])
 		var lane: int = int(entry["lane"])
 		var cfg: Dictionary = _enemy_configs[enemy_id]
-		var inst := EnemyRuntime.from_config(cfg, lane, _next_enemy_instance_id)
+		# A0.2（C-8 解决）：把该出怪条目所属的 Wave 显式写进实例。
+		# 未标注 wave 的旧条目按 _build_waves 的口径归入第 1 波。
+		var wave_no := int(entry.get("wave", 0))
+		if wave_no <= 0:
+			wave_no = 1
+		var inst := EnemyRuntime.from_config(cfg, lane, _next_enemy_instance_id, wave_no)
 		_next_enemy_instance_id += 1
 		enemies.append(inst)
 		_spawn_cursor += 1
 		_note_wave_spawn(_spawn_cursor - 1)
 		GameLog.debug("StageRuntime", "生成敌人 %s（lane=%d, t=%.2fs, wave=%d）"
-			% [enemy_id, lane, elapsed_seconds, int(entry["wave"])])
+			% [enemy_id, lane, elapsed_seconds, wave_no])
 
 
 func _note_wave_spawn(spawn_index: int) -> void:
@@ -1218,6 +1587,8 @@ func _note_wave_kill(enemy: EnemyRuntime) -> void:
 	for st: Dictionary in _wave_states:
 		if _enemy_in_wave(enemy, st):
 			st["killed"] = int(st["killed"]) + 1
+			if enemy.is_derived:
+				st["killedDerived"] = int(st["killedDerived"]) + 1
 			return
 
 
@@ -1225,12 +1596,26 @@ func _note_wave_leak(enemy: EnemyRuntime) -> void:
 	for st: Dictionary in _wave_states:
 		if _enemy_in_wave(enemy, st):
 			st["leaked"] = int(st["leaked"]) + 1
+			if enemy.is_derived:
+				st["leakedDerived"] = int(st["leakedDerived"]) + 1
 			return
 
 
-## 敌人实例 id 与生成序号同序（_next_enemy_instance_id 从 1 起、逐条 +1），
-## 因此可以用 spawnIndex 区间精确归属波次。
+## 敌人所属波次的判定（A0.2 重写，解决设计稿冲突 C-8）。
+##
+## 旧实现用 `instance_id - 1` 落在 spawnIndex 区间来归属波次。该口径对**计划内**的敌人
+## 成立（实例 id 与生成序号同序），但对**运行中新增的衍生体**（作弊纸偶的复制体）失效：
+## 复制体不在 spawnPlan 中，其 instance_id 必然落在任何区间之外 → 击杀与漏怪都不计入
+## 任何波次 → 本波 `killed + leaked` 永远差 1 → 波次无法完成、战斗无法判定胜负（卡死）。
+##
+## 现口径：
+##   ① 优先用实例上的 wave_number 显式归属（本体在 _spawn_due 时带入，
+##      衍生体在 make_derived_copy 时继承本体）——衍生体因此归入生成它的本体所在波次；
+##   ② wave_number ≤ 0 时（测试夹具手工放置的敌人）退回旧的 instance_id 区间判定，
+##      保持既有夹具语义不变。
 func _enemy_in_wave(enemy: EnemyRuntime, st: Dictionary) -> bool:
+	if enemy.wave_number > 0:
+		return int(st["number"]) == enemy.wave_number
 	var first := int(st["spawnIndexFirst"])
 	var last := int(st["spawnIndexLast"])
 	if first < 0:
@@ -1239,7 +1624,10 @@ func _enemy_in_wave(enemy: EnemyRuntime, st: Dictionary) -> bool:
 	return idx >= first and idx <= last
 
 
-## 敌人移动（仅 MOVING 状态）。BLOCKED / ATTACKING 不移动。
+## 敌人移动（仅 MOVING 状态）。BLOCKED / ATTACKING / RANGED_ATTACK 不移动。
+##
+## A0.2：RANGED_ATTACK 是试卷飞灵「达到攻击距离后停下」的驻留态（LOCKED，L1102），
+## 因此该状态下的敌人**不推进位置**——这正是本机制的全部意义。
 func _move_enemies(step: float) -> void:
 	for e: EnemyRuntime in enemies:
 		if e.state == BattleTypes.EnemyState.MOVING:
@@ -1284,9 +1672,14 @@ func _release_invalid_blocks() -> void:
 
 ## 建立阻挡：敌人推进到阻挡者前方接触线且该单位仍有剩余阻挡名额时停止移动。
 ## 名额已满 → 不建立阻挡，敌人继续前进（V2.1.4 D-10 明确要求）。
+##
+## A0.2：处于 RANGED_ATTACK（试卷飞灵的停驻射击态）的敌人同样参与本判定——
+## 设计稿 §2.1.5 M3 明确「若角色主动贴近至接触线，沿用通用阻挡规则」，
+## F 章未给远程敌人豁免阻挡，不应自行新增例外。
 func _establish_blocks() -> void:
 	for e: EnemyRuntime in enemies:
-		if e.state != BattleTypes.EnemyState.MOVING:
+		if e.state != BattleTypes.EnemyState.MOVING \
+			and e.state != BattleTypes.EnemyState.RANGED_ATTACK:
 			continue
 		var blocker := _find_available_blocker(e)
 		if blocker == null:
@@ -1348,10 +1741,14 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 	var target := _select_target_for(c)
 	if target == null:
 		return
-	var dmg := combat_math.compute_damage(c.attack, target.defense, c.damage_type)
+	# A0.2：有效攻击力受「攻击」类减益影响并夹取下限（L556 的 40% 下限作用于攻击力本身）
+	var atk := float(c.effective_attack())
+	var dmg := combat_math.compute_damage(atk, target.defense, c.damage_type)
 	var applied := target.take_damage(dmg)
 	c.total_damage_dealt += applied
-	c.attack_cooldown = c.attack_interval
+	# A0.2：攻击间隔取**有效间隔**（攻速减益 → 频率倒数，含 40% 下限夹取）。
+	# 无任何攻速减益时 effective_attack_interval() 恒等于 attack_interval，行为与 P0.4 一致。
+	c.attack_cooldown = c.effective_attack_interval()
 	_record_damage_event(true, target.instance_id, applied, target.hp <= 0)
 	GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
 		% [c.display_name, target.enemy_id, applied, target.hp])

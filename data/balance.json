@@ -52,6 +52,15 @@
       "_note": "V2.1.4 D-11：角色自动寻找攻击范围内目标，基础优先级为 ① 最接近防守核心的敌人 ② 当前正在阻挡的敌人 ③ 更早进入攻击范围的敌人。",
       "priority": ["CLOSEST_TO_CORE", "CURRENTLY_BLOCKED", "EARLIEST_IN_RANGE"]
     },
-    "_pending": "减益下限、攻速/CD 软上限等依 V2.1.4 由 balance.json 承载，Alpha 阶段补齐。"
+    "debuffFloor": {
+      "_note": "V2.1.4 L556~557 LOCKED：有效攻击力、有效攻击频率、有效技能冷却恢复速度均不得低于各自基础值的 40%（首轮可配置下限）；上述减益下限首章统一存于 balance.json。持续时间、来源 ID、stackPolicy、属性系数归属于技能/敌人配置（见 enemies.json 的 mechanic 段），不在此处另存。",
+      "attackPct": 0.4,
+      "attackSpeedPct": 0.4,
+      "cdRecoveryPct": 0.4,
+      "appliesToEnemies": false,
+      "_appliesToEnemies_note": "L556 的属性清单是封闭枚举，只覆盖角色的攻击力/攻击频率/技能 CD 恢复速度三项，未给敌人侧移速或攻速下限（设计稿冲突 C-9）。故敌人不适用本下限。",
+      "_attackSpeedConversion_note": "⚠️ 首轮候选口径，需人裁决（设计稿冲突 C-3）：规格只定义「攻击频率 = 基础频率的百分数」，未定义百分数到**攻击间隔**的换算。本工程采用频率倒数关系 interval_eff = interval_base / clamp(1 + Σ攻速百分数, attackSpeedPct, +∞)。若改为「间隔 × (1+|Σ|)」，则与增益侧（+X% ⇒ ×(1+X)）不对称，会破坏 L556「减益与增益统一结算」。"
+    },
+    "_pending": "攻速/CD 软上限等依 V2.1.4 由 balance.json 承载，Alpha 阶段补齐。（减益下限已于 A0.2 落地为 combat.debuffFloor。）"
   }
 }
