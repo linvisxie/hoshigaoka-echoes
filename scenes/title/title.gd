@@ -407,13 +407,19 @@ func _draw_atmosphere() -> void:
 		draw_circle(Vector2(cx, cy), r, Color(RIFT_COLOR.r, RIFT_COLOR.g, RIFT_COLOR.b, a * 0.35))
 	var shade := Color(0.02, 0.03, 0.07)
 	# 左侧渐隐：保证标题与菜单文字在亮部天空上依然清晰。
-	# 不透明度对照概念图逐轮下调（0.46 → 0.30）：概念图是**明亮温暖的黄昏**，
-	# 上一轮的压暗把樱花与校舍糊掉了，这里只保留「够文字读」的最低量。
-	_draw_h_fade(Rect2(0.0, 0.0, _viewport.x, _viewport.y), 0.30, 0.0, shade)
-	# 顶部渐隐（0.28 → 0.14，同样是为了不压暗天空与樱花）
-	_draw_v_fade(Rect2(0.0, 0.0, _viewport.x, _viewport.y), 0.14, 0.0, shade)
-	# 底部渐隐（地平线以下压暗，让题词与版本行稳定可读）
-	_draw_v_fade(Rect2(0.0, _viewport.y, _viewport.x, _viewport.y), 0.0, 0.50, shade)
+	# 对照概念图逐轮下调（0.46 → 0.40），并且**分两段线性衰减**近似曲线：
+	#   x 0→45%：0.40 → 0.06（文字所在区仍有足够压暗）
+	#   x 45%→100%：0.06 → 0（到画面右缘恰好为 0，**没有硬边**）
+	# 上一轮是「0.46 铺到 61.5% 就截断」，那条截断线在亮部天空上留下一道
+	# 肉眼可见的竖直硬边（实测截图里像一块糊上去的暗色面板）。
+	_draw_h_fade(Rect2(0.0, 0.0, _viewport.x * 0.45, _viewport.y), 0.40, 0.06, shade)
+	_draw_h_fade(Rect2(_viewport.x * 0.45, 0.0, _viewport.x * 0.55, _viewport.y), 0.06, 0.0, shade)
+	# 顶部渐隐：只覆盖顶部一条带（0.28 → 0.14），到带底恰好衰减到 0。
+	# 同样刻意不铺满全高——铺满会在画面中部留下常驻压暗，把校舍与樱花压灰。
+	_draw_v_fade(Rect2(0.0, 0.0, _viewport.x, _viewport.y * 0.18), 0.14, 0.0, shade)
+	# 底部渐隐（地平线以下压暗，让题词与版本行稳定可读）。
+	# 从 60% 处 alpha=0 起步，**本身就是从 0 开始**，不会有硬边，保持原范围。
+	_draw_v_fade(Rect2(0.0, _viewport.y * 0.60, _viewport.x, _viewport.y * 0.40), 0.0, 0.50, shade)
 
 
 ## 竖直方向渐隐。

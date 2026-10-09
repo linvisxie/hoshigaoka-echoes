@@ -154,10 +154,11 @@ func _draw() -> void:
 		draw_rect(Rect2(row.position, Vector2(_px(6.0), row.size.y)), DISABLED_EDGE, true)
 
 	# 选中三角（▶）：用多边形绘制，不依赖字体里的特殊字形。
-	# 位置与**中文主标签**对齐（在图标左侧），而不是贴着行左缘——
-	# 上一轮它落在 x=-30，被行的左边界裁掉一半。
+	# 三列各占其位，**互不重叠**（本行参考画布宽度 780）：
+	#   ▶ 三角 ref 11.5~27 ｜ 图标 ref 40~84 ｜ 中文标签 ref 100 起 ｜ 英文右对齐至 ref 756
+	# 上一轮三角落在 ref -30，被行左边界裁掉一半，而且会压住图标。
 	if is_selected:
-		var ax := _px(56.0)
+		var ax := _px(18.0)
 		var s := _px(13.0)
 		var tri := PackedVector2Array([
 			Vector2(ax - s * 0.5, cy - s),
@@ -168,7 +169,7 @@ func _draw() -> void:
 
 	# 图标（缺失时退化为菱形占位，不崩、不空）
 	var icon_size := _px(44.0)
-	var icon_pos := Vector2(_px(18.0), cy - icon_size * 0.5)
+	var icon_pos := Vector2(_px(40.0), cy - icon_size * 0.5)
 	var tex := ArtRegistry.icon(icon_name, 64)
 	if tex == null:
 		tex = ArtRegistry.icon(icon_name, 32)
@@ -186,7 +187,7 @@ func _draw() -> void:
 	# 中文主标签（V2.1.4 J 章：1920×1080 参考画布下正文不小于 28px）
 	var zh_size := int(_px(36.0))
 	var baseline := cy + _px(13.0)
-	var zh_x := _px(78.0)
+	var zh_x := _px(100.0)
 	_draw_text_outlined(font, Vector2(zh_x, baseline), label_zh,
 		zh_size, TEXT_COLOR if interactive else TEXT_DISABLED)
 

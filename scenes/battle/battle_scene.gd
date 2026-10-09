@@ -1293,11 +1293,12 @@ func elapsed_since_start() -> float:
 
 func _ap_hover(column: int, lane: int) -> void:
 	var p := _cell_screen_pos(column, lane)
+	var w := _canvas_to_window(p)
 	var move := InputEventMouseMotion.new()
-	move.position = p
-	move.global_position = p
+	move.position = w
+	move.global_position = w
 	Input.parse_input_event(move)
-	GameLog.info(TAG, '[autoplay] 悬停格 (col%d, lane%d) 窗口坐标 %s' % [column, lane, p])
+	GameLog.info(TAG, "[autoplay] 悬停格 (col%d, lane%d) 画布%s 窗口%s" % [column, lane, p, w])
 
 
 func _click_card() -> void:
@@ -1314,20 +1315,38 @@ func _click_cell(column: int, lane: int) -> void:
 
 
 ## 注入一次完整的真实鼠标左键点击（按下 + 抬起），走引擎输入管线
+## 把**画布坐标**换算成**窗口坐标**。
+##
+## 为什么需要（本轮指令 6.1 修复 --autoplay 部署不落下）：
+##   `Input.parse_input_event()` 投递的合成事件会被引擎当作**真实 OS 输入**，
+##   于是 stretch(canvas_items) 的「窗口→画布」变换会**再施加一次**。
+##   而 `_cell_screen_pos()` 返回的已经是画布坐标 —— 直接投递等于被缩放两次，
+##   落点跑到战场之外，表现为「日志有点击、但部署从不发生」。
+##   真实鼠标不受影响：Godot 在投递到 _input 之前已经做过一次变换。
+func _canvas_to_window(p: Vector2) -> Vector2:
+	var canvas := get_viewport_rect().size
+	if canvas.x <= 0.0 or canvas.y <= 0.0:
+		return p
+	var win := Vector2(get_window().size)
+	return Vector2(p.x * win.x / canvas.x, p.y * win.y / canvas.y)
+
+
+## 合成一次左键点击（仅用于 --autoplay 开发回归；不参与真人输入路径）。
 func _send_click_at(p: Vector2) -> void:
+	var w := _canvas_to_window(p)
 	var move := InputEventMouseMotion.new()
-	move.position = p
-	move.global_position = p
+	move.position = w
+	move.global_position = w
 	Input.parse_input_event(move)
 	var press := InputEventMouseButton.new()
-	press.position = p
-	press.global_position = p
+	press.position = w
+	press.global_position = w
 	press.button_index = MOUSE_BUTTON_LEFT
 	press.pressed = true
 	Input.parse_input_event(press)
 	var release := InputEventMouseButton.new()
-	release.position = p
-	release.global_position = p
+	release.position = w
+	release.global_position = w
 	release.button_index = MOUSE_BUTTON_LEFT
 	release.pressed = false
 	Input.parse_input_event(release)

@@ -72,8 +72,14 @@ const OUTLINE_PX_LARGE := 2.0
 ## 达到该字号起用粗描边
 const OUTLINE_BOLD_FROM := 32.0
 
-## 数字固定宽度槽位（位数变化时后续内容不跳动）
-const NUM_SLOT_DIGITS := 6
+## 数字固定宽度槽位（位数变化时后续内容不跳动）。
+## 分级设定：槽位过宽会在数字与后续文字之间留出难看的空档，
+## 过窄则起不到稳定作用，因此按各处的量级分别取位数。
+const LEVEL_DIGITS := 2
+const CURRENCY_DIGITS := 5
+const STAT_DIGITS := 4
+## 突破成本的「持有/需求」对：每侧最多按这么多位预留
+const COST_PAIR_DIGITS := 4
 
 ## 图标：**统一从 64px 源图缩放**，避免 32/64 混用导致同一行图标大小不一。
 const ICON_SRC_SIZE := 64
@@ -619,12 +625,14 @@ func _mono_font() -> Font:
 	return _num_font
 
 
-## 数字转固定宽度字符串（右对齐补空格）。
-## 位数变化（如 97 → 1252）时，右侧内容不会左右跳动。
-func _num_slot(value: int) -> String:
-	var s := str(absi(value))
-	var pad := maxi(0, NUM_SLOT_DIGITS - s.length())
-	return " ".repeat(pad) + s if value >= 0 else "-" + " ".repeat(pad) + s
+## 固定宽度槽的宽度（不绘制；供需要先量宽的场合）。
+##
+## 用法约定（全界面统一）：**数值本身左对齐、紧贴它前面的标签绘制**，
+## 但「数值之后的内容」（如 +N 增量）锚定在 `标签x + 本槽宽` 处。
+## 这样既不会让数字与标签脱开（右对齐槽会那样），
+## 又保证位数从 1 位变 4 位时后续内容不左右跳动。
+func _num_slot_w(digits: int, size: float) -> float:
+	return _text_w(_mono_font(), " ".repeat(digits), size)
 
 
 ## 描边宽度：小字 1px、大字 2px（参考画布像素，随 _scale 缩放）。
@@ -657,6 +665,8 @@ func _draw_number(pos_right: Vector2, value: int, size: float, color: Color,
 	var w := _text_w(f, s, size)
 	_draw_text(f, Vector2(pos_right.x - w, pos_right.y), s, size, color, outline)
 	return w
+
+
 
 
 ## 依据视口与缩放计算全部矩形（绘制与命中共用）
@@ -879,8 +889,8 @@ func _draw_currency_bar(font: Font) -> void:
 	for c: Dictionary in sorted:
 		var cid := str(c.get("id", ""))
 		var w := _px(14.0) + icon_s + _px(10.0) \
-			+ _text_w(font, str(c.get("name", cid)), F_LABEL) + _px(6.0) \
-			+ _text_w(_mono_font(), _num_slot(_svc.get_currency(cid)), F_LABEL) + _px(18.0)
+			+ _text_w(font, str(c.get("name", cid)), F_LABEL) + _px(8.0) \
+			+ _num_slot_w(CURRENCY_DIGITS, F_LABEL) + _px(18.0)
 		widths.append(w)
 		total += w + gap
 	if not widths.is_empty():
@@ -900,10 +910,10 @@ func _draw_currency_bar(font: Font) -> void:
 				_icon_y_for_text(text_base, F_LABEL, icon_s)), icon_s)
 		var nx := r.position.x + _px(14.0) + icon_s + _px(10.0)
 		_draw_text(font, Vector2(nx, text_base), label, _px(F_LABEL), TEXT)
-		nx += _text_w(font, label, F_LABEL) + _px(6.0)
-		# 数量：等宽字体 + 固定槽位，位数变化不跳动
-		_draw_text(_mono_font(),
-			Vector2(nx + _px(6.0), text_base), _num_slot(_svc.get_currency(cid)),
+		nx += _text_w(font, label, F_LABEL) + _px(8.0)
+		# 数量：等宽字体，紧贴资源名左对齐；整条 chip 宽度按固定槽预留，
+		# 因此数字位数变化时 chip 本身与相邻 chip 都不会移动。
+		_draw_text(_mono_font(), Vector2(nx, text_base), str(_svc.get_currency(cid)),
 			_px(F_LABEL), ACCENT)
 		x += widths[i] + gap
 
@@ -960,14 +970,14 @@ func _draw_character_card(character_id: String, rect: Rect2, index: int) -> void
 	# 等级 + 突破
 	if p != null:
 		var ly := rect.position.y + rect.size.y * 0.66
-		# 等级数字走等宽字体 + 固定槽位：Lv.7 → Lv.10 时右侧「突破 N」不跳动
+		# 等级数字紧贴 "Lv."，后续「/ 上限」「突破 N」锚定固定 x（位数变化不跳动）
 		var lv_head := "Lv."
 		var lv_head_w := _text_w(font, lv_head, F_LABEL)
 		_draw_text(font, Vector2(tx, ly), lv_head, _px(F_LABEL), ACCENT)
-		var cap_text := " / %d" % p.level_cap()
-		var num_w := _text_w(_mono_font(), _num_slot(p.level), F_LABEL)
-		_draw_text(_mono_font(), Vector2(tx + lv_head_w, ly), _num_slot(p.level),
+		_draw_text(_mono_font(), Vector2(tx + lv_head_w, ly), str(p.level),
 			_px(F_LABEL), ACCENT)
+		var num_w := _num_slot_w(LEVEL_DIGITS, F_LABEL)
+		var cap_text := " / %d" % p.level_cap()
 		_draw_text(font, Vector2(tx + lv_head_w + num_w, ly), cap_text,
 			_px(F_LABEL), ACCENT)
 		var lv_text_w := lv_head_w + num_w + _text_w(font, cap_text, F_LABEL)
@@ -1075,15 +1085,17 @@ func _draw_growth_panel(font: Font) -> void:
 	_draw_text(font, Vector2(rrect.position.x + _px(12.0), rrect.position.y + _px(24.0)),
 		role, _px(F_TINY), role_color)
 
-	# 大号等级数字 + 上限。等级数字用等宽字体 + 固定槽位：
-	# Lv.7 → Lv.10 → Lv.40 时，右侧「等级上限 / 突破阶段」不会左右横跳。
+	# 大号等级数字 + 上限。
+	# 数字**紧贴** "Lv." 绘制（不留空档），但**后续文字锚定在固定 x**：
+	# 这样 Lv.7 → Lv.10 → Lv.40 时右侧「等级上限 / 突破阶段」不会左右横跳，
+	# 同时 Lv.1 也不会出现「Lv.  1」那种像打错字的空档。
 	var lv_head := "Lv."
 	var lv_head_w := _text_w(font, lv_head, F_BIG_LEVEL)
-	var lv_num_w := _text_w(_mono_font(), _num_slot(p.level), F_BIG_LEVEL)
 	_draw_text(font, Vector2(rx, iy + _px(150.0)), lv_head, _px(F_BIG_LEVEL), ACCENT)
 	_draw_text(_mono_font(), Vector2(rx + lv_head_w, iy + _px(150.0)),
-		_num_slot(p.level), _px(F_BIG_LEVEL), ACCENT)
-	var lv_w := lv_head_w + lv_num_w
+		str(p.level), _px(F_BIG_LEVEL), ACCENT)
+	# 后续文字起点 = "Lv." + 最大位数宽度（与当前位数无关 → 不跳动）
+	var lv_w := lv_head_w + _num_slot_w(LEVEL_DIGITS, F_BIG_LEVEL)
 	_draw_text(font, Vector2(rx + lv_w + _px(20.0), iy + _px(118.0)),
 		"等级上限 Lv.%d" % p.level_cap(), _px(F_LABEL), DIM)
 
@@ -1273,15 +1285,21 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 		_draw_icon(str(CURRENCY_ICON.get(cid, "icon_material")),
 			Vector2(cx2, _icon_y_for_text(cost_y, F_LABEL, icon_s)), icon_s)
 		cx2 += icon_s + _px(6.0)
-		# 「持有/需求」用等宽数字右对齐，位数不同也不会让后面的资源名错位
+		# 「持有/需求」用等宽数字右对齐固定槽，位数不同也不会让后面的资源名错位
 		var name_part := "%s " % _currency_name(cid)
 		_draw_text(font, Vector2(cx2, cost_y), name_part, _px(F_LABEL), DIM)
 		cx2 += _text_w(font, name_part, F_LABEL)
-		var num_part := "%d/%d" % [have, req]
-		# **资源不足必须清晰可读**：亮红 + 描边（描边由 _draw_text 统一加）
-		_draw_text(_mono_font(), Vector2(cx2, cost_y), num_part, _px(F_LABEL),
-			POSITIVE_DELTA if have >= req else INSUFFICIENT)
-		cx2 += _text_w(_mono_font(), num_part, F_LABEL) + _px(22.0)
+		# **资源不足必须清晰可读**：亮红 + 描边（描边由 _draw_text 统一加）。
+		# 「持有/需求」数字用等宽字体，且后续资源锚定在固定槽右缘，
+		# 因此 5/3 与 1200/800 不会让后面的资源名错位。
+		var num_col := POSITIVE_DELTA if have >= req else INSUFFICIENT
+		_draw_text(_mono_font(), Vector2(cx2, cost_y), "%d/%d" % [have, req],
+			_px(F_LABEL), num_col)
+		# 槽宽 = 「4位 / 4位」的最大可能宽度；数字左对齐紧贴资源名，
+		# 但下一个资源的图标锚定在槽右缘，故 5/3 与 1200/800 不会互相挤压。
+		var pair_w := _num_slot_w(COST_PAIR_DIGITS, F_LABEL) * 2.0 \
+			+ _text_w(_mono_font(), "/", F_LABEL)
+		cx2 += maxf(_text_w(_mono_font(), "%d/%d" % [have, req], F_LABEL), pair_w) + _px(22.0)
 
 	if not q_ok:
 		var reason := str(q.get("reason", ""))
@@ -1341,9 +1359,8 @@ func _draw_stats_section(font: Font, p: CharacterProgress) -> void:
 		var tx := x + icon_s + _px(10.0)
 		_draw_text(font, Vector2(tx, name_base), _stat_name(k), _px(F_TINY), DIM)
 
-		var val_text := "%d" % int(cur[k])
-		# 当前值：等宽字体 + 固定槽位，位数变化时 +N 不会左右跳
-		var val_w := _text_w(_mono_font(), _num_slot(int(cur[k])), F_LABEL)
+		# 当前值：等宽字体 + 右对齐固定槽，位数变化时 +N 不会左右跳
+		var val_w := _num_slot_w(STAT_DIGITS, F_LABEL)
 		# 升级/突破刚发生：该属性行瞬时高亮（底色块 + 更亮的数值）
 		var flash := float(_flash_rows.get(k, 0.0))
 		if flash > 0.0:
@@ -1357,7 +1374,8 @@ func _draw_stats_section(font: Font, p: CharacterProgress) -> void:
 		var val_col := TEXT
 		if flash > 0.0:
 			val_col = POSITIVE_DELTA if _flash_kind == "levelup" else Color(0.80, 0.94, 1.0)
-		_draw_text(_mono_font(), Vector2(tx, cy + _px(28.0)), _num_slot(int(cur[k])),
+		# 数值紧贴属性名左对齐；+N 增量锚定在固定槽右缘（见 _num_slot_w 约定）
+		_draw_text(_mono_font(), Vector2(tx, cy + _px(28.0)), str(int(cur[k])),
 			_px(F_LABEL), val_col)
 
 		# 升级预览增量：+N 亮绿 + 脉冲发光 + 短暂上浮
