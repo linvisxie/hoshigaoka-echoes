@@ -19,6 +19,29 @@
       { "fromLevel": 4, "toLevel": 5, "school_coin": 2000, "echo_crystal": 3 }
     ],
     "skillMaxLevel": 5,
-    "_equipmentCosts_note": "装备强化成本属 Alpha A0.5，本阶段不登记。"
+    "_equipmentCosts_spec": "V2.1.4 H 章十三（L1603-1611）：武器与饰品可强化至 +10；强化使用「装备零件 + 学园币」，成功率固定 100%，不设计失败/降级/爆装。表 65 给三档资源压力：+0～+3 低 / +4～+6 中 / +7～+10 较高。",
+    "_equipmentCosts_candidate": "⚠️ V2.1.4 **未给出装备强化每级的具体成本**——H 章四十三（L1846-1851）把「**装备强化每级成本**」与「80% 强化资源回收率」明文列为**候选数值**。因此下表全部为**第一轮候选**，需真人试玩后调表。",
+    "_equipmentCosts_budgetCheck": "预算自洽性校验（对照表 71）：全章首通共给装备零件 20（10 关 × 2）。下表 +0→+10 单件累计需 **15 零件**，故「一件装备强化满 + 剩余 5 零件」正好落在表 71「允许进行早期强化，但不要求刷装」的意图内；学园币累计 1450，占全章 5200 的约 28%，与表 71「足以承担 1～2 次突破 I、1～2 次低阶技能升级和**少量装备强化**」一致。",
+    "equipment": [
+      { "fromLevel": 0, "toLevel": 1, "school_coin": 40, "equipment_part": 1, "_pressure": "低" },
+      { "fromLevel": 1, "toLevel": 2, "school_coin": 60, "equipment_part": 1, "_pressure": "低" },
+      { "fromLevel": 2, "toLevel": 3, "school_coin": 80, "equipment_part": 2, "_pressure": "低" },
+      { "fromLevel": 3, "toLevel": 4, "school_coin": 110, "equipment_part": 2, "_pressure": "中" },
+      { "fromLevel": 4, "toLevel": 5, "school_coin": 140, "equipment_part": 2, "_pressure": "中" },
+      { "fromLevel": 5, "toLevel": 6, "school_coin": 180, "equipment_part": 2, "_pressure": "中" },
+      { "fromLevel": 6, "toLevel": 7, "school_coin": 220, "equipment_part": 2, "_pressure": "较高" },
+      { "fromLevel": 7, "toLevel": 8, "school_coin": 200, "equipment_part": 1, "_pressure": "较高" },
+      { "fromLevel": 8, "toLevel": 9, "school_coin": 200, "equipment_part": 1, "_pressure": "较高" },
+      { "fromLevel": 9, "toLevel": 10, "school_coin": 220, "equipment_part": 1, "_pressure": "较高" }
+    ],
+    "equipmentMaxLevel": 10,
+    "_equipmentMaxLevel_spec": "V2.1.4 L1604：「武器与饰品可以强化至 +10。」",
+    "equipmentSuccessRate": 1.0,
+    "_equipmentSuccessRate_spec": "V2.1.4 L1604：「成功率固定为 100%，不设计失败、降级、爆装。」",
+    "equipmentResetRefundRate": 0.8,
+    "_equipmentResetRefundRate_spec": "V2.1.4 L1610：「另设『重置强化』动作：将该装备的强化等级归零，以累计实际投入的学园币与装备零件分别**向下取整返还 80%**（不可超过累计投入），并记录重置事务；未强化装备返还 0。重置回收可重复使用，但每次仅针对重置前仍存储的强化投入，**不可凭空返还**。」",
+    "equipmentResetRounding": "FLOOR",
+    "_equipmentResetRounding_note": "「分别向下取整」明文，故两种资源各自 FLOOR，且各自夹取不超过累计投入。",
+    "_equipmentResetAtomicity_spec": "V2.1.4 L1611：「每次处理按唯一 instanceId 原子提交，重复点击/崩溃重试不重复发奖。」"
   }
 }

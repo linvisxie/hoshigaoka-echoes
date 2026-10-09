@@ -1,6 +1,42 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-a0.5",
   "domain": "equipment_affixes",
-  "_phase0": "Phase 0 占位。固定词条配置。",
-  "affixes": []
+  "_spec": "V2.1.4 H 章十二（L1596-1602）：装备词条原则。L1598：「副词条内容以 equipment_affixes.json 的静态 ID 引用实现。」",
+  "_noRandom_spec": "V2.1.4 L1597（LOCKED）：「首发 v1.0 的武器/饰品采用固定模板和固定词条数值，**不随机抽取词条、不随机浮动主副属性**。」因此本文件每个词条的数值都是**固定值**，实现中不存在随机浮动。",
+  "_narrowBand_spec": "V2.1.4 L1602：「词条数值在同品质内部保持窄区间，降低反复重刷压力。」",
+  "_candidate_note": "V2.1.4 **未给出任何词条的具体数值**。本文件全部数值为**第一轮候选**，需真人试玩后调表。",
+  "affixes": [
+    {
+      "id": "affix_weapon_atkspeed_pct_01",
+      "name": "轻捷",
+      "slotScope": ["WEAPON"],
+      "statKey": "attackSpeed",
+      "value": 0.05,
+      "isPercent": true,
+      "_candidate": true,
+      "_note": "V2.1.4 L1599：「优先出现职业可理解的词条，例如近战防御、**远程攻速**、治疗效率。」本词条为武器的远程攻速副属性（第一轮候选，5%）。注意：与主属性必须是**不同的属性键**，否则「1 主属性 + 1 副属性」会退化成同一个数值的重复计算。"
+    },
+    {
+      "id": "affix_accessory_hp_flat_01",
+      "name": "稳固",
+      "slotScope": ["ACCESSORY"],
+      "statKey": "hp",
+      "value": 60,
+      "isPercent": false,
+      "_candidate": true,
+      "_note": "饰品通用生命词条（表 63：饰品主要作用含「生命、防御、冷却与通用词条」）。第一轮候选。"
+    },
+    {
+      "id": "affix_accessory_cd_pct_01",
+      "name": "沉着",
+      "slotScope": ["ACCESSORY"],
+      "statKey": "cdRecovery",
+      "value": 0.05,
+      "isPercent": true,
+      "_candidate": true,
+      "_note": "饰品冷却类词条（表 63 明文含「冷却」）。**当前构建无技能系统**（属 A0.6），故本词条在现版本不影响战斗结算；其生效依赖技能系统落地，届时接入 effective_cd_recovery_factor()。第一轮候选，5%。"
+    }
+  ],
+  "_keyDistinctness_note": "纪律：同一模板的主属性与副属性必须是**不同的属性键**。若相同，`stat_bonus_of()` 会把两者相加到同一个键上，使「1 主 + 1 副」的结构失去意义。已由 tests/test_a0_5_equipment.gd 的 test_10c 校验。",
+  "_pending_affixes_note": "近战防御（DEFENSE）、治疗效率（HEAL_EFFICIENCY）等词条属后续装备扩充；当前 3 个模板只引用本文件已定义的词条 ID，避免悬空引用。"
 }

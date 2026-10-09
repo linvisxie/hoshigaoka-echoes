@@ -1,6 +1,61 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-a0.5",
   "domain": "equipment",
-  "_phase0": "Phase 0 占位。装备固定模板（V2.1.4：首发不随机生成词条）。",
-  "equipment": []
+  "_spec": "V2.1.4 H 章十～十四：装备系统定位 / 品质 / 词条原则 / 强化 / 校园纪念物。表 63 三槽位、表 64 四档品质、表 65 强化区间。",
+  "_ssot": "本文件是「装备固定模板」的唯一数据源（B6）。",
+  "_noRandom_spec": "V2.1.4 L1597（LOCKED）：「首发 v1.0 的武器/饰品采用固定模板和固定词条数值，**不随机抽取词条、不随机浮动主副属性**；随机词条系统属于 v1.1+ 候选，须另行立项。」因此本文件所有模板的数值与词条均为**固定值**，实现中不存在任何随机生成器。",
+  "_dataContract_spec": "V2.1.4 L1598：「equipmentId = 固定模板 ID，instanceId = 背包内的独立持有实例 ID；可持有同一模板的多件实例。」副词条内容以 equipment_affixes.json 的静态 ID 引用实现。",
+  "_slots_spec": "V2.1.4 表 63（L1583-1587）：每名角色三个装备槽 —— 武器（攻击/治疗/攻速/技能倍率，职业相关）/ 饰品（生命/防御/冷却与通用词条，通用或半通用）/ 校园纪念物（特殊机制、剧情与角色联动，稀少且唯一）。",
+  "_quality_spec": "V2.1.4 表 64（L1590-1595）：普通（灰白，1 主属性）/ 优秀（蓝，1 主属性 + 1 固定副属性）/ 稀有（紫，1 主属性 + 1～2 副属性）/ 史诗（金/深紫，主属性 + 特殊效果）。",
+  "_candidate_note": "V2.1.4 **未给出任何装备的主属性/副属性具体数值**（表 63/64 只给作用与结构，表 70 只给 ID）。因此本文件所有数值均为**第一轮候选**，需真人试玩后调表；每个模板的数值项均带 _candidate: true。",
+  "_enhance_spec": "V2.1.4 L1604：「武器与饰品可以强化至 +10。强化使用『装备零件 + 学园币』，成功率固定为 100%，不设计失败、降级、爆装。」强化成本表见 upgrade_costs.json 的 equipment 段（本文件不重复保存成本数值）。",
+  "_memento_spec": "V2.1.4 H 章十四（L1612-1623）：校园纪念物不采用普通随机掉落逻辑，来源于剧情/Boss/人物故事/章节探索；效果偏机制而非纯面板；同一纪念物原则上只拥有一个明确版本。1-10 Boss 首通发放 memento_ch1_boss_cleared。纪念物的机制效果属 Alpha A0.8，本阶段只登记模板与槽位。",
+  "equipment": [
+    {
+      "id": "equip_ch1_1_2_fine_weapon",
+      "name": "弓道部练习弓",
+      "slot": "WEAPON",
+      "quality": "FINE",
+      "_quality_spec": "V2.1.4 表 70：1-2 首通奖励「**优秀级**基础武器」；表 64：优秀 = 1 主属性 + 1 固定副属性。",
+      "_source_spec": "V2.1.4 表 70：1-2 首通；stage_rewards.json → reward_1_2_first.equipmentId。",
+      "primaryStat": { "key": "attack", "value": 18, "_candidate": true },
+      "affixes": ["affix_weapon_atkspeed_pct_01"],
+      "_affixes_note": "V2.1.4 L1599：「优先出现职业可理解的词条，例如近战防御、**远程攻速**、治疗效率。」本模板给远程可理解的固定副属性（攻速）。",
+      "enhanceMax": 10,
+      "_enhanceMax_spec": "V2.1.4 L1604：武器可强化至 +10。",
+      "dismantleParts": 3,
+      "_dismantleParts_note": "V2.1.4 L1611：分解「回收该模板规定的基础零件，不再次返还其强化投入」。3 为第一轮候选（规格未给数值）。"
+    },
+    {
+      "id": "equip_ch1_1_6_heal_accessory",
+      "name": "保健委员的记录本",
+      "slot": "ACCESSORY",
+      "quality": "FINE",
+      "_quality_spec": "V2.1.4 表 70：1-6 首通奖励「**治疗饰品**」；表 64：优秀 = 1 主属性 + 1 固定副属性。",
+      "_source_spec": "V2.1.4 表 70：1-6 首通；stage_rewards.json → reward_1_6_first.equipmentId。",
+      "primaryStat": { "key": "healPower", "value": 14, "_candidate": true },
+      "affixes": ["affix_accessory_hp_flat_01"],
+      "_affixes_note": "V2.1.4 L1599：治疗角色可理解的词条（治疗效率）。",
+      "enhanceMax": 10,
+      "_enhanceMax_spec": "V2.1.4 L1604：饰品可强化至 +10。",
+      "dismantleParts": 3,
+      "_dismantleParts_note": "第一轮候选。"
+    },
+    {
+      "id": "equip_ch1_1_9_rare_accessory",
+      "name": "整理过的错题集",
+      "slot": "ACCESSORY",
+      "quality": "RARE",
+      "_quality_spec": "V2.1.4 L1678：「首通 1-9 的上述**稀有级通用饰品**为确定性固定奖励，固定 ID 在 stage_rewards.json 唯一发放，词条由 equipment.json / equipment_affixes.json 定义。装备图纸系统未列入首发，不得将『或』留给 Codex 自行选择。」表 64：稀有 = 1 主属性 + 1～2 副属性。",
+      "_source_spec": "V2.1.4 表 70 + L1678：1-9 首通，ID 唯一确定 `equip_ch1_1_9_rare_accessory`。",
+      "primaryStat": { "key": "defense", "value": 22, "_candidate": true },
+      "affixes": ["affix_accessory_hp_flat_01", "affix_accessory_cd_pct_01"],
+      "_affixes_note": "稀有品质给 2 条固定副属性（表 64 的「1～2 副属性」，取上限 2 以体现稀有度）。",
+      "enhanceMax": 10,
+      "_enhanceMax_spec": "V2.1.4 L1604：饰品可强化至 +10。",
+      "dismantleParts": 5,
+      "_dismantleParts_note": "第一轮候选（稀有品质高于优秀，回收零件略多）。"
+    }
+  ],
+  "_mementoTemplates_note": "校园纪念物模板（memento_ch1_boss_cleared 等）属 Alpha A0.8；mementos.json 尚未填充。本文件不预先创建纪念物模板，避免与 A0.8 的设计冲突。装备系统的槽位定义已包含 MEMENTO，可在 A0.8 直接接入。"
 }

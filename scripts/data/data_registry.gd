@@ -373,6 +373,7 @@ func _validate_references() -> void:
 	_validate_growth_references()
 	_validate_core_hp_against_balance()
 	_validate_reward_references()
+	_validate_equipment_references()
 
 
 ## 校验关卡引用的奖励 ID 与奖励表引用的资源 ID（Alpha A0.4）。
@@ -531,3 +532,47 @@ func _validate_growth_references() -> void:
 				continue
 			if not currency_ids.has(cid):
 				_load_errors.append("引用错误: 技能升级成本引用了不存在的资源 '%s'" % cid)
+
+	# 装备强化成本同样只能引用 currencies.json 里存在的资源（Alpha A0.5）
+	for row: Dictionary in upgrade.get("equipment", []):
+		for cid: String in row.keys():
+			if cid in ["fromLevel", "toLevel", "_pressure"]:
+				continue
+			if not currency_ids.has(cid):
+				_load_errors.append("引用错误: 装备强化成本引用了不存在的资源 '%s'" % cid)
+
+
+## 装备系统引用校验（Alpha A0.5）。
+##   - equipment.json 的 affixes[] 必须存在于 equipment_affixes.json（V2.1.4 L1598：
+##     「副词条内容以 equipment_affixes.json 的静态 ID 引用实现」）；
+##   - equipment.json 的 slot 必须是表 63 的三槽位之一；
+##   - stage_rewards.json 的 equipmentId 必须存在于 equipment.json（否则首通权益
+##     兑现时会因「模板不存在」而失败——这是不可逆的奖励损失）。
+func _validate_equipment_references() -> void:
+	var affix_ids := {}
+	for a: Dictionary in get_domain("equipment_affixes").get("affixes", []):
+		affix_ids[str(a.get("id", ""))] = true
+
+	var equipment_ids := {}
+	var valid_slots := ["WEAPON", "ACCESSORY", "MEMENTO"]
+	for t: Dictionary in get_domain("equipment").get("equipment", []):
+		var eid := str(t.get("id", ""))
+		equipment_ids[eid] = true
+		var slot := str(t.get("slot", ""))
+		if not valid_slots.has(slot):
+			_load_errors.append("引用错误: 装备 %s 的 slot '%s' 不是表 63 的三槽位之一"
+				% [eid, slot])
+		for aid: Variant in t.get("affixes", []):
+			if not affix_ids.has(str(aid)):
+				_load_errors.append("引用错误: 装备 %s 的词条 '%s' 不在 equipment_affixes.json"
+					% [eid, str(aid)])
+
+	# 奖励表引用的装备模板必须存在（否则首通权益无法兑现）
+	for r: Dictionary in get_domain("stage_rewards").get("rewards", []):
+		var eq := str(r.get("equipmentId", ""))
+		if eq.is_empty():
+			continue
+		if not equipment_ids.has(eq):
+			_load_errors.append(
+				"引用错误: 奖励 %s 的 equipmentId '%s' 不在 equipment.json（首通权益将无法兑现）"
+				% [r.get("id", "?"), eq])
