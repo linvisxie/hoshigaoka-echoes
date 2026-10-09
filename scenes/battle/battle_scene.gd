@@ -137,6 +137,77 @@ const DANGER_COLOR := Color(0.98, 0.30, 0.42)          # 危险/预警（品红-
 const CORE_HIT_COLOR := Color(1.0, 0.45, 0.55)
 const PAPER_COLOR := Color(0.92, 0.90, 0.84)           # 纸张碎片
 
+# ============================================================
+#  HUD / 面板精修配色（本轮美术施工，纯表现层常量）
+#  纪律：只决定"画在哪、多大、什么颜色"，不参与任何战斗判定。
+# ============================================================
+
+## 顶部 HUD 面板：不再是整条纯色矩形，而是一块左右内缩、底角斜切的浮起面板，
+## 面板之外露出战场背景，从而与"工程调试条"区分开。
+const HUD_PANEL_INSET := 10.0          # 面板左右内缩（参考画布单位）
+const HUD_PANEL_HEIGHT := 128.0        # 面板高度：按内容给定，不铺满整条 HUD 带
+const HUD_PANEL_CUT := 20.0            # 面板底角斜切尺寸
+const HUD_PANEL_FILL := Color(0.045, 0.055, 0.100, 0.90)
+const HUD_PANEL_EDGE := Color(0.36, 0.44, 0.68, 0.70)
+const HUD_PANEL_TOP_ACCENT := Color(0.55, 0.72, 1.0, 0.30)
+const HUD_DIVIDER := Color(0.40, 0.48, 0.72, 0.38)
+## 中央 Wave 区块的独立底板：让 Wave 与左右两区在视觉上分层
+const HUD_PILL_FILL := Color(0.085, 0.100, 0.185, 0.94)
+const HUD_PILL_EDGE := Color(0.46, 0.56, 0.84, 0.60)
+## 关卡名标签（左上角有底色的小牌子）
+const HUD_CHIP_FILL := Color(0.130, 0.170, 0.300, 0.95)
+const HUD_CHIP_EDGE := Color(0.46, 0.58, 0.88, 0.80)
+
+## 核心生命格（菱形血格）：实心 = 剩余，空心描边 = 已失去
+const CORE_PIP_EMPTY_FILL := Color(0.145, 0.160, 0.225, 0.85)
+const CORE_PIP_EMPTY_EDGE := Color(0.48, 0.52, 0.66, 0.55)
+## 核心生命底板
+const CORE_PLATE_FILL := Color(0.070, 0.082, 0.145, 0.80)
+const CORE_PLATE_EDGE := Color(0.38, 0.42, 0.62, 0.50)
+
+## 角色卡五态（正常 / 悬停 / 选中 / 冷却 / 禁用）
+const CARD_HOVER_COLOR := Color(0.165, 0.215, 0.375, 0.96)
+const CARD_DISABLED_COLOR := Color(0.075, 0.085, 0.125, 0.94)
+const CARD_NORMAL_EDGE := Color(0.42, 0.48, 0.68, 0.85)
+const CARD_HOVER_EDGE := Color(0.72, 0.84, 1.0, 0.95)
+const CARD_SELECTED_EDGE := Color(1.0, 0.92, 0.50, 1.0)
+const CARD_COOLING_EDGE := Color(0.34, 0.36, 0.46, 0.80)
+const CARD_DISABLED_EDGE := Color(0.28, 0.30, 0.38, 0.70)
+## 头像框
+const CARD_PORTRAIT_BG := Color(0.040, 0.050, 0.095, 0.95)
+const CARD_PORTRAIT_EDGE := Color(0.50, 0.58, 0.82, 0.70)
+## 冷却斜向遮罩
+const CARD_COOL_MASK := Color(0.030, 0.035, 0.065, 0.66)
+
+## 结算面板主题（胜利 = 暖金，失败 = 暗红；语义明确）
+const RESULT_WIN_THEME := Color(0.98, 0.82, 0.44)
+const RESULT_WIN_BG := Color(0.095, 0.085, 0.060, 0.975)
+const RESULT_WIN_EDGE := Color(0.78, 0.64, 0.32, 0.95)
+const RESULT_LOSE_THEME := Color(0.94, 0.38, 0.42)
+const RESULT_LOSE_BG := Color(0.105, 0.048, 0.062, 0.975)
+const RESULT_LOSE_EDGE := Color(0.68, 0.30, 0.34, 0.95)
+const RESULT_TITLEBAR_H := 108.0       # 标题区高度（参考单位）
+const RESULT_DIVIDER := Color(0.42, 0.46, 0.62, 0.55)
+
+## 暂停面板
+const PAUSE_PANEL_BG := Color(0.070, 0.082, 0.140, 0.975)
+const PAUSE_PANEL_EDGE := Color(0.62, 0.72, 0.95, 0.85)
+const PAUSE_SCRIM := Color(0.02, 0.03, 0.06, 0.52)
+
+## 伤害数字分级（纯表现层阈值，不参与伤害公式）
+const DAMAGE_HIGH_THRESHOLD := 80      # 高伤害：更大更亮
+const DAMAGE_MID_THRESHOLD := 40       # 中等伤害：暖黄
+const DMG_COLOR_NORMAL := Color(1.0, 0.96, 0.88)
+const DMG_COLOR_MID := Color(1.0, 0.84, 0.42)
+const DMG_COLOR_HIGH := Color(1.0, 0.93, 0.55)
+const DMG_COLOR_LETHAL := Color(1.0, 0.80, 0.30)
+const DMG_COLOR_TAKEN := Color(1.0, 0.44, 0.44)
+
+## 残响晶体碎片（死亡粒子）：紫蓝晶体向外扩散 + 淡出
+const CRYSTAL_COLOR := Color(0.60, 0.46, 1.0)
+const CRYSTAL_CORE := Color(0.85, 0.78, 1.0)
+const CRYSTAL_GLOW := Color(0.45, 0.35, 0.95)
+
 var session: BattleSession
 var grid: BattleGrid
 
@@ -1262,8 +1333,134 @@ func _draw() -> void:
 		_draw_result_overlay()
 
 
+# ============================================================
+#  通用面板 / 标签绘制辅助（纯表现层，无 shader 依赖）
+# ============================================================
+
+## 顶部 HUD 面板矩形（绘制与分区定位共用同一份几何）。
+## 面板高度按**内容**给定，不铺满整条 HUD 带——面板因此读作浮起的信息板，
+## 与下方的战场之间留出背景，避免"整条色带"的调试感。
+func _hud_panel_rect() -> Rect2:
+	var inset := _px(HUD_PANEL_INSET)
+	return Rect2(
+		Vector2(inset, 0.0),
+		Vector2(_viewport_size.x - inset * 2.0, _px(HUD_PANEL_HEIGHT))
+	)
+
+
+## 带斜切底角的面板：底部两角各切掉 cut，读作"浮起的信息面板"而非调试色条。
+func _draw_cut_panel(rect: Rect2, cut: float, fill: Color, edge: Color, width: float) -> void:
+	var x0 := rect.position.x
+	var y0 := rect.position.y
+	var x1 := rect.position.x + rect.size.x
+	var y1 := rect.position.y + rect.size.y
+	var c := clampf(cut, 0.0, minf(rect.size.x, rect.size.y) * 0.45)
+	var pts := PackedVector2Array([
+		Vector2(x0, y0), Vector2(x1, y0),
+		Vector2(x1, y1 - c), Vector2(x1 - c, y1),
+		Vector2(x0 + c, y1), Vector2(x0, y1 - c),
+	])
+	draw_colored_polygon(pts, fill)
+	if width > 0.0:
+		draw_polyline(pts + PackedVector2Array([pts[0]]), edge, width)
+
+
+## 小标签（关卡名 / 状态牌）：右上角切一角的实底牌子。
+func _draw_tag(rect: Rect2, fill: Color, edge: Color) -> void:
+	var cut := rect.size.y * 0.32
+	var pts := PackedVector2Array([
+		Vector2(rect.position.x, rect.position.y),
+		Vector2(rect.position.x + rect.size.x, rect.position.y),
+		Vector2(rect.position.x + rect.size.x - cut, rect.position.y + rect.size.y),
+		Vector2(rect.position.x, rect.position.y + rect.size.y),
+	])
+	draw_colored_polygon(pts, fill)
+	draw_polyline(pts + PackedVector2Array([pts[0]]), edge, 1.5)
+
+
+## 圆角矩形（用四条边 + 四段短线近似；无 shader 依赖，任意后端可用）。
+func _draw_round_rect(rect: Rect2, radius: float, fill: Color, edge: Color, width: float) -> void:
+	var r := clampf(radius, 0.0, minf(rect.size.x, rect.size.y) * 0.5)
+	var x0 := rect.position.x
+	var y0 := rect.position.y
+	var x1 := rect.position.x + rect.size.x
+	var y1 := rect.position.y + rect.size.y
+	var pts := PackedVector2Array()
+	var corners := [
+		[Vector2(x1 - r, y0 + r), -PI * 0.5, 0.0],
+		[Vector2(x1 - r, y1 - r), 0.0, PI * 0.5],
+		[Vector2(x0 + r, y1 - r), PI * 0.5, PI],
+		[Vector2(x0 + r, y0 + r), PI, PI * 1.5],
+	]
+	for c: Array in corners:
+		var center: Vector2 = c[0]
+		var a0: float = c[1]
+		var a1: float = c[2]
+		var seg := 5
+		for i: int in range(seg + 1):
+			var a := a0 + (a1 - a0) * float(i) / float(seg)
+			pts.append(center + Vector2(cos(a), sin(a)) * r)
+	if fill.a > 0.0:
+		draw_colored_polygon(pts, fill)
+	if width > 0.0:
+		draw_polyline(pts + PackedVector2Array([pts[0]]), edge, width)
+
+
+## 菱形血格：实心 = 剩余，空心描边 = 已失去（形状 + 颜色双通道，不依赖纯色）。
+func _draw_core_pip(center: Vector2, r: float, filled: bool, col: Color) -> void:
+	var pts := PackedVector2Array([
+		Vector2(center.x, center.y - r),
+		Vector2(center.x + r, center.y),
+		Vector2(center.x, center.y + r),
+		Vector2(center.x - r, center.y),
+	])
+	if filled:
+		draw_colored_polygon(pts, col)
+		draw_polyline(pts + PackedVector2Array([pts[0]]),
+			Color(1.0, 0.94, 0.97, 0.80), 1.5)
+	else:
+		# 空心：只留暗底 + 描边，读作"这一格已经没了"
+		draw_colored_polygon(pts, CORE_PIP_EMPTY_FILL)
+		draw_polyline(pts + PackedVector2Array([pts[0]]), CORE_PIP_EMPTY_EDGE, 1.5)
+
+
+## 四角刻线边框（面板装饰用；不遮挡面板内容）
+func _draw_corner_marks(rect: Rect2, arm: float, col: Color, width: float) -> void:
+	for corner: int in range(4):
+		var sx := -1.0 if (corner & 1) == 0 else 1.0
+		var sy := -1.0 if (corner & 2) == 0 else 1.0
+		var p := Vector2(
+			rect.position.x + (0.0 if sx < 0.0 else rect.size.x),
+			rect.position.y + (0.0 if sy < 0.0 else rect.size.y))
+		draw_line(p, p + Vector2(-sx * arm, 0.0), col, width)
+		draw_line(p, p + Vector2(0.0, -sy * arm), col, width)
+
+
+## 顶部 HUD 背板（本轮美术施工）：
+##   - 整条纯色矩形 → 左右内缩、底角斜切的浮起面板（露出战场背景，读作 UI 而非调试条）；
+##   - 面板之外仍压一层很淡的暗色，保证顶部信息在明亮背景上也可读；
+##   - 不同信息区之间用竖向细分隔线分区（关卡/核心 ｜ Wave ｜ 暂停）。
 func _draw_hud_backdrop() -> void:
-	draw_rect(Rect2(Vector2.ZERO, Vector2(_viewport_size.x, _px(HUD_BAND_HEIGHT))), HUD_BG, true)
+	var band := _px(HUD_BAND_HEIGHT)
+	var panel := _hud_panel_rect()
+	# 面板下方的柔和投影：让面板"浮"在战场之上，而不是切出一条硬边
+	draw_rect(Rect2(Vector2.ZERO, Vector2(_viewport_size.x, band)),
+		Color(0.020, 0.026, 0.050, 0.28), true)
+	draw_rect(Rect2(Vector2(panel.position.x, panel.position.y + panel.size.y),
+		Vector2(panel.size.x, _px(10.0))), Color(0.02, 0.03, 0.06, 0.30), true)
+
+	_draw_cut_panel(panel, _px(HUD_PANEL_CUT), HUD_PANEL_FILL, HUD_PANEL_EDGE, 2.0)
+	# 上沿高光：把面板与战场分开
+	draw_line(Vector2(panel.position.x + _px(4.0), panel.position.y + 1.0),
+		Vector2(panel.position.x + panel.size.x - _px(4.0), panel.position.y + 1.0),
+		HUD_PANEL_TOP_ACCENT, 2.0)
+
+	# 竖向分区线：左（关卡/核心） ｜ 中（Wave） ｜ 右（暂停）
+	var dy0 := panel.position.y + _px(14.0)
+	var dy1 := panel.position.y + panel.size.y - _px(16.0)
+	for fx: float in [0.30, 0.70]:
+		var dx := _viewport_size.x * fx
+		draw_line(Vector2(dx, dy0), Vector2(dx, dy1), HUD_DIVIDER, 1.5)
 
 
 ## 战斗背景（本轮美术施工）。
@@ -1812,6 +2009,10 @@ func _hit_flash_k(kind: String, target_id: int) -> float:
 
 
 ## 敌人死亡粒子（V2.1.4 F-四十七：黑色粒子 + 纸张 + 微弱紫色残光，避免大量血液）
+##
+## 本轮美术施工：改为**残响主题**——紫蓝色晶体碎片自爆点向外扩散并淡出，
+## 中心留一瞬白色晶体核，再叠一层扩散残光圆环。
+## 纪律：纯表现层，粒子只读已结算的 KILLED 记录，不参与任何战斗判定。
 func _draw_death_particles() -> void:
 	var spacing := _px(grid.lane_spacing_px)
 	var now := _now()
@@ -1821,24 +2022,56 @@ func _draw_death_particles() -> void:
 			continue
 		var base_x := _origin.x + _px(grid.logical_to_px_x(float(p["x"]), 0.0))
 		var base_y := _origin.y + float(p["lane"]) * spacing
-		var spread := _px(46.0) * k
-		# 紫色残光（扩散圆环）
-		draw_circle(Vector2(base_x, base_y), _px(10.0) + spread * 0.7,
-			Color(0.62, 0.40, 0.95, 0.30 * (1.0 - k)), false, 3.0)
-		# 黑色粒子 + 纸张碎片（各 4 片，向上/外扩散并下坠）
-		for i: int in range(4):
-			var ang := TAU * float(i) / 4.0 + float(p["lane"])
-			var d := spread * (0.6 + 0.4 * float(i % 2))
+		var fade := 1.0 - k
+		var spread := _px(54.0) * k
+		var lane_seed := float(int(p["lane"])) * 1.7
+
+		# 残响扩散圆环（紫蓝，向外淡出）
+		draw_circle(Vector2(base_x, base_y), _px(8.0) + spread * 0.62,
+			Color(CRYSTAL_GLOW.r, CRYSTAL_GLOW.g, CRYSTAL_GLOW.b, 0.42 * fade), false, 3.0)
+		draw_circle(Vector2(base_x, base_y), _px(4.0) + spread * 0.30,
+			Color(CRYSTAL_CORE.r, CRYSTAL_CORE.g, CRYSTAL_CORE.b, 0.30 * fade), false, 2.0)
+
+		# 晶体碎片：7 片，按 lane 播种角度，越靠外越暗越小
+		var shards := 7
+		for i: int in range(shards):
+			var ang := TAU * float(i) / float(shards) + lane_seed
+			var d := spread * (0.55 + 0.45 * float(i % 3) / 2.0)
 			var px := base_x + cos(ang) * d
-			var py := base_y + sin(ang) * d * 0.6 - _px(18.0) * (1.0 - k)
-			var sz := _px(5.0) * (1.0 - k * 0.6)
-			var col := Color(0.10, 0.10, 0.14, 0.9 * (1.0 - k)) if i % 2 == 0 \
-				else Color(PAPER_COLOR.r, PAPER_COLOR.g, PAPER_COLOR.b, 0.85 * (1.0 - k))
-			draw_rect(Rect2(Vector2(px - sz * 0.5, py - sz * 0.5), Vector2(sz, sz)), col, true)
+			# 略微上浮 + 下坠，读作"被打散"而不是"炸开"
+			var py := base_y + sin(ang) * d * 0.62 - _px(20.0) * fade
+			var sz := _px(6.5) * (1.0 - k * 0.55) * (1.0 - 0.12 * float(i % 3))
+			# 菱形晶体（旋转 45° 的方块），越靠外越偏暗紫
+			var col := CRYSTAL_CORE.lerp(CRYSTAL_COLOR, float(i % 3) / 2.0)
+			col.a = 0.92 * fade
+			var pts := PackedVector2Array([
+				Vector2(px, py - sz), Vector2(px + sz * 0.62, py),
+				Vector2(px, py + sz), Vector2(px - sz * 0.62, py),
+			])
+			draw_colored_polygon(pts, col)
+			# 少量纸张碎片保留（残响时刻的"校园"语义，避免纯科幻感）
+			if i % 3 == 0:
+				var psz := _px(4.0) * (1.0 - k * 0.5)
+				draw_rect(Rect2(Vector2(px + d * 0.18 - psz * 0.5, py - psz * 0.5),
+					Vector2(psz, psz)),
+					Color(PAPER_COLOR.r, PAPER_COLOR.g, PAPER_COLOR.b, 0.62 * fade), true)
+
+		# 爆点白核（只在前 40% 寿命内出现，避免刺眼）
+		if k < 0.4:
+			var core_a := (1.0 - k / 0.4)
+			draw_circle(Vector2(base_x, base_y), _px(7.0) * (1.0 - k),
+				Color(1.0, 0.97, 1.0, 0.75 * core_a), true)
 
 
 ## 伤害数字（V2.1.4 D-38 视觉反馈；J 章禁止遮挡敌人/预警/路线信息）。
-## 位置：目标上方偏上，随寿命上浮并淡出；颜色区分「对敌伤害」与「我方受创」。
+## 位置：目标上方偏上，随寿命上浮并淡出。
+##
+## 分级（本轮美术施工，纯表现层阈值，**不参与伤害公式**）：
+##   普通伤害 → 白（小幅）
+##   中等伤害 → 暖黄
+##   高伤害 / 致命一击 → 更大更亮的金黄 + 轻微缩放冲击
+##   我方受创 → 红
+##   治疗 → 绿色 +N（由 _heal_flashes 绘制，见 _draw_characters）
 func _draw_damage_pops() -> void:
 	var font := ThemeDB.fallback_font
 	var spacing := _px(grid.lane_spacing_px)
@@ -1852,22 +2085,53 @@ func _draw_damage_pops() -> void:
 		var pos := _damage_pop_anchor(str(p["kind"]), int(p["targetId"]))
 		if pos.x < 0.0:
 			continue
+		var kind := str(p["kind"])
+		var amount := int(p.get("amount", 0))
+		var lethal := bool(p.get("lethal", false))
 		var rise := _px(30.0) * k
 		var alpha := 1.0 - k * k
+		# 出现瞬间的轻微"弹出"：前 18% 寿命内放大到 1.18 倍
+		var pop := 1.0
+		if k < 0.18:
+			pop = 1.0 + 0.18 * (1.0 - k / 0.18)
+
 		var col: Color
-		if str(p["kind"]) == "enemy":
-			col = Color(1.0, 0.86, 0.45, alpha) if bool(p.get("lethal", false)) \
-				else Color(1.0, 0.95, 0.85, alpha)
+		var base_fs := 19.0
+		if kind == "enemy":
+			if lethal:
+				col = DMG_COLOR_LETHAL
+				base_fs = 27.0
+			elif amount >= DAMAGE_HIGH_THRESHOLD:
+				col = DMG_COLOR_HIGH
+				base_fs = 25.0
+			elif amount >= DAMAGE_MID_THRESHOLD:
+				col = DMG_COLOR_MID
+				base_fs = 21.0
+			else:
+				col = DMG_COLOR_NORMAL
 		else:
-			col = Color(1.0, 0.42, 0.42, alpha)
+			col = DMG_COLOR_TAKEN
+			base_fs = 22.0 if amount >= DAMAGE_MID_THRESHOLD else 19.0
+		col.a = alpha
+
 		var text := str(p["text"])
-		var fs := int(_px(22.0 if bool(p.get("lethal", false)) else 19.0))
+		var fs := int(_px(base_fs * pop))
 		var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		var at := Vector2(pos.x - w * 0.5, pos.y - tile * 0.55 - rise)
+		# 高伤害/致命：叠一圈暖色光晕，让"这一下很重"一眼可见（低强度，不闪屏）
+		if kind == "enemy" and (lethal or amount >= DAMAGE_HIGH_THRESHOLD):
+			draw_circle(Vector2(pos.x, at.y - _px(6.0)), _px(20.0) * pop,
+				Color(col.r, col.g, col.b, 0.16 * alpha), true)
 		# 深色描边保证在亮/暗背景上都可读（V2.1.4：1280×720 到 4K 都要清楚）
-		draw_string(font, at + Vector2(1.5, 1.5), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
-			Color(0, 0, 0, alpha * 0.75))
+		var ow := maxf(1.5, _px(2.0))
+		draw_string(font, at + Vector2(ow, ow), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
+			Color(0, 0, 0, alpha * 0.78))
 		draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+		# 致命一击：额外一行短横线，读作"打散"（形状通道，不只靠颜色）
+		if lethal and kind == "enemy":
+			var ly := at.y + _px(4.0)
+			draw_line(Vector2(pos.x - w * 0.5, ly), Vector2(pos.x + w * 0.5, ly),
+				Color(col.r, col.g, col.b, alpha * 0.8), maxf(1.5, _px(2.0)))
 
 
 ## 伤害数字的锚点（屏幕坐标）。找不到目标时返回 x<0 表示跳过。
@@ -1890,6 +2154,7 @@ func _damage_pop_anchor(kind: String, target_id: int) -> Vector2:
 
 
 ## 部署落位动画（V2.1.4 三十四：格子高亮 → 落位动画 → AP 扣除）
+## 本轮美术施工：扩散光环（双层）+ 上浮星形 + 十字落位标记，读作"共鸣者就位"。
 func _draw_deploy_pops() -> void:
 	var tile := _px(grid.tile_size_px)
 	var spacing := _px(grid.lane_spacing_px)
@@ -1900,14 +2165,37 @@ func _draw_deploy_pops() -> void:
 			continue
 		var center := Vector2(_origin.x + tile * float(p["column"]),
 			_origin.y + float(p["lane"]) * spacing)
-		var r := tile * (0.30 + 0.42 * k)
-		draw_circle(center, r, Color(0.45, 0.95, 0.70, 0.55 * (1.0 - k)), false, 3.0)
+		var fade := 1.0 - k
+		# 扩散光环：外层职责绿（部署成功语义）+ 内层暖白
+		var r := tile * (0.28 + 0.48 * k)
+		draw_circle(center, r, Color(0.45, 0.95, 0.70, 0.58 * fade), false, 3.0)
+		draw_circle(center, r * 0.66, Color(1.0, 1.0, 0.92, 0.42 * fade), false, 2.0)
+		# 地面填充：短暂照亮该格（低强度，不闪屏）
+		draw_circle(center, r * 0.9, Color(0.55, 1.0, 0.78, 0.10 * fade), true)
+		# 上浮星形（五角星，随寿命上移并缩小）
+		var star_y := center.y - _px(26.0) * k
+		var sr := tile * 0.13 * (1.0 - k * 0.35)
+		_draw_star(Vector2(center.x, star_y), sr, 5,
+			Color(0.85, 1.0, 0.90, 0.90 * fade))
 		# 落位十字（短暂标记该格已占用）
 		var arm := tile * 0.16 * (1.0 - k * 0.5)
-		draw_line(center - Vector2(arm, 0), center + Vector2(arm, 0),
-			Color(0.75, 1.0, 0.85, 0.7 * (1.0 - k)), 2.5)
-		draw_line(center - Vector2(0, arm), center + Vector2(0, arm),
-			Color(0.75, 1.0, 0.85, 0.7 * (1.0 - k)), 2.5)
+		draw_line(center - Vector2(arm, 0.0), center + Vector2(arm, 0.0),
+			Color(0.75, 1.0, 0.85, 0.7 * fade), 2.5)
+		draw_line(center - Vector2(0.0, arm), center + Vector2(0.0, arm),
+			Color(0.75, 1.0, 0.85, 0.7 * fade), 2.5)
+
+
+## 星形（points 个尖角，内半径 = outer * 0.44）。纯几何，无资源依赖。
+func _draw_star(center: Vector2, outer: float, points: int, col: Color) -> void:
+	if outer <= 0.0 or points < 3:
+		return
+	var inner := outer * 0.44
+	var pts := PackedVector2Array()
+	for i: int in range(points * 2):
+		var rad := outer if i % 2 == 0 else inner
+		var ang := -PI * 0.5 + PI * float(i) / float(points)
+		pts.append(center + Vector2(cos(ang), sin(ang)) * rad)
+	draw_colored_polygon(pts, col)
 
 
 ## 危险提示：路线入口警示符号（V2.1.4：高威胁波次开始前，路线入口出现 1～2 秒警示符号）
@@ -2140,7 +2428,58 @@ func _draw_character_card() -> void:
 		_draw_one_card(_roster[i], _card_rects[i], i)
 
 
-## 绘制单张角色卡
+## 45° 斜向平行线（在矩形内解析裁剪，不依赖任何裁剪 API）。
+func _draw_diagonal_hatch(rect: Rect2, spacing: float, col: Color, width: float) -> void:
+	var sp := maxf(spacing, 4.0)
+	var w := rect.size.x
+	var h := rect.size.y
+	# 起点从左上角外侧开始，保证左下与右上角都被覆盖
+	var x0 := rect.position.x - h
+	var x1 := rect.position.x + w
+	var x := x0
+	while x <= x1:
+		# 45° 直线：p(t) = (x + t, rect.y + t)，求 t 使点落在矩形内
+		var t_lo := maxf(rect.position.x - x, 0.0)
+		var t_hi := minf(rect.position.x + w - x, h)
+		if t_hi > t_lo:
+			draw_line(Vector2(x + t_lo, rect.position.y + t_lo),
+				Vector2(x + t_hi, rect.position.y + t_hi), col, width)
+		x += sp
+
+
+## 角色头像框（缺失资源时回退为职责色几何图形，绝不出现空框）。
+func _draw_card_portrait(character_id: String, rect: Rect2, role_color: Color,
+		behavior: String) -> void:
+	draw_rect(rect, CARD_PORTRAIT_BG, true)
+	var tex := ArtRegistry.character_portrait(character_id, 64)
+	if tex != null:
+		draw_texture_rect(tex, rect.grow(-_px(2.0)), false)
+	else:
+		# 回退：职责几何图形（前线菱形 / 远程三角 / 治疗十字）
+		var c := rect.get_center()
+		var r := minf(rect.size.x, rect.size.y) * 0.34
+		var col := role_color
+		col.a = 0.9
+		match behavior:
+			"RANGED":
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(c.x + r, c.y), Vector2(c.x - r * 0.8, c.y - r),
+					Vector2(c.x - r * 0.8, c.y + r)]), col)
+			"HEALER":
+				var a := r * 0.42
+				draw_rect(Rect2(Vector2(c.x - a, c.y - r), Vector2(a * 2.0, r * 2.0)), col, true)
+				draw_rect(Rect2(Vector2(c.x - r, c.y - a), Vector2(r * 2.0, a * 2.0)), col, true)
+			_:
+				draw_colored_polygon(PackedVector2Array([
+					Vector2(c.x, c.y - r), Vector2(c.x + r, c.y),
+					Vector2(c.x, c.y + r), Vector2(c.x - r, c.y)]), col)
+	draw_rect(rect, CARD_PORTRAIT_EDGE, false, 1.5)
+
+
+## 绘制单张角色卡（本轮精修）：
+##   头像 + 职责色条 + 五态（正常 / 悬停 / 选中 / 冷却 / 禁用）+ AP 图标费用 + 冷却斜向遮罩。
+## 纪律：全部为**纯表现层**——不改费用、不改冷却时长、不改可部署判定，
+## 只决定"画在哪、多大、什么颜色"。命中矩形仍是 _card_rects[i]，与视觉无关。
 func _draw_one_card(character_id: String, rect: Rect2, slot_index: int) -> void:
 	var cfg: Dictionary = session.stage._character_configs.get(character_id, {})
 	if cfg.is_empty():
@@ -2157,31 +2496,85 @@ func _draw_one_card(character_id: String, rect: Rect2, slot_index: int) -> void:
 	var behavior := str(cfg.get("behavior", "FRONTLINE"))
 	var role_color := _role_color_of_text(behavior)
 
-	var bg := CARD_SELECTED_COLOR if selected else (CARD_COOLING_COLOR if cooling else CARD_COLOR)
-	draw_rect(rect, bg, true)
-	draw_rect(rect, Color(0.6, 0.85, 1.0) if selected else Color(0.45, 0.50, 0.70), false, 2.0)
+	var cost := int(cfg.get("deployCost", 0))
+	var affordable := session.stage.can_afford(cost)
+	# 禁用态：战斗已结束 / 暂停中 / AP 不足（与 D-18 的准入语义一致，只影响观感）
+	var disabled := (not session.is_running()) or session.is_paused() or (not affordable)
+	var hovered := rect.has_point(_mouse_pos)
+
+	# ---- 五态底板 ----
+	var bg: Color
+	var edge: Color
+	var edge_w := 2.0
+	if cooling:
+		bg = CARD_COOLING_COLOR
+		edge = CARD_COOLING_EDGE
+	elif selected:
+		bg = CARD_SELECTED_COLOR
+		edge = CARD_SELECTED_EDGE
+		edge_w = 3.0
+	elif disabled:
+		bg = CARD_DISABLED_COLOR
+		edge = CARD_DISABLED_EDGE
+	elif hovered:
+		bg = CARD_HOVER_COLOR
+		edge = CARD_HOVER_EDGE
+	else:
+		bg = CARD_COLOR
+		edge = CARD_NORMAL_EDGE
+	_draw_cut_panel(rect, _px(12.0), bg, edge, edge_w)
+	# 四角刻线：把卡片读作"可操作的单位卡"而不是色块
+	_draw_corner_marks(rect, _px(12.0), Color(edge.r, edge.g, edge.b, 0.45), 1.5)
+
 	# 左侧职责色条：不看文字也能分辨前线 / 远程 / 治疗
 	draw_rect(Rect2(pos, Vector2(_px(8.0), size.y)), role_color, true)
 
-	var tx := pos.x + _px(22.0)
-	var ty := pos.y + _px(30.0)
+	# ---- 头像（左） ----
+	var psz := _px(68.0)
+	var prect := Rect2(Vector2(pos.x + _px(16.0), pos.y + _px(16.0)), Vector2(psz, psz))
+	_draw_card_portrait(character_id, prect, role_color, behavior)
+	# 头像下的快捷键牌
+	var key_rect := Rect2(Vector2(prect.position.x, prect.position.y + psz + _px(8.0)),
+		Vector2(psz, _px(24.0)))
+	_draw_tag(key_rect, Color(0.10, 0.12, 0.20, 0.9), Color(0.44, 0.50, 0.72, 0.7))
+	var key_text := "[%d]" % (slot_index + 1)
+	var kfs := int(_px(15.0))
+	var kw := font.get_string_size(key_text, HORIZONTAL_ALIGNMENT_LEFT, -1, kfs).x
+	draw_string(font, Vector2(key_rect.position.x + (key_rect.size.x - kw) * 0.5,
+		key_rect.position.y + _px(17.0)), key_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, kfs, Color(0.68, 0.76, 0.96))
 
-	# 名称 + 职责标签
-	draw_string(font, Vector2(tx, ty), str(cfg.get("name", "—")),
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22.0)), TEXT_COLOR)
+	# ---- 右侧信息区（可用宽度 = 卡宽 - 左边距 - 头像 - 间距 - 右边距） ----
+	# 纵向节奏用显式偏移给定，避免各行基线相互挤压（实机截图发现 AP 图标曾压住角色名）。
+	var tx := prect.position.x + psz + _px(12.0)
+	var avail_w := (pos.x + size.x - _px(14.0)) - tx
+
+	# 名称
+	draw_string(font, Vector2(tx, pos.y + _px(32.0)), str(cfg.get("name", "—")),
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(21.0)), TEXT_COLOR)
+
+	# 费用：AP 图标 + 数字（图标缺失时回退为「N AP」文本）
+	var ap_icon := ArtRegistry.icon("icon_ap", 32)
+	var cost_col := Color(0.55, 0.88, 1.0) if affordable else Color(0.96, 0.52, 0.42)
+	var cost_fs := int(_px(22.0))
+	var cx0 := tx
+	var cty := pos.y + _px(60.0)
+	if ap_icon != null:
+		var isz := _px(24.0)
+		draw_texture_rect(ap_icon, Rect2(Vector2(cx0, cty - isz * 0.82), Vector2(isz, isz)), false)
+		cx0 += isz + _px(4.0)
+	var cost_text := str(cost) if ap_icon != null else "%d AP" % cost
+	draw_string(font, Vector2(cx0, cty), cost_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, cost_fs, cost_col)
+
+	# 职责标签：靠右对齐，与费用同行（不换行、不溢出）
 	var role_text := _role_label(behavior)
-	draw_string(font, Vector2(tx + _px(112.0), ty), "[%s]" % role_text,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(15.0)), role_color)
+	var rfs := int(_px(14.0))
+	var rw := font.get_string_size(role_text, HORIZONTAL_ALIGNMENT_LEFT, -1, rfs).x
+	draw_string(font, Vector2(pos.x + size.x - _px(14.0) - rw, cty), role_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, rfs, role_color)
 
-	# 费用
-	var cost := int(cfg.get("deployCost", 0))
-	var affordable := session.stage.can_afford(cost)
-	ty += _px(32.0)
-	draw_string(font, Vector2(tx, ty), "费用 %d AP" % cost,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)),
-		Color(0.55, 0.85, 1.0) if affordable else Color(0.95, 0.5, 0.4))
-
-	# V2.1.4 D-18 角色卡四态：可部署 / AP 不足 / 已部署 / 再部署（倒计时）
+	# 状态文案（V2.1.4 D-18 四态语义保持完全不变）
 	var status_text: String
 	var status_color: Color
 	if deployed:
@@ -2203,41 +2596,50 @@ func _draw_one_card(character_id: String, rect: Rect2, slot_index: int) -> void:
 		status_text = "已选中 — 点击格部署"
 		status_color = Color(0.4, 1.0, 0.65)
 	else:
-		status_text = "可部署（点此卡或按 %d）" % (slot_index + 1)
+		status_text = "可部署（点卡或按 %d）" % (slot_index + 1)
 		status_color = Color(0.75, 0.95, 1.0)
-	ty += _px(28.0)
-	draw_string(font, Vector2(tx, ty), status_text,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), status_color)
+	draw_string(font, Vector2(tx, pos.y + _px(86.0)), status_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(15.0)), status_color)
 
 	# 再部署冷却进度条（离场后显示）
 	if cooling:
-		var bar_w := size.x - _px(44.0)
 		var bar_h := _px(8.0)
-		var bp := Vector2(tx, ty + _px(10.0))
-		draw_rect(Rect2(bp, Vector2(bar_w, bar_h)), Color(0.14, 0.14, 0.18), true)
+		var bp := Vector2(tx, pos.y + _px(94.0))
+		draw_rect(Rect2(bp, Vector2(avail_w, bar_h)), Color(0.14, 0.14, 0.18), true)
 		var inst := session.stage.get_character_instance(character_id)
 		var prog := inst.redeploy_progress() if inst != null else 0.0
-		draw_rect(Rect2(bp, Vector2(bar_w * (1.0 - prog), bar_h)),
+		draw_rect(Rect2(bp, Vector2(avail_w * (1.0 - prog), bar_h)),
 			Color(0.45, 0.85, 0.55), true)
+		draw_rect(Rect2(bp, Vector2(avail_w, bar_h)), Color(0.5, 0.55, 0.7, 0.6), false, 1.0)
 
-	# 关键属性：治疗角色显示治疗力而不是攻击
-	ty += _px(32.0)
+	# 关键属性（分两行，避免超宽）：治疗角色显示治疗力而不是攻击
 	var st: Dictionary = cfg.get("baseStats", {})
-	var power_text := ""
+	draw_string(font, Vector2(tx, pos.y + _px(122.0)),
+		"HP %d   攻 %d   防 %d" % [
+			int(st.get("hp", 0)), int(st.get("attack", 0)), int(st.get("defense", 0)),
+		], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(13.0)), Color(0.72, 0.78, 0.92))
+	var second := ""
 	if behavior == "HEALER":
-		power_text = "治疗 %d" % int(cfg.get("healPower", 0))
+		second = "治疗 %d   阻挡 %d" % [int(cfg.get("healPower", 0)),
+			int(cfg.get("blockCount", 0))]
 	else:
-		power_text = "攻 %d" % int(st.get("attack", 0))
-	draw_string(font, Vector2(tx, ty),
-		"HP %d  %s  防 %d  阻挡 %d" % [
-			int(st.get("hp", 0)), power_text,
-			int(st.get("defense", 0)), int(cfg.get("blockCount", 0)),
-		], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), Color(0.72, 0.78, 0.92))
+		second = "阻挡 %d" % int(cfg.get("blockCount", 0))
+	draw_string(font, Vector2(tx, pos.y + _px(142.0)), second,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(13.0)), Color(0.66, 0.72, 0.88))
 
-	# 快捷键提示
-	draw_string(font, Vector2(pos.x + size.x - _px(64.0), pos.y + _px(30.0)),
-		"[%d]" % (slot_index + 1), HORIZONTAL_ALIGNMENT_LEFT, -1,
-		int(_px(14.0)), Color(0.55, 0.62, 0.85))
+	# ---- 冷却态：斜向遮罩 + 大号倒计时（与冷却进度条双通道） ----
+	if cooling:
+		draw_rect(rect, CARD_COOL_MASK, true)
+		_draw_diagonal_hatch(rect, _px(18.0), Color(0.55, 0.60, 0.78, 0.16), 2.0)
+		var cd_text := "%.1f" % cooldown
+		var cdfs := int(_px(38.0))
+		var cdw := font.get_string_size(cd_text, HORIZONTAL_ALIGNMENT_LEFT, -1, cdfs).x
+		var cdc := Vector2(rect.get_center().x + _px(34.0),
+			rect.get_center().y + _px(12.0))
+		draw_string(font, cdc + Vector2(2.0, 2.0), cd_text,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, cdfs, Color(0, 0, 0, 0.65))
+		draw_string(font, Vector2(cdc.x - cdw * 0.5, cdc.y), cd_text,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, cdfs, Color(0.95, 0.82, 0.42, 0.92))
 
 
 ## 行为字符串 -> 职责配色
@@ -2312,59 +2714,98 @@ func _draw_character_panel() -> void:
 		label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), Color(1, 0.94, 0.94))
 
 
-## 顶部右侧：暂停 / 继续按钮 + Wave 进度
+## 顶部中央：Wave 进度 + 下一波预告（独立底板，与左右两区视觉分层）。
+## 纪律：只保留关键信息（当前 Wave、本波剩余、下一波预告），
+## 次要信息（场上敌人数量）下沉到与"待出怪"同一行的弱化小字，不堆叠新行。
 func _draw_wave_banner() -> void:
 	if session == null or session.stage == null:
 		return
 	var font := ThemeDB.fallback_font
 	var s := session.stage
+	var cx := _viewport_size.x * 0.5
 
-	# Wave 进度（顶部中）
+	# Wave 中央底板（左右内缩，让三区在视觉上分开）
+	var pill_w := _viewport_size.x * 0.34
+	var pill := Rect2(Vector2(cx - pill_w * 0.5, _px(8.0)),
+		Vector2(pill_w, _px(HUD_PANEL_HEIGHT) - _px(8.0)))
+	_draw_cut_panel(pill, _px(14.0), HUD_PILL_FILL, HUD_PILL_EDGE, 1.5)
+
+	# Wave 进度（大字）
 	var wn := s.current_wave_number()
 	var total := s.total_wave_count()
 	var wave_text := "Wave %d / %d" % [wn, total]
 	if total == 0:
 		wave_text = "无 Wave 配置"
-	var wcol := Color(0.85, 0.90, 1.0)
 	if wn >= 1 and wn <= total:
 		wave_text += "  %s" % str(s.waves[wn - 1].get("label", ""))
-	var wsize := font.get_string_size(wave_text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(26.0))).x
-	draw_string(font, Vector2((_viewport_size.x - wsize) * 0.5, _px(44.0)), wave_text,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(26.0)), wcol)
+	var wcol := Color(0.90, 0.94, 1.0)
+	var wfs := int(_px(26.0))
+	var wsize := font.get_string_size(wave_text, HORIZONTAL_ALIGNMENT_LEFT, -1, wfs).x
+	var wy := _px(44.0)
+	draw_string(font, Vector2(cx - wsize * 0.5, wy), wave_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, wfs, wcol)
+	# Wave 下沿细分隔线
+	draw_line(Vector2(cx - pill_w * 0.34, wy + _px(12.0)),
+		Vector2(cx + pill_w * 0.34, wy + _px(12.0)), HUD_DIVIDER, 1.0)
 
-	# 当前波剩余与下一波预告（V2.1.4 D-33：UI 显示当前 Wave、下一波提示、当前敌人数量）
+	# 本波待出怪 ｜ 场上敌人（弱化小字，单行）
 	var remain := s.current_wave_remaining()
 	var living := s.enemies.size()
-	var info := "本波待出怪 %d ｜ 场上敌人 %d" % [remain, living]
-	var isize := font.get_string_size(info, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0))).x
-	draw_string(font, Vector2((_viewport_size.x - isize) * 0.5, _px(72.0)), info,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.72, 0.80, 0.95))
+	var info := "待出怪 %d   场上 %d" % [remain, living]
+	var ifs := int(_px(15.0))
+	var isize := font.get_string_size(info, HORIZONTAL_ALIGNMENT_LEFT, -1, ifs).x
+	draw_string(font, Vector2(cx - isize * 0.5, _px(74.0)), info,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, ifs, Color(0.66, 0.74, 0.90))
 
+	# 下一波预告（关键决策信息，保留）
 	var nxt := s.next_wave_preview()
+	var ntext := ""
+	var ncol := Color(0.95, 0.80, 0.45)
 	if not nxt.is_empty():
-		var ntext := "下一波：Wave %d %s（%d 名，%s）" % [
+		ntext = "下一波：Wave %d %s（%d 名，%s）" % [
 			int(nxt["number"]), str(nxt["label"]), int(nxt["enemyCount"]),
 			_lanes_text(nxt["lanes"])]
-		var nsize := font.get_string_size(ntext, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0))).x
-		draw_string(font, Vector2((_viewport_size.x - nsize) * 0.5, _px(98.0)), ntext,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.95, 0.80, 0.45))
 	else:
-		var etext := "最终波 — 清空后即胜利"
-		var esize := font.get_string_size(etext, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0))).x
-		draw_string(font, Vector2((_viewport_size.x - esize) * 0.5, _px(98.0)), etext,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.55, 0.95, 0.65))
+		ntext = "最终波 — 清空后即胜利"
+		ncol = Color(0.60, 0.95, 0.70)
+	var nfs := int(_px(16.0))
+	var nsize := font.get_string_size(ntext, HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
+	draw_string(font, Vector2(cx - nsize * 0.5, _px(100.0)), ntext,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, nfs, ncol)
 
-	# 暂停按钮
+	# ---- 右上：暂停 / 继续（真正的按钮外观：底色 + 边框 + 悬停态 + 图标） ----
 	if not session.is_decided():
-		var hovered := _pause_rect.has_point(_mouse_pos)
-		draw_rect(_pause_rect, BUTTON_HOVER if hovered else BUTTON_COLOR, true)
-		draw_rect(_pause_rect, Color(0.55, 0.62, 0.85), false, 2.0)
-		var pt := "继续" if session.is_paused() else "暂停 (Space)"
-		var psize := font.get_string_size(pt, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0))).x
-		draw_string(font,
-			Vector2(_pause_rect.position.x + (_pause_rect.size.x - psize) * 0.5,
-				_pause_rect.position.y + _pause_rect.size.y * 0.68),
-			pt, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)), Color(0.92, 0.95, 1.0))
+		_draw_pause_button()
+
+
+## 暂停 / 继续按钮外观（底色 + 双层边框 + 悬停提亮 + 图标 + 文字）。
+## 几何仍由 _layout_buttons() 的 _pause_rect 唯一决定，命中判定不变。
+func _draw_pause_button() -> void:
+	var font := ThemeDB.fallback_font
+	var hovered := _pause_rect.has_point(_mouse_pos)
+	var base := BUTTON_HOVER if hovered else BUTTON_COLOR
+	if session.is_paused():
+		base = base.lerp(Color(0.85, 0.70, 0.30), 0.45)
+	_draw_round_rect(_pause_rect, _px(8.0), base,
+		Color(0.78, 0.86, 1.0, 0.95) if hovered else Color(0.50, 0.58, 0.80, 0.90),
+		2.0)
+	# 内侧高光：按钮"可按"的视觉暗示
+	_draw_round_rect(_pause_rect.grow(-_px(3.0)), _px(6.0), Color(0, 0, 0, 0),
+		Color(1.0, 1.0, 1.0, 0.10 if hovered else 0.05), 1.0)
+
+	var label := "继续" if session.is_paused() else "暂停"
+	var icon := ArtRegistry.icon("icon_play" if session.is_paused() else "icon_pause", 32)
+	var fs := int(_px(17.0))
+	var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var isz := _px(22.0)
+	var total_w := lw + (isz + _px(6.0) if icon != null else 0.0)
+	var sx := _pause_rect.position.x + (_pause_rect.size.x - total_w) * 0.5
+	var cy := _pause_rect.position.y + _pause_rect.size.y * 0.5
+	if icon != null:
+		draw_texture_rect(icon, Rect2(Vector2(sx, cy - isz * 0.5), Vector2(isz, isz)), false)
+		sx += isz + _px(6.0)
+	draw_string(font, Vector2(sx, cy + _px(6.0)), label,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.94, 0.96, 1.0))
 
 
 func _lanes_text(lanes: Variant) -> String:
@@ -2384,13 +2825,20 @@ func _lanes_text(lanes: Variant) -> String:
 ## 因此这里**只保留玩家决策需要的信息**，调试明细折叠到 F1 开关后面。
 func _draw_hud_text() -> void:
 	var font := ThemeDB.fallback_font
-	var x := _px(20.0)
-	var y := _px(34.0)
+	var panel := _hud_panel_rect()
+	var x := panel.position.x + _px(22.0)
+	var top := panel.position.y + _px(12.0)
 
-	# ---- 顶部左：关卡名 + 核心 HP（大号，第一眼可见） ----
-	draw_string(font, Vector2(x, y), "%s" % _stage_display_name(),
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19.0)), Color(0.78, 0.84, 0.96))
-	y += _px(28.0)
+	# ---- 顶部左：关卡名（有底色的小标签，不再是一行裸文字） ----
+	var stage_name := _stage_display_name()
+	var fs_stage := int(_px(18.0))
+	var stage_w := font.get_string_size(stage_name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_stage).x
+	var chip := Rect2(Vector2(x, top), Vector2(stage_w + _px(24.0), _px(30.0)))
+	_draw_tag(chip, HUD_CHIP_FILL, HUD_CHIP_EDGE)
+	draw_string(font, Vector2(chip.position.x + _px(12.0), chip.position.y + _px(21.0)),
+		stage_name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_stage, Color(0.84, 0.89, 0.99))
+
+	# ---- 顶部左：核心 HP（菱形血格，第一眼可见） ----
 	var core_ratio := 1.0
 	if session.stage.core_hp_max > 0:
 		core_ratio = float(session.stage.core_hp) / float(session.stage.core_hp_max)
@@ -2399,24 +2847,35 @@ func _draw_hud_text() -> void:
 		core_col = DANGER_COLOR
 	elif core_ratio <= 0.67:
 		core_col = Color(0.95, 0.72, 0.35)
-	draw_string(font, Vector2(x, y), "残响锚点 %d / %d" % [
-		session.stage.core_hp, session.stage.core_hp_max],
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(26.0)), core_col)
-	# 核心生命点（用圆点数量直观表达剩余，颜色 + 数量双通道）
-	var dot_x := x
-	var dot_y := y + _px(16.0)
-	for i: int in range(session.stage.core_hp_max):
-		var filled := i < session.stage.core_hp
-		draw_circle(Vector2(dot_x + _px(9.0), dot_y), _px(6.0),
-			core_col if filled else Color(0.24, 0.26, 0.34))
-		dot_x += _px(22.0)
 
-	# ---- 底部左：AP 与回复 ----
+	var hp_y := chip.position.y + chip.size.y + _px(24.0)
+	draw_string(font, Vector2(x, hp_y), "残响锚点 %d / %d" % [
+		session.stage.core_hp, session.stage.core_hp_max],
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24.0)), core_col)
+
+	# 菱形血格：实心 = 剩余，空心 = 已失去（形状 + 颜色双通道）
+	var pip_r := _px(9.0)
+	var pip_gap := _px(24.0)
+	var pip_y := hp_y + _px(22.0)
+	var pip_x := x + pip_r
+	for i: int in range(session.stage.core_hp_max):
+		_draw_core_pip(Vector2(pip_x, pip_y), pip_r, i < session.stage.core_hp, core_col)
+		pip_x += pip_gap
+
+	# ---- 底部左：AP 与回复（用 AP 图标配数字，替代裸文字） ----
 	var ap_y := _viewport_size.y - _px(CARD_HEIGHT) - _px(46.0)
-	draw_string(font, Vector2(_px(24.0), ap_y), "AP %d / %d" % [
-		session.stage.ap, session.stage.ap_max],
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(26.0)), Color(0.62, 0.86, 1.0))
-	draw_string(font, Vector2(_px(24.0) + _px(168.0), ap_y),
+	var ap_icon := ArtRegistry.icon("icon_ap", 32)
+	var ap_text := "%d / %d" % [session.stage.ap, session.stage.ap_max]
+	var ap_fs := int(_px(26.0))
+	var ap_tx := _px(24.0)
+	if ap_icon != null:
+		var isz := _px(30.0)
+		draw_texture_rect(ap_icon, Rect2(Vector2(ap_tx, ap_y - isz * 0.80), Vector2(isz, isz)), false)
+		ap_tx += isz + _px(8.0)
+	draw_string(font, Vector2(ap_tx, ap_y), ap_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, ap_fs, Color(0.62, 0.86, 1.0))
+	var ap_tw := font.get_string_size(ap_text, HORIZONTAL_ALIGNMENT_LEFT, -1, ap_fs).x
+	draw_string(font, Vector2(ap_tx + ap_tw + _px(16.0), ap_y),
 		"回复 %.0f / 秒" % session.stage.ap_regen_per_second,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.60, 0.72, 0.90))
 	# AP 条（宽度与上限挂钩，便于读出「快满了」）
@@ -2433,7 +2892,7 @@ func _draw_hud_text() -> void:
 	if _show_debug_hud:
 		var dy := _px(HUD_BAND_HEIGHT) - _px(10.0)
 		for line: String in _debug_lines:
-			draw_string(font, Vector2(x, dy), line, HORIZONTAL_ALIGNMENT_LEFT, -1,
+			draw_string(font, Vector2(_px(20.0), dy), line, HORIZONTAL_ALIGNMENT_LEFT, -1,
 				int(_px(14.0)), Color(0.62, 0.68, 0.82))
 			dy += _px(18.0)
 
@@ -2464,14 +2923,61 @@ func _draw_feedback() -> void:
 		int(_px(19.0)), _feedback_color)
 
 
-## 暂停遮罩（V2.1.4 D-35）
+## 暂停遮罩（V2.1.4 D-35）——本轮精修为**正式面板**（边框 + 标题区 + 分隔线 + 提示）。
 func _draw_pause_overlay() -> void:
-	draw_rect(Rect2(Vector2.ZERO, _viewport_size), Color(0.02, 0.03, 0.06, 0.45), true)
+	draw_rect(Rect2(Vector2.ZERO, _viewport_size), PAUSE_SCRIM, true)
 	var font := ThemeDB.fallback_font
-	var text := "已暂停 — 按 Space 或点击右上角「继续」"
-	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(34.0))).x
-	draw_string(font, Vector2((_viewport_size.x - w) * 0.5, _viewport_size.y * 0.45),
-		text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(34.0)), Color(0.98, 0.92, 0.60))
+	var cx := _viewport_size.x * 0.5
+	var panel_w := _px(620.0)
+	var panel_h := _px(230.0)
+	var panel := Rect2(Vector2(cx - panel_w * 0.5, _viewport_size.y * 0.5 - panel_h * 0.5),
+		Vector2(panel_w, panel_h))
+	_draw_cut_panel(panel, _px(18.0), PAUSE_PANEL_BG, PAUSE_PANEL_EDGE, 2.5)
+	_draw_corner_marks(panel, _px(22.0), PAUSE_PANEL_EDGE, 2.0)
+
+	# 标题区
+	var bar_h := _px(64.0)
+	var bar := Rect2(panel.position, Vector2(panel.size.x, bar_h))
+	draw_rect(bar, Color(0.13, 0.16, 0.27, 0.95), true)
+	draw_line(Vector2(bar.position.x, bar.position.y + bar_h),
+		Vector2(bar.position.x + bar.size.x, bar.position.y + bar_h),
+		Color(0.55, 0.66, 0.92, 0.75), 2.0)
+
+	var icon := ArtRegistry.icon("icon_pause", 64)
+	var title := "已 暂 停"
+	var tfs := int(_px(34.0))
+	var tw := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tfs).x
+	var isz := _px(30.0)
+	var block_w := tw + (isz + _px(12.0) if icon != null else 0.0)
+	var sx := cx - block_w * 0.5
+	var tcy := bar.position.y + bar_h * 0.5
+	if icon != null:
+		draw_texture_rect(icon, Rect2(Vector2(sx, tcy - isz * 0.5), Vector2(isz, isz)), false)
+		sx += isz + _px(12.0)
+	draw_string(font, Vector2(sx, tcy + _px(11.0)), title,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, tfs, Color(0.97, 0.92, 0.62))
+
+	# 正文提示（两行，主次分明）
+	var hint := "按 Space 或点击右上角「继续」恢复战斗"
+	var hfs := int(_px(20.0))
+	var hw := font.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
+	draw_string(font, Vector2(cx - hw * 0.5, panel.position.y + _px(118.0)), hint,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, Color(0.86, 0.90, 0.99))
+	var sub := "暂停期间战斗时间停止推进"
+	var sfs := int(_px(15.0))
+	var sw := font.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
+	draw_string(font, Vector2(cx - sw * 0.5, panel.position.y + _px(150.0)), sub,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, sfs, DIM_TEXT)
+
+	# 底部信息条：AP / 核心 / Wave（只读摘要，不做操作）
+	var info := "AP %d / %d    残响锚点 %d / %d    Wave %d / %d" % [
+		session.stage.ap, session.stage.ap_max,
+		session.stage.core_hp, session.stage.core_hp_max,
+		session.stage.current_wave_number(), session.stage.total_wave_count()]
+	var ifs := int(_px(15.0))
+	var iw := font.get_string_size(info, HORIZONTAL_ALIGNMENT_LEFT, -1, ifs).x
+	draw_string(font, Vector2(cx - iw * 0.5, panel.position.y + panel.size.y - _px(22.0)),
+		info, HORIZONTAL_ALIGNMENT_LEFT, -1, ifs, Color(0.60, 0.68, 0.86))
 
 
 ## 结果界面。
@@ -2489,17 +2995,31 @@ func _draw_result_overlay() -> void:
 	var font := ThemeDB.fallback_font
 	draw_rect(Rect2(Vector2.ZERO, _viewport_size), Color(0.02, 0.03, 0.06, 0.78), true)
 
+	var victory := bool(summary["victory"])
+	# 主题：胜利 = 暖金，失败 = 暗红（语义明确）
+	var theme := RESULT_WIN_THEME if victory else RESULT_LOSE_THEME
+	var panel_bg := RESULT_WIN_BG if victory else RESULT_LOSE_BG
+	var panel_edge := RESULT_WIN_EDGE if victory else RESULT_LOSE_EDGE
+	var titlebar_fill := Color(0.185, 0.150, 0.075, 0.96) if victory \
+		else Color(0.190, 0.075, 0.095, 0.96)
+
 	var panel := Rect2(Vector2(_viewport_size.x * 0.5 - _px(430.0),
 			_viewport_size.y * 0.5 - _px(340.0)), Vector2(_px(860.0), _px(680.0)))
-	draw_rect(panel, PANEL_BG, true)
-	draw_rect(panel, Color(0.55, 0.62, 0.85), false, 3.0)
+	_draw_cut_panel(panel, _px(24.0), panel_bg, panel_edge, 3.0)
+	_draw_corner_marks(panel, _px(26.0), theme, 2.5)
 
-	var victory := bool(summary["victory"])
+	# ---- 标题区：整块实底 + 主题描边 + 大号胜负标题 ----
+	var bar_h := _px(RESULT_TITLEBAR_H)
+	var bar := Rect2(panel.position, Vector2(panel.size.x, bar_h))
+	draw_rect(bar, titlebar_fill, true)
+	draw_line(Vector2(bar.position.x, bar.position.y + bar_h),
+		Vector2(bar.position.x + bar.size.x, bar.position.y + bar_h), theme, 2.5)
+
 	var title := "胜 利" if victory else "失 败"
-	var tcol := Color(0.55, 0.95, 0.65) if victory else Color(0.95, 0.45, 0.45)
+	var tcol := theme
 	var cx := _viewport_size.x * 0.5
 	var tsize := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(58.0))).x
-	draw_string(font, Vector2(cx - tsize * 0.5, panel.position.y + _px(84.0)), title,
+	draw_string(font, Vector2(cx - tsize * 0.5, panel.position.y + _px(76.0)), title,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(58.0)), tcol)
 
 	# 一句话结论：让玩家立刻知道发生了什么
@@ -2509,7 +3029,7 @@ func _draw_result_overlay() -> void:
 	else:
 		reason = "残响锚点被击穿：%d 名敌人突破了防线" % int(summary["leaked"])
 	var rsize := font.get_string_size(reason, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
-	draw_string(font, Vector2(cx - rsize * 0.5, panel.position.y + _px(122.0)), reason,
+	draw_string(font, Vector2(cx - rsize * 0.5, panel.position.y + _px(128.0)), reason,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), DIM_TEXT)
 
 	# ---- 主要结算数据 ----
@@ -2523,7 +3043,7 @@ func _draw_result_overlay() -> void:
 		"治疗总量：%d HP" % int(summary["healedTotal"]),
 		"战斗时长：%.1f 秒" % float(summary["elapsed"]),
 	]
-	var ly := panel.position.y + _px(164.0)
+	var ly := panel.position.y + _px(180.0)
 	for line: String in lines:
 		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
 		draw_string(font, Vector2(cx - lw * 0.5, ly), line,
@@ -2531,23 +3051,29 @@ func _draw_result_overlay() -> void:
 		ly += _px(28.0)
 
 	# ---- 复盘区块（V2.1.4 G-八）：失败时解释原因，胜利时给出压力分布 ----
-	ly += _px(10.0)
-	draw_line(Vector2(panel.position.x + _px(60.0), ly - _px(14.0)),
-		Vector2(panel.position.x + panel.size.x - _px(60.0), ly - _px(14.0)),
-		Color(0.35, 0.40, 0.58), 1.5)
+	ly += _px(12.0)
+	draw_line(Vector2(panel.position.x + _px(60.0), ly - _px(16.0)),
+		Vector2(panel.position.x + panel.size.x - _px(60.0), ly - _px(16.0)),
+		RESULT_DIVIDER, 1.5)
 	var head := "复盘：为什么会输" if not victory else "复盘：本局压力分布"
-	var hw := font.get_string_size(head, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19.0))).x
-	draw_string(font, Vector2(cx - hw * 0.5, ly + _px(4.0)), head,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19.0)),
-		Color(0.95, 0.72, 0.45) if not victory else Color(0.62, 0.85, 1.0))
-	ly += _px(30.0)
+	var hfs := int(_px(19.0))
+	var hw := font.get_string_size(head, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
+	var head_col := Color(0.95, 0.72, 0.45) if not victory else Color(0.72, 0.88, 1.0)
+	# 小标题带底色标签，与正文分层
+	var head_tag := Rect2(Vector2(cx - hw * 0.5 - _px(12.0), ly - _px(18.0)),
+		Vector2(hw + _px(24.0), _px(26.0)))
+	_draw_tag(head_tag, Color(theme.r, theme.g, theme.b, 0.16),
+		Color(theme.r, theme.g, theme.b, 0.55))
+	draw_string(font, Vector2(cx - hw * 0.5, ly + _px(1.0)), head,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, head_col)
+	ly += _px(34.0)
 	for line: String in _build_review_lines(summary):
 		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0))).x
 		draw_string(font, Vector2(cx - lw * 0.5, ly), line,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), Color(0.82, 0.87, 0.98))
 		ly += _px(26.0)
 
-	# 按钮
+	# 按钮（带悬停态；胜利/失败用不同按钮语义色）
 	_draw_button(_relaunch_rect, "重新挑战", Color(0.22, 0.45, 0.72))
 	_draw_button(_quit_rect, "退出战斗", Color(0.42, 0.28, 0.32))
 
@@ -2597,17 +3123,25 @@ func _build_review_lines(summary: Dictionary) -> Array[String]:
 	return out
 
 
+## 通用按钮（本轮精修）：圆角 + 双层边框 + 悬停提亮 + 按下位移感。
+## 命中判定仍由调用方传入的 rect 唯一决定（_layout_buttons 布局，未改动）。
 func _draw_button(rect: Rect2, label: String, base: Color) -> void:
 	if rect.size.x <= 0.0:
 		return
 	var font := ThemeDB.fallback_font
 	var hovered := rect.has_point(_mouse_pos)
-	draw_rect(rect, base.lightened(0.18) if hovered else base, true)
-	draw_rect(rect, Color(0.75, 0.82, 0.95), false, 2.0)
-	var s := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24.0))).x
-	draw_string(font, Vector2(rect.position.x + (rect.size.x - s) * 0.5,
-			rect.position.y + rect.size.y * 0.66),
-		label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24.0)), Color(0.96, 0.98, 1.0))
+	var fill := base.lightened(0.20) if hovered else base
+	# 悬停时按钮轻微上浮（纯绘制偏移，不影响命中矩形）
+	var r := rect if not hovered else Rect2(rect.position - Vector2(0.0, _px(2.0)), rect.size)
+	_draw_round_rect(r, _px(10.0), fill,
+		Color(1.0, 0.98, 0.86, 0.95) if hovered else Color(0.72, 0.80, 0.94, 0.90), 2.0)
+	_draw_round_rect(r.grow(-_px(4.0)), _px(8.0), Color(0, 0, 0, 0),
+		Color(1.0, 1.0, 1.0, 0.16 if hovered else 0.07), 1.0)
+	var fs := int(_px(24.0))
+	var s := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	draw_string(font, Vector2(r.position.x + (r.size.x - s) * 0.5,
+			r.position.y + r.size.y * 0.66),
+		label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.97, 0.99, 1.0))
 
 
 func _draw_pause_overlay_helper() -> void:
