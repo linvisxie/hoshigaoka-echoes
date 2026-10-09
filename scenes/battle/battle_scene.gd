@@ -61,6 +61,14 @@ const RETREAT_COLOR := Color(0.72, 0.30, 0.28)
 const TEXT_COLOR := Color(0.90, 0.94, 1.0)
 const DIM_TEXT := Color(0.62, 0.68, 0.82)
 
+# ---- 正式美术层（本轮美术施工）----
+## 背景贴图缺失时的兜底底色（原 P0.x 的纯色底）
+const BG_FALLBACK_COLOR := Color(0.055, 0.063, 0.098)
+## 背景可读性遮罩：让校园环境退到单位与部署格之后，保证三路线始终清晰
+const BG_SCRIM := Color(0.045, 0.050, 0.085, 0.58)
+## 战场地面基座：把 3×6 网格统一到一块作战区域上
+const BOARD_BASE := Color(0.075, 0.085, 0.140, 0.62)
+
 ## 顶部 HUD 预留带高度（参考画布单位），战场排在其下方
 const HUD_BAND_HEIGHT := 200.0
 ## 核心侧留白（以格为单位，纯渲染）
@@ -1231,6 +1239,7 @@ func run_headless_until_decided(max_seconds: float = 600.0) -> int:
 func _draw() -> void:
 	if grid == null or session == null:
 		return
+	_draw_stage_background()
 	_draw_hud_backdrop()
 	_draw_board()
 	_draw_lane_warnings()
@@ -1257,6 +1266,41 @@ func _draw_hud_backdrop() -> void:
 	draw_rect(Rect2(Vector2.ZERO, Vector2(_viewport_size.x, _px(HUD_BAND_HEIGHT))), HUD_BG, true)
 
 
+## 战斗背景（本轮美术施工）。
+##
+## 纪律（本轮指令 6.4）：
+##   * 背景是**纯视觉层**，绘制在部署格之下，不参与任何命中/部署判定；
+##   * 按关卡取环境图（ArtRegistry.STAGE_ENV），未知关卡退回默认环境；
+##   * 贴图缺失时退回原有的纯色底，绝不黑屏。
+##   * 压一层暗色遮罩，保证 3 条路线的部署格与单位始终可读
+##     （本轮指令 6.5「UI 与像素背景风格统一、不遮挡战场」）。
+func _draw_stage_background() -> void:
+	var vp := _viewport_size
+	var tex := ArtRegistry.stage_background(_stage_id_for_art())
+	if tex == null:
+		draw_rect(Rect2(Vector2.ZERO, vp), BG_FALLBACK_COLOR, true)
+		return
+	# 等比覆盖裁剪（cover）：填满视口且不变形
+	var tw := float(tex.get_width())
+	var th := float(tex.get_height())
+	if tw <= 0.0 or th <= 0.0:
+		draw_rect(Rect2(Vector2.ZERO, vp), BG_FALLBACK_COLOR, true)
+		return
+	var s := maxf(vp.x / tw, vp.y / th)
+	var w := tw * s
+	var h := th * s
+	draw_texture_rect(tex, Rect2((vp.x - w) * 0.5, (vp.y - h) * 0.5, w, h), false)
+	# 可读性遮罩：让背景退到单位之后
+	draw_rect(Rect2(Vector2.ZERO, vp), BG_SCRIM, true)
+
+
+## 当前关卡 id（供背景选择使用）。
+func _stage_id_for_art() -> String:
+	if _stage_config_for_rewards.has("stageId"):
+		return str(_stage_config_for_rewards.get("stageId", ""))
+	return ""
+
+
 ## 三条路线 + 18 个部署格
 func _draw_board() -> void:
 	var tile := _px(grid.tile_size_px)
@@ -1266,16 +1310,30 @@ func _draw_board() -> void:
 	var grid_right := _origin.x + tile * float(grid.columns - 1) + cell.x * 0.5
 	var font := ThemeDB.fallback_font
 
+	# 战场地面基座：把三条路线统一到一块可读的"作战区域"上，
+	# 避免格子直接浮在背景照片上造成视觉割裂。
+	var board_top := _origin.y - spacing * 0.5 - tile * 0.14
+	var board_bot := _origin.y + float(grid.lanes - 1) * spacing + spacing * 0.5 + tile * 0.14
+	var board_left := _origin.x - core_margin - tile * 0.10
+	var board_right := grid_right + tile * 0.72
+	draw_rect(Rect2(Vector2(board_left, board_top),
+		Vector2(board_right - board_left, board_bot - board_top)), BOARD_BASE, true)
+
 	for lane: int in range(grid.lanes):
 		var lane_y := _origin.y + float(lane) * spacing
 		var lane_color: Color = LANE_COLORS[lane % LANE_COLORS.size()]
 
-		# 路线底带
+		# 路线底带（加深，让三条路一眼可数）
 		var band_from := Vector2(_origin.x - core_margin, lane_y - cell.y * 0.5)
 		draw_rect(
 			Rect2(band_from, Vector2(grid_right, lane_y + cell.y * 0.5) - band_from),
-			Color(lane_color.r, lane_color.g, lane_color.b, 0.10), true
+			Color(lane_color.r, lane_color.g, lane_color.b, 0.16), true
 		)
+		# 路线分隔线
+		if lane > 0:
+			var sep_y := lane_y - spacing * 0.5
+			draw_line(Vector2(board_left, sep_y), Vector2(board_right, sep_y),
+				Color(lane_color.r, lane_color.g, lane_color.b, 0.22), 1.0)
 
 		# 入口标记（column 5 右侧之外）
 		var entry_x := _origin.x + tile * float(grid.columns - 1) + tile * 0.62
@@ -1290,6 +1348,16 @@ func _draw_board() -> void:
 			var rect := Rect2(center - cell * 0.5, cell)
 			draw_rect(rect, CELL_COLOR, true)
 			draw_rect(rect, CELL_BORDER, false, 2.0)
+			# 格内四角刻线：读作"可部署格"，同时不遮挡格上单位
+			var ck := cell.x * 0.26
+			var cc := CELL_BORDER
+			cc.a = 0.55
+			for corner: int in range(4):
+				var sx := -1.0 if (corner & 1) == 0 else 1.0
+				var sy := -1.0 if (corner & 2) == 0 else 1.0
+				var p := center + Vector2(sx * cell.x * 0.5, sy * cell.y * 0.5)
+				draw_line(p, p + Vector2(-sx * ck, 0.0), cc, 2.0)
+				draw_line(p, p + Vector2(0.0, -sy * ck), cc, 2.0)
 
 		# 路线名（贴屏幕左侧，不随战场偏移）
 		draw_string(font, Vector2(_px(16.0), lane_y + _px(8.0)),
@@ -1378,49 +1446,78 @@ func _draw_characters() -> void:
 		var edge := Color(1, 1, 1, 0.9) if selected else Color(1, 1, 1, 0.6)
 		var edge_w := 2.5 if selected else 1.5
 
-		match c.behavior:
-			CharacterRuntime.Behavior.RANGED:
-				# 三角形，尖端朝入口方向（右），表示远程输出方向
-				var tri := PackedVector2Array([
-					Vector2(px_x + half, px_y),
-					Vector2(px_x - half * 0.75, px_y - half),
-					Vector2(px_x - half * 0.75, px_y + half),
-				])
-				draw_colored_polygon(tri, color)
-				draw_polyline(tri + PackedVector2Array([tri[0]]), edge, edge_w)
-			CharacterRuntime.Behavior.HEALER:
-				# 十字（医疗语义）
-				var arm := half * 0.42
-				var cross := PackedVector2Array([
-					Vector2(px_x - arm, px_y - half), Vector2(px_x + arm, px_y - half),
-					Vector2(px_x + arm, px_y - arm), Vector2(px_x + half, px_y - arm),
-					Vector2(px_x + half, px_y + arm), Vector2(px_x + arm, px_y + arm),
-					Vector2(px_x + arm, px_y + half), Vector2(px_x - arm, px_y + half),
-					Vector2(px_x - arm, px_y + arm), Vector2(px_x - half, px_y + arm),
-					Vector2(px_x - half, px_y - arm), Vector2(px_x - arm, px_y - arm),
-				])
-				draw_colored_polygon(cross, color)
-				draw_polyline(cross + PackedVector2Array([cross[0]]), edge, edge_w)
-			_:
-				# 前线：菱形（P0.2 起沿用的占位形状）
-				var pts := PackedVector2Array([
-					Vector2(px_x, px_y - half),
-					Vector2(px_x + half, px_y),
-					Vector2(px_x, px_y + half),
-					Vector2(px_x - half, px_y),
-				])
-				draw_colored_polygon(pts, color)
-				draw_polyline(pts + PackedVector2Array([pts[0]]), edge, edge_w)
+		# ---- 正式美术（本轮美术施工）：优先绘制像素 Sprite ----
+		# 资源缺失时**自动回退**到下方的几何占位图形，因此美术资产
+		# 永远不是游戏可运行的硬依赖（本轮指令 第九章 9.4）。
+		var sprite := _character_sprite(c)
+		if sprite != null:
+			var mod := Color(1, 1, 1, 1)
+			if c.is_incapacitated():
+				mod = Color(0.42, 0.42, 0.50, 0.70)
+			elif char_hit_k > 0.0:
+				# modulate > 1 即为提亮；受击瞬间向白闪靠拢（D-38）
+				mod = mod.lerp(Color(2.6, 2.6, 2.6, 1.0), 0.75 * char_hit_k)
+			if selected:
+				mod = mod.lerp(Color(1.35, 1.30, 0.86, 1.0), 0.45)
+			# 待机动画：低帧率呼吸起伏（帧由 anim.py 从同一底图确定性派生，绝无漂移）
+			var anim_name := "idle"
+			if c.is_incapacitated():
+				anim_name = "death"
+			var frame_tex: Texture2D = ArtRegistry.character_frame(
+				c.character_id, anim_name, _now())
+			if frame_tex != null:
+				sprite = frame_tex
+			_draw_sprite_anchored(sprite, Vector2(px_x, px_y), tile * 0.80, mod, 0.44)
+			if selected:
+				_draw_selection_ring(Vector2(px_x, px_y), tile * 0.40)
+		else:
+			match c.behavior:
+				CharacterRuntime.Behavior.RANGED:
+					# 三角形，尖端朝入口方向（右），表示远程输出方向
+					var tri := PackedVector2Array([
+						Vector2(px_x + half, px_y),
+						Vector2(px_x - half * 0.75, px_y - half),
+						Vector2(px_x - half * 0.75, px_y + half),
+					])
+					draw_colored_polygon(tri, color)
+					draw_polyline(tri + PackedVector2Array([tri[0]]), edge, edge_w)
+				CharacterRuntime.Behavior.HEALER:
+					# 十字（医疗语义）
+					var arm := half * 0.42
+					var cross := PackedVector2Array([
+						Vector2(px_x - arm, px_y - half), Vector2(px_x + arm, px_y - half),
+						Vector2(px_x + arm, px_y - arm), Vector2(px_x + half, px_y - arm),
+						Vector2(px_x + half, px_y + arm), Vector2(px_x + arm, px_y + arm),
+						Vector2(px_x + arm, px_y + half), Vector2(px_x - arm, px_y + half),
+						Vector2(px_x - arm, px_y + arm), Vector2(px_x - half, px_y + arm),
+						Vector2(px_x - half, px_y - arm), Vector2(px_x - arm, px_y - arm),
+					])
+					draw_colored_polygon(cross, color)
+					draw_polyline(cross + PackedVector2Array([cross[0]]), edge, edge_w)
+				_:
+					# 前线：菱形（P0.2 起沿用的占位形状）
+					var pts := PackedVector2Array([
+						Vector2(px_x, px_y - half),
+						Vector2(px_x + half, px_y),
+						Vector2(px_x, px_y + half),
+						Vector2(px_x - half, px_y),
+					])
+					draw_colored_polygon(pts, color)
+					draw_polyline(pts + PackedVector2Array([pts[0]]), edge, edge_w)
 
-		# HP 条（角色头顶）
+		# HP 条（角色头顶）——位置随 Sprite 实际高度上移，避免压在头上
 		var bar_w := tile * 0.5
 		var bar_h := _px(6.0)
-		var bar_pos := Vector2(px_x - bar_w * 0.5, px_y - half - _px(12.0))
+		var head_y := px_y - half - _px(12.0)
+		if sprite != null:
+			head_y = px_y + tile * 0.80 * 0.44 - tile * 0.80 - _px(8.0)
+		var bar_pos := Vector2(px_x - bar_w * 0.5, head_y)
 		draw_rect(Rect2(bar_pos, Vector2(bar_w, bar_h)), Color(0.12, 0.12, 0.16), true)
 		var ratio := c.hp_ratio()
 		var bar_color := Color(0.4, 0.95, 0.55) if ratio > 0.4 else Color(0.95, 0.55, 0.3)
 		draw_rect(Rect2(Vector2(bar_pos.x, bar_pos.y + bar_h * (1.0 - ratio)),
 			Vector2(bar_w, bar_h * ratio)), bar_color, true)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w, bar_h)), Color(1, 1, 1, 0.22), false, 1.0)
 
 		# 职责标签（永远显示，确保玩家看懂谁在做什么）
 		draw_string(ThemeDB.fallback_font,
@@ -1468,6 +1565,43 @@ func _role_color(c: CharacterRuntime) -> Color:
 ## 运行时行为 -> 配置里的字符串（用于显示标签）
 func _behavior_text_of(c: CharacterRuntime) -> String:
 	return c.behavior_text if not c.behavior_text.is_empty() else CharacterRuntime.behavior_name(c.behavior)
+
+
+# ============================================================
+#  正式美术绘制辅助（本轮美术施工）
+#  纪律：全部为**纯表现层**；只决定"画在哪里、多大、什么颜色"，
+#  绝不参与任何战斗判定，也不修改领域层状态。
+# ============================================================
+
+## 取角色的基准 Sprite（缺资源返回 null，调用方回退几何图形）。
+func _character_sprite(c: CharacterRuntime) -> Texture2D:
+	return ArtRegistry.character_base(c.character_id)
+
+
+## 以「脚底中心」为锚点绘制贴图。
+## 锚点纪律（本轮指令 第七章 5）：角色脚底必须落在格中心下方固定比例处，
+## 使不同身高/体型的角色在战场上站在同一条基线上，不出现"漂浮"。
+func _draw_sprite_anchored(tex: Texture2D, center: Vector2, target_h: float,
+		mod: Color, baseline_ratio: float) -> void:
+	if tex == null:
+		return
+	var tw := float(tex.get_width())
+	var th := float(tex.get_height())
+	if tw <= 0.0 or th <= 0.0:
+		return
+	var s := target_h / th
+	var w := tw * s
+	var h := th * s
+	var feet_y := center.y + target_h * baseline_ratio
+	var dst := Rect2(center.x - w * 0.5, feet_y - h, w, h)
+	draw_texture_rect(tex, dst, false, mod)
+
+
+## 选中环：双色同心圆，读作"已选中"而不遮挡 Sprite。
+func _draw_selection_ring(center: Vector2, radius: float) -> void:
+	draw_circle(center, radius, Color(1.0, 0.92, 0.45, 0.16), true)
+	draw_circle(center, radius, Color(1.0, 0.92, 0.45, 0.90), false, 2.0)
+	draw_circle(center, radius * 0.72, Color(1.0, 1.0, 1.0, 0.35), false, 1.0)
 
 ## 敌人（占位方块，按类型着色）。
 ## P0.3 表现层修复：同一接触线上的多个敌人不再完全重叠——
@@ -1523,13 +1657,29 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 	draw_circle(Vector2(px_x, px_y + half * 0.92), s * 0.30,
 		Color(0.0, 0.0, 0.0, 0.32))
 
-	match e.enemy_id:
-		"echo_runner":
-			_draw_enemy_runner(px_x, px_y, s, fill, e)
-		"echo_armored":
-			_draw_enemy_armored(px_x, px_y, s, fill)
-		_:
-			_draw_enemy_normal(px_x, px_y, s, fill)
+	# ---- 正式美术（本轮美术施工）：优先绘制像素 Sprite ----
+	# 资源缺失时自动回退到下方几何占位图形。
+	var esprite := ArtRegistry.enemy_base(e.enemy_id)
+	if esprite != null:
+		var emod := Color(1, 1, 1, 1)
+		if hit_k > 0.0:
+			emod = emod.lerp(Color(2.8, 2.8, 2.8, 1.0), 0.75 * hit_k)
+		if not e.is_active():
+			emod = Color(0.5, 0.45, 0.62, 0.55)
+		var eanim := "move" if e.is_active() else "death"
+		var ef: Texture2D = ArtRegistry.enemy_frame(e.enemy_id, eanim, _now())
+		if ef != null:
+			esprite = ef
+		# 敌人目标高度随 spriteFramePx 放大（96 的重装单位视觉更大）
+		_draw_sprite_anchored(esprite, Vector2(px_x, px_y), tile * 0.72 * scale, emod, 0.42)
+	else:
+		match e.enemy_id:
+			"echo_runner":
+				_draw_enemy_runner(px_x, px_y, s, fill, e)
+			"echo_armored":
+				_draw_enemy_armored(px_x, px_y, s, fill)
+			_:
+				_draw_enemy_normal(px_x, px_y, s, fill)
 
 	# 类别标签（常驻，保证不看颜色也能分辨敌种）
 	var label := _enemy_kind_label(e.enemy_id)

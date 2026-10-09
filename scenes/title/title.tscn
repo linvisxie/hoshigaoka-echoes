@@ -1,0 +1,64 @@
+[gd_scene load_steps=3 format=3 uid="uid://bt1tlescr33nh0s"]
+
+[ext_resource type="Script" path="res://scenes/title/title.gd" id="1_title"]
+[ext_resource type="Script" path="res://scenes/title/title_menu_row.gd" id="2_row"]
+
+[node name="Title" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_title")
+
+[node name="MenuList" type="Control" parent="."]
+layout_mode = 0
+offset_right = 660.0
+offset_bottom = 388.0
+mouse_filter = 2
+
+[node name="Row_continue" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_right = 660.0
+offset_bottom = 88.0
+script = ExtResource("2_row")
+item_id = "continue"
+label_zh = "继续游戏"
+label_en = "CONTINUE"
+icon_name = "icon_play"
+
+[node name="Row_new_game" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_top = 100.0
+offset_right = 660.0
+offset_bottom = 188.0
+script = ExtResource("2_row")
+item_id = "new_game"
+label_zh = "新游戏"
+label_en = "NEW GAME"
+icon_name = "icon_home"
+
+[node name="Row_settings" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_top = 200.0
+offset_right = 660.0
+offset_bottom = 288.0
+script = ExtResource("2_row")
+item_id = "settings"
+label_zh = "设置"
+label_en = "SETTINGS"
+icon_name = "icon_settings"
+disabled = true
+disabled_note = "未实现"
+
+[node name="Row_quit" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_top = 300.0
+offset_right = 660.0
+offset_bottom = 388.0
+script = ExtResource("2_row")
+item_id = "quit"
+label_zh = "退出游戏"
+label_en = "EXIT"
+icon_name = "icon_cancel"

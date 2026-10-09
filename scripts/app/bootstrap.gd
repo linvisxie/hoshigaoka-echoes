@@ -9,16 +9,28 @@
 ##   **不带任何参数**双击 EXE 即进入可玩战斗演示，并加载 Prototype 演示关 p1_0_demo。
 ##   演示关 id / 取关方式 / 开发参数准入全部由 PrototypeEntry 决策，本文件只做执行。
 ##
+## Alpha A0.7 修订（标题画面落地后）：
+##   **不带任何参数**改为进入 **标题画面**（scenes/title/title.tscn）——这是正式首启体验；
+##   战斗演示仍可随时进入：标题画面的「继续游戏 / 新游戏」直接进战斗，
+##   开发/自动化入口 `--scene=battle` **行为完全不变**（仍加载默认演示关）。
+##   注意：本文件**没有**改动 PrototypeEntry.parse_scene_arg() 的语义
+##   （无参数时它依然返回 battle），只在 bootstrap 这一层区分
+##   「用户显式传了 --scene」与「完全没传参数」——前者一律按参数走，
+##   后者才改用标题画面。Retail 构建的取关语义因此保持不变。
+##
 ## 命令行参数（Godot 用户参数，需写在 -- 之后）：
-##   （无）                  进入战斗场景，加载 Prototype 演示关 p1_0_demo
-##   --scene=battle         同上
+##   （无）                  进入标题画面
+##   --scene=title          同上
+##   --scene=battle         进入战斗场景，加载默认关卡（Prototype 演示关 p1_0_demo）
+##   --scene=character      进入角色培养界面
 ##   --scene=bootstrap      停留在启动场景（空白 Node2D，仅诊断用）
 ##   --stage=<stageId>      指定关卡（**开发专用**，Retail 构建下拒绝）
 ## 示例：
-##   HoshigaokaEchoes.exe                                  # 直接进演示关
+##   HoshigaokaEchoes.exe                                  # 标题画面
+##   HoshigaokaEchoes.exe -- --scene=battle                # 开发：直接进演示关
 ##   HoshigaokaEchoes.exe -- --scene=battle --stage=1-1    # 开发：跑正式 1-1
 ##
-## 标题画面 / 校园 Hub / 前台状态流属 Alpha A0.7，不在此实现。
+## 标题画面 / 校园 Hub / 前台状态流属 Alpha A0.7（标题画面本轮已落地，Hub 仍未实现）。
 ##
 ## P0.3 修复：场景切换不再于 _ready 内同步执行。
 ## 在 _ready 里直接调用 change_scene_to_file() 会把当前场景从其父节点上摘除，
@@ -30,12 +42,17 @@ extends Node2D
 const TAG := "Bootstrap"
 
 ## 支持的启动目标（与 SceneRouter.SCENES 的 key 对齐）
-## battle 为 P0.1 起新增；character 为 Alpha A0.1 起新增（角色培养界面）。
+## battle 为 P0.1 起新增；character 为 Alpha A0.1 起新增（角色培养界面）；
+## title 为 Alpha A0.7 起新增（标题画面）。
 const BOOT_TARGETS := {
 	"bootstrap": "res://scenes/bootstrap/bootstrap.tscn",
+	"title": "res://scenes/title/title.tscn",
 	"battle": "res://scenes/battle/battle_scene.tscn",
 	"character": "res://scenes/menus/character_screen.tscn",
 }
+
+## 启动场景 key 前缀
+const ARG_SCENE_PREFIX := "--scene="
 
 ## 待切换的场景路径（空 = 不切换）
 var _pending_scene_path: String = ""
@@ -65,6 +82,11 @@ func _ready() -> void:
 	var stage_id: String = plan.get("stageId", "")
 	for note: String in plan.get("notes", []):
 		GameLog.info(TAG, note)
+	# Alpha A0.7：完全没传 --scene 时进入标题画面（正式首启体验）。
+	# 一旦用户显式传了 --scene=<x>，就一律按参数走（--scene=battle 行为不变）。
+	if not _has_scene_arg():
+		target = "title"
+		GameLog.info(TAG, "未指定 --scene：进入标题画面（正式首启体验）")
 	GameLog.info(TAG, "启动目标: %s（关卡 %s）" % [target, stage_id])
 
 	# 无头运行时直接退出，便于 CI / 自动化验证
@@ -92,6 +114,19 @@ func _ready() -> void:
 	_pending_scene_path = path
 	GameLog.info(TAG, "已安排切换到 %s（延迟到本帧末）" % path)
 	call_deferred("_apply_pending_scene")
+
+
+## 用户是否显式传了 --scene=<x>（含 "--scene <x>" 形式）。
+## 只做「有没有传」的判断，不解释取值——取值仍由 PrototypeEntry.parse_scene_arg() 负责，
+## 避免在 bootstrap 里复制一份场景解析策略。
+func _has_scene_arg() -> bool:
+	var args := OS.get_cmdline_user_args()
+	for i: int in range(args.size()):
+		if args[i].begins_with(ARG_SCENE_PREFIX):
+			return true
+		if args[i] == "--scene" and i + 1 < args.size():
+			return true
+	return false
 
 
 ## 在帧末真正执行场景切换（call_deferred 目标）。
