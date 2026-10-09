@@ -2042,6 +2042,15 @@ func report_unreachable_art() -> void:
 		if int(_art_drawn.get("vfx:%s" % v, 0)) == 0:
 			GameLog.warn(TAG, "特效从未触发：%s" % v)
 	GameLog.info(TAG, "美术可达性：本局实际绘制 %d 类资源" % r["drawnCount"])
+	# 把**确实触发过**的动画与特效逐条列出 —— 这是"效果真的显示过"的正面证据，
+	# 与上面的"从未触发"警告互为对照（本轮指令 第四条：不能仅以文件存在证明成功）。
+	var triggered: Array[String] = []
+	for k: String in _art_drawn.keys():
+		if k.begins_with("char_anim:") or k.begins_with("enemy_anim:") or k.begins_with("vfx:"):
+			triggered.append("%s×%d" % [k, int(_art_drawn[k])])
+	triggered.sort()
+	if not triggered.is_empty():
+		GameLog.info(TAG, "已触发清单：%s" % ", ".join(triggered))
 
 
 ## 以「脚底中心」为锚点绘制贴图。

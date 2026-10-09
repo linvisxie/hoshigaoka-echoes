@@ -656,19 +656,6 @@ func _draw_text(font: Font, pos: Vector2, text: String, size: float, color: Colo
 	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, color)
 
 
-## 数字专用：等宽字体 + 右对齐到固定宽度槽 + 描边。
-## 返回实际绘制宽度（供调用方接着排版）。
-func _draw_number(pos_right: Vector2, value: int, size: float, color: Color,
-		outline: bool = true) -> float:
-	var f := _mono_font()
-	var s := str(value)
-	var w := _text_w(f, s, size)
-	_draw_text(f, Vector2(pos_right.x - w, pos_right.y), s, size, color, outline)
-	return w
-
-
-
-
 ## 依据视口与缩放计算全部矩形（绘制与命中共用）
 func _layout() -> void:
 	_card_rects.clear()

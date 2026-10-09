@@ -31,8 +31,9 @@ const HL_BAR_SELECTED := Color(0.16, 0.42, 0.88, 0.88)
 const HL_BAR_SELECTED_END := Color(0.30, 0.62, 0.98, 0.06)
 ## 悬停态：**刻意比选中态淡得多**（并且不画左侧冰蓝竖条、不画 ▶），
 ## 这样「鼠标滑过」与「当前选中」一眼可分——上一轮两者看起来一样。
-const HL_BAR_HOVER := Color(0.20, 0.45, 0.85, 0.26)
-const HL_BAR_HOVER_END := Color(0.24, 0.50, 0.90, 0.02)
+## 取偏亮的蓝（而不是压暗），让悬停读作「微微发亮」而不是「蒙了一层灰」。
+const HL_BAR_HOVER := Color(0.36, 0.66, 1.00, 0.34)
+const HL_BAR_HOVER_END := Color(0.40, 0.70, 1.00, 0.03)
 const HL_EDGE := Color(0.58, 0.90, 1.0)
 const ARROW_COLOR := Color(0.68, 0.93, 1.0)
 ## 禁用项标注（「未实现」）的琥珀色
