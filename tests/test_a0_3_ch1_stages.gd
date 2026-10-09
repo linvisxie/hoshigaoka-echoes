@@ -52,14 +52,22 @@ const UNIMPLEMENTED_ENEMIES: Array[String] = [
 	"echo_anxiety", "echo_rank",
 ]
 
-## A0.2 已实现但**尚未回填到 1-2～1-5** 的敌人 id：
-## 数据已存在、机制已实现，但关卡引用由主线在回填阶段负责，故现阶段仍不得被引用。
-const IMPLEMENTED_NOT_YET_PLACED: Array[String] = [
-	"echo_exam_sheet", "echo_silent", "echo_copy", "echo_invigilator",
-]
+## A0.2 已实现但**尚未回填到 1-2～1-5** 的敌人 id。
+##
+## **A0.3 回填后（2026-10-09）本名单已清空**：主线已把 echo_exam_sheet 正式回填进 1-3
+## （承担 F-十九「学习远程输出」的教学职责）、把 echo_invigilator 正式回填进 1-5
+## （承担 F-十九「第一场精英战」）。因此它们不再属于「不得被引用」的集合。
+##
+## 仍留在 UNIMPLEMENTED_ENEMIES 里的 echo_anxiety / echo_rank 属 1-6 / 1-7，
+## 尚未实现，继续禁止引用。
+const IMPLEMENTED_NOT_YET_PLACED: Array[String] = []
 
 ## 五关权威规格（V2.1.4 G 章 + 各关 JSON 的 _spec 注释）。
 ## 逐字段断言：任何一项漂移（含 mapId / 可用角色 / 敌人构成）都会在此失败。
+##
+## **A0.3 回填（2026-10-09）**：1-3 与 1-5 的敌人构成已按 A0.2 正式设计改写——
+## 1-3 重新引入试卷飞灵（4 只）、1-5 恢复监考者精英（2 只，装甲替身方案移除）。
+## 数值依据见 tools/design_a0_2_stages.gd 的实测输出与各关 JSON 的 _specDeviationResolved。
 const STAGE_SPEC := {
 	"1-1": {
 		"timeline": 6, "waves": 3, "coreHp": 5,
@@ -74,10 +82,10 @@ const STAGE_SPEC := {
 		"composition": {"echo_normal": 7, "echo_runner": 3},
 	},
 	"1-3": {
-		"timeline": 13, "waves": 4, "coreHp": 3,
+		"timeline": 14, "waves": 4, "coreHp": 3,
 		"mapId": "ch1_classroom_sunset",
 		"chars": [CHAR_MIO, CHAR_YUMA],
-		"composition": {"echo_normal": 8, "echo_runner": 5},
+		"composition": {"echo_normal": 7, "echo_exam_sheet": 4, "echo_runner": 3},
 	},
 	"1-4": {
 		"timeline": 11, "waves": 4, "coreHp": 3,
@@ -86,10 +94,13 @@ const STAGE_SPEC := {
 		"composition": {"echo_normal": 6, "echo_runner": 3, "echo_armored": 2},
 	},
 	"1-5": {
-		"timeline": 13, "waves": 5, "coreHp": 3,
+		"timeline": 8, "waves": 5, "coreHp": 3,
 		"mapId": "ch1_corridor_echo",
 		"chars": [CHAR_MIO, CHAR_YUMA],
-		"composition": {"echo_normal": 6, "echo_runner": 4, "echo_armored": 3},
+		"composition": {
+			"echo_normal": 3, "echo_runner": 2,
+			"echo_invigilator": 2, "echo_armored": 1,
+		},
 	},
 }
 
@@ -1041,5 +1052,9 @@ func test_13_1_5_result_is_independent_of_tick_granularity() -> void:
 	# 保证比较的是真实战果，而不是三方都在空转
 	assert_eq(int((results[0] as Dictionary)["outcome"]), BattleTypes.Outcome.VICTORY,
 		"60fps 粒度下 1-5 应为胜利")
-	assert_eq(int((results[0] as Dictionary)["kills"]), 12,
-		"60fps 粒度下 1-5 应击杀 12 名敌人（13 只中漏 1 只上段普通）")
+	# A0.3 回填后 1-5 共 8 只：击杀 7 + 漏 1（上段普通残响体，刻意的取舍题）。
+	# 数值与 tools/design_a0_2_stages.gd 的实测一致（核心 2/3、击杀 7、漏怪 1）。
+	assert_eq(int((results[0] as Dictionary)["kills"]), 7,
+		"60fps 粒度下 1-5 应击杀 7 名敌人（8 只中漏 1 只上段普通）")
+	assert_eq(int((results[0] as Dictionary)["leaked"]), 1,
+		"60fps 粒度下 1-5 应恰好漏 1 只（上段取舍题）")
