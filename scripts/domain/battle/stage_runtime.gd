@@ -115,6 +115,15 @@ var debuff_floor_pct: float = CharacterRuntime.DEFAULT_DEBUFF_FLOOR
 ## 故上限可配置、非 LOCKED。部署角色时注入 CharacterRuntime。
 var buff_ceiling_pct: float = CharacterRuntime.DEFAULT_BUFF_CEILING
 
+## 场上同时部署上限（V2.1.4 L614/L631/L937/L1811/L2113 LOCKED：单场最多同时部署 5 名）。
+## 权威值来自 balance.json 的 combat.fieldDeployLimit（规格 L614「底层参数可配置，
+## v1.1+ 角色池扩大后可提高到 8」）；配置缺失时用规格 LOCKED 默认 5。
+## 仅在启用 AP/编队系统（balance_combat 非空）时施加限制——P0.1 类专项测试
+## 传空 combat 字典，不受此规则约束。
+## 注意：水濑纱良「临时实验装置」按 L860 不计入本上限——装置系统属 A0.6+，未实现。
+const FIELD_DEPLOY_LIMIT_DEFAULT := 5
+var field_deploy_limit: int = 0
+
 ## 计划中的出怪条目（来自 StageConfig，禁止写死在代码）
 var _spawn_plan: Array[Dictionary] = []
 var _spawn_cursor: int = 0
@@ -305,6 +314,22 @@ static func from_config(
 				% ceiling)
 		else:
 			rt.buff_ceiling_pct = ceiling
+
+	# ---- 场上同时部署上限（V2.1.4 L614/L631/L937/L1811/L2113 LOCKED）----
+	# 仅在启用 AP/编队系统（balance_combat 非空）时生效；配置缺失时用规格默认 5。
+	# 此前该值只存在于 balance.json 而**无任何代码读取**，等于 LOCKED 规则未实现；
+	# 首章最多 3 名可部署角色，故启用后对现有关卡行为零影响，但它是 A0.6 六人编队的前置。
+	if not balance_combat.is_empty():
+		var raw_limit: Variant = balance_combat.get("fieldDeployLimit", FIELD_DEPLOY_LIMIT_DEFAULT)
+		# Godot 的 JSON 解析把所有数字给 float（5 -> 5.0），因此接受
+		# INT/FLOAT 两种类型，但必须是正整数值。
+		var limit_ok := (typeof(raw_limit) == TYPE_INT or typeof(raw_limit) == TYPE_FLOAT) \
+			and int(raw_limit) > 0 and is_equal_approx(float(raw_limit), float(int(raw_limit)))
+		if not limit_ok:
+			rt._errors.append(
+				"balance.combat.fieldDeployLimit 必须为正整数，实际 %s" % str(raw_limit))
+		else:
+			rt.field_deploy_limit = int(raw_limit)
 
 	# ---- 可部署角色列表 ----
 	if stage_config.has("availableCharacters"):
@@ -723,6 +748,7 @@ enum DeployReject {
 	INSUFFICIENT_AP = 5,
 	BATTLE_FINISHED = 6,
 	REDEPLOY_COOLDOWN = 7,
+	FIELD_LIMIT_REACHED = 8,
 }
 
 ## 部署请求结果
@@ -734,6 +760,8 @@ class DeployResult:
 	var cost: int = 0
 	## 被拒时若与再部署冷却有关，携带剩余秒数（供 UI 显示倒计时）
 	var cooldown_remaining: float = 0.0
+	## 被拒原因=场上人数上限时携带该上限（内嵌类不访问外层字段，显式传递）
+	var field_limit: int = 0
 
 	func reason_text() -> String:
 		match reason:
@@ -753,6 +781,8 @@ class DeployResult:
 				return "战斗已结束"
 			DeployReject.REDEPLOY_COOLDOWN:
 				return "再部署冷却中（剩余 %.1f 秒）" % cooldown_remaining
+			DeployReject.FIELD_LIMIT_REACHED:
+				return "场上已达同时部署上限（%d 名）" % field_limit
 			_:
 				return "未知原因(%d)" % reason
 
@@ -793,6 +823,15 @@ func query_deploy(character_id: String, column: int, lane: int) -> DeployResult:
 
 	if get_character_at(column, lane) != null:
 		r.reason = DeployReject.CELL_OCCUPIED
+		return r
+
+	# 场上同时部署上限（V2.1.4 LOCKED，L614/L1811/L2113）。置于 AP 判定之前：
+	# 满员时 AP 再够也放不了，先报"上限"比"AP 不足"更准确（AP 会自然回复，
+	# 空位不会自己出现）。启用条件：field_deploy_limit > 0（见字段注释）。
+	if field_deploy_limit > 0 and characters.size() >= field_deploy_limit:
+		r.reason = DeployReject.FIELD_LIMIT_REACHED
+		r.field_limit = field_deploy_limit
+		r.cost = int(_character_configs[character_id].get("deployCost", 0))
 		return r
 
 	var cfg: Dictionary = _character_configs[character_id]
