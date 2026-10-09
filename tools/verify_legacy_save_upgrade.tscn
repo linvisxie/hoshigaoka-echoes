@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://clegacysaveupg01"]
+
+[ext_resource type="Script" path="res://tools/verify_legacy_save_upgrade.gd" id="1_legacy"]
+
+[node name="VerifyLegacySaveUpgrade" type="Node"]
+script = ExtResource("1_legacy")
