@@ -122,6 +122,10 @@ const VFX_IMPACT_LIFETIME := 0.30
 const VFX_DEATH_LIFETIME := 0.70
 ## 部署特效寿命（秒）
 const VFX_DEPLOY_LIFETIME := 0.60
+## 出手特效（斩击/箭矢）寿命（秒）
+const VFX_ATTACK_LIFETIME := 0.32
+## 治疗特效寿命（秒）
+const VFX_HEAL_LIFETIME := 0.55
 ## 同屏特效实例上限（避免刷屏拖慢绘制）
 const VFX_LIMIT := 24
 ## 特效绘制边长（参考画布像素）
@@ -668,6 +672,9 @@ func _consume_damage_events() -> void:
 		# 纪律：只在**领域层已结算的伤害事件**上播放，不预测、不伪造；
 		# 素材缺失时 vfx_frame 返回 null，绘制端自动跳过（美术非硬依赖）。
 		_spawn_vfx("vfx_impact", kind, tid, now, VFX_IMPACT_LIFETIME)
+		# 攻击者出手特效：按攻击者职业选择斩击（近战）/ 箭矢（远程）。
+		# 只在该伤害事件确实来自某个玩家角色时播放（敌人打玩家不播斩击）。
+		_spawn_attacker_vfx(ev, now)
 		# 伤害数字：同目标已有未消散的一条时累加，而不是新开一条
 		var merged := false
 		for i: int in range(_damage_pops.size() - 1, -1, -1):
@@ -710,6 +717,14 @@ func _consume_kills() -> void:
 			"at": s.elapsed_seconds,
 			"enemyId": str(r.get("enemyId", "")),
 		})
+		# ---- 正式特效：敌人消散，绑定领域层 KILLED 记录 ----
+		# 与 _draw_death_particles 的几何粒子**同时**播放，两者叠加为更饱满的消散表现。
+		var lane_i := int(r.get("lane", 0))
+		var lx := float(r.get("x", BattleGrid.CORE_X))
+		var spacing_px := _px(grid.lane_spacing_px)
+		var anchor := Vector2(_origin.x + _px(grid.logical_to_px_x(lx, 0.0)),
+			_origin.y + float(lane_i) * spacing_px)
+		_spawn_vfx_at("vfx_death", anchor, s.elapsed_seconds, VFX_DEATH_LIFETIME)
 	while _death_particles.size() > DEATH_PARTICLE_LIMIT:
 		_death_particles.remove_at(0)
 
@@ -737,7 +752,49 @@ func _spawn_vfx(name: String, kind: String, target_id: int, now: float, life: fl
 	})
 
 
-## 在指定**屏幕坐标**生成一次特效（用于部署等无 targetId 的事件）。
+## 攻击者出手特效（斩击 / 箭矢）。
+##
+## 数据来源限制：`damage_events` **不携带攻击者信息**（领域层只记录"谁被打"）。
+## 因此这里采用**保守推断**：仅当"敌人被打"时，才认为出手的是某个玩家角色，
+## 取距离该敌人最近的、未失能的角色作为视觉上的出手者，按其 behavior 选特效：
+##   FRONTLINE → vfx_slash（近战斩击）
+##   RANGED    → vfx_arrow（远程箭矢）
+##   HEALER    → 不出手（治疗走 heal 通道，不产生伤害事件）
+##
+## 纪律：这是**纯视觉归属**，不参与任何判定；即便推断错角色，也只是特效位置略偏，
+## 不影响伤害、命中或战斗结果。找不到角色时静默跳过。
+func _spawn_attacker_vfx(ev: Dictionary, now: float) -> void:
+	if str(ev.get("targetKind", "")) != "enemy":
+		return  # 角色被打 → 是敌人在出手，不播玩家攻击特效
+	var tid := int(ev.get("targetId", 0))
+	var target := session.stage.get_enemy(tid)
+	if target == null:
+		return
+	# 找最近的、同路优先的未失能角色
+	var best: CharacterRuntime = null
+	var best_d := INF
+	for c: CharacterRuntime in session.stage.characters:
+		if c.is_incapacitated():
+			continue
+		if not c.is_attacker():
+			continue
+		var dl := absf(float(c.lane) - float(target.lane))
+		var dx := absf(float(c.column) - target.logical_x)
+		# 同路权重更高（跨线攻击是特例，同路是常态）
+		var d := dx + dl * 10.0
+		if d < best_d:
+			best_d = d
+			best = c
+	if best == null:
+		return
+	var vname := "vfx_slash"
+	if best.behavior == CharacterRuntime.Behavior.RANGED:
+		vname = "vfx_arrow"
+	# 出手特效锚在**攻击者**位置（这样斩击在角色身前、箭矢从角色飞出）
+	var anchor := _damage_pop_anchor("character", best.instance_id)
+	if anchor.x < 0.0:
+		return
+	_spawn_vfx_at(vname, anchor, now, VFX_ATTACK_LIFETIME)
 func _spawn_vfx_at(name: String, screen_pos: Vector2, now: float, life: float) -> void:
 	if _vfx.size() >= VFX_LIMIT:
 		_vfx.remove_at(0)
@@ -1208,6 +1265,57 @@ func _layout_buttons() -> void:
 ## 所有点击都走 Input.parse_input_event（与玩家一致的输入管线）。
 ## 该开关仅用于自动化回归，**不作为真人操作证据**。
 func _drive_autoplay() -> void:
+	# ---- 开发回归扩展（本轮指令 第四条：确保六组 VFX 各有真实触发路径）----
+	# 原 autoplay 只部署第 1 张卡（近战），导致远程箭矢与治疗特效**永远无法触发**，
+	# 无法证明它们真的能用。这里改为**依次部署全部可用角色**：
+	#   卡 1 → 中段；卡 2 → 上段；卡 3 → 下段
+	# 三人齐上即可覆盖 斩击/箭矢/治疗/命中/消散/部署 六组特效。
+	# 纪律：仍然只走**真实的点击路径**（_click_card/_click_cell），不直接调领域层 API。
+	if _autoplay_deploy_next():
+		return
+	_drive_autoplay_phases()
+
+
+## 自动回归：依次部署全部可用角色（覆盖远程与治疗，使六组 VFX 均可触发）。
+## 返回 true 表示本帧执行了部署动作（调用方应跳过后续 phase 逻辑）。
+##
+## 目标格：卡0→(col3,lane1)、卡1→(col3,lane0)、卡2→(col3,lane2)
+## 间隔 1.2 秒一次，避免 AP 不足或同帧多点。
+var _autoplay_deploy_idx: int = 0
+var _autoplay_deploy_at: float = -1.0
+
+func _autoplay_deploy_next() -> bool:
+	if _autoplay_deploy_idx >= _roster.size():
+		return false
+	var now := elapsed_since_start()
+	if _autoplay_deploy_at < 0.0:
+		_autoplay_deploy_at = now + 1.0
+		return true
+	if now < _autoplay_deploy_at:
+		return true  # 还在等间隔
+	var idx := _autoplay_deploy_idx
+	# **等 AP 足够再部署**：否则会被领域层拒绝（实测：连点 3 张卡只有第 1 张成功）。
+	# 这不是绕过规则 —— 仍然是"等到资源够了再走真实点击路径"，与真人一致。
+	var cid: String = _roster[idx]
+	var cfg: Dictionary = session.stage._character_configs.get(cid, {})
+	var cost := int(cfg.get("deployCost", 0))
+	if not session.stage.can_afford(cost):
+		_autoplay_deploy_at = now + 0.5   # 再等一会儿
+		return true
+	if _card_rects.size() > idx:
+		_send_click_at(_card_rects[idx].position + _card_rects[idx].size * 0.5)
+		var lane: int = [1, 0, 2][idx % 3]
+		var col := 3
+		_ap_hover(col, lane)
+		_click_cell(col, lane)
+		GameLog.info(TAG, "[autoplay] 尝试部署卡%d(%s, 费用%d) -> (col%d, lane%d)"
+			% [idx + 1, cid, cost, col, lane])
+	_autoplay_deploy_idx += 1
+	_autoplay_deploy_at = now + 1.2
+	return true
+
+
+func _drive_autoplay_phases() -> void:
 	match _autoplay_phase:
 		0:
 			if _feedback_timer <= 0.0 and elapsed_since_start() > 0.5:
@@ -2952,6 +3060,12 @@ func _on_character_healed(_healer: CharacterRuntime, target: CharacterRuntime, a
 		"amount": amount,
 		"until": session.stage.elapsed_seconds + 0.9,
 	})
+	# ---- 正式特效：治疗，绑定领域层的 character_healed 信号 ----
+	# 锚在**被治疗者**身上（绿色十字在受伤者头顶升起，语义正确）。
+	var anchor := _damage_pop_anchor("character", target.instance_id)
+	if anchor.x >= 0.0:
+		_spawn_vfx_at("vfx_heal", anchor,
+			session.stage.elapsed_seconds, VFX_HEAL_LIFETIME)
 	# 只保留最近若干条，避免长期堆积
 	while _heal_flashes.size() > 24:
 		_heal_flashes.remove_at(0)
