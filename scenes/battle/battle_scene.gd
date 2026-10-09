@@ -114,6 +114,19 @@ const DEATH_PARTICLE_LIFETIME := 0.55
 const DEATH_PARTICLE_LIMIT := 24
 ## 部署落位动画时长（秒）
 const DEPLOY_POP_LIFETIME := 0.45
+
+# ---- 正式特效（VFX）参数（本轮美术施工；全部为表现层可调参数）----
+## 命中火花寿命（秒）
+const VFX_IMPACT_LIFETIME := 0.30
+## 敌人消散特效寿命（秒）
+const VFX_DEATH_LIFETIME := 0.70
+## 部署特效寿命（秒）
+const VFX_DEPLOY_LIFETIME := 0.60
+## 同屏特效实例上限（避免刷屏拖慢绘制）
+const VFX_LIMIT := 24
+## 特效绘制边长（参考画布像素）
+const VFX_SIZE_PX := 96.0
+
 ## 教学卡片停留时长（秒）与同屏上限
 const TUTORIAL_CARD_LIFETIME := 5.0
 const TUTORIAL_CARD_LIMIT := 2
@@ -283,6 +296,13 @@ var _particle_done_ids: Dictionary = {}
 var _lane_warnings: Array[Dictionary] = []
 ## 已预告过的出怪（按出怪序号去重，避免重复闪烁）
 var _warned_spawn_index: Dictionary = {}
+
+## 战斗特效实例（本轮美术施工）。
+## 每条 = 一次**真实战斗事件**触发的特效播放，字段：
+##   name(特效名) / x,y(参考画布像素锚点) / born(起始时刻) / life(寿命秒)
+## 纪律：特效只由 _consume_damage_events / _consume_kills / 部署成功 三类
+## **领域层已结算事件**生成，不预测、不伪造；素材缺失时绘制端自动跳过。
+var _vfx: Array[Dictionary] = []
 
 ## 当前鼠标悬停的格子（column, lane），-1 表示不在格子上
 var _hover_column: int = -1
@@ -615,6 +635,7 @@ func _update_feedback(delta: float) -> void:
 	for i: int in range(_heal_flashes.size() - 1, -1, -1):
 		if float(_heal_flashes[i]["until"]) <= now:
 			_heal_flashes.remove_at(i)
+	_tick_vfx(now)
 
 
 ## 消费领域层的伤害事件，生成伤害数字与受击闪白。
@@ -633,6 +654,10 @@ func _consume_damage_events() -> void:
 		var lethal := bool(ev.get("lethal", false))
 		# 受击闪白（命中反馈的视觉通道之一）
 		_hit_flashes.append({"kind": kind, "targetId": tid, "until": now + HIT_FLASH_SECONDS})
+		# ---- 正式特效（本轮美术施工）：命中火花，绑定真实伤害事件 ----
+		# 纪律：只在**领域层已结算的伤害事件**上播放，不预测、不伪造；
+		# 素材缺失时 vfx_frame 返回 null，绘制端自动跳过（美术非硬依赖）。
+		_spawn_vfx("vfx_impact", kind, tid, now, VFX_IMPACT_LIFETIME)
 		# 伤害数字：同目标已有未消散的一条时累加，而不是新开一条
 		var merged := false
 		for i: int in range(_damage_pops.size() - 1, -1, -1):
@@ -657,8 +682,7 @@ func _consume_damage_events() -> void:
 		_hit_flashes.remove_at(0)
 
 
-## 消费离场记录，为被击败的敌人生成死亡粒子。
-## 只处理 KILLED（漏怪与撤退不是「被打散」，不播死亡粒子）。
+## 消费离场记录，为被击败的敌人生成死亡粒子。## 只处理 KILLED（漏怪与撤退不是「被打散」，不播死亡粒子）。
 func _consume_kills() -> void:
 	var s := session.stage
 	for r: Dictionary in s.removals:
@@ -678,6 +702,65 @@ func _consume_kills() -> void:
 		})
 	while _death_particles.size() > DEATH_PARTICLE_LIMIT:
 		_death_particles.remove_at(0)
+
+
+# ============================================================
+#  正式特效（VFX）——纯表现层，绑定真实战斗事件
+# ============================================================
+
+## 生成一次特效播放。
+## 纪律（本轮指令 6.7）：
+##   * 只由**领域层已结算的事件**调用（伤害事件 / 击杀 / 部署成功），
+##     绝不预测、绝不伪造事件；
+##   * 锚点复用 _damage_pop_anchor（与伤害数字同源，返回**屏幕坐标**），
+##     保证特效与数字、与单位三者永远对齐；
+##   * 素材缺失时绘制端自动跳过，不影响任何战斗行为。
+func _spawn_vfx(name: String, kind: String, target_id: int, now: float, life: float) -> void:
+	var anchor := _damage_pop_anchor(kind, target_id)
+	if anchor.x < 0.0:
+		return  # 目标已不在场（离场 / 失能）——不播特效
+	if _vfx.size() >= VFX_LIMIT:
+		_vfx.remove_at(0)
+	_vfx.append({
+		"name": name, "pos": anchor,
+		"born": now, "life": maxf(0.05, life),
+	})
+
+
+## 在指定**屏幕坐标**生成一次特效（用于部署等无 targetId 的事件）。
+func _spawn_vfx_at(name: String, screen_pos: Vector2, now: float, life: float) -> void:
+	if _vfx.size() >= VFX_LIMIT:
+		_vfx.remove_at(0)
+	_vfx.append({
+		"name": name, "pos": screen_pos,
+		"born": now, "life": maxf(0.05, life),
+	})
+
+
+## 绘制全部在场特效（按进度取帧，一次性播放）。
+func _draw_vfx() -> void:
+	var now := _now()
+	var s := _px(VFX_SIZE_PX)
+	for v: Dictionary in _vfx:
+		var life := float(v["life"])
+		var k := clampf((now - float(v["born"])) / life, 0.0, 1.0)
+		if k >= 1.0:
+			continue
+		var tex := ArtRegistry.vfx_frame(str(v["name"]), k)
+		if tex == null:
+			continue
+		var center: Vector2 = v["pos"]
+		# 尾段淡出（避免突然消失）
+		var fade := 1.0 - k * k
+		var dst := Rect2(center.x - s * 0.5, center.y - s * 0.5, s, s)
+		draw_texture_rect(tex, dst, false, Color(1.0, 1.0, 1.0, fade))
+
+
+## 特效寿命推进（在 _update_feedback 内调用）。
+func _tick_vfx(now: float) -> void:
+	for i: int in range(_vfx.size() - 1, -1, -1):
+		if now - float(_vfx[i]["born"]) > float(_vfx[i]["life"]):
+			_vfx.remove_at(i)
 
 
 ## 触发关卡教学条目（来自 StageConfig.tutorialTriggers）。
@@ -997,6 +1080,10 @@ func _handle_left_click(pos: Vector2) -> void:
 		_deploy_pops.append({
 			"column": column, "lane": lane, "at": session.stage.elapsed_seconds,
 		})
+		# 正式部署特效：绑定**领域层已裁决成功**的部署（result.ok 分支内）
+		_spawn_vfx_at("vfx_deploy",
+			_cell_screen_pos(column, lane),
+			session.stage.elapsed_seconds, VFX_DEPLOY_LIFETIME)
 		_show_feedback("部署成功：%s（-%d AP）" % [result.character.display_name, result.cost],
 			Color(0.4, 1.0, 0.6))
 		GameLog.info(TAG, "玩家部署 %s 于 (col%d, lane%d)"
@@ -1319,6 +1406,7 @@ func _draw() -> void:
 	_draw_deploy_pops()
 	_draw_characters()
 	_draw_enemies()
+	_draw_vfx()
 	_draw_death_particles()
 	_draw_damage_pops()
 	_draw_hud_text()
@@ -2631,15 +2719,22 @@ func _draw_one_card(character_id: String, rect: Rect2, slot_index: int) -> void:
 	if cooling:
 		draw_rect(rect, CARD_COOL_MASK, true)
 		_draw_diagonal_hatch(rect, _px(18.0), Color(0.55, 0.60, 0.78, 0.16), 2.0)
+		# 倒计时居中于卡片，并垫一块暗底，避免与卡面其余文字互相压字
 		var cd_text := "%.1f" % cooldown
-		var cdfs := int(_px(38.0))
+		var cdfs := int(_px(40.0))
 		var cdw := font.get_string_size(cd_text, HORIZONTAL_ALIGNMENT_LEFT, -1, cdfs).x
-		var cdc := Vector2(rect.get_center().x + _px(34.0),
-			rect.get_center().y + _px(12.0))
-		draw_string(font, cdc + Vector2(2.0, 2.0), cd_text,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, cdfs, Color(0, 0, 0, 0.65))
-		draw_string(font, Vector2(cdc.x - cdw * 0.5, cdc.y), cd_text,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, cdfs, Color(0.95, 0.82, 0.42, 0.92))
+		var plate := Rect2(
+			Vector2(rect.get_center().x - cdw * 0.5 - _px(14.0),
+				rect.get_center().y - _px(28.0)),
+			Vector2(cdw + _px(28.0), _px(46.0)))
+		_draw_round_rect(plate, _px(8.0), Color(0.030, 0.035, 0.070, 0.86),
+			Color(0.72, 0.60, 0.28, 0.75), 1.5)
+		draw_string(font, Vector2(rect.get_center().x - cdw * 0.5 + _px(2.0),
+			rect.get_center().y + _px(6.0)), cd_text,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, cdfs, Color(0, 0, 0, 0.70))
+		draw_string(font, Vector2(rect.get_center().x - cdw * 0.5,
+			rect.get_center().y + _px(4.0)), cd_text,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, cdfs, Color(0.97, 0.84, 0.44))
 
 
 ## 行为字符串 -> 职责配色
@@ -3051,22 +3146,22 @@ func _draw_result_overlay() -> void:
 		ly += _px(28.0)
 
 	# ---- 复盘区块（V2.1.4 G-八）：失败时解释原因，胜利时给出压力分布 ----
-	ly += _px(12.0)
-	draw_line(Vector2(panel.position.x + _px(60.0), ly - _px(16.0)),
-		Vector2(panel.position.x + panel.size.x - _px(60.0), ly - _px(16.0)),
+	ly += _px(14.0)
+	draw_line(Vector2(panel.position.x + _px(60.0), ly - _px(24.0)),
+		Vector2(panel.position.x + panel.size.x - _px(60.0), ly - _px(24.0)),
 		RESULT_DIVIDER, 1.5)
 	var head := "复盘：为什么会输" if not victory else "复盘：本局压力分布"
 	var hfs := int(_px(19.0))
 	var hw := font.get_string_size(head, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
 	var head_col := Color(0.95, 0.72, 0.45) if not victory else Color(0.72, 0.88, 1.0)
-	# 小标题带底色标签，与正文分层
-	var head_tag := Rect2(Vector2(cx - hw * 0.5 - _px(12.0), ly - _px(18.0)),
+	# 小标题带底色标签，与正文分层（标签底边在分隔线之下，不与之相交）
+	var head_tag := Rect2(Vector2(cx - hw * 0.5 - _px(12.0), ly - _px(15.0)),
 		Vector2(hw + _px(24.0), _px(26.0)))
 	_draw_tag(head_tag, Color(theme.r, theme.g, theme.b, 0.16),
 		Color(theme.r, theme.g, theme.b, 0.55))
-	draw_string(font, Vector2(cx - hw * 0.5, ly + _px(1.0)), head,
+	draw_string(font, Vector2(cx - hw * 0.5, ly + _px(4.0)), head,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, head_col)
-	ly += _px(34.0)
+	ly += _px(36.0)
 	for line: String in _build_review_lines(summary):
 		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0))).x
 		draw_string(font, Vector2(cx - lw * 0.5, ly), line,

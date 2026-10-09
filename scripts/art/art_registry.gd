@@ -28,6 +28,11 @@ const TAG := "ArtRegistry"
 
 const ART_ROOT := "res://assets/art"
 
+## 特效根目录（与 art_src/tools/build_vfx.py 的输出一致）。
+## 注意：特效刻意放在 assets/vfx/ 而不是 assets/art/ 下 —— 它是"战斗反馈"
+## 而非"美术图集"，与 V2.1.4 L2 目录约定一致。
+const VFX_ROOT := "res://assets/vfx"
+
 ## 每条动画的帧数（与 art_src/tools/anim.py 的派生规则一致）
 const FRAME_COUNT := {
 	"idle": 4,
@@ -174,11 +179,16 @@ const VFX_FRAME_PX := {
 static func vfx_frame(name: String, progress: float) -> AtlasTexture:
 	var p := clampf(progress, 0.0, 0.9999)
 	var idx := int(p * float(VFX_FRAMES))
-	return frame_at("%s/vfx/%s.png" % [ART_ROOT, name], idx, VFX_FRAMES)
+	return frame_at(vfx_strip_path(name), idx, VFX_FRAMES)
+
+
+## 特效帧条路径（唯一来源，避免各处拼字符串拼错）。
+static func vfx_strip_path(name: String) -> String:
+	return "%s/%s.png" % [VFX_ROOT, name]
 
 
 static func has_vfx(name: String) -> bool:
-	return load_texture("%s/vfx/%s.png" % [ART_ROOT, name]) != null
+	return load_texture(vfx_strip_path(name)) != null
 
 
 static func vfx_size_px(name: String) -> int:
