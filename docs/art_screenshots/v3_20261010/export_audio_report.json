@@ -1,0 +1,12 @@
+{
+  "evidenceType": "Windows WASAPI default speaker loopback; automated, not human listening",
+  "speaker": "扬声器 (Realtek(R) Audio)",
+  "physicalMicrophoneUsed": false,
+  "sampleRate": 48000,
+  "baselineRms": 1.0493307004688393e-06,
+  "gameRms": 0.13829555407921726,
+  "peak": 0.990081787109375,
+  "clippedSamples": 0,
+  "nonSilent": true,
+  "sourceAttributionLimit": "System mix may contain other applications"
+}

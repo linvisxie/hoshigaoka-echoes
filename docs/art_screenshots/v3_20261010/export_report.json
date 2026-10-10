@@ -1,0 +1,188 @@
+{
+  "tool": "tools/a0_6_export.py",
+  "preset": "Windows Desktop",
+  "outDir": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview",
+  "root": "D:\\星丘残响\\hoshigaoka_echoes",
+  "started": "2026-10-10T10:32:09.268262",
+  "templates": {
+    "version": "4.7.2.stable",
+    "source": "C:\\Users\\linvisxie\\AppData\\Roaming\\Godot\\export_templates\\4.7.2.stable",
+    "target": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\_appdata\\Godot\\export_templates\\4.7.2.stable",
+    "files": {
+      "version.txt": "copied(13B)",
+      "windows_release_x86_64.exe": "copied(109268480B)",
+      "windows_release_x86_64_console.exe": "copied(188928B)",
+      "windows_debug_x86_64.exe": "copied(103176704B)",
+      "windows_debug_x86_64_console.exe": "copied(188928B)"
+    }
+  },
+  "import": {
+    "args": [
+      "--headless",
+      "--path",
+      "D:\\星丘残响\\hoshigaoka_echoes",
+      "--import"
+    ],
+    "exitCode": 0,
+    "scriptErrors": []
+  },
+  "export": {
+    "cmd": [
+      "D:\\星丘基础\\godot\\Godot_v4.7.2-stable_win64_console.exe",
+      "--headless",
+      "--path",
+      "D:\\星丘残响\\hoshigaoka_echoes",
+      "--export-release",
+      "Windows Desktop",
+      "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\HoshigaokaEchoes.exe"
+    ],
+    "exitCode": 0,
+    "preset": "Windows Desktop",
+    "outDir": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview",
+    "started": "2026-10-10T10:32:18.869730",
+    "logTail": "trap/bootstrap.tscn.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scenes/battle/battle_scene.tscn.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scenes/battle/battle_scene.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/utils/test_data_guard.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/utils/game_log.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/services/audio_service.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/save/save_service.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/economy/stage_reward_service.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/economy/equipment_service.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/characters/character_progress.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/characters/character_growth_service.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/battle/upgrade_candidate_roller.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/battle/status_effect.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/battle/stage_runtime.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/battle/in_battle_upgrades.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/battle/enemy_runtime.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://scripts/domain/battle/combat_math.gd.remap\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://.godot/global_script_class_cache.cfg\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://icon.svg\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://.godot/uid_cache.bin\u001b[39m\u001b[0m\n[  98% ] \u001b[90m\u001b[1msavepack\u001b[22m | 正在保存文件：res://project.binary\u001b[39m\u001b[0m\n\u001b[92m[ DONE ]\u001b[39m \u001b[1msavepack\u001b[22m\n\u001b[0m\n",
+    "errors": []
+  },
+  "baselinesUntouched": {
+    "before": {
+      "dist/retail": 1791578038.3346,
+      "dist/retail2": 1791588879.12286,
+      "dist/windows": 1791560505.8492832
+    },
+    "after": {
+      "dist/retail": 1791578038.3346,
+      "dist/retail2": 1791588879.12286,
+      "dist/windows": 1791560505.8492832
+    },
+    "equal": true
+  },
+  "artifacts": {
+    "exe": {
+      "path": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\HoshigaokaEchoes.exe",
+      "size": 109161472,
+      "sha256": "66e7c8659526a8b4b71d8f591836df655a9afb48b24dd257efe4ead1dd44cdce"
+    },
+    "pck": {
+      "path": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\HoshigaokaEchoes.pck",
+      "size": 22045164,
+      "sha256": "cd26d196e13b83ac18ee277188f8931a091f983e54d965d14036314b6dd80fc6"
+    }
+  },
+  "pckHeader": {
+    "packVersion": 4,
+    "godotVersion": "4.7.2",
+    "packFlags": 2,
+    "relativeToFileBase": true,
+    "fileBaseOffset": 112,
+    "directoryOffset": 22005936,
+    "directoryBytes": 39228,
+    "entryCount": 406
+  },
+  "pckEntryCount": 406,
+  "pckTotalBytes": 22045164,
+  "pckFileBaseOffset": 112,
+  "presentRequired": {
+    "data/upgrades.json": true
+  },
+  "forbiddenPresent": {
+    "tests/": [],
+    "addons/gut/": [],
+    "tools/": [],
+    "docs/": []
+  },
+  "integrity": {
+    "entriesChecked": 406,
+    "bytesHashed": 22003111,
+    "md5Mismatch": [],
+    "outOfRange": [],
+    "allMatch": true
+  },
+  "upgradesJson": {
+    "sourcePath": "D:\\星丘残响\\hoshigaoka_echoes\\data\\upgrades.json",
+    "sourceSize": 6265,
+    "sourceSha256": "ed9ef73e67ae99274e8aa33164e4a913265aef9c45b795fbd3672e6fed3b8d29",
+    "packedSize": 6265,
+    "packedMd5Table": "9a5e0e882aa500f1be4059dcc7504c0a",
+    "packedMd5Actual": "9a5e0e882aa500f1be4059dcc7504c0a",
+    "packedSha256": "ed9ef73e67ae99274e8aa33164e4a913265aef9c45b795fbd3672e6fed3b8d29",
+    "byteIdenticalToSource": true,
+    "headText": "{\n  \"schemaVersion\": \"1.0.0-a0.6\",\n  \"domain\": \"upgrades\",\n ",
+    "parsedDefinitionCount": 6,
+    "parsedKeys": [
+      "_deferred",
+      "_designNotes",
+      "_rerollsPerBattle_spec",
+      "_spec",
+      "domain",
+      "openByStage",
+      "rerollsPerBattle",
+      "schemaVersion",
+      "tiers",
+      "tutorialFixedChoices_1_5"
+    ]
+  },
+  "launchSmoke": {
+    "title": {
+      "cmd": [
+        "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\HoshigaokaEchoes.exe"
+      ],
+      "seconds": 6.0,
+      "appdata": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\_smoke\\title\\appdata",
+      "survivedSeconds": 6.0,
+      "exitCodeWhileRunning": null,
+      "logBytes": 1190,
+      "logTail": "/hoshigaoka_echoes/dist/v3_visual_preview/_smoke/title/appdata/HoshigaokaEchoes\n[INFO] DataRegistry | 数据加载完成：13 个数据域（含 10 关、1 Prototype 演示关、1 剧情）\n[INFO] SaveService | 未发现既有存档：将在首次保存时创建\n[INFO] Bootstrap | 启动场景就绪\n[INFO] Bootstrap | 版本: 0.2.0-prototype\n[INFO] Bootstrap | 构建模式: Prototype\n[INFO] Bootstrap | DataRegistry 就绪: true\n[INFO] Bootstrap | 布局参数: tileSizePx=192.0 laneSpacingPx=192.0\n[INFO] Bootstrap | 已登记关卡数: 10\n[INFO] Bootstrap | 已登记 Prototype 演示关数: 1\n[INFO] Bootstrap | 未指定 --scene：进入标题画面（正式首启体验）\n[INFO] Bootstrap | 启动目标: title（关卡 p1_0_demo）\n[INFO] Bootstrap | 已安排切换到 res://scenes/title/title.tscn（延迟到本帧末）\n[INFO] App | 成长系统就绪：3 名角色（amamiya_mio Lv.1, kamiya_yuma Lv.1, ogawa_yui Lv.1）\n[INFO] Bootstrap | 已切换到 res://scenes/title/title.tscn\n[INFO] TitleScreen | 标题画面就绪（背景资产=已加载，缩放=1.000，菜单=5 项）\n",
+      "scriptErrors": [],
+      "stayedAlive": true,
+      "launchable": true
+    },
+    "battle": {
+      "cmd": [
+        "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\HoshigaokaEchoes.exe",
+        "--",
+        "--scene=battle",
+        "--autoplay"
+      ],
+      "seconds": 6.0,
+      "appdata": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\_smoke\\battle\\appdata",
+      "survivedSeconds": 6.0,
+      "exitCodeWhileRunning": null,
+      "logBytes": 2420,
+      "logTail": "澪 于 (col2, lane1)\n[INFO] BattleScene | [autoplay] 截图 D:/星丘残响/hoshigaoka_echoes/dist/v3_visual_preview/_smoke/battle/appdata/HoshigaokaEchoes/p0.3_shots/draw_char_anim_idle.png（err=0）\n[INFO] BattleScene | [autoplay] 截图 D:/星丘残响/hoshigaoka_echoes/dist/v3_visual_preview/_smoke/battle/appdata/HoshigaokaEchoes/p0.3_shots/draw_vfx_vfx_deploy.png（err=0）\n[INFO] BattleScene | [autoplay] 部署已确认 amamiya_mio id=1\n[INFO] BattleScene | [autoplay] 截图 D:/星丘残响/hoshigaoka_echoes/dist/v3_visual_preview/_smoke/battle/appdata/HoshigaokaEchoes/p0.3_shots/deployed_amamiya_mio.png（err=0）\n[DEBUG] StageRuntime | 生成敌人 echo_normal（lane=1, t=3.02s, wave=1）\n[INFO] BattleScene | [autoplay] 截图 D:/星丘残响/hoshigaoka_echoes/dist/v3_visual_preview/_smoke/battle/appdata/HoshigaokaEchoes/p0.3_shots/draw_enemy_anim_idle.png（err=0）\n",
+      "scriptErrors": [],
+      "stayedAlive": true,
+      "launchable": true
+    },
+    "stage_select": {
+      "cmd": [
+        "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\HoshigaokaEchoes.exe",
+        "--",
+        "--scene=stage_select"
+      ],
+      "seconds": 6.0,
+      "appdata": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_visual_preview\\_smoke\\stage_select\\appdata",
+      "survivedSeconds": 6.0,
+      "exitCodeWhileRunning": null,
+      "logBytes": 1184,
+      "logTail": ":/星丘残响/hoshigaoka_echoes/dist/v3_visual_preview/_smoke/stage_select/appdata/HoshigaokaEchoes\n[INFO] DataRegistry | 数据加载完成：13 个数据域（含 10 关、1 Prototype 演示关、1 剧情）\n[INFO] SaveService | 未发现既有存档：将在首次保存时创建\n[INFO] Bootstrap | 启动场景就绪\n[INFO] Bootstrap | 版本: 0.2.0-prototype\n[INFO] Bootstrap | 构建模式: Prototype\n[INFO] Bootstrap | DataRegistry 就绪: true\n[INFO] Bootstrap | 布局参数: tileSizePx=192.0 laneSpacingPx=192.0\n[INFO] Bootstrap | 已登记关卡数: 10\n[INFO] Bootstrap | 已登记 Prototype 演示关数: 1\n[INFO] Bootstrap | 启动目标: stage_select（关卡 p1_0_demo）\n[INFO] Bootstrap | 已安排切换到 res://scenes/menus/stage_select.tscn（延迟到本帧末）\n[INFO] App | 成长系统就绪：3 名角色（amamiya_mio Lv.1, kamiya_yuma Lv.1, ogawa_yui Lv.1）\n[INFO] Bootstrap | 已切换到 res://scenes/menus/stage_select.tscn\n[INFO] StageSelect | 关卡选择就绪（构建模式=Prototype，直选=true，可进关卡=5，背景=已加载）\n",
+      "scriptErrors": [],
+      "stayedAlive": true,
+      "launchable": true,
+      "expect": {
+        "StageSelect | 关卡选择就绪": true,
+        "直选=true": true
+      },
+      "expectAllMet": true
+    }
+  },
+  "launchSmokeVerdict": {
+    "launchable": true,
+    "stayedAlive": true,
+    "scriptErrors": {},
+    "expectationsMissed": {}
+  },
+  "problems": [],
+  "verdict": "PASS",
+  "elapsedSec": 40.4,
+  "finished": "2026-10-10T10:32:49.669777"
+}

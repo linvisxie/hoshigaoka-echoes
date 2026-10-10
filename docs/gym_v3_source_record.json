@@ -1,0 +1,11 @@
+{
+  "source": "D:\\星丘残响\\hoshigaoka_echoes\\tools\\source_art\\gym_v3_floor.png",
+  "sha256": "6c51c97968ef81e58e91f8f036ef0724934d768adba71020bb41942d9636e701",
+  "provider": "Built-in image_gen; exact model identity not exposed",
+  "reference": "Existing assets/art/environments/bg_env_gym_night.png; user supplied gym combat concept",
+  "purpose": "1-5 visual test only; expanded walkable floor, 1920x1080",
+  "terms": "https://openai.com/policies/terms-of-use/",
+  "termsChecked": "2026-10-10",
+  "releaseStatus": "Internal integrated candidate; reference rights and visual approval pending",
+  "narrativeConflict": "1-5 canonical map is corridor; no narrative/map data changed"
+}

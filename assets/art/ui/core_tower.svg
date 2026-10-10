@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="512" viewBox="0 0 320 512">
+<defs>
+<linearGradient id="stone" x2="0" y2="1"><stop stop-color="#55658a"/><stop offset=".45" stop-color="#23314f"/><stop offset="1" stop-color="#101d36"/></linearGradient>
+<linearGradient id="gold" x2="1" y2="1"><stop stop-color="#fff0c9"/><stop offset=".35" stop-color="#d4a774"/><stop offset=".65" stop-color="#8872a0"/><stop offset="1" stop-color="#f0d8ad"/></linearGradient>
+<linearGradient id="crystal" x2=".8" y2="1"><stop stop-color="#ebf3ff"/><stop offset=".38" stop-color="#c1b7ff"/><stop offset=".7" stop-color="#536fdf"/><stop offset="1" stop-color="#c78eef"/></linearGradient>
+<radialGradient id="halo"><stop stop-color="#a4b4ff" stop-opacity=".45"/><stop offset=".5" stop-color="#6d67ec" stop-opacity=".13"/><stop offset="1" stop-color="#6d67ec" stop-opacity="0"/></radialGradient>
+<path id="petal" d="M160 204 Q139 169 160 124 Q181 169 160 204Z"/>
+</defs>
+<ellipse cx="160" cy="467" rx="135" ry="23" fill="#0c122c" opacity=".6"/>
+<ellipse cx="160" cy="444" rx="123" ry="28" fill="url(#halo)"/>
+<path d="M44 424 L160 385 L276 424 L276 449 L160 489 L44 449Z" fill="url(#stone)" stroke="#b5b2de" stroke-width="2"/>
+<path d="M44 424 L160 462 L276 424 M160 462 L160 489" fill="none" stroke="#8c9dca" stroke-width="2"/>
+<path d="M68 399 L160 369 L252 399 L252 424 L160 454 L68 424Z" fill="url(#stone)" stroke="url(#gold)" stroke-width="2"/>
+<path d="M68 399 L160 429 L252 399 M160 429 L160 453" fill="none" stroke="#8a9dc8" stroke-width="2"/>
+<path d="M96 373 L160 350 L224 373 L224 400 L160 421 L96 400Z" fill="url(#stone)" stroke="#a3acd5" stroke-width="2"/>
+<ellipse cx="160" cy="369" rx="62" ry="20" fill="#243c70" stroke="url(#gold)" stroke-width="3"/>
+<ellipse cx="160" cy="369" rx="43" ry="13" fill="#9dbaff" opacity=".35"/>
+<g stroke="url(#gold)" stroke-width="3" fill="none"><path d="M73 396 L73 317 M247 396 L247 317 M111 411 L111 325 M209 411 L209 325"/><path d="M44 424 L44 341 M276 424 L276 341"/></g>
+<g fill="#cbd9ff"><path d="M69 318 L73 307 L77 318 L73 330Z"/><path d="M243 318 L247 307 L251 318 L247 330Z"/><path d="M107 325 L111 314 L115 325 L111 337Z"/><path d="M205 325 L209 314 L213 325 L209 337Z"/><path d="M40 341 L44 330 L48 341 L44 353Z"/><path d="M272 341 L276 330 L280 341 L276 353Z"/></g>
+<ellipse cx="160" cy="207" rx="139" ry="175" fill="url(#halo)"/>
+<g stroke="url(#gold)" fill="none"><ellipse cx="160" cy="208" rx="105" ry="145" stroke-width="5"/><ellipse cx="160" cy="208" rx="93" ry="133" stroke-width="1.5"/><ellipse cx="160" cy="208" rx="126" ry="38" transform="rotate(-30 160 208)" stroke-width="4"/><ellipse cx="160" cy="208" rx="125" ry="38" transform="rotate(30 160 208)" stroke-width="2.5"/></g>
+<g fill="url(#gold)"><path d="M160 51 L166 67 L160 83 L154 67Z"/><path d="M160 332 L166 348 L160 364 L154 348Z"/><path d="M43 205 L54 198 L64 205 L54 212Z"/><path d="M256 205 L267 198 L278 205 L267 212Z"/></g>
+<path d="M160 99 L199 206 L160 313 L121 206Z" fill="url(#crystal)" stroke="#e9e5ff" stroke-width="3"/>
+<path d="M160 99 L160 313 M121 206 L199 206 M160 99 L177 206 L160 313" fill="none" stroke="#f4f5ff" stroke-width="1.5" opacity=".8"/>
+<g fill="url(#crystal)" stroke="#f0e7ff" stroke-width="1.5"><use href="#petal"/><use href="#petal" transform="rotate(60 160 208)"/><use href="#petal" transform="rotate(120 160 208)"/><use href="#petal" transform="rotate(180 160 208)"/><use href="#petal" transform="rotate(240 160 208)"/><use href="#petal" transform="rotate(300 160 208)"/></g>
+<path d="M160 182 L166 202 L186 208 L166 214 L160 234 L154 214 L134 208 L154 202Z" fill="#fff9ef"/>
+</svg>

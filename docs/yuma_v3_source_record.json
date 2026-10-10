@@ -1,0 +1,19 @@
+{
+  "source": "D:\\星丘残响\\hoshigaoka_echoes\\tools\\source_art\\yuma_v3_atlas.png",
+  "sha256": "89c0d6326fe5f696f71fb84985ed54e1e419f88a77f2df0f8fdaa7b1e29121ce",
+  "provider": "Built-in image_gen; exact model identity not exposed by tool",
+  "reference": "meishu/Hoshigaoka_Art_Preview_Pack/02_visual_bible_overview.png",
+  "transforms": [
+    "4 columns; reviewed row bounds [0, 345, 660, 963, 1254]",
+    "alpha threshold 128",
+    "uniform scale 0.19",
+    "shared 48-colour palette",
+    "fixed x offset 2",
+    "feet alignment y=60"
+  ],
+  "terms": "https://openai.com/policies/terms-of-use/",
+  "termsChecked": "2026-10-10",
+  "inputReferenceRights": "User-supplied original reference; underlying rights not independently established",
+  "releaseStatus": "Internal integrated candidate; visual approval and reference rights verification pending",
+  "notes": "16 drawn poses; no translation or rotation substitutes for attack poses. Active skill/deploy/win-specific strips not yet made."
+}

@@ -1,0 +1,27 @@
+{
+  "author": "Hoshigaoka Echoes project - original procedural composition and synthesis",
+  "source": "tools/build_audio.py",
+  "seed": 20261010,
+  "externalSamples": [],
+  "externalMelodies": [],
+  "commercialUse": "Project original audio; no external sample license required",
+  "status": "First audible mix; listening and mastering approval pending",
+  "files": [
+    "assets/audio/bgm/after_school.wav",
+    "assets/audio/bgm/echo_frontline.wav",
+    "assets/audio/sfx/arrow.wav",
+    "assets/audio/sfx/core_hit.wav",
+    "assets/audio/sfx/defeat.wav",
+    "assets/audio/sfx/deploy.wav",
+    "assets/audio/sfx/heal.wav",
+    "assets/audio/sfx/hit.wav",
+    "assets/audio/sfx/hurt.wav",
+    "assets/audio/sfx/pause.wav",
+    "assets/audio/sfx/retreat.wav",
+    "assets/audio/sfx/select.wav",
+    "assets/audio/sfx/slash.wav",
+    "assets/audio/sfx/upgrade.wav",
+    "assets/audio/sfx/victory.wav",
+    "assets/audio/sfx/wave.wav"
+  ]
+}

@@ -124,6 +124,7 @@ var _busy: bool = false
 
 
 func _ready() -> void:
+	AudioService.play_music("after_school")
 	_viewport = Vector2(
 		ProjectSettings.get_setting("display/window/size/viewport_width", REF_W),
 		ProjectSettings.get_setting("display/window/size/viewport_height", REF_H))
@@ -293,6 +294,7 @@ func _input(event: InputEvent) -> void:
 # ============================================================ 动作
 
 func _activate(index: int) -> void:
+	AudioService.play_sfx("select")
 	if index < 0 or index >= _rows.size():
 		return
 	var item: Dictionary = MENU_ITEMS[index]

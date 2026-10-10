@@ -1,0 +1,364 @@
+{
+	"attackFrames": 10,
+	"audioHistory": [
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 0.236000001430511,
+				"soundsTriggered": [],
+				"track": "echo_frontline"
+			},
+			"shot": "initial",
+			"time": 0.516666666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 0.984000027179718,
+				"soundsTriggered": [
+					"select"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "deployment_preview",
+			"time": 1.0
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 20.3640003204346,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "two_characters",
+			"time": 12.5500000000002
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 23.6599998474121,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_00",
+			"time": 13.7333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 24.4160003662109,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_01",
+			"time": 13.8833333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 25.1840000152588,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_02",
+			"time": 14.0166666666669
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 25.9759998321533,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_03",
+			"time": 14.1500000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 26.7520008087158,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_04",
+			"time": 14.316666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 27.5200004577637,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_05",
+			"time": 14.466666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 28.2800006866455,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_06",
+			"time": 14.616666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 29.068000793457,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_07",
+			"time": 14.766666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 29.8360004425049,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_08",
+			"time": 14.9000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 30.6159992218018,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "attack_09",
+			"time": 15.0500000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 40.6520004272461,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"wave",
+					"upgrade"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "upgrade_offer",
+			"time": 24.1833333333332
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 46.8160018920898,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"wave",
+					"upgrade"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "battle_30s",
+			"time": 30.0166666666662
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 11.2451248168945,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"wave",
+					"upgrade"
+				],
+				"track": "echo_frontline"
+			},
+			"shot": "battle_60s",
+			"time": 60.0166666666645
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": ""
+			},
+			"shot": "result",
+			"time": 159.200000000019
+		}
+	],
+	"evidenceType": "Real Windows Godot viewport; automated input, not human play",
+	"outcome": "胜利",
+	"shots": [
+		"initial",
+		"deployment_preview",
+		"two_characters",
+		"attack_00",
+		"attack_01",
+		"attack_02",
+		"attack_03",
+		"attack_04",
+		"attack_05",
+		"attack_06",
+		"attack_07",
+		"attack_08",
+		"attack_09",
+		"upgrade_offer",
+		"battle_30s",
+		"battle_60s",
+		"result"
+	],
+	"stage": "1-5",
+	"summary": {
+		"apFinal": 30,
+		"apMax": 30,
+		"busiestLane": 1,
+		"coreHp": 3,
+		"coreHpMax": 3,
+		"elapsed": 159.2,
+		"healedTotal": 0,
+		"heals": 0,
+		"kills": 8,
+		"killsByType": {
+			"echo_armored": 1,
+			"echo_invigilator": 2,
+			"echo_normal": 3,
+			"echo_runner": 2
+		},
+		"leaked": 0,
+		"leakedByType": {},
+		"lost": 0,
+		"outcome": 1,
+		"outcomeName": "胜利",
+		"planned": 8,
+		"pressureByLane": {
+			"0": 420,
+			"1": 5360,
+			"2": 0
+		},
+		"retreatAp": 0,
+		"retreats": 0,
+		"spawned": 8,
+		"victory": true,
+		"wave": 5,
+		"waveTotal": 5
+	},
+	"time": 159.200000000019
+}

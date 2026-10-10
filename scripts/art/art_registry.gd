@@ -57,7 +57,7 @@ const STAGE_ENV := {
 	"1-2": "bg_env_classroom_dusk",
 	"1-3": "bg_env_corridor_dusk",
 	"1-4": "bg_env_corridor_dusk",
-	"1-5": "bg_env_gym_night",
+	"1-5": "bg_env_gym_battle",
 	"1-10": "bg_env_rooftop_rift",
 	"p1_0_demo": "bg_env_classroom_dusk",
 }

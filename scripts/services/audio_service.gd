@@ -20,9 +20,90 @@ var _volumes: Dictionary = {
 	BUS_SFX: 100.0,
 }
 
+var _music: AudioStreamPlayer
+var _voices: Array[AudioStreamPlayer] = []
+var _last_sound: Dictionary = {}
+var _current_music := ""
+var _music_tween: Tween
+var _streams: Dictionary = {}
+
 
 func _ready() -> void:
+	for bus_name: String in [BUS_BGM, BUS_SFX]:
+		if AudioServer.get_bus_index(bus_name) < 0:
+			AudioServer.add_bus()
+			AudioServer.set_bus_name(AudioServer.bus_count - 1, bus_name)
+	_music = AudioStreamPlayer.new()
+	_music.bus = BUS_BGM
+	add_child(_music)
+	for i: int in range(12):
+		var voice := AudioStreamPlayer.new()
+		voice.bus = BUS_SFX
+		add_child(voice)
+		_voices.append(voice)
 	_apply_all()
+
+
+func play_music(track: String, loop: bool = true) -> void:
+	if _music == null or (track == _current_music and _music.playing):
+		return
+	var path := "res://assets/audio/bgm/%s.wav" % track
+	if not ResourceLoader.exists(path):
+		GameLog.warn(TAG, "音乐未制作：%s" % track)
+		return
+	var stream := load(path) as AudioStreamWAV
+	if stream == null:
+		return
+	stream = stream.duplicate() as AudioStreamWAV
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD if loop else AudioStreamWAV.LOOP_DISABLED
+	stream.loop_begin = 0
+	stream.loop_end = int(stream.get_length() * float(stream.mix_rate))
+	_current_music = track
+	if _music_tween != null:
+		_music_tween.kill()
+	_music_tween = create_tween()
+	_music_tween.tween_property(_music, "volume_db", -36.0, 0.18)
+	_music_tween.tween_callback(func() -> void:
+		_music.stream = stream
+		_music.play())
+	_music_tween.tween_property(_music, "volume_db", -12.0, 0.6)
+
+
+func stop_music() -> void:
+	if _music_tween != null:
+		_music_tween.kill()
+	if _music != null:
+		_music.stop()
+	_current_music = ""
+
+
+func play_sfx(sound: String, gain_db: float = 0.0) -> void:
+	var now := Time.get_ticks_msec()
+	# Sound-specific debounce plus a bounded voice pool prevent combat clipping.
+	if now - int(_last_sound.get(sound, -1000)) < 70:
+		return
+	var path := "res://assets/audio/sfx/%s.wav" % sound
+	if not _streams.has(path):
+		if not ResourceLoader.exists(path):
+			return
+		_streams[path] = load(path)
+	for voice: AudioStreamPlayer in _voices:
+		if not voice.playing:
+			_last_sound[sound] = now
+			voice.stream = _streams[path]
+			voice.volume_db = -9.0 + gain_db
+			voice.play()
+			return
+
+
+func playback_status() -> Dictionary:
+	var active := 0
+	for voice: AudioStreamPlayer in _voices:
+		if voice.playing:
+			active += 1
+	return {"track": _current_music, "musicPlaying": _music != null and _music.playing,
+		"musicPosition": _music.get_playback_position() if _music != null else 0.0,
+		"activeVoices": active, "soundsTriggered": _last_sound.keys()}
 
 
 ## 设置某总线音量（0～100）。

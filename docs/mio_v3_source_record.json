@@ -1,0 +1,19 @@
+{
+  "source": "D:\\星丘残响\\hoshigaoka_echoes\\tools\\source_art\\mio_v3_atlas.png",
+  "sha256": "d3f337db69473c2574cd2a3273bcc6685f3851493a99b7a3929a3630f2c268c0",
+  "provider": "Built-in image_gen; exact model identity not exposed by tool",
+  "reference": "meishu/Hoshigaoka_Art_Preview_Pack/03_p0_asset_sheet_amamiya_mio.png",
+  "transforms": [
+    "4x4 slicing",
+    "alpha threshold 128",
+    "uniform scale .25",
+    "shared 48-colour palette",
+    "fixed x offset -15",
+    "feet alignment y=60"
+  ],
+  "terms": "https://openai.com/policies/terms-of-use/",
+  "termsChecked": "2026-10-10",
+  "inputReferenceRights": "User-supplied original reference; underlying rights not independently established",
+  "releaseStatus": "Internal integrated candidate; visual approval and reference rights verification pending",
+  "notes": "16 drawn poses; no translation or rotation substitutes for attack poses. Active skill/deploy/win-specific strips not yet made."
+}
