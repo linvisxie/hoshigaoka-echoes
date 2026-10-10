@@ -1560,7 +1560,7 @@ func _spawn_attacker_vfx(ev: Dictionary, now: float) -> void:
 	_vfx[-1]["from"] = source
 	_vfx[-1]["to"] = target
 	_vfx[-1]["scale"] = 1.45 if name == "vfx_slash" else 1.0
-	_vfx[-1]["charged"] = attacker.skill_charged or float(ev.get("skillMultiplier",1.0)) > 1.0
+	_vfx[-1]["charged"] = bool(ev.get("skillAttack", false))
 
 
 func _spawn_vfx_at(name: String, screen_pos: Vector2, now: float, life: float) -> void:
@@ -1585,20 +1585,32 @@ func _draw_vfx() -> void:
 		if tex == null:
 			continue
 		var center: Vector2 = v["pos"]
+		var arrow_angle := 0.0
 		if v.has("from") and str(v["name"]) == "vfx_arrow":
 			var source: Vector2 = v["from"]
 			var target: Vector2 = v["to"]
 			center = source.lerp(target, minf(1.0,k * 3.0))
 			var direction := (target-source).normalized()
+			arrow_angle = direction.angle()
 			var trail := center - direction * minf(_px(115),source.distance_to(center))
-			var arrow_color := Color(1.0,0.77,0.38,1.0-k)
+			var empowered := bool(v.get("charged", false))
+			var arrow_color := Color(0.65,0.91,1.0,1.0-k) if empowered else Color(1.0,0.77,0.38,1.0-k)
 			draw_line(trail,center,Color(arrow_color,arrow_color.a*0.3),_px(6),true)
-			draw_line(trail,center,arrow_color,_px(2),true)
+			draw_line(trail,center,arrow_color,_px(4 if empowered else 2),true)
 		# 尾段淡出（避免突然消失）
 		var fade := 1.0 - k * k
 		var effect_size := s * float(v.get("scale", 1.0))
+		if bool(v.get("charged", false)):
+			effect_size *= 1.2
 		var dst := Rect2(center - Vector2.ONE * effect_size * 0.5, Vector2.ONE * effect_size)
-		draw_texture_rect(tex, dst, false, Color(1.0, 1.0, 1.0, fade))
+		if v.has("from") and str(v["name"]) == "vfx_arrow":
+			# Atlas arrows point right. Cross-lane shots must face their actual
+			# committed target, with the same angle as the moving trail.
+			draw_set_transform(center, arrow_angle)
+			draw_texture_rect(tex, Rect2(-Vector2.ONE * effect_size * 0.5, Vector2.ONE * effect_size), false, Color(1.0, 1.0, 1.0, fade))
+			draw_set_transform(Vector2.ZERO)
+		else:
+			draw_texture_rect(tex, dst, false, Color(1.0, 1.0, 1.0, fade))
 		_mark_drawn("vfx:%s" % str(v["name"]))
 		_mark_drawn(ArtRegistry.vfx_strip_path(str(v["name"])))
 

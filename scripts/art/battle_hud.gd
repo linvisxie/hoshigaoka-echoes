@@ -366,9 +366,9 @@ func _update_card(card: Dictionary, index: int, factor: float) -> void:
 		card.low_hp = low_hp
 		(card.hp as ProgressBar).add_theme_stylebox_override("fill",GameSkin.bar(GameSkin.RED if low_hp else GameSkin.GREEN))
 	if unit != null:
-		var range_text := "同路前方 %.2f 格 · 阻挡 %d" % [unit.attack_range_tiles,unit.block_count_max]
+		var range_text := "普攻同路前方 %.2f 格 · 阻挡 %d" % [unit.attack_range_tiles,unit.block_count_max]
 		if unit.allow_cross_lane and unit.max_lane_delta > 0:
-			range_text = "同路 %.1f 格 / 相邻路线 %.1f 格 · 阻挡 %d" % [unit.attack_range_tiles,unit.adjacent_lane_range_tiles,unit.block_count_max]
+			range_text = "普攻同路 %.1f 格 / 邻路 %.1f 格 · 阻挡 %d" % [unit.attack_range_tiles,unit.adjacent_lane_range_tiles,unit.block_count_max]
 		b.tooltip_text = "%s · %s\n生命 %d / %d · 点击选中\n%s\nQ 释放技能 · R 撤退换位" % [unit.display_name,battle._role_label(str(cfg.get("behavior",""))),unit.hp,unit.max_hp,range_text]
 		status.text = ("Q 技能就绪" if active else "技能就绪 · 点击") if unit.skill_ready() else ("技能生效中" if unit.skill_active_remaining>0 or unit.skill_charged else "技能 %.0f 秒" % ceilf(unit.skill_cooldown_remaining))
 		status.add_theme_color_override("font_color",GameSkin.GOLD if unit.skill_ready() else card.role)

@@ -15,6 +15,12 @@ var skill_frame := 0
 var skill_next_frame := 0.0
 var victory_frames := 0
 var finish_scheduled := false
+var arrow_frames := 0
+var arrow_recording := false
+var arrow_next := 0.0
+var empowered_frames := 0
+var empowered_recording := false
+var empowered_next := 0.0
 
 func _ready() -> void:
 	_begin.call_deferred()
@@ -35,6 +41,33 @@ func _process(_delta: float) -> void:
 		return
 	var session: BattleSession = battle.session
 	var now := session.stage.elapsed_seconds
+	if empowered_frames == 0 and not empowered_recording:
+		for effect: Dictionary in battle._vfx:
+			if effect.get("name", "") == "vfx_arrow" and bool(effect.get("charged", false)):
+				empowered_recording = true
+				empowered_next = now
+				break
+	if empowered_recording and now >= empowered_next:
+		shot("empowered_arrow_%02d" % empowered_frames)
+		empowered_frames += 1
+		empowered_next = now + 0.025
+		if empowered_frames >= 8:
+			empowered_recording = false
+	if arrow_frames == 0 and not arrow_recording:
+		for effect: Dictionary in battle._vfx:
+			if effect.get("name", "") == "vfx_arrow" and effect.has("from") and effect.has("to"):
+				var source: Vector2 = effect["from"]
+				var target: Vector2 = effect["to"]
+				if absf(source.y-target.y) > 40.0:
+					arrow_recording = true
+					arrow_next = now
+					break
+	if arrow_recording and now >= arrow_next:
+		shot("crosslane_arrow_%02d" % arrow_frames)
+		arrow_frames += 1
+		arrow_next = now + 0.025
+		if arrow_frames >= 8:
+			arrow_recording = false
 	if not session.is_decided() and not session.is_paused() and not battle._upgrade_panel_active():
 		for character: CharacterRuntime in session.stage.characters:
 			if character.skill_ready() and not skill_recorded.has(character.character_id) and active_skill_clip.is_empty():
@@ -99,6 +132,6 @@ func _finish() -> void:
 	var file := FileAccess.open("user://visual_slice_report.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"evidenceType": "Real Windows Godot viewport; automated input, not human play",
 		"stage": battle.session.stage.stage_id, "outcome": BattleTypes.outcome_name(battle.session.outcome),
-		"time": battle._now(), "shots": captured.keys(), "attackFrames": attack_frames, "victoryFrames": victory_frames,
+		"time": battle._now(), "shots": captured.keys(), "attackFrames": attack_frames, "victoryFrames": victory_frames,"crosslaneArrowFrames":arrow_frames,"empoweredArrowFrames":empowered_frames,
 		"summary": battle.session.result_summary(), "audioHistory": audio_history}, "\t"))
 	get_tree().quit()

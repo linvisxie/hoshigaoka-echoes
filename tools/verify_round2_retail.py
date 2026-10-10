@@ -61,6 +61,9 @@ with (OUT/'game.log').open('w',encoding='utf8') as log:
         click(960,720) # Fifth stage card
         reached('res://scenes/menus/briefing.tscn')
         shot('briefing')
+        click(1145,845) # Rotate two-person deployment order through real UI
+        shot('briefing_reordered')
+        click(1145,845) # Restore seed order before the deployment check
         click(1600,1005) # Start battle
         time.sleep(2)
         reached('stage=1-5')

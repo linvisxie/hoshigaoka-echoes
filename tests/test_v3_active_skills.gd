@@ -72,6 +72,10 @@ func test_yuma_charge_waits_for_own_lane_and_consumes_once() -> void:
 	rt._resolve_attacker_action(c, 0.0)
 	assert_false(c.skill_charged)
 	assert_eq(same.total_damage_taken, rt.combat_math.compute_damage(450.0, same.defense, c.damage_type))
+	assert_true(rt.damage_events[-1].skillAttack, "committed hit retains skill identity after charge consumption")
+	c.attack_cooldown = 0
+	rt._resolve_attacker_action(c, 0.0)
+	assert_false(rt.damage_events[-1].skillAttack, "subsequent ordinary hit must not inherit charged visuals")
 	assert_false(rt.cast_skill(c.instance_id).ok)
 
 func test_skill_cooldown_is_frozen_when_stage_paused() -> void:

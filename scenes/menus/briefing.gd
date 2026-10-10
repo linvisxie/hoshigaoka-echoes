@@ -32,8 +32,8 @@ func _ready() -> void:
 		unique_saved[cid] = true
 	if saved.size() == party.size() and unique_saved.size() == party.size() and saved.all(func(cid: Variant) -> bool: return party.has(cid)):
 		party = saved.duplicate()
-	for i: int in range(roster.size()):
-		var cid := str(roster[i])
+	for i: int in range(party.size()):
+		var cid := str(party[i])
 		var char_cfg := DataRegistry.get_entry("characters", cid)
 		texture_at(ArtRegistry.character_portrait(cid, 256), Rect2(1040 + i * 240, 365, 210, 250))
 		label_at(str(char_cfg.get("name", cid)), Rect2(1040 + i * 240, 645, 230, 60), 30)

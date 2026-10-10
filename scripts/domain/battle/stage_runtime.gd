@@ -2122,7 +2122,7 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 		c.total_damage_dealt += applied
 		_record_damage_event(true, target.instance_id, applied, target.hp <= 0,
 			"character", c.instance_id, Vector2(c.column, c.lane),
-			Vector2(target.logical_x, target.lane), c.damage_type)
+			Vector2(target.logical_x, target.lane), c.damage_type, skill_attack)
 		GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
 			% [c.display_name, target.enemy_id, applied, target.hp])
 	c.skill_charged = false
@@ -2175,7 +2175,8 @@ func _record_damage_event(
 	source_id: int = 0,
 	source_pos: Vector2 = Vector2.ZERO,
 	target_pos: Vector2 = Vector2.ZERO,
-	damage_type: int = 0
+	damage_type: int = 0,
+	skill_attack: bool = false
 ) -> void:
 	if applied <= 0:
 		return
@@ -2190,6 +2191,9 @@ func _record_damage_event(
 		"sourceKind": source_kind, "sourceId": source_id,
 		"sourcePos": source_pos, "targetPos": target_pos,
 		"hasPosition": not source_kind.is_empty(), "damageType": damage_type,
+		# Capture before NEXT_ATTACK consumes its charge; presentation must not
+		# infer this from mutable character state after the committed hit.
+		"skillAttack": skill_attack,
 	})
 	# 环形裁剪：只保留最近若干条，避免长局内存无上限增长。
 	# 表现层每个逻辑步都会消费新事件，因此裁剪不影响可见反馈。

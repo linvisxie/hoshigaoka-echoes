@@ -1,0 +1,5 @@
+{
+  "type": "Derived resized slow preview from original Windows Godot frames; originals retained",
+  "playback": "100ms per image, deliberately slower than recorded gameplay",
+  "empowered": "Frame 00 is retained as original but omitted from GIF because the upgrade overlay covers the world; frames 01-07 shown"
+}
