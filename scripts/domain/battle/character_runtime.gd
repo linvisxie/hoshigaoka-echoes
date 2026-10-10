@@ -100,6 +100,20 @@ var last_heal_at: float = -1.0
 
 ## 攻击冷却计时（秒，递减到 0 即可攻击）
 var attack_cooldown: float = 0.0
+## Active-skill state belongs to the deployed instance and resets on redeploy.
+var skill_config: Dictionary = {}
+var skill_cooldown_remaining := 0.0
+var skill_active_remaining := 0.0
+var skill_charged := false
+var talent_config: Dictionary = {}
+var talent_last_target := 0
+var talent_same_target_hits := 0
+var equipment_attack_speed_pct := 0.0
+var equipment_cd_recovery_pct := 0.0
+
+func skill_ready() -> bool:
+	return not skill_config.is_empty() and skill_cooldown_remaining <= 0.00001 \
+		and skill_active_remaining <= 0.0 and not skill_charged and can_cast_active_skill() and alive
 
 ## 当前阻挡的敌人（instance_id 列表，按建立顺序）
 var blocking_enemy_ids: Array[int] = []
@@ -181,6 +195,9 @@ static func from_config(
 	c.hp = c.max_hp
 
 	c.attack_interval = float(config.get("attackInterval", 1.0))
+	var equipment_bonus: Dictionary = stats_override.get("equipmentBonuses", {})
+	c.equipment_attack_speed_pct = float(equipment_bonus.get("attackSpeed", 0.0))
+	c.equipment_cd_recovery_pct = float(equipment_bonus.get("cdRecovery", 0.0))
 
 	var range_cfg: Dictionary = config.get("attackRange", {})
 	c.attack_range_tiles = float(range_cfg.get("rangeTiles", 0.0))
@@ -470,7 +487,7 @@ func sum_effect_pct(category: String) -> float:
 ## combat.buffCeiling；规格 L2113 明标该表为「测试基线，不是最终数值」，
 ## 因此上限同样可配置、非 LOCKED。
 func attack_speed_factor() -> float:
-	var raw := 1.0 + sum_effect_pct(StatusEffect.CATEGORY_ATTACK_SPEED)
+	var raw := 1.0 + equipment_attack_speed_pct + sum_effect_pct(StatusEffect.CATEGORY_ATTACK_SPEED)
 	return clampf(raw, debuff_floor_pct, buff_ceiling_pct)
 
 
@@ -498,7 +515,7 @@ func effective_attack() -> int:
 ## 有效技能冷却恢复速度系数：clamp(1 + ΣCD 百分数, debuffFloor, +∞)。
 ## 当前构建尚无技能系统，本接口为 A0.6 技能系统接入预留（与 L556 的属性清单一一对应）。
 func effective_cd_recovery_factor() -> float:
-	return maxf(debuff_floor_pct, 1.0 + sum_effect_pct(StatusEffect.CATEGORY_CD_RECOVERY))
+	return maxf(debuff_floor_pct, 1.0 + equipment_cd_recovery_pct + sum_effect_pct(StatusEffect.CATEGORY_CD_RECOVERY))
 
 
 ## 当前能否主动释放技能（V2.1.4 L557：控制类沉默仅禁止主动技能）。

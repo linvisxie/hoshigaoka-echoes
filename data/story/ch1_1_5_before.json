@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_5_before",
+  "chapterId": "ch1",
+  "title": "1-5 · 监考者",
+  "background": "bg_env_corridor_battle",
+  "music": "unheard_memory",
+  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "校园广播",
+      "character": "",
+      "text": "距离结束还有……还有……"
+    },
+    {
+      "id": "1",
+      "speaker": "",
+      "character": "",
+      "text": "走廊里的广播反复停在同一个词。门上的测验安排被红笔改了又改。"
+    },
+    {
+      "id": "2",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "它在等什么？",
+      "emotion": "serious"
+    },
+    {
+      "id": "3",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "不是等。它在检查每一条路线。"
+    },
+    {
+      "id": "4",
+      "speaker": "",
+      "character": "",
+      "text": "一团被试卷和目光包围的黑影站在尽头。没有脸，视线却让人不自觉地站直。"
+    },
+    {
+      "id": "5",
+      "speaker": "{player}",
+      "character": "",
+      "text": "被盯着的时候，连动作都变慢了。"
+    },
+    {
+      "id": "6",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "别被它的节奏带走。守住坐标。",
+      "emotion": "determined"
+    },
+    {
+      "id": "7",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "支援在后面。先处理旁边的残响，再集中应对它。"
+    },
+    {
+      "id": "8",
+      "speaker": "",
+      "character": "",
+      "text": "地面亮起一圈比以往更清晰的光。你能从残响中选择一种暂时稳定的力量。"
+    },
+    {
+      "id": "9",
+      "speaker": "{player}",
+      "character": "",
+      "text": "这次，我们自己决定该怎样前进。"
+    }
+  ]
+}

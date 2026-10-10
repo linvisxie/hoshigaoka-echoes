@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_4_before",
+  "chapterId": "ch1",
+  "title": "1-4 · 背得太多",
+  "background": "bg_env_corridor_battle",
+  "music": "unheard_memory",
+  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "又一次残响出现在走廊。澪比约定时间来得更早，剑袋靠在她身边。"
+    },
+    {
+      "id": "1",
+      "speaker": "{player}",
+      "character": "",
+      "text": "你中午也没休息？"
+    },
+    {
+      "id": "2",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "练习有点久。没事。",
+      "emotion": "determined"
+    },
+    {
+      "id": "3",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "你昨天也这么说。"
+    },
+    {
+      "id": "4",
+      "speaker": "",
+      "character": "",
+      "text": "堆在墙角的书页开始鼓起，层层叠在一道黑影外面，像一副越背越重的壳。"
+    },
+    {
+      "id": "5",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "这次很硬。可能要多挡一会儿。",
+      "emotion": "serious"
+    },
+    {
+      "id": "6",
+      "speaker": "{player}",
+      "character": "",
+      "text": "不用全靠你一个人。我们把后方支援接上。"
+    },
+    {
+      "id": "7",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "它越慢，越有时间处理。先稳住站位，别急着追。"
+    }
+  ]
+}

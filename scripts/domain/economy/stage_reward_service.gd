@@ -189,6 +189,18 @@ static func settle(stage_config: Dictionary, victory: bool, commit: bool = true)
 	st["clearCount"] = int(st.get("clearCount", 0)) + 1
 	if first_clear:
 		st["firstClearClaimed"] = true
+	# Persist the required post-battle story in the SAME reward transaction.
+	# Restarting during a story therefore cannot repeat first-clear rewards.
+	var flow: Dictionary = save.get("flow_state", {})
+	if bool(flow.get("campaign_active", false)) and str(flow.get("pending_stage_id", "")) == sid:
+		var after := str(stage_config.get("storyAfter", ""))
+		var flags: Dictionary = save.get("story", {}).get("flags", {})
+		if not after.is_empty() and not bool(flags.get("done:" + after, false)):
+			flow["pending_story_after"] = after
+			flow["current_story_id"] = after
+			flow["current_story_node"] = "0"
+			flow["mode"] = "post_battle"
+		save["flow_state"] = flow
 
 	# ⑦ 事务式落盘（失败 → 整体回滚到快照，不留任何半结算痕迹）
 	if commit:

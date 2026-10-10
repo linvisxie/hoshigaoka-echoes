@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_3_after",
+  "chapterId": "ch1",
+  "title": "1-3 · 分数以外",
+  "background": "bg_env_classroom_dusk",
+  "music": "unheard_memory",
+  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "落到地上的试卷没有姓名，只有被一遍遍圈起的分数。"
+    },
+    {
+      "id": "1",
+      "speaker": "{player}",
+      "character": "",
+      "text": "这些残响，会不会和学校里发生的事有关？"
+    },
+    {
+      "id": "2",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "每次排名的传闻多起来，奇怪的声音也会多。还不能确定原因。"
+    },
+    {
+      "id": "3",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "那就把看见的都记下来。不要靠猜。",
+      "emotion": "serious"
+    },
+    {
+      "id": "4",
+      "speaker": "{player}",
+      "character": "",
+      "text": "今天如果只有一个人，大概就顾不过来了。"
+    },
+    {
+      "id": "5",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "你选的位置很好。我能支援澪，也来得及处理越过去的纸。"
+    },
+    {
+      "id": "6",
+      "speaker": "",
+      "character": "",
+      "text": "广播恢复了普通的离校提醒。有人在门外喊着去买面包，声音把教室拉回了现实。"
+    },
+    {
+      "id": "7",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "走吧。调查之前，也得先吃东西。",
+      "emotion": "serious"
+    }
+  ]
+}

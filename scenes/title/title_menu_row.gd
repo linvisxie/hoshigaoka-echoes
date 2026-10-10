@@ -75,6 +75,7 @@ var selected: bool = false
 var hovered: bool = false
 ## 参考画布 -> 屏幕的缩放系数（由 TitleScreen 在布局时下发）
 var ui_scale: float = 1.0
+var stacked_subtitle := false
 
 
 func _ready() -> void:
@@ -198,6 +199,8 @@ func _draw() -> void:
 	# 中文主标签（V2.1.4 J 章：1920×1080 参考画布下正文不小于 28px）
 	var zh_size := int(_px(36.0))
 	var baseline := cy + _px(13.0)
+	if stacked_subtitle:
+		baseline = cy + _px(1.0)
 	var zh_x := _px(100.0)
 	var base_w := font.get_string_size(label_zh, HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size).x
 	_draw_text_outlined(font, Vector2(zh_x, baseline), label_zh,
@@ -232,9 +235,10 @@ func _draw() -> void:
 
 	# 英文副标签：右对齐
 	if not label_en.is_empty():
-		var en_size := int(_px(28.0))
+		var en_size := int(_px(18.0 if stacked_subtitle else 28.0))
 		var en_w := font.get_string_size(label_en, HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
-		_draw_text_outlined(font, Vector2(size.x - _px(24.0) - en_w, cy + _px(10.0)), label_en,
+		var en_pos := Vector2(zh_x, cy + _px(26.0)) if stacked_subtitle else Vector2(size.x - _px(24.0) - en_w, cy + _px(10.0))
+		_draw_text_outlined(font, en_pos, label_en,
 			en_size, EN_COLOR if interactive else EN_DISABLED)
 
 

@@ -1,0 +1,122 @@
+{
+  "provider": "built-in image_gen; precise model identity not exposed",
+  "terms": "https://openai.com/policies/terms-of-use/",
+  "checked": "2026-10-10",
+  "inputRights": "User-supplied reference; underlying rights not independently established",
+  "status": "Integrated internal candidates; final visual and commercial-reference-rights approval pending",
+  "rejected": [
+    "exec-76ff1f8e-36fc-4909-89ee-bfd397e67fc8.png: changed normal echo into a girl, not integrated"
+  ],
+  "assets": [
+    {
+      "id": "echo_normal",
+      "source": "tools/source_art/echo_normal_v3_atlas.png",
+      "sha256": "e3038e4a68cd10cea23ecd7420b171475244f80cd17359832cd2e82033673bb0",
+      "frameSize": 64,
+      "rows": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "poseCount": 20,
+      "transforms": [
+        "equal 4x5 crop",
+        "uniform scale",
+        "alpha threshold128",
+        "shared48colour palette",
+        "fixed canvas registration"
+      ],
+      "reference": "02_visual_bible_overview.png section05"
+    },
+    {
+      "id": "echo_runner",
+      "source": "tools/source_art/echo_runner_v3_atlas.png",
+      "sha256": "86fbcd13052f0471d309dacde429f3cb3b716a707a434abe7b7eeb8d0b22df0e",
+      "frameSize": 64,
+      "rows": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "poseCount": 20,
+      "transforms": [
+        "equal 4x5 crop",
+        "uniform scale",
+        "alpha threshold128",
+        "shared48colour palette",
+        "fixed canvas registration"
+      ],
+      "reference": "02_visual_bible_overview.png section05"
+    },
+    {
+      "id": "echo_armored",
+      "source": "tools/source_art/echo_armored_v3_atlas.png",
+      "sha256": "2f3eb91b6022f5d29a4d9a41b7d7ec8c2516840b9cfd8667a4c3d489b46e0c26",
+      "frameSize": 96,
+      "rows": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "poseCount": 20,
+      "transforms": [
+        "equal 4x5 crop",
+        "uniform scale",
+        "alpha threshold128",
+        "shared48colour palette",
+        "fixed canvas registration"
+      ],
+      "reference": "02_visual_bible_overview.png section05"
+    },
+    {
+      "id": "echo_exam_sheet",
+      "source": "tools/source_art/echo_exam_sheet_v3_atlas.png",
+      "sha256": "91794aea506a92beced8bbcd17cf811e382ad73ad563906dc3c56a47534686df",
+      "frameSize": 64,
+      "rows": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "poseCount": 20,
+      "transforms": [
+        "equal 4x5 crop",
+        "uniform scale",
+        "alpha threshold128",
+        "shared48colour palette",
+        "fixed canvas registration"
+      ],
+      "reference": "02_visual_bible_overview.png section05"
+    },
+    {
+      "id": "echo_invigilator",
+      "source": "tools/source_art/echo_invigilator_v3_atlas.png",
+      "sha256": "f97896b99156a5c57b913be30b48299dc8296cd1ec651a1fd8e9d826d22e62a4",
+      "frameSize": 96,
+      "rows": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "poseCount": 20,
+      "transforms": [
+        "equal 4x5 crop",
+        "uniform scale",
+        "alpha threshold128",
+        "shared48colour palette",
+        "fixed canvas registration"
+      ],
+      "reference": "02_visual_bible_overview.png section05"
+    }
+  ]
+}

@@ -132,14 +132,16 @@
   "firstClearRewardId": "reward_1_2_first",
   "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID，不在 StageConfig 里写金额。表 53 规定 1-2 解锁「敌人图鉴」——该奖励需 stage_rewards.json 填充后接入，属 Alpha A0.4 经济阶段。",
   "repeatRewardId": "reward_repeat_standard",
-  "storyBefore": "",
-  "storyAfter": "",
-  "_story_note": "V2.1.4 G-九：关卡前后故事效果在 story/*.json 中管理，不在奖励表复制 storyFlag。剧情节点属 Alpha A0.7，本阶段留空。",
+  "storyBefore": "ch1_1_2_before",
+  "storyAfter": "ch1_1_2_after",
+  "_story_note": "V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts.",
   "bossConfig": {},
   "_outOfScope": "本关不引入装甲残响体（1-4 才引入）、不引入试卷飞灵与监考者（data/enemies.json 中尚无其数值，属 A0.2 敌人生态阶段）、不实现局内三选一（Alpha A0.6）。",
   "battleRewards": {
     "school_coin": 160,
     "study_record_short": 2,
     "equipment_part": 2
-  }
+  },
+  "stageName": "迟到的人影",
+  "briefing": "疾走残响会迅速通过空线。留意下一波路线，提前安排阻挡与部署。"
 }

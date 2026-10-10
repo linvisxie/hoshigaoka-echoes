@@ -375,7 +375,8 @@ func test_08_title_menu_has_stage_select_and_no_overlap() -> void:
 	# 「继续游戏 / 新游戏」既有行为不得改动
 	assert_eq(str((items[0] as Dictionary)["id"]), "continue", "第 1 行应仍为继续游戏")
 	assert_eq(str((items[1] as Dictionary)["id"]), "new_game", "第 2 行应仍为新游戏")
-	assert_true(bool((items[3] as Dictionary)["disabled"]), "设置行应仍为禁用态（未实现）")
+	assert_false(bool((items[3] as Dictionary)["disabled"]), "已实现的音量及显示设置应可进入")
+	assert_true(ResourceLoader.exists("res://scenes/menus/settings.tscn"))
 	assert_eq(str((items[4] as Dictionary)["id"]), "quit", "最后一行应仍为退出游戏")
 
 	# 布局常量必须与下方等式一致（防止只改代码不改注释 / 只改注释不改代码）

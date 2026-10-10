@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_1_after",
+  "chapterId": "ch1",
+  "title": "1-1 · 留下坐标",
+  "background": "bg_env_corridor_dusk",
+  "music": "unheard_memory",
+  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "completionFlags": [
+    "hub_unlocked",
+    "mio_joined"
+  ],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "最后一片影子散开时，走廊尽头终于传来了真实的脚步声。"
+    },
+    {
+      "id": "1",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "……结束了。你没受伤吧？",
+      "emotion": "serious"
+    },
+    {
+      "id": "2",
+      "speaker": "{player}",
+      "character": "",
+      "text": "没有。刚才那些是什么？"
+    },
+    {
+      "id": "3",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "我叫它们残响。不是每天都会出现，也不是所有人都看得见。",
+      "emotion": "serious"
+    },
+    {
+      "id": "4",
+      "speaker": "{player}",
+      "character": "",
+      "text": "我只是碰了一下墙，就让那个光点留住了。"
+    },
+    {
+      "id": "5",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "你留下的位置，让我能站稳。刚才没有它，我得一直后退。",
+      "emotion": "serious"
+    },
+    {
+      "id": "6",
+      "speaker": "",
+      "character": "",
+      "text": "她把刀收回剑袋，才发现握袋带的手还没有完全放松。"
+    },
+    {
+      "id": "7",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "雨宫澪，剑道部。明天……如果又听见不对劲的声音，别一个人过去。",
+      "emotion": "serious"
+    },
+    {
+      "id": "8",
+      "speaker": "{player}",
+      "character": "",
+      "text": "{player}。新转来的。看来还有很多事情要补课。"
+    },
+    {
+      "id": "9",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "先把今天的路走出去吧。校门真的在这次的尽头。",
+      "emotion": "serious"
+    }
+  ]
+}

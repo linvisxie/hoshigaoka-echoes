@@ -1,0 +1,144 @@
+{
+  "provider": "Built-in image_gen; precise model identity not exposed",
+  "terms": "https://openai.com/policies/terms-of-use/",
+  "termsChecked": "2026-10-10",
+  "referenceRights": "User-supplied concepts; underlying rights not independently established",
+  "status": "Internal integrated candidates; final art acceptance and commercial release rights review remain pending",
+  "assets": [
+    {
+      "asset": "assets/art/environments/bg_env_classroom_exam.png",
+      "sha256": "c45380a252b2ae614cbc5c47217f54e1ea49c47bab7113ab68cad264dae7af15",
+      "source": "tools/source_art/generated_exec-240d9935-945c-4593-b2cd-a7ef884131bf.png",
+      "sourceSha256": "b93692887d248e4441d33d3c6d58f380c7506313d30f570b9f4984614f9fe1d8",
+      "method": "Reference-guided image_gen, then crop/scale/format conversion for runtime"
+    },
+    {
+      "asset": "assets/art/environments/bg_env_corridor_convergence.png",
+      "sha256": "7a4afc1088ffcce4d2be2a8835ef153930c095e33f61cb5e5413a3756739fcf8",
+      "source": "tools/source_art/generated_exec-47cab6e8-3a43-4bd5-829b-7a1d01217b51.png",
+      "sourceSha256": "a559a187e083b2bfa136c6de7ebbb80b9466339f5ddc51d874caaf84f6ab4eab",
+      "method": "Reference-guided image_gen, then crop/scale/format conversion for runtime"
+    },
+    {
+      "asset": "assets/art/environments/bg_env_classroom_battle.png",
+      "sha256": "0b2eed8b951fe9689d84b7d84ce4f27b4e46c2bbb3d229d16195a6748dd2bce0",
+      "source": "tools/source_art/generated_exec-039683d5-7801-4336-a78b-6a96a41fa939.png",
+      "sourceSha256": "feb9306a655aff4d44b21182868c0873108300bf5dea080462fac330622627b1",
+      "method": "Reference-guided image_gen, then crop/scale/format conversion for runtime"
+    },
+    {
+      "asset": "assets/art/environments/bg_env_corridor_battle.png",
+      "sha256": "6807050601d8720a69d205f41ad07d403c24d79aad79cd0b7e8a138f103a14d5",
+      "source": "tools/source_art/generated_exec-df97ea59-f596-4a99-b64a-1a84a4516042.png",
+      "sourceSha256": "dcfb16e901674dc6a23d686878c0ab3ef9fcc000eda8931935b9c9e16331ec3c",
+      "method": "Reference-guided image_gen, then crop/scale/format conversion for runtime"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_story.png",
+      "sha256": "81d451ecfe38ab890defbc4058060fce31b6e9a50a58f8aef99ec4a6cf6cfa01",
+      "source": "tools/source_art/generated_exec-581ac2d7-2627-4702-9468-1178e3867c48.png",
+      "sourceSha256": "81d451ecfe38ab890defbc4058060fce31b6e9a50a58f8aef99ec4a6cf6cfa01",
+      "method": "Reference-guided image_gen, then crop/scale/format conversion for runtime"
+    },
+    {
+      "asset": "assets/art/characters/kamiya_yuma/kamiya_yuma_story.png",
+      "sha256": "c76914a794579a9b13272e0909263ce8b73734324bccfad80385681f62fcb65b",
+      "source": "tools/source_art/generated_exec-4e70bad4-772d-4e7b-8027-fd62039030c0.png",
+      "sourceSha256": "c76914a794579a9b13272e0909263ce8b73734324bccfad80385681f62fcb65b",
+      "method": "Reference-guided image_gen, then crop/scale/format conversion for runtime"
+    },
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_story.png",
+      "sha256": "83a239e21950b299e9ec02ee93af83f5ccdfefcc1261f0b7bf204ed7e54c0833",
+      "source": "tools/source_art/generated_exec-beb74a7e-92d3-433c-a2dd-6d1eb052afbe.png",
+      "sourceSha256": "83a239e21950b299e9ec02ee93af83f5ccdfefcc1261f0b7bf204ed7e54c0833",
+      "method": "Reference-guided image_gen, then crop/scale/format conversion for runtime"
+    },
+    {
+      "asset": "assets/art/ui/core_tower.png",
+      "sha256": "75afa87ad9804b62da13eafb05db4509ffd1ce9529c49bca65377465c68d2283",
+      "source": "tools/source_art/generated_exec-d58d39fe-2e0d-4fc8-b56e-80ac598614d1.png",
+      "sourceSha256": "1baf1d61e12a0ae32b42f56a321925f006194ab37f091b3124455ab2b5ad8124",
+      "method": "Reference-guided image_gen, then crop/scale/format conversion for runtime"
+    },
+    {
+      "asset": "assets/art/ui/title_logo.png",
+      "sha256": "834b80552652de3a94f7dcb1b516e5f6fa06dd81c0993c1476f85c31d29fb820",
+      "source": "tools/source_art/generated_exec-8ac7e281-41d5-488c-98e9-8245b3334012.png",
+      "sourceSha256": "834b80552652de3a94f7dcb1b516e5f6fa06dd81c0993c1476f85c31d29fb820",
+      "method": "Reference-guided image_gen, then crop/scale/format conversion for runtime"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_256.png",
+      "sha256": "a813a6dd9c6bedc72d8be6231eaebae488185bf05671fa6c681b435aec955fe5",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_64.png",
+      "sha256": "b1a204a990231496251529d89bdab731488cb60d0ecd5154b176dc6a4181dbbc",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_angry.png",
+      "sha256": "948443537a4de435e38031496e17e6a409612e275793f51aa915814ffeeb81e6",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_default.png",
+      "sha256": "36227d2f8284a7332a0d5c0d40033b982fd78c8b095a9bbea2bf6bd6eaadd3de",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_determined.png",
+      "sha256": "1b49cbc37684640f11bd1ff75ab9e0ae03bcbdf7091d856f3ea34b478ad070f6",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_happy.png",
+      "sha256": "616c91dde6134c158a39d4743a9ba6b1eed7d2a53cb395c7fcfbc91c5cd0806e",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_hurt.png",
+      "sha256": "bfda9ce41781a9ec24364d1162c6a67e4e2e8fe40ec31a455794a36ce20ce9e9",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_sad.png",
+      "sha256": "4524c418df3201ee36433d6a9d55aac1345bfcc1a440a5187465715e50d633b3",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_serious.png",
+      "sha256": "5cbf4754a4d2c13752adaee629b56d3173c08c43a923e7d55b789b05382a4a9b",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_smile.png",
+      "sha256": "52fd549540db7224f7f7aa9513fe5a7df614988b69ddfabe0e7ed73e864c9cd9",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_surprised.png",
+      "sha256": "0c559f62a8d797a48514ab05c9fb18fafde21e638144e56341014e3913d38629",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/char_amamiya_mio_portrait_01.png",
+      "sha256": "a813a6dd9c6bedc72d8be6231eaebae488185bf05671fa6c681b435aec955fe5",
+      "source": "User supplied 03_p0_asset_sheet_amamiya_mio.png; nine facial-expression cells",
+      "method": "Direct crop and rescale; no regenerated face"
+    }
+  ]
+}

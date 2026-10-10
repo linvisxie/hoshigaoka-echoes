@@ -22,6 +22,74 @@ const LOGIC_STEP_SECONDS: float = 1.0 / 60.0
 ## 单帧最多追赶的逻辑步数，防止长时间卡顿后一次性跑完整关
 const MAX_STEPS_PER_ADVANCE: int = 240
 
+var _skill_configs: Dictionary = {}
+var _talent_configs: Dictionary = {}
+var skill_events: Array[Dictionary] = []
+
+func configure_skills(domain: Dictionary) -> void:
+	_skill_configs.clear()
+	_talent_configs.clear()
+	for config: Dictionary in domain.get("talents", []):
+		_talent_configs[str(config.get("id", ""))] = config.duplicate(true)
+	for config: Dictionary in domain.get("skills", []):
+		_skill_configs[str(config.get("id", ""))] = config.duplicate(true)
+	for character: CharacterRuntime in characters:
+		_assign_skill(character)
+
+func _assign_skill(character: CharacterRuntime) -> void:
+	var cfg: Dictionary = _character_configs.get(character.character_id, {})
+	for raw_id: Variant in cfg.get("talentIds", []):
+		if _talent_configs.has(str(raw_id)):
+			character.talent_config = _talent_configs[str(raw_id)].duplicate(true)
+	for raw_id: Variant in cfg.get("skillIds", []):
+		var skill: Dictionary = _skill_configs.get(str(raw_id), {})
+		if skill.get("type", "") == "ACTIVE":
+			character.skill_config = skill.duplicate(true)
+			character.skill_cooldown_remaining = float(skill.get("initialCooldownSeconds", skill.get("cooldownSeconds", 0)))
+			return
+
+func cast_skill(instance_id: int) -> Dictionary:
+	var character := get_character(instance_id)
+	if paused or not running or character == null or character.is_incapacitated():
+		return {"ok": false, "reason": "当前无法释放技能"}
+	if not character.skill_ready():
+		return {"ok": false, "reason": "技能冷却中、已蓄力或受到沉默"}
+	var cfg := character.skill_config
+	var kind := str(cfg.get("effect", ""))
+	if kind == "ATTACK_WINDOW":
+		character.skill_active_remaining = float(cfg.get("durationSeconds", 0))
+		character.apply_status_effect_from_config({"effectId": str(cfg["id"]), "sourceId": character.character_id,
+			"category": StatusEffect.CATEGORY_ATTACK, "pct": float(cfg.get("attackBonusPct", 0)),
+			"durationSeconds": character.skill_active_remaining}, elapsed_seconds)
+	elif kind == "NEXT_ATTACK":
+		character.skill_charged = true
+	else:
+		return {"ok": false, "reason": "技能效果尚未实现"}
+	character.skill_cooldown_remaining = float(cfg.get("cooldownSeconds", 0))
+	skill_events.append({"instanceId": instance_id, "skillId": cfg["id"], "at": elapsed_seconds})
+	if skill_events.size() > 128:
+		skill_events.pop_front()
+	return {"ok": true, "name": cfg.get("name", ""), "skillId": cfg["id"]}
+
+func _tick_character_skills(step: float) -> void:
+	for character: CharacterRuntime in characters:
+		character.skill_cooldown_remaining = maxf(0.0, character.skill_cooldown_remaining - step * character.effective_cd_recovery_factor())
+		character.skill_active_remaining = maxf(0.0, character.skill_active_remaining - step)
+
+func _active_skill_targets(character: CharacterRuntime) -> Array[EnemyRuntime]:
+	var targets: Array[EnemyRuntime] = []
+	var cfg := character.skill_config
+	var reach := float(cfg.get("rangeTiles", 0))
+	for enemy: EnemyRuntime in enemies:
+		if not enemy.is_active() or enemy.lane != character.lane:
+			continue
+		var distance := enemy.logical_x - float(character.column)
+		if character.is_blocking(enemy.instance_id) or (distance >= -0.00001 and distance <= reach + 0.00001):
+			targets.append(enemy)
+	targets.sort_custom(func(a: EnemyRuntime, b: EnemyRuntime) -> bool:
+		return a.instance_id < b.instance_id if is_equal_approx(a.logical_x, b.logical_x) else a.logical_x < b.logical_x)
+	return targets.slice(0, mini(targets.size(), int(cfg.get("targetLimit", 1))))
+
 ## 撤退与再部署的默认参数（仅当权威配置缺失时兜底；正常路径一律读取配置）
 const DEFAULT_RETREAT_REFUND_RATE: float = 0.5
 const DEFAULT_REDEPLOY_SECONDS: float = 20.0
@@ -888,6 +956,7 @@ func deploy_character(character_id: String, column: int, lane: int) -> DeployRes
 	inst.debuff_floor_pct = debuff_floor_pct
 	# DEC-C-0004：注入增益上限（权威值来自 balance.json 的 combat.buffCeiling）。
 	inst.buff_ceiling_pct = buff_ceiling_pct
+	_assign_skill(inst)
 	characters.append(inst)
 	character_instances.append(inst)
 	r.character = inst
@@ -1528,6 +1597,7 @@ func _step(step: float, reached: Array[EnemyRuntime]) -> void:
 			apply_core_damage(e)
 
 	# 9. 角色行动（三职业统一分派：输出走攻击路径，治疗走治疗路径）
+	_tick_character_skills(step)
 	_resolve_character_actions(step)
 	_resolve_enemy_attacks(step)
 	# 9.5 A0.2：远程敌人（试卷飞灵）的停驻与射击结算
@@ -2027,24 +2097,36 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 	c.attack_cooldown = maxf(0.0, c.attack_cooldown - step)
 	if c.attack_cooldown > 0.0:
 		return
-	var target := _select_target_for(c)
-	if target == null:
+	var targets: Array[EnemyRuntime] = []
+	var skill_attack := c.skill_charged or c.skill_active_remaining > 0.0
+	if skill_attack:
+		targets = _active_skill_targets(c)
+	else:
+		var target := _select_target_for(c)
+		if target != null:
+			targets.append(target)
+	if targets.is_empty():
 		return
-	# A0.2：有效攻击力受「攻击」类减益影响并夹取下限（L556 的 40% 下限作用于攻击力本身）
-	# A0.6：攻击倍率乘在 effective_attack() 之后（减益夹取仍先生效，
-	# 即「先按 L556 算有效攻击，再乘局内强化」，不绕过 40% 下限规则）
-	var atk := float(c.effective_attack()) * _atk_mult(c)
-	var dmg := combat_math.compute_damage(atk, target.defense, c.damage_type)
-	var applied := target.take_damage(dmg)
-	c.total_damage_dealt += applied
-	# A0.2：攻击间隔取**有效间隔**（攻速减益 → 频率倒数，含 40% 下限夹取）。
-	# 无任何攻速减益时 effective_attack_interval() 恒等于 attack_interval，行为与 P0.4 一致。
+	# Active-skill geometry is separate from normal attack geometry. No changes
+	# to ordinary target choice, interval, damage formula or cross-lane rules.
+	var multiplier := float(c.skill_config.get("damageMultiplier", 1.0)) if c.skill_charged else 1.0
+	if c.talent_config.get("effect", "") == "SAME_TARGET_DAMAGE":
+		var primary := targets[0].instance_id
+		c.talent_same_target_hits = c.talent_same_target_hits + 1 if primary == c.talent_last_target else 0
+		c.talent_last_target = primary
+		multiplier *= 1.0 + minf(float(c.talent_same_target_hits) * float(c.talent_config.get("bonusPerHitPct", 0.0)), float(c.talent_config.get("maxBonusPct", 0.0)))
+	var atk := float(c.effective_attack()) * _atk_mult(c) * multiplier
+	for target: EnemyRuntime in targets:
+		var dmg := combat_math.compute_damage(atk, target.defense, c.damage_type)
+		var applied := target.take_damage(dmg)
+		c.total_damage_dealt += applied
+		_record_damage_event(true, target.instance_id, applied, target.hp <= 0,
+			"character", c.instance_id, Vector2(c.column, c.lane),
+			Vector2(target.logical_x, target.lane), c.damage_type)
+		GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
+			% [c.display_name, target.enemy_id, applied, target.hp])
+	c.skill_charged = false
 	c.attack_cooldown = c.effective_attack_interval()
-	_record_damage_event(true, target.instance_id, applied, target.hp <= 0,
-		"character", c.instance_id, Vector2(c.column, c.lane),
-		Vector2(target.logical_x, target.lane), c.damage_type)
-	GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
-		% [c.display_name, target.enemy_id, applied, target.hp])
 
 
 ## 治疗型的单次行动结算（V2.1.4 D 章二十三 治疗公式 / 表 30 范围与间隔）。
@@ -2376,9 +2458,12 @@ func _atk_mult(c: CharacterRuntime) -> float:
 
 ## 取某目标的防御有效值（前线防御类强化只作用于角色，敌人不受玩家强化影响）。
 func _defense_of_target(c: CharacterRuntime) -> float:
+	var base := float(c.defense)
+	if c.talent_config.get("effect", "") == "LOW_HP_DEFENSE" and c.hp_ratio() < float(c.talent_config.get("hpThreshold", 0.0)):
+		base *= 1.0 + float(c.talent_config.get("defenseBonusPct", 0.0))
 	if upgrades == null:
-		return float(c.defense)
-	return float(c.defense) * upgrades.defense_multiplier(
+		return base
+	return base * upgrades.defense_multiplier(
 		CharacterRuntime.behavior_name(c.behavior))
 
 

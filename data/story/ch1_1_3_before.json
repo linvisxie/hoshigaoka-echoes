@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_3_before",
+  "chapterId": "ch1",
+  "title": "1-3 · 被批改的空气",
+  "background": "bg_env_classroom_dusk",
+  "music": "unheard_memory",
+  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "completionFlags": [
+    "yuma_joined"
+  ],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "午后的公告栏前围着几名学生。没有正式排名，却已经有人在传谁比谁多考了几分。"
+    },
+    {
+      "id": "1",
+      "speaker": "{player}",
+      "character": "",
+      "text": "只是一张测验，大家好像比昨天更紧张了。"
+    },
+    {
+      "id": "2",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "有的人，连没说出来的分数都在比较。"
+    },
+    {
+      "id": "3",
+      "speaker": "",
+      "character": "",
+      "text": "教室门忽然自行关上。一张试卷停在半空，红色批改痕迹像翅膀一样展开。"
+    },
+    {
+      "id": "4",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "在上面。我拦不住它。",
+      "emotion": "serious"
+    },
+    {
+      "id": "5",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "我来。把坐标放在后方，让我看清它飞过的路线。"
+    },
+    {
+      "id": "6",
+      "speaker": "{player}",
+      "character": "",
+      "text": "澪守前面，悠真从后面支援。"
+    },
+    {
+      "id": "7",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "自己的路线和相邻路线，都在我看得到的地方。别让它们挤在一起。"
+    }
+  ]
+}

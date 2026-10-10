@@ -8,15 +8,8 @@
 ##   3. 把玩家输入（鼠标悬停 / 左键点击 / ↑↓ / Enter / Space / Esc）翻译成
 ##      已存在功能的调用；本文件**不含任何战斗、成长、经济或存档规则**。
 ##
-## 只做已经存在的功能（不虚构）：
-##   继续游戏 / 新游戏 → 设置默认关卡 → SceneRouter.go_to("battle")
-##                        （默认关卡由 PrototypeEntry.default_stage_id() 决策）
-##   退出游戏          → App.request_quit()
-##   设置              → **尚未实现**，因此固定为禁用态（灰显 + 不可点 + 标「未实现」），
-##                        绝不做假设置页。点击它只给出「该功能尚未实现」的反馈。
-##
-## 不写任何存档代码：本文件对 SaveService 只有一处**只读**调用
-## （has_save_on_disk()，用于「继续游戏」的提示文案），不做任何写入。
+## 新游戏进入命名及序章；继续游戏恢复剧情节点或校园；设置保存音量与显示。
+## 标题只负责导航，存档事务由 CampaignFlow / SaveService 承担。
 ##
 ## 缩放方案（与 battle_scene.gd 一致）：以 1920×1080 为参考画布，
 ## scale = min(vp.x / 1920, vp.y / 1080)，全部尺寸经 _px() 换算。
@@ -52,7 +45,7 @@ const TITLE_GLOW := Color(0.55, 0.78, 1.00, 0.10)
 
 ## 标题与题词（纯展示文本；版本号与英文副标按概念图固定）
 const TITLE_ZH := "星丘残响"
-const TITLE_EN := "HOSHIOKA · RESONANCE"
+const TITLE_EN := "HOSHIGAOKA · ECHOES"
 const TITLE_SUB := "—— 那些消失在夏夜里的声音"
 ## 题词按概念图拆成两行右对齐（第二行更长，自然形成错落）
 const EPIGRAPH_L1 := "哪怕世界会遗忘，"
@@ -71,7 +64,7 @@ const TITLE_SUB_SIZE := 30.0
 const TITLE_SUB_BASELINE := 392.0
 
 ## 菜单单一数据源：顺序即上下键顺序。
-## disabled=true 的项**不可点**（设置页属后续阶段，本轮不实现、不伪造）。
+## disabled=true 的项不可点；已实现设置页面可正常进入。
 ##
 ## Alpha A0.7：新增「关卡选择」（stage_select）——在校园 Hub 与关卡情报流程落地前，
 ## 它是玩家**在界面上**唯一能选择 1-5 等关卡的入口（Retail 构建拒绝 --stage 开发参数）。
@@ -83,7 +76,7 @@ const MENU_ITEMS := [
 	{"id": "stage_select", "zh": "关卡选择", "en": "STAGE SELECT", "icon": "icon_home",
 		"disabled": false, "note": ""},
 	{"id": "settings", "zh": "设置", "en": "SETTINGS", "icon": "icon_settings",
-		"disabled": true, "note": SETTINGS_NOTE},
+		"disabled": false, "note": ""},
 	{"id": "quit", "zh": "退出游戏", "en": "EXIT", "icon": "icon_cancel",
 		"disabled": false, "note": ""},
 ]
@@ -192,7 +185,11 @@ func _build_rows() -> void:
 		row.label_en = str(item["en"])
 		row.icon_name = str(item["icon"])
 		row.disabled = bool(item["disabled"])
+		row.stacked_subtitle = true
 		row.disabled_note = str(item["note"])
+		if id == "continue" and not SaveService.has_save_on_disk():
+			row.disabled = true
+			row.disabled_note = "暂无存档"
 		if not row.activated.is_connected(_on_row_activated):
 			row.activated.connect(_on_row_activated)
 		if not row.hover_changed.is_connected(_on_row_hover_changed):
@@ -214,7 +211,7 @@ func _layout_rows() -> void:
 	for i: int in range(_rows.size()):
 		var row := _rows[i]
 		row.position = Vector2(0.0, y)
-		row.size = Vector2(_px(MENU_WIDTH), _px(MENU_ROW_H))
+		row.size = Vector2(_px(540.0), _px(MENU_ROW_H))
 		row.set_ui_scale(_scale)
 		y += _px(MENU_ROW_H + MENU_GAP)
 
@@ -306,8 +303,15 @@ func _activate(index: int) -> void:
 	var id := str(item["id"])
 	GameLog.info(TAG, "菜单激活：%s（%s）" % [id, str(item["zh"])])
 	match id:
-		"continue", "new_game":
-			_start_battle()
+		"continue":
+			if SaveService.get_current().is_empty():
+				_show("还没有有效存档，请选择新游戏。", WARN)
+			else:
+				CampaignFlow.resume()
+		"new_game":
+			SceneRouter.go_to("new_game")
+		"settings":
+			SceneRouter.go_to("settings")
 		"stage_select":
 			_open_stage_select()
 		"quit":
@@ -333,8 +337,7 @@ func _start_battle() -> void:
 
 ## 打开关卡选择画面（Alpha A0.7）。
 ##
-## 这是玩家在校园 Hub / 关卡情报流程落地前，**在界面上**选择 1-1～1-5 的唯一入口：
-## 「继续游戏 / 新游戏」只会进入 PrototypeEntry.default_stage_id() 决策的单一默认关。
+## 标题及校园均可打开；新游戏与继续游戏走 CampaignFlow 的剧情及存档恢复。
 ## 本函数只做一次路由切换，不复制任何解锁规则——解锁判定全在 StageSelectScreen 内。
 func _open_stage_select() -> void:
 	if not ResourceLoader.exists(str(SceneRouter.SCENES.get("stage_select", ""))):
@@ -501,21 +504,11 @@ func _draw_title_block(font: Font) -> void:
 	var x := _px(TITLE_X)
 	var zh_size := int(_px(TITLE_SIZE))
 
-	# 中文大标题：概念图里是**冰白亮芯 + 冷紫蓝描边 + 淡青辉光**的厚重标题字。
-	# 项目用的是 ThemeDB.fallback_font，**没有真正的粗体字面**，
-	# 因此用「多层描边 + 轻微偏移重绘」模拟字重：
-	#   ① 淡青辉光（最外，两层 3px 偏移）
-	#   ② 深蓝黑外描边（3px，保证压在亮部天空上依然成形）
-	#   ③ 冷紫蓝中描边（1.5px，概念图里标题边缘的紫蓝调）
-	#   ④ 冰白亮芯（沿 8 方向 0.75px 微偏移重绘 → 笔画加粗约 1.5px，模拟 bold）
-	var zh_pos := Vector2(x, _px(TITLE_BASELINE))
-	_draw_title_glow(font, zh_pos, TITLE_ZH, zh_size)
-	_draw_text_outlined_at(font, zh_pos, TITLE_ZH, zh_size, TITLE_OUTER, _px(3.0))
-	_draw_text_outlined_at(font, zh_pos, TITLE_ZH, zh_size, TITLE_MID, _px(1.5))
-	for off: Vector2 in [Vector2(0.0, 0.0), Vector2(1.0, 0.0), Vector2(-1.0, 0.0),
-			Vector2(0.0, 1.0), Vector2(0.0, -1.0)]:
-		draw_string(font, zh_pos + off * _px(0.75), TITLE_ZH,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size, TITLE_FILL)
+	var logo := ArtRegistry.load_texture("res://assets/art/ui/title_logo.png")
+	if logo != null:
+		draw_texture_rect(logo, Rect2(_px(75), _px(45), _px(840), _px(280)), false)
+	else:
+		draw_string(font, Vector2(x, _px(TITLE_BASELINE)), TITLE_ZH, HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size, TITLE_FILL)
 
 	# 英文副标：fallback_font 没有字距控制，因此**逐字绘制**并手工加 tracking，
 	# 让 HOSHIOKA · RESONANCE 像概念图那样疏朗，而不是挤成一团。
@@ -583,7 +576,8 @@ func _draw_title_rule(from: Vector2, width: float, from_alpha: float, to_alpha: 
 ## 这里**刻意不画实心面板**：实测单块半透明 draw_rect 会在背景贴图上留下
 ## 肉眼可见的硬边（竖缝 + 横缝），渐隐方案没有任何可见接缝。
 func _draw_left_panel(_font: Font) -> void:
-	pass
+	draw_rect(Rect2(_px(80), _px(420), _px(570), _px(510)), Color(0.025, 0.045, 0.11, 0.75), true)
+	draw_line(Vector2(_px(80), _px(420)), Vector2(_px(650), _px(420)), Color(0.55, 0.65, 0.95, 0.5), _px(1.5))
 
 
 func _draw_epigraph(font: Font) -> void:
@@ -603,8 +597,7 @@ func _draw_epigraph(font: Font) -> void:
 
 ## 左下角版本行：版本号取自 App.APP_VERSION（不硬编码）
 func _draw_version(font: Font) -> void:
-	var text := "Ver %s · PC / Steam · Godot %s" % [
-		App.APP_VERSION, str(Engine.get_version_info().get("string", "unknown"))]
+	var text := "Ver %s · Windows · 前五关试玩" % App.APP_VERSION
 	_draw_text_outlined(font, Vector2(_px(96.0), _viewport.y - _px(48.0)), text,
 		int(_px(28.0)), DIM)
 

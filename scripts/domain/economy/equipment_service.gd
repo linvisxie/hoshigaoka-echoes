@@ -213,6 +213,15 @@ static func equipped_of(save: Dictionary, character_id: String) -> Dictionary:
 	return out
 
 
+static func bonuses_for_character(save: Dictionary, character_id: String) -> Dictionary:
+	var total := {}
+	for instance_id: Variant in equipped_of(save, character_id).values():
+		var bonus := stat_bonus_of(find_instance(save, str(instance_id)))
+		for key: String in bonus:
+			total[key] = float(total.get(key, 0.0)) + float(bonus[key])
+	return total
+
+
 ## 实例的**最终面板加成**（主属性 + 副属性，含强化加成）。
 ##
 ## 返回 { statKey: value, ... }，其中 value 已按 isPercent 标记区分（百分数保持小数）。

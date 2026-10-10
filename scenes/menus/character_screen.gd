@@ -195,6 +195,30 @@ func _ready() -> void:
 	_ensure_service()
 	_pick_first_character()
 	_layout()
+	var back := Button.new()
+	back.text = "返回校园"
+	back.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	back.position = Vector2(70, 620)
+	back.size = Vector2(230, 60)
+	back.add_theme_font_size_override("font_size", 25)
+	back.pressed.connect(func() -> void: SceneRouter.go_to("home" if not SaveService.get_current().is_empty() else "title"))
+	add_child(back)
+	var details := Button.new()
+	details.text = "技能与天赋"
+	details.position = Vector2(320, 620)
+	details.size = Vector2(260, 60)
+	details.add_theme_font_size_override("font_size", 27)
+	details.pressed.connect(func() -> void:
+		CampaignFlow.inspected_character_id = _selected_id
+		SceneRouter.go_to("character_details"))
+	add_child(details)
+	var equipment := Button.new()
+	equipment.text = "装备背包"
+	equipment.position = Vector2(70, 695)
+	equipment.size = Vector2(510, 60)
+	equipment.add_theme_font_size_override("font_size", 27)
+	equipment.pressed.connect(func() -> void: SceneRouter.go_to("equipment"))
+	add_child(equipment)
 	GameLog.info(TAG, "角色培养界面就绪（%d 名角色，服务就绪=%s，画布 %.0fx%.0f，缩放 %.3f）"
 		% [_card_ids.size(), str(_svc != null and _svc.is_ready()),
 			_viewport.x, _viewport.y, _scale])
@@ -233,7 +257,8 @@ func _pick_first_character() -> void:
 		# 注意：all_character_ids() 返回的是 Dictionary.keys()（Array，元素为 String）。
 		# 直接赋给 Array[String] 会因类型不匹配而**静默清空**，因此必须逐项 append。
 		for cid: String in _svc.all_character_ids():
-			_card_ids.append(cid)
+			if not bool(CampaignFlow.state().get("campaign_active", false)) or CampaignFlow.character_unlocked(cid):
+				_card_ids.append(cid)
 		_card_ids.sort()
 	if not _card_ids.is_empty():
 		_selected_id = _card_ids[0]
@@ -289,7 +314,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventKey and event.pressed and not event.echo:
 		var k := (event as InputEventKey).keycode
 		if k == KEY_ESCAPE:
-			_preview_count = 0
+			SceneRouter.go_to("home" if not SaveService.get_current().is_empty() else "title")
 		elif k >= KEY_1 and k <= KEY_6:
 			var idx := k - KEY_1
 			if idx < _card_ids.size():
@@ -851,7 +876,7 @@ func _draw_header(font: Font) -> void:
 	var tx := ex + emblem + _px(16.0)
 	_draw_text(font, Vector2(tx, _px(88.0)), "角色培养", _px(F_TITLE), TEXT)
 	_draw_text(font, Vector2(tx, _px(126.0)),
-		"Alpha A0.1 — 等级 / 突破。技能 / 档案 / 故事属后续阶段。",
+		"培养 · 等级与突破    /    装备 · 属性与强化",
 		_px(F_TINY), DIM)
 
 	_draw_currency_bar(font)

@@ -1,0 +1,21 @@
+from pathlib import Path
+import json
+ROOT=Path(__file__).resolve().parents[1]
+skills=[
+    dict(id='mio_evening_flash',name='夕凪一闪',type='ACTIVE',effect='ATTACK_WINDOW',
+         initialCooldownSeconds=12,cooldownSeconds=12,durationSeconds=6,attackBonusPct=.5,
+         rangeShape='lane_band',direction='forward',rangeTiles=3,maxLaneDelta=0,targetLimit=3,
+         description='6秒内攻击 +50%，攻击同路线前方3格内最多3名敌人。'),
+    dict(id='yuma_piercing_arrow',name='破空箭',type='ACTIVE',effect='NEXT_ATTACK',
+         initialCooldownSeconds=10,cooldownSeconds=10,damageMultiplier=3,
+         rangeShape='lane_band',direction='forward',rangeTiles=4,maxLaneDelta=0,targetLimit=3,
+         description='下一次攻击造成300%攻击伤害，贯穿同路线最多3名敌人。')]
+(ROOT/'data/skills.json').write_text(json.dumps({'schemaVersion':'1.0.0','domain':'skills',
+    '_spec':'V2.1.4 D14 / D17 active skills; original basic attack contracts retained.',
+    'skills':skills, 'talents':[{'id': 'mio_captain_will', 'name': '主将意志', 'effect': 'LOW_HP_DEFENSE', 'hpThreshold': 0.4, 'defenseBonusPct': 0.35, 'description': '生命低于40%时防御+35%，回复后效果消失。'}, {'id': 'yuma_focus', 'name': '集中', 'effect': 'SAME_TARGET_DAMAGE', 'bonusPerHitPct': 0.05, 'maxBonusPct': 0.25, 'description': '连续攻击同一目标时，每次后续攻击伤害+5%，最多+25%；切换目标重置。', 'multiTargetPrimary': 'Piercing arrow tracks the closest-to-core primary target for one attack action.'}]},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+path=ROOT/'data/characters.json'
+data=json.loads(path.read_text(encoding='utf-8'))
+for character in data['characters']:
+    if character['id']=='amamiya_mio': character['skillIds']=['mio_evening_flash']; character['talentIds']=['mio_captain_will']
+    if character['id']=='kamiya_yuma': character['skillIds']=['yuma_piercing_arrow']; character['talentIds']=['yuma_focus']
+path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

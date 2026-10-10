@@ -1,7 +1,6 @@
 ## AudioService — BGM/SFX 总线控制（L4 Autoload）。
 ##
-## Phase 0 范围：总线音量管理 + 设置持久化骨架。
-## 不含实际音频资源（首发资产见 J9/K 章，属后续阶段）。
+## 原创场景音乐、事件音效、淡入淡出及持久化音量设置。
 extends Node
 
 const TAG := "AudioService"
@@ -41,6 +40,12 @@ func _ready() -> void:
 		voice.bus = BUS_SFX
 		add_child(voice)
 		_voices.append(voice)
+	var settings := ConfigFile.new()
+	if settings.load("user://settings/settings.cfg") == OK:
+		for bus_name: String in [BUS_MASTER, BUS_BGM, BUS_SFX]:
+			_volumes[bus_name] = clampf(float(settings.get_value("audio", bus_name, 100.0)), 0.0, 100.0)
+		if bool(settings.get_value("display", "fullscreen", false)):
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	_apply_all()
 
 

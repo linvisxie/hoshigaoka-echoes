@@ -9,6 +9,12 @@ var recording := false
 var next_frame := 0.0
 var started := 0
 var audio_history: Array[Dictionary] = []
+var skill_recorded: Dictionary = {}
+var active_skill_clip := ""
+var skill_frame := 0
+var skill_next_frame := 0.0
+var victory_frames := 0
+var finish_scheduled := false
 
 func _ready() -> void:
 	_begin.call_deferred()
@@ -29,6 +35,22 @@ func _process(_delta: float) -> void:
 		return
 	var session: BattleSession = battle.session
 	var now := session.stage.elapsed_seconds
+	if not session.is_decided() and not session.is_paused() and not battle._upgrade_panel_active():
+		for character: CharacterRuntime in session.stage.characters:
+			if character.skill_ready() and not skill_recorded.has(character.character_id) and active_skill_clip.is_empty():
+				battle._selected_character_id = character.instance_id
+				battle._request_skill_selected()
+				skill_recorded[character.character_id] = true
+				active_skill_clip = character.character_id
+				skill_frame = 0
+				skill_next_frame = now + 0.02
+				break
+	if not active_skill_clip.is_empty() and now >= skill_next_frame:
+		shot("skill_%s_%02d" % [active_skill_clip, skill_frame])
+		skill_frame += 1
+		skill_next_frame = now + 0.08
+		if skill_frame >= 9:
+			active_skill_clip = ""
 	if now >= 0.5 and not captured.has("initial"):
 		shot("initial")
 	if not battle._selected_card_id.is_empty() and not captured.has("deployment_preview"):
@@ -55,9 +77,14 @@ func _process(_delta: float) -> void:
 		shot("battle_30s")
 	if now >= 60 and not captured.has("battle_60s"):
 		shot("battle_60s")
-	if session.is_decided() and not captured.has("result"):
-		shot("result")
-		_finish.call_deferred()
+	if session.is_decided():
+		if victory_frames < 9 and battle._result_animation_time >= float(victory_frames) * 0.1:
+			shot("victory_%02d" % victory_frames)
+			victory_frames += 1
+		if battle._result_animation_time >= 1.5 and not finish_scheduled:
+			finish_scheduled = true
+			shot("result")
+			_finish.call_deferred()
 	if Time.get_ticks_msec() - started > 360000:
 		printerr("Visual recording timeout; no completion claim")
 		get_tree().quit(2)
@@ -72,6 +99,6 @@ func _finish() -> void:
 	var file := FileAccess.open("user://visual_slice_report.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"evidenceType": "Real Windows Godot viewport; automated input, not human play",
 		"stage": battle.session.stage.stage_id, "outcome": BattleTypes.outcome_name(battle.session.outcome),
-		"time": battle._now(), "shots": captured.keys(), "attackFrames": attack_frames,
+		"time": battle._now(), "shots": captured.keys(), "attackFrames": attack_frames, "victoryFrames": victory_frames,
 		"summary": battle.session.result_summary(), "audioHistory": audio_history}, "\t"))
 	get_tree().quit()

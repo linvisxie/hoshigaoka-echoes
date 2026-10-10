@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_2_before",
+  "chapterId": "ch1",
+  "title": "1-2 · 迟到的人影",
+  "background": "bg_env_corridor_dusk",
+  "music": "unheard_memory",
+  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "第二天的测验结束后，有人留在教室讨论答案，有人把试卷压进书包最底下。"
+    },
+    {
+      "id": "1",
+      "speaker": "{player}",
+      "character": "",
+      "text": "今天的楼梯没有重复。"
+    },
+    {
+      "id": "2",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "先别放心。你听，脚步声太快了。",
+      "emotion": "serious"
+    },
+    {
+      "id": "3",
+      "speaker": "",
+      "character": "",
+      "text": "走廊另一端掠过一道模糊人影。它追着放学铃，却永远慢上最后一拍。"
+    },
+    {
+      "id": "4",
+      "speaker": "{player}",
+      "character": "",
+      "text": "它和昨天的不一样。"
+    },
+    {
+      "id": "5",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "会从空着的地方冲过去。看清它来的路线，再留下坐标。",
+      "emotion": "serious"
+    },
+    {
+      "id": "6",
+      "speaker": "",
+      "character": "",
+      "text": "窗外，弓道场的方向传来弓弦轻响。一支箭钉住了想绕过楼梯的黑影。"
+    },
+    {
+      "id": "7",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "……悠真？先处理眼前的。",
+      "emotion": "serious"
+    }
+  ]
+}

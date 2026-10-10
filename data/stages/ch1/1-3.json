@@ -170,14 +170,16 @@
   "firstClearRewardId": "reward_1_3_first",
   "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID。表 53 规定 1-3 解锁「神谷悠真 + 学习记录」——角色解锁已通过 availableCharacters 与 characters.json 的 unlockStage 落实。",
   "repeatRewardId": "reward_repeat_standard",
-  "storyBefore": "",
-  "storyAfter": "",
-  "_story_note": "V2.1.4 G-九：剧情在 story/*.json 管理，属 Alpha A0.7。",
+  "storyBefore": "ch1_1_3_before",
+  "storyAfter": "ch1_1_3_after",
+  "_story_note": "V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts.",
   "bossConfig": {},
   "_outOfScope": "不引入装甲（1-4）、不引入监考者（1-5）、不引入沉默学生（1-8）/作弊纸偶（1-9）、不实现编队 UI（表 53 的「编队功能」属 A0.6/A0.7）、不实现局内三选一（A0.6）。",
   "battleRewards": {
     "school_coin": 160,
     "study_record_short": 2,
     "equipment_part": 2
-  }
+  },
+  "stageName": "被批改的空气",
+  "briefing": "试卷飞灵不能被近战阻挡。神谷悠真从后方攻击自己的路线与相邻路线。"
 }

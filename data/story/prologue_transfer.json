@@ -1,8 +1,100 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0",
   "domain": "story",
   "storyId": "prologue_transfer",
-  "_phase0": "Phase 0 占位。序章/转入。Alpha A0.7 起填充节点。",
   "chapterId": "ch1",
-  "nodes": []
+  "title": "序章 · 转入",
+  "background": "bg_env_corridor_dusk",
+  "music": "unheard_memory",
+  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "转入星丘的第一天，放学铃比想象中轻。窗外的樱花落在斜坡上，远处还能听见社团练习的声音。"
+    },
+    {
+      "id": "1",
+      "speaker": "{player}",
+      "character": "",
+      "text": "学生手册、教室钥匙……应该都带齐了。"
+    },
+    {
+      "id": "2",
+      "speaker": "校园广播",
+      "character": "",
+      "text": "离校的同学请注意安全。明日校内测验，请准时到场。"
+    },
+    {
+      "id": "3",
+      "speaker": "",
+      "character": "",
+      "text": "你经过贴着测验通知的公告栏。第三次。走廊尽头的楼梯，依然没有变近。"
+    },
+    {
+      "id": "4",
+      "speaker": "{player}",
+      "character": "",
+      "text": "刚才也经过这里了吧？"
+    },
+    {
+      "id": "5",
+      "speaker": "",
+      "character": "",
+      "text": "窗玻璃映出一张空白试卷。纸面上浮出一道红痕，又在下一秒被擦掉。"
+    },
+    {
+      "id": "6",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "停下。别往那个声音来的方向走。",
+      "emotion": "serious"
+    },
+    {
+      "id": "7",
+      "speaker": "",
+      "character": "",
+      "text": "一名抱着剑袋的学生挡在楼梯前。她头侧的花饰，在突然暗下来的走廊里留着一点白。"
+    },
+    {
+      "id": "8",
+      "speaker": "{player}",
+      "character": "",
+      "text": "你也发现这里一直在重复？"
+    },
+    {
+      "id": "9",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "嗯。你看得见它们……先别问。站到我身后。",
+      "emotion": "serious"
+    },
+    {
+      "id": "10",
+      "speaker": "",
+      "character": "",
+      "text": "纸页翻动的声音从没有人的教室里响起。你的指尖触到墙面，一点微光沿地板延伸，停在她脚边。"
+    },
+    {
+      "id": "11",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "这个坐标……能稳定下来。保持住它，我来拦住前面的东西。",
+      "emotion": "serious"
+    },
+    {
+      "id": "12",
+      "speaker": "{player}",
+      "character": "",
+      "text": "我试试。你也小心。"
+    },
+    {
+      "id": "13",
+      "speaker": "",
+      "character": "",
+      "text": "夕阳仍挂在窗外。走廊里，第一声剑鸣划开了凝固的放学后。"
+    }
+  ]
 }

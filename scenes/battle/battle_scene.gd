@@ -440,8 +440,12 @@ var _autoplay_result_captured := false
 ## 结果界面上的按钮（屏幕像素矩形，绘制与点击共用同一份几何）
 var _relaunch_rect: Rect2 = Rect2()
 var _quit_rect: Rect2 = Rect2()
+var _reward_summary: Dictionary = {}
 var _pause_rect: Rect2 = Rect2()
 var _retreat_rect: Rect2 = Rect2()
+var _skill_rect: Rect2 = Rect2()
+var _special_animations: Dictionary = {}
+var _result_animation_time: float = 0.0
 
 # ---- 局内强化面板状态（纯表现层缓存；唯一真值仍在 domain 层的 pending_offer）----
 ## 上一帧 domain 层是否处于「有强化待选择」。仅用于检测**开始**与**结束**两条边沿，
@@ -570,6 +574,7 @@ func _build_battle() -> void:
 		for e: String in errs:
 			GameLog.error(TAG, "会话构建失败：%s" % e)
 		return
+	session.stage.configure_skills(DataRegistry.get_domain("skills"))
 
 	# Alpha A0.1：把成长面板注入领域层。
 	# 纪律：领域层不自行读取成长数据；由表现层/应用层注入，保持 L3 分层。
@@ -590,8 +595,10 @@ func _build_battle() -> void:
 	session.wave_changed.connect(_on_wave_changed)
 	session.character_healed.connect(_on_character_healed)
 	session.character_deployed.connect(func(_c: CharacterRuntime) -> void: AudioService.play_sfx("deploy"))
+	session.character_deployed.connect(func(character: CharacterRuntime) -> void:
+		_special_animations[character.instance_id] = {"anim": "deploy", "born": _now(), "life": 0.65})
 	session.character_withdrawn.connect(func(_c: CharacterRuntime, _refund: int) -> void: AudioService.play_sfx("retreat"))
-	AudioService.play_music("echo_frontline")
+	AudioService.play_music("corridor_pressure" if stage_id in ["1-4", "1-5"] else "echo_frontline")
 	_last_wave_number = session.stage.current_wave_number()
 
 	# Alpha A0.6（L2132）：1-5 的**首次**三选一是固定教学项，不是随机。
@@ -601,6 +608,11 @@ func _build_battle() -> void:
 
 	# 角色卡顺序 = StageConfig.availableCharacters 顺序
 	_roster = session.stage.available_characters.duplicate()
+	_update_layout()
+	if bool(CampaignFlow.state().get("campaign_active", false)):
+		var order: Array = CampaignFlow.state().get("party_order", [])
+		if order.size() == _roster.size() and order.all(func(cid: Variant) -> bool: return _roster.has(cid)):
+			_roster.assign(order)
 
 	# P1.0：关卡教学条目（V2.1.4 G-九：教学触发点必须数据驱动，不得硬编码在场景脚本）
 	_build_tutorial_queue(stage_config)
@@ -655,7 +667,7 @@ func _update_layout() -> void:
 	var grid_w := tile * float(grid.columns - 1)
 	var core_margin := tile * CORE_MARGIN_TILES
 	var total_w := core_margin + grid_w + tile * 0.5
-	var board_h := _px(grid.lane_spacing_px) * float(grid.lanes - 1) + tile
+	var board_h := _render_lane_spacing() * float(grid.lanes - 1) + tile
 	var hud_h := _px(HUD_BAND_HEIGHT)
 	var card_band := _px(CARD_BAND_HEIGHT)
 
@@ -671,7 +683,7 @@ func _update_layout() -> void:
 		grid_w = tile * float(grid.columns - 1)
 		core_margin = tile * CORE_MARGIN_TILES
 		total_w = core_margin + grid_w + tile * 0.5
-		board_h = _px(grid.lane_spacing_px) * float(grid.lanes - 1) + tile
+		board_h = _render_lane_spacing() * float(grid.lanes - 1) + tile
 		hud_h = _px(HUD_BAND_HEIGHT)
 		card_band = _px(CARD_BAND_HEIGHT)
 		left = (_viewport_size.x - total_w) * 0.5
@@ -680,6 +692,8 @@ func _update_layout() -> void:
 
 	var top := avail_top + maxf(0.0, (avail_h - board_h) * 0.5)
 	_origin = Vector2(left + core_margin, top + tile * 0.5)
+	if session != null and session.stage.stage_id in ["1-1", "1-2", "1-3"]:
+		_origin.y += _px(125.0)
 
 
 ## 从 DataRegistry 组装 { characterId -> CharacterConfig } 表
@@ -1093,9 +1107,9 @@ func _draw_upgrade_overlay() -> void:
 	var tw := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tfs).x
 	draw_string(font, Vector2(cx - tw * 0.5, _px(78.0)), title,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, tfs, Color(0.97, 0.94, 0.74))
-	var sub := "选择一项强化（本局构筑）"
+	var sub := "选择一项，让残响成为你的力量 · 本局有效"
 	if _upgrade_is_tutorial:
-		sub = "教学：首次强化 — 选择一项立即生效（本局有效，离开关卡后清空）"
+		sub = "首次强化 · 选择立即生效，离开关卡后清空"
 	var sfs := int(_px(19.0))
 	var sw := font.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
 	draw_string(font, Vector2(cx - sw * 0.5, _px(112.0)), sub,
@@ -1167,6 +1181,9 @@ func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
 	var x := draw_rect_body.position.x
 	var y := draw_rect_body.position.y
 	var w := draw_rect_body.size.x
+	var key_badge := Rect2(x + _px(16), y + _px(58), _px(38), _px(38))
+	_draw_round_rect(key_badge, _px(5), Color(0.12, 0.17, 0.29), Color(edge, 0.6), 1)
+	draw_string(font, key_badge.position + Vector2(_px(12), _px(27)), str(index + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), edge)
 
 	# ---- ① 顶部类别条 ----
 	var cat_h := _px(40.0)
@@ -1176,11 +1193,11 @@ func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
 		Color(edge.r, edge.g, edge.b, 0.55), 1.5)
 	var cat_text := str(view.get("category", ""))
 	if cat_text.is_empty():
-		cat_text = tier
+		cat_text = "残响强化"
 	draw_string(font, Vector2(x + _px(18.0), y + _px(27.0)), cat_text,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), Color(0.88, 0.92, 1.0))
 	# 层级标签（右侧；CORE 用暖金字色形成记忆点）
-	var tier_text := tier
+	var tier_text: String = {"COMMON": "普通", "ADVANCED": "进阶", "CORE": "核心"}.get(tier, "强化")
 	var tier_col := UPGRADE_TIER_LABEL_COMMON
 	if tier == "CORE":
 		tier_col = UPGRADE_TIER_LABEL_CORE
@@ -1321,6 +1338,8 @@ func _draw_gained_upgrades(font: Font) -> void:
 func _process(delta: float) -> void:
 	if session == null:
 		return
+	if session.is_decided():
+		_result_animation_time += delta
 	var was_running := session.is_running()
 	session.tick(delta)
 	# Alpha A0.6：强化面板的出现 / 消失都以 domain 层的 pending_offer 为唯一真值。
@@ -1470,7 +1489,7 @@ func _consume_kills() -> void:
 		# 与 _draw_death_particles 的几何粒子**同时**播放，两者叠加为更饱满的消散表现。
 		var lane_i := int(r.get("lane", 0))
 		var lx := float(r.get("x", BattleGrid.CORE_X))
-		var spacing_px := _px(grid.lane_spacing_px)
+		var spacing_px := _render_lane_spacing()
 		var anchor := Vector2(_origin.x + _px(grid.logical_to_px_x(lx, 0.0)),
 			_origin.y + float(lane_i) * spacing_px)
 		_spawn_vfx_at("vfx_death", anchor, s.elapsed_seconds, VFX_DEATH_LIFETIME)
@@ -1542,7 +1561,8 @@ func _draw_vfx() -> void:
 		var center: Vector2 = v["pos"]
 		# 尾段淡出（避免突然消失）
 		var fade := 1.0 - k * k
-		var dst := Rect2(center.x - s * 0.5, center.y - s * 0.5, s, s)
+		var effect_size := s * float(v.get("scale", 1.0))
+		var dst := Rect2(center - Vector2.ONE * effect_size * 0.5, Vector2.ONE * effect_size)
 		draw_texture_rect(tex, dst, false, Color(1.0, 1.0, 1.0, fade))
 		_mark_drawn("vfx:%s" % str(v["name"]))
 		_mark_drawn(ArtRegistry.vfx_strip_path(str(v["name"])))
@@ -1687,6 +1707,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if k == KEY_R:
 			_request_retreat_selected()
+			return
+		if k == KEY_Q:
+			_request_skill_selected()
 			return
 		# F1：调试明细开关（默认关闭；V2.1.4 J 章要求战斗 HUD 保持简洁）
 		if k == KEY_F1:
@@ -1853,6 +1876,8 @@ func _handle_left_click(pos: Vector2) -> void:
 
 	# 战斗结束：只处理结果界面上的按钮
 	if session.is_decided():
+		if session.outcome == BattleTypes.Outcome.VICTORY and _result_animation_time < 1.0:
+			return
 		_handle_result_click(pos)
 		return
 
@@ -1871,6 +1896,9 @@ func _handle_left_click(pos: Vector2) -> void:
 		return
 
 	# 操作面板上的撤退按钮
+	if _selected_character_id != 0 and _skill_rect.has_point(pos):
+		_request_skill_selected()
+		return
 	if _selected_character_id != 0 and _retreat_rect.has_point(pos):
 		_request_retreat_selected()
 		return
@@ -1930,11 +1958,15 @@ func _handle_left_click(pos: Vector2) -> void:
 func _handle_result_click(pos: Vector2) -> void:
 	if _relaunch_rect.has_point(pos):
 		GameLog.info(TAG, "玩家选择重新挑战")
+		PrototypeEntry.set_pending_stage_id(session.stage.stage_id)
 		get_tree().reload_current_scene()
 		return
 	if _quit_rect.has_point(pos):
-		GameLog.info(TAG, "玩家选择退出战斗")
-		get_tree().quit()
+		GameLog.info(TAG, "玩家选择返回流程")
+		if bool(CampaignFlow.state().get("campaign_active", false)):
+			CampaignFlow.after_battle()
+		else:
+			SceneRouter.go_to("stage_select")
 
 
 ## 命中测试：屏幕坐标是否落在某个在场角色身上
@@ -1942,7 +1974,7 @@ func _character_at_screen(pos: Vector2) -> CharacterRuntime:
 	if session == null or grid == null:
 		return null
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	var hit_r := tile * 0.34
 	for c: CharacterRuntime in session.stage.characters:
 		if c.is_incapacitated():
@@ -1963,7 +1995,7 @@ func _update_hover(pos: Vector2) -> void:
 		return
 
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 
 	for lane: int in range(grid.lanes):
 		var lane_y := _origin.y + float(lane) * spacing
@@ -2006,16 +2038,18 @@ func _layout_buttons() -> void:
 		Vector2(pw, ph))
 	# 操作面板（选中角色时）的撤退按钮
 	if _selected_character_id != 0:
-		var panel_w := _px(300.0)
-		var panel_h := _px(210.0)
+		var panel_w := _px(430.0)
+		var panel_h := _px(280.0)
 		var panel_pos := Vector2(_viewport_size.x - panel_w - _px(24.0),
 			_viewport_size.y - panel_h - _px(24.0))
 		_retreat_rect = Rect2(
 			panel_pos + Vector2(_px(20.0), panel_h - _px(72.0)),
-			Vector2(panel_w - _px(40.0), _px(52.0))
+			Vector2(_px(150.0), _px(52.0))
 		)
+		_skill_rect = Rect2(panel_pos + Vector2(_px(182.0), panel_h - _px(72.0)), Vector2(_px(228.0), _px(52.0)))
 	else:
 		_retreat_rect = Rect2()
+		_skill_rect = Rect2()
 	# 结果界面按钮
 	if session != null and session.is_decided():
 		var rects := _result_buttons_rect(_result_panel_rect(session.result_summary()))
@@ -2035,7 +2069,7 @@ var _autoplay_attempts: int = 0
 func _drive_autoplay() -> void:
 	# Outcome handling must precede AP waits (the domain clock freezes at outcome).
 	if session.is_decided():
-		if not _autoplay_result_captured:
+		if not _autoplay_result_captured and _result_animation_time >= 1.0:
 			_autoplay_result_captured = true
 			_ap_capture("result")
 			GameLog.info(TAG, "[autoplay] 已确认结果：%s" % BattleTypes.outcome_name(session.outcome))
@@ -2202,13 +2236,13 @@ func _do_capture(shot_name: String) -> void:
 ## 格坐标 -> 屏幕像素（autoplay 注入/点击使用；与 _draw_board 同一换算）
 func _cell_screen_pos(column: int, lane: int) -> Vector2:
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	return Vector2(_origin.x + tile * float(column), _origin.y + float(lane) * spacing)
 
 
 func _screen_to_cell(pos: Vector2) -> Dictionary:
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	for lane: int in range(grid.lanes):
 		var lane_y := _origin.y + float(lane) * spacing
 		if absf(pos.y - lane_y) > tile * 0.5:
@@ -2267,7 +2301,8 @@ func _draw() -> void:
 		_draw_pause_overlay()
 	_draw_upgrade_overlay()
 	if session.is_decided():
-		_draw_result_overlay()
+		if session.outcome != BattleTypes.Outcome.VICTORY or _result_animation_time >= 1.0:
+			_draw_result_overlay()
 
 
 # ============================================================
@@ -2424,7 +2459,7 @@ func _stage_id_for_art() -> String:
 ## 三条路线 + 18 个部署格
 func _draw_board() -> void:
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	var choosing := not _selected_card_id.is_empty()
 	for lane: int in range(grid.lanes):
 		var y := _origin.y + float(lane) * spacing
@@ -2448,14 +2483,14 @@ func _draw_board() -> void:
 ## 残响锚点（三条路线共用一个核心，V2.1.4 D-5 / 3A）
 func _draw_core() -> void:
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	var now := _now()
 	var hp := session.stage.core_hp
 	var danger := hp <= 1
 	var flash := clampf((_core_flash_until - now) / CORE_FLASH_SECONDS, 0.0, 1.0)
 	var energy := Color(0.62, 0.74, 1.0) if not danger else Color(1.0, 0.40, 0.57)
 	energy = energy.lerp(Color(1, 0.94, 0.85), flash)
-	var tower := ArtRegistry.load_texture("res://assets/art/ui/core_tower.svg")
+	var tower := ArtRegistry.load_texture("res://assets/art/ui/core_tower.png")
 	var core_center := Vector2(_origin.x - tile * 0.92, _origin.y + spacing)
 	if tower != null:
 		var tower_h := spacing * 2.0 + tile * 0.34
@@ -2501,7 +2536,7 @@ func _draw_ground_shadow(center: Vector2, radius: float, col: Color) -> void:
 ## 颜色同样按职责区分；选中时统一叠白描边。
 func _draw_characters(lane_filter: int = -1) -> void:
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	var now := _now()
 	for c: CharacterRuntime in session.stage.characters:
 		if lane_filter >= 0 and c.lane != lane_filter:
@@ -2550,13 +2585,22 @@ func _draw_characters(lane_filter: int = -1) -> void:
 					c.character_id, st.anim, now)
 			if frame_tex != null:
 				sprite = frame_tex
+			var special: Dictionary = _special_animations.get(c.instance_id, {})
+			if not special.is_empty() and not c.is_incapacitated() and char_hit_k <= 0.0:
+				var pose_time := _result_animation_time if str(special["anim"]) == "victory" else now
+				var progress := (pose_time - float(special["born"])) / float(special["life"])
+				if progress >= 0.0 and progress < 1.0:
+					var special_tex := ArtRegistry.character_frame_progress(c.character_id, str(special["anim"]), progress)
+					if special_tex != null:
+						sprite = special_tex
+						_mark_drawn("char_special:" + str(special["anim"]))
 			var redrawn := c.character_id in ["amamiya_mio", "kamiya_yuma"]
 			_draw_sprite_anchored(sprite, Vector2(px_x, px_y), tile * (1.28 if redrawn else 0.96), mod, 0.25 if redrawn else 0.33)
 			if frame_tex != null:
 				_mark_drawn("char_anim:%s" % st.anim)
 				_mark_drawn(ArtRegistry.character_strip_path(c.character_id, st.anim))
 			if selected:
-				_draw_selection_ring(Vector2(px_x, px_y), tile * 0.40)
+				_draw_selection_ring(Vector2(px_x, px_y + tile * (0.32 if redrawn else 0.3168)), tile * 0.40)
 		else:
 			match c.behavior:
 				CharacterRuntime.Behavior.RANGED:
@@ -2829,9 +2873,12 @@ func _draw_sprite_anchored(tex: Texture2D, center: Vector2, target_h: float,
 
 ## 选中环：双色同心圆，读作"已选中"而不遮挡 Sprite。
 func _draw_selection_ring(center: Vector2, radius: float) -> void:
-	draw_circle(center, radius, Color(1.0, 0.92, 0.45, 0.16), true)
-	draw_circle(center, radius, Color(1.0, 0.92, 0.45, 0.90), false, 2.0)
-	draw_circle(center, radius * 0.72, Color(1.0, 1.0, 1.0, 0.35), false, 1.0)
+	var points := PackedVector2Array()
+	for i: int in range(33):
+		var angle := TAU * float(i) / 32.0
+		points.append(center + Vector2(cos(angle) * radius, sin(angle) * radius * 0.22))
+	draw_colored_polygon(points, Color(0.64, 0.85, 1.0, 0.10))
+	draw_polyline(points, Color(0.72, 0.9, 1.0, 0.8), _px(2), true)
 
 ## 敌人（占位方块，按类型着色）。
 ## P0.3 表现层修复：同一接触线上的多个敌人不再完全重叠——
@@ -2839,7 +2886,7 @@ func _draw_selection_ring(center: Vector2, radius: float) -> void:
 ## 逻辑坐标、射程、接触线与阻挡判定完全不受影响。
 func _draw_enemies(lane_filter: int = -1) -> void:
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	var seen := {}
 	for e: EnemyRuntime in session.stage.enemies:
 		if lane_filter >= 0 and e.lane != lane_filter:
@@ -3063,7 +3110,7 @@ func _hit_flash_k(kind: String, target_id: int) -> float:
 ## 中心留一瞬白色晶体核，再叠一层扩散残光圆环。
 ## 纪律：纯表现层，粒子只读已结算的 KILLED 记录，不参与任何战斗判定。
 func _draw_death_particles() -> void:
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	var now := _now()
 	for p: Dictionary in _death_particles:
 		var k := clampf((now - float(p["at"])) / DEATH_PARTICLE_LIFETIME, 0.0, 1.0)
@@ -3123,7 +3170,7 @@ func _draw_death_particles() -> void:
 ##   治疗 → 绿色 +N（由 _heal_flashes 绘制，见 _draw_characters）
 func _draw_damage_pops() -> void:
 	var font := ThemeDB.fallback_font
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	var tile := _px(grid.tile_size_px)
 	var now := _now()
 	for p: Dictionary in _damage_pops:
@@ -3187,7 +3234,7 @@ func _draw_damage_pops() -> void:
 func _damage_pop_anchor(kind: String, target_id: int) -> Vector2:
 	if grid == null:
 		return Vector2(-1, -1)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	if kind == "enemy":
 		var e := session.stage.get_enemy(target_id)
 		if e == null or not e.is_active():
@@ -3206,7 +3253,7 @@ func _damage_pop_anchor(kind: String, target_id: int) -> Vector2:
 ## 本轮美术施工：扩散光环（双层）+ 上浮星形 + 十字落位标记，读作"共鸣者就位"。
 func _draw_deploy_pops() -> void:
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	var now := _now()
 	for p: Dictionary in _deploy_pops:
 		var k := clampf((now - float(p["at"])) / DEPLOY_POP_LIFETIME, 0.0, 1.0)
@@ -3280,7 +3327,7 @@ func _draw_lane_warnings() -> void:
 	if _lane_warnings.is_empty():
 		return
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 	var entry_x := _origin.x + tile * float(grid.columns - 1) + tile * 0.62
 	var now := _now()
 	var font := ThemeDB.fallback_font
@@ -3371,7 +3418,7 @@ func _draw_deploy_feedback() -> void:
 	if not session.is_running() or session.is_paused():
 		return
 	var tile := _px(grid.tile_size_px)
-	var spacing := _px(grid.lane_spacing_px)
+	var spacing := _render_lane_spacing()
 
 	for lane: int in range(grid.lanes):
 		for column: int in range(grid.columns):
@@ -3644,7 +3691,7 @@ func _draw_character_panel() -> void:
 	if c == null:
 		return
 	var font := ThemeDB.fallback_font
-	var size := Vector2(_px(300.0), _px(210.0))
+	var size := Vector2(_px(430.0), _px(280.0))
 	var pos := Vector2(_viewport_size.x - size.x - _px(24.0),
 		_viewport_size.y - size.y - _px(24.0))
 	draw_rect(Rect2(pos, size), PANEL_BG, true)
@@ -3671,6 +3718,18 @@ func _draw_character_panel() -> void:
 	draw_string(font, Vector2(tx, ty),
 		"撤退返还 %d AP，冷却 %.0f 秒" % [refund, c.redeploy_time],
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), Color(0.85, 0.80, 0.55))
+	ty += _px(30.0)
+	var skill_label := str(c.skill_config.get("name", "无主动技能"))
+	var skill_state := "就绪"
+	if c.skill_charged:
+		skill_state = "已蓄力 · 下次命中释放"
+	elif c.skill_active_remaining > 0:
+		skill_state = "生效中 %.1f 秒" % c.skill_active_remaining
+	elif c.skill_cooldown_remaining > 0:
+		skill_state = "冷却 %.1f 秒" % c.skill_cooldown_remaining
+	draw_string(font, Vector2(tx, ty), "%s  /  %s" % [skill_label, skill_state], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)), Color(0.75, 0.88, 1.0))
+	_draw_round_rect(_skill_rect, _px(8), BUTTON_HOVER if c.skill_ready() else Color(0.15, 0.18, 0.28), Color(0.65, 0.78, 0.94), 1.5)
+	draw_string(font, _skill_rect.position + Vector2(_px(18), _px(34)), "释放技能（Q）" if c.skill_ready() else skill_state, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19)), TEXT_COLOR)
 
 	# 撤退按钮
 	var hovered := _retreat_rect.has_point(_mouse_pos)
@@ -3682,6 +3741,22 @@ func _draw_character_panel() -> void:
 		Vector2(_retreat_rect.position.x + (_retreat_rect.size.x - label_w) * 0.5,
 			_retreat_rect.position.y + _retreat_rect.size.y * 0.68),
 		label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), Color(1, 0.94, 0.94))
+
+
+func _request_skill_selected() -> void:
+	if session == null or _selected_character_id == 0:
+		return
+	var result := session.cast_skill(_selected_character_id)
+	if not bool(result.get("ok", false)):
+		_show_feedback(str(result.get("reason", "当前无法释放技能")), Color(1.0, 0.7, 0.55))
+		return
+	var character := session.stage.get_character(_selected_character_id)
+	_special_animations[character.instance_id] = {"anim": "skill", "born": _now(), "life": 0.7}
+	var anchor := _logical_to_screen(Vector2(character.column, character.lane))
+	_spawn_vfx_at("vfx_slash" if character.character_id == "amamiya_mio" else "vfx_arrow", anchor, _now(), 0.8)
+	_vfx[-1]["scale"] = 2.0
+	AudioService.play_sfx("mio_skill" if character.character_id == "amamiya_mio" else "yuma_skill")
+	_show_feedback(str(result.get("name", "技能释放")), Color(0.8, 0.9, 1.0))
 
 
 ## 顶部中央：Wave 进度 + 下一波预告（独立底板，与左右两区视觉分层）。
@@ -3870,45 +3945,10 @@ func _draw_pause_overlay() -> void:
 ## 860×680 面板会让复盘文字与按钮重叠（实测布局计算溢出 100+ px）。
 ## 现在高度按**内容行数**推导，并把按钮放在面板内底部，
 ## 因此「画出来的面板」与「能点的按钮」不可能对不上。
-func _result_panel_rect(summary: Dictionary) -> Rect2:
-	var w := _px(860.0)
-	var main_rows := 6                       # 与 _draw_result_overlay 的 lines 数量一致
-	var build_rows := 0
-	var gained: Array[Dictionary] = []
-	if session != null and session.stage != null:
-		gained = session.stage.upgrade_summary()
-	if gained.is_empty():
-		build_rows = 1
-	else:
-		build_rows = gained.size()
-		var cats: Array[String] = []
-		for g: Dictionary in gained:
-			var cat := str(g.get("category", ""))
-			if not cat.is_empty() and not cats.has(cat):
-				cats.append(cat)
-		if not cats.is_empty():
-			build_rows += 1
-	var review_rows := 0
-	if not summary.is_empty():
-		review_rows = _build_review_lines(summary).size()
-	# 参考画布单位下的纵向预算（与绘制代码的 ly 推进逐段对应）
-	var h_ref := 180.0                      # 标题区 + 一句话结论
-	h_ref += float(main_rows) * 28.0        # 主要结算数据
-	h_ref += 10.0 + 30.0                    # 构筑分隔 + 小标题
-	h_ref += float(maxi(build_rows, 1)) * 24.0
-	h_ref += 14.0 + 36.0                    # 复盘分隔 + 小标题
-	h_ref += float(review_rows) * 26.0
-	h_ref += 28.0 + 64.0 + 28.0             # 内容与按钮间距 + 按钮 + 底部留白
-	var h := _px(h_ref)
-	# 视口不足时压缩（只压面板，不压字号，保证文字仍可读）
-	var max_h := _viewport_size.y - _px(40.0)
-	h = minf(h, max_h)
-	var x := _viewport_size.x * 0.5 - w * 0.5
-	var y := _viewport_size.y * 0.5 - h * 0.5
-	return Rect2(Vector2(x, y), Vector2(w, h))
+func _result_panel_rect(_summary: Dictionary) -> Rect2:
+	var size := Vector2(_px(1320), _px(850))
+	return Rect2((_viewport_size - size) * 0.5, size)
 
-
-## 结果面板底部两个按钮的命中矩形（由面板矩形推导，返回 [重新挑战, 退出战斗]）。
 func _result_buttons_rect(panel: Rect2) -> Array[Rect2]:
 	var bw := _px(240.0)
 	var bh := _px(64.0)
@@ -3935,159 +3975,64 @@ func _draw_result_overlay() -> void:
 	if summary.is_empty():
 		return
 	var font := ThemeDB.fallback_font
-	draw_rect(Rect2(Vector2.ZERO, _viewport_size), Color(0.02, 0.03, 0.06, 0.78), true)
-
 	var victory := bool(summary["victory"])
-	# 主题：胜利 = 暖金，失败 = 暗红（语义明确）
-	var theme := RESULT_WIN_THEME if victory else RESULT_LOSE_THEME
-	var panel_bg := RESULT_WIN_BG if victory else RESULT_LOSE_BG
-	var panel_edge := RESULT_WIN_EDGE if victory else RESULT_LOSE_EDGE
-	var titlebar_fill := Color(0.185, 0.150, 0.075, 0.96) if victory \
-		else Color(0.190, 0.075, 0.095, 0.96)
-
-	# 面板高度由内容驱动（Alpha A0.6 加入「本局构筑」区块后，原先写死的 680
-	# 会与复盘区块、按钮发生重叠）。绘制与按钮布局共用同一次几何计算，
-	# 保证「画出来的面板」与「按钮命中区」永远一致。
+	var accent := Color(0.91, 0.79, 0.56) if victory else Color(1.0, 0.48, 0.56)
+	draw_rect(Rect2(Vector2.ZERO, _viewport_size), Color(0.015, 0.025, 0.07, 0.72))
 	var panel := _result_panel_rect(summary)
-	_draw_cut_panel(panel, _px(24.0), panel_bg, panel_edge, 3.0)
-	_draw_corner_marks(panel, _px(26.0), theme, 2.5)
-
-	# ---- 标题区：整块实底 + 主题描边 + 大号胜负标题 ----
-	var bar_h := _px(RESULT_TITLEBAR_H)
-	var bar := Rect2(panel.position, Vector2(panel.size.x, bar_h))
-	draw_rect(bar, titlebar_fill, true)
-	draw_line(Vector2(bar.position.x, bar.position.y + bar_h),
-		Vector2(bar.position.x + bar.size.x, bar.position.y + bar_h), theme, 2.5)
-
-	var title := "胜 利" if victory else "失 败"
-	var tcol := theme
-	var cx := _viewport_size.x * 0.5
-	var tsize := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(58.0))).x
-	draw_string(font, Vector2(cx - tsize * 0.5, panel.position.y + _px(76.0)), title,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(58.0)), tcol)
-
-	# 一句话结论：让玩家立刻知道发生了什么
-	var reason := ""
-	if victory:
-		reason = "残响锚点守住了全部 %d 个 Wave" % int(summary["waveTotal"])
-	else:
-		reason = "残响锚点被击穿：%d 名敌人突破了防线" % int(summary["leaked"])
-	var rsize := font.get_string_size(reason, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
-	draw_string(font, Vector2(cx - rsize * 0.5, panel.position.y + _px(128.0)), reason,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), DIM_TEXT)
-
-	# ---- 主要结算数据 ----
-	var lines := [
-		"核心剩余 HP：%d / %d" % [int(summary["coreHp"]), int(summary["coreHpMax"])],
-		"击杀敌人：%d / %d      漏怪：%d" % [
-			int(summary["kills"]), int(summary["planned"]), int(summary["leaked"])],
-		"Wave 进度：%d / %d" % [int(summary["wave"]), int(summary["waveTotal"])],
-		"角色撤退：%d 次（返还 %d AP）      失能：%d" % [
-			int(summary["retreats"]), int(summary["retreatAp"]), int(summary["lost"])],
-		"治疗总量：%d HP" % int(summary["healedTotal"]),
-		"战斗时长：%.1f 秒" % float(summary["elapsed"]),
+	_draw_round_rect(panel, _px(12), Color(0.035, 0.055, 0.12, 0.97), Color(accent, 0.75), 2)
+	var left := panel.position.x + _px(55)
+	var top := panel.position.y
+	var title := "残响平息" if victory else "锚点失守"
+	draw_string(font, Vector2(left, top + _px(88)), title, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(52)), accent)
+	draw_string(font, Vector2(left, top + _px(132)), "%s  ·  %s" % [_stage_display_name(), "全员撤离，记录已保存" if not victory else "调查记录已保存"],
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(23)), Color(0.68, 0.76, 0.9))
+	draw_line(Vector2(left, top + _px(160)), Vector2(panel.end.x - _px(55), top + _px(160)), Color(accent, 0.35), _px(1))
+	var stats: Array = [
+		["核心防线", "%d / %d" % [summary["coreHp"], summary["coreHpMax"]]],
+		["击退残响", "%d / %d" % [summary["kills"], summary["planned"]]],
+		["突破防线", str(summary["leaked"])],
+		["角色失能", str(summary["lost"])],
+		["战斗用时", "%02d:%02d" % [int(summary["elapsed"]) / 60, int(summary["elapsed"]) % 60]],
+		["完成波次", "%d / %d" % [summary["wave"], summary["waveTotal"]]],
 	]
-	var ly := panel.position.y + _px(180.0)
-	for line: String in lines:
-		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
-		draw_string(font, Vector2(cx - lw * 0.5, ly), line,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), TEXT_COLOR)
-		ly += _px(28.0)
-
-	# ---- 本局构筑（Alpha A0.6，L2136～2137「这局我是靠什么赢的」）----
-	#
-	# 为什么放在主要结算数据之后、复盘之前：玩家读完胜负数字后的第一个疑问就是
-	# 「我这一局和别人有什么不同」，构筑是本局唯一可变的部分，因此优先于通用复盘。
-	# 纪律：内容**全部来自域层 upgrade_summary()**（数据来自 upgrades.json），
-	# 表现层不推断、不美化、不补默认值；本局没选过强化时明确写「本局未获得强化」
-	# （1-1～1-4 与跳过强化的局都会走到这里，不能留空让人以为界面坏了）。
-	var gained: Array[Dictionary] = []
-	if session != null and session.stage != null:
-		gained = session.stage.upgrade_summary()
-	ly += _px(10.0)
-	draw_line(Vector2(panel.position.x + _px(60.0), ly - _px(18.0)),
-		Vector2(panel.position.x + panel.size.x - _px(60.0), ly - _px(18.0)),
-		RESULT_DIVIDER, 1.5)
-	var bhead := "本局构筑：你是靠什么打的"
-	var bhfs := int(_px(19.0))
-	var bhw := font.get_string_size(bhead, HORIZONTAL_ALIGNMENT_LEFT, -1, bhfs).x
-	var build_col := Color(0.78, 0.90, 1.0) if victory else Color(0.92, 0.78, 0.60)
-	var btag := Rect2(Vector2(cx - bhw * 0.5 - _px(12.0), ly - _px(15.0)),
-		Vector2(bhw + _px(24.0), _px(26.0)))
-	_draw_tag(btag, Color(build_col.r, build_col.g, build_col.b, 0.16),
-		Color(build_col.r, build_col.g, build_col.b, 0.55))
-	draw_string(font, Vector2(cx - bhw * 0.5, ly + _px(4.0)), bhead,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, bhfs, build_col)
-	ly += _px(30.0)
+	for i: int in range(stats.size()):
+		var x := left + _px(float(i % 3) * 225)
+		var y := top + _px(210 + float(i / 3) * 110)
+		draw_string(font, Vector2(x, y), stats[i][0], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(21)), Color(0.63, 0.71, 0.86))
+		draw_string(font, Vector2(x, y + _px(49)), stats[i][1], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(38)), TEXT_COLOR)
+	var reward_x := left + _px(740)
+	var reward_rect := Rect2(reward_x - _px(22), top + _px(190), _px(470), _px(330))
+	_draw_round_rect(reward_rect, _px(8), Color(0.09, 0.12, 0.21, 0.80), Color(0.30, 0.4, 0.58, 0.65), 1)
+	draw_string(font, Vector2(reward_x, top + _px(230)), "本次奖励" if victory else "重新整备", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(27)), accent)
+	var granted: Dictionary = _reward_summary.get("granted", {})
+	var ry := top + _px(280)
+	if granted.is_empty():
+		var note := "失败不扣除已有资源" if not victory else str(_reward_summary.get("reason", "本次没有奖励"))
+		draw_string(font, Vector2(reward_x, ry), note, HORIZONTAL_ALIGNMENT_LEFT, _px(430), int(_px(22)), DIM_TEXT)
+	for cid: String in granted:
+		draw_string(font, Vector2(reward_x, ry), _currency_display_name(cid), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), TEXT_COLOR)
+		draw_string(font, Vector2(reward_x + _px(325), ry), "+%d" % int(granted[cid]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24)), Color(0.66, 0.94, 0.79))
+		ry += _px(41)
+	var by := top + _px(455)
+	draw_string(font, Vector2(left, by), "本局构筑", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(25)), Color(0.63, 0.85, 1))
+	var gained := session.stage.upgrade_summary()
 	if gained.is_empty():
-		var none_line := "本局未获得强化（本关未开放，或你选择了跳过）"
-		var nlfs := int(_px(17.0))
-		var nlw := font.get_string_size(none_line, HORIZONTAL_ALIGNMENT_LEFT, -1, nlfs).x
-		draw_string(font, Vector2(cx - nlw * 0.5, ly), none_line,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, nlfs, Color(0.62, 0.68, 0.80))
-		ly += _px(24.0)
+		draw_string(font, Vector2(left, by + _px(42)), "本局未获得强化", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), DIM_TEXT)
 	else:
-		for g: Dictionary in gained:
-			var line := "%s ×%d  ——  %s" % [
-				str(g.get("name", "")), int(g.get("stacks", 1)),
-				str(g.get("description", ""))]
-			var glfs := int(_px(17.0))
-			var glw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, glfs).x
-			draw_string(font, Vector2(cx - glw * 0.5, ly), line,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, glfs, Color(0.92, 0.94, 0.76))
-			ly += _px(24.0)
-		# 一句话总结本局的构筑方向（用**类别**归纳，不编造效果）
-		var cats: Array[String] = []
-		for g: Dictionary in gained:
-			var cat := str(g.get("category", ""))
-			if not cat.is_empty() and not cats.has(cat):
-				cats.append(cat)
-		if not cats.is_empty():
-			var summary_line := "构筑方向：%s" % "、".join(cats)
-			var slfs := int(_px(16.0))
-			var slw := font.get_string_size(summary_line, HORIZONTAL_ALIGNMENT_LEFT, -1, slfs).x
-			draw_string(font, Vector2(cx - slw * 0.5, ly), summary_line,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, slfs, Color(0.70, 0.80, 0.94))
-			ly += _px(22.0)
+		for i: int in range(mini(3, gained.size())):
+			var g: Dictionary = gained[i]
+			draw_string(font, Vector2(left, by + _px(42 + i * 32)), "%s ×%d" % [g.get("name", ""), int(g.get("stacks", 1))], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), TEXT_COLOR)
+	var review := _build_review_lines(summary)
+	var y := top + _px(605)
+	draw_line(Vector2(left, y - _px(25)), Vector2(panel.end.x - _px(55), y - _px(25)), Color(accent, 0.25), 1)
+	for i: int in range(mini(3, review.size())):
+		draw_string(font, Vector2(left, y + _px(i * 31)), review[i], HORIZONTAL_ALIGNMENT_LEFT, _px(1200), int(_px(22)), Color(0.73, 0.80, 0.93))
+	_draw_button(_relaunch_rect, "重新挑战", Color(0.13, 0.20, 0.34))
+	var next_label := "返回关卡"
+	if bool(CampaignFlow.state().get("campaign_active", false)):
+		next_label = "继续剧情" if not str(CampaignFlow.state().get("pending_story_after", "")).is_empty() else "返回校园"
+	_draw_button(_quit_rect, next_label, Color(0.25, 0.31, 0.44))
 
-	# ---- 复盘区块（V2.1.4 G-八）：失败时解释原因，胜利时给出压力分布 ----
-	#
-	# A0.6 加固：本区块**锚定在按钮之上**（必要时向上收拢）。
-	# 加入「本局构筑」后前面内容变高，若不收拢，复盘文字会与按钮重叠。
-	var review_lines := _build_review_lines(summary)
-	var result_buttons := _result_buttons_rect(panel)
-	var review_block_h := _px(36.0) + float(review_lines.size()) * _px(26.0)
-	var bottom_limit := result_buttons[0].position.y - _px(14.0)
-	ly = minf(ly, bottom_limit - review_block_h)
-	ly += _px(14.0)
-	draw_line(Vector2(panel.position.x + _px(60.0), ly - _px(24.0)),
-		Vector2(panel.position.x + panel.size.x - _px(60.0), ly - _px(24.0)),
-		RESULT_DIVIDER, 1.5)
-	var head := "复盘：为什么会输" if not victory else "复盘：本局压力分布"
-	var hfs := int(_px(19.0))
-	var hw := font.get_string_size(head, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
-	var head_col := Color(0.95, 0.72, 0.45) if not victory else Color(0.72, 0.88, 1.0)
-	# 小标题带底色标签，与正文分层（标签底边在分隔线之下，不与之相交）
-	var head_tag := Rect2(Vector2(cx - hw * 0.5 - _px(12.0), ly - _px(15.0)),
-		Vector2(hw + _px(24.0), _px(26.0)))
-	_draw_tag(head_tag, Color(theme.r, theme.g, theme.b, 0.16),
-		Color(theme.r, theme.g, theme.b, 0.55))
-	draw_string(font, Vector2(cx - hw * 0.5, ly + _px(4.0)), head,
-		HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, head_col)
-	ly += _px(36.0)
-	for line: String in review_lines:
-		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0))).x
-		draw_string(font, Vector2(cx - lw * 0.5, ly), line,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), Color(0.82, 0.87, 0.98))
-		ly += _px(26.0)
-
-	# 按钮（带悬停态；胜利/失败用不同按钮语义色）
-	_draw_button(_relaunch_rect, "重新挑战", Color(0.22, 0.45, 0.72))
-	_draw_button(_quit_rect, "退出战斗", Color(0.42, 0.28, 0.32))
-
-
-## 构建复盘文案（V2.1.4 G-八）。
-## 纪律：不使用嘲讽或惩罚性文案；每条都指向「下一次可以怎么改」。
 func _build_review_lines(summary: Dictionary) -> Array[String]:
 	var out: Array[String] = []
 	var victory := bool(summary["victory"])
@@ -4123,8 +4068,10 @@ func _build_review_lines(summary: Dictionary) -> Array[String]:
 		if int(summary["heals"]) == 0:
 			out.append("本局没有任何治疗：治疗角色能显著延长前线存活时间")
 	else:
-		out.append("总治疗量 %d HP，前线靠治疗维持住了阻挡"
-			% int(summary["healedTotal"]))
+		if int(summary["healedTotal"]) > 0:
+			out.append("总治疗量 %d HP" % int(summary["healedTotal"]))
+		else:
+			out.append("本局未发生治疗；留意前线生命与撤退冷却")
 		if int(summary["retreats"]) > 0:
 			out.append("使用 %d 次主动撤退完成换线，这是本关的关键操作"
 				% int(summary["retreats"]))
@@ -4192,6 +4139,10 @@ func _refresh_debug_lines() -> void:
 
 
 func _on_outcome_decided(_outcome: int) -> void:
+	_result_animation_time = 0.0
+	if _outcome == BattleTypes.Outcome.VICTORY:
+		for character: CharacterRuntime in session.stage.characters:
+			_special_animations[character.instance_id] = {"anim": "victory", "born": 0.0, "life": 1.5}
 	AudioService.stop_music()
 	AudioService.play_sfx("victory" if _outcome == BattleTypes.Outcome.VICTORY else "defeat")
 	_layout_buttons()
@@ -4220,6 +4171,7 @@ func _grant_battle_rewards() -> void:
 		return
 	var victory := session.outcome == BattleTypes.Outcome.VICTORY
 	var res := StageRewardService.settle(_stage_config_for_rewards, victory)
+	_reward_summary = {"granted": res.granted.duplicate(), "reason": res.reason, "firstClear": res.first_clear, "ok": res.ok}
 	if not res.ok:
 		GameLog.error(TAG, "关卡结算失败：%s" % res.reason)
 		_show_feedback("结算异常：%s" % res.reason, Color(0.98, 0.4, 0.4))
@@ -4285,7 +4237,7 @@ func _now() -> float:
 ## Resolve logical tiles/lane at render time; no battle geometry is changed.
 func _logical_to_screen(pos: Vector2) -> Vector2:
 	return Vector2(_origin.x + _px(grid.tile_size_px) * pos.x,
-		_origin.y + _px(grid.lane_spacing_px) * pos.y)
+		_origin.y + _render_lane_spacing() * pos.y)
 
 func _update_animation_states(now: float) -> void:
 	if not _art_checked:
@@ -4339,9 +4291,10 @@ func _draw_departures() -> void:
 			texture = ArtRegistry.enemy_frame_progress(code, "death", progress)
 		if texture == null:
 			continue
-		var height := _px(grid.tile_size_px) * (0.96 if kind == "character" else 0.72)
+		var redrawn := kind == "character" and code in ["amamiya_mio", "kamiya_yuma"]
+		var height := _px(grid.tile_size_px) * (1.28 if redrawn else (0.96 if kind == "character" else 0.72))
 		_draw_sprite_anchored(texture, _logical_to_screen(ghost["logical"]), height,
-			Color(1, 1, 1, 1.0 - progress), 0.33 if kind == "character" else 0.42)
+			Color(1, 1, 1, 1.0 - progress), 0.25 if redrawn else (0.33 if kind == "character" else 0.42))
 		if progress < 1.0:
 			_mark_drawn("%s_anim:death" % ("char" if kind == "character" else "enemy"))
 			var path := ArtRegistry.character_strip_path(code, "death") if kind == "character" else ArtRegistry.enemy_strip_path(code, "death")
@@ -4409,3 +4362,8 @@ func _write_art_probe() -> void:
 func _report_after_last_draw() -> void:
 	await RenderingServer.frame_post_draw
 	report_unreachable_art()
+
+
+func _render_lane_spacing() -> float:
+	var factor := 0.75 if session != null and session.stage.stage_id in ["1-1", "1-2", "1-3"] else 1.0
+	return _px(grid.lane_spacing_px) * factor

@@ -155,14 +155,16 @@
   "firstClearRewardId": "reward_1_5_first",
   "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID，不在 StageConfig 里写金额。表 53 规定 1-5 首通「精英标记；社团徽章 ×3」。",
   "repeatRewardId": "reward_repeat_standard",
-  "storyBefore": "",
-  "storyAfter": "",
-  "_story_note": "V2.1.4 G-九：剧情在 story/*.json 管理，属 Alpha A0.7。表 53 的「成立观测会」剧情属 A0.7。",
+  "storyBefore": "ch1_1_5_before",
+  "storyAfter": "ch1_1_5_after",
+  "_story_note": "V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts.",
   "bossConfig": {},
   "_outOfScope": "不引入沉默学生（1-8）/作弊纸偶（1-9）/排名幽灵（1-7）/焦虑团块（1-6）、不实现主动技能系统、不实现局内三选一（A0.6）、不实现精英 UI 标记（属表现层后续阶段）。",
   "battleRewards": {
     "school_coin": 160,
     "study_record_short": 2,
     "equipment_part": 2
-  }
+  },
+  "stageName": "监考者",
+  "briefing": "监考者的注视会拖慢角色攻击，低生命时会加速。处理杂兵并在首次三选一中选择适合阵容的强化。"
 }

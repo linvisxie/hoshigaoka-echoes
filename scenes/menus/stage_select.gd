@@ -507,16 +507,15 @@ func _activate(index: int) -> void:
 	else:
 		GameLog.info(TAG, "进入关卡 %s" % id)
 
-	PrototypeEntry.set_pending_stage_id(id)
 	_busy = true
-	if not SceneRouter.go_to("battle"):
+	if not CampaignFlow.open_stage(id):
 		_busy = false
 		_show("进入战斗失败", WARN)
 
 
 func _back_to_title() -> void:
 	_busy = true
-	if not SceneRouter.go_to("title"):
+	if not SceneRouter.go_to("home" if bool(CampaignFlow.state().get("campaign_active", false)) else "title"):
 		_busy = false
 		_show("返回标题失败", WARN)
 

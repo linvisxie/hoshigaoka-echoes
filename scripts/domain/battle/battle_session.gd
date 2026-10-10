@@ -117,6 +117,11 @@ func deploy_character(character_id: String, column: int, lane: int) -> StageRunt
 		deploy_rejected.emit(character_id, res.reason)
 	return res
 
+func cast_skill(instance_id: int) -> Dictionary:
+	if _frozen or stage == null:
+		return {"ok": false, "reason": "战斗已经结束"}
+	return stage.cast_skill(instance_id)
+
 
 ## 主动撤退（V2.1.4 D-9 / 表 24）。
 ## 幂等：领域层以「角色是否仍在场」为准，重复调用不会二次返还 AP。

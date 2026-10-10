@@ -35,8 +35,12 @@
       "redeployTime": 20.0,
       "_redeployTime_spec": "V2.1.4 D 章表 26『重新部署 20 秒』与表 24『普通角色冷却 20 秒』一致。",
       "damageType": "PHYSICAL",
-      "skillIds": [],
-      "talentIds": [],
+      "skillIds": [
+        "mio_evening_flash"
+      ],
+      "talentIds": [
+        "mio_captain_will"
+      ],
       "unlockStage": "1-1",
       "spriteFramePx": 64,
       "artRefs": {
@@ -81,8 +85,12 @@
       "deployCost": 12,
       "redeployTime": 20.0,
       "damageType": "PHYSICAL",
-      "skillIds": [],
-      "talentIds": [],
+      "skillIds": [
+        "yuma_piercing_arrow"
+      ],
+      "talentIds": [
+        "yuma_focus"
+      ],
       "unlockStage": "1-3",
       "_unlockStage_spec": "V2.1.4 G-三 / 表 51：神谷悠真 1-2 剧情出现、1-3 常规可部署。P0.4 不得为测试方便把他解锁到 1-1。",
       "spriteFramePx": 64,

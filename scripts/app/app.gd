@@ -110,6 +110,11 @@ func level_stats_table() -> Dictionary:
 		var p: CharacterProgress = growth.get_progress(cid)
 		if p != null:
 			out[cid] = p.compute_stats()
+			var bonuses := EquipmentService.bonuses_for_character(SaveService.get_current(), cid)
+			for key: String in ["hp", "attack", "defense", "healPower"]:
+				if bonuses.has(key):
+					out[cid][key] = int(out[cid].get(key, 0)) + int(bonuses[key])
+			out[cid]["equipmentBonuses"] = bonuses
 	return out
 
 

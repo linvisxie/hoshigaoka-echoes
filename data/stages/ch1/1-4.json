@@ -144,14 +144,16 @@
   "firstClearRewardId": "reward_1_4_first",
   "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID，不在 StageConfig 里写金额。表 53 规定 1-4 首通「基础装备材料 + 社团徽章 ×3」——待 A0.4 经济阶段填充 stage_rewards.json 后接入（社团徽章是突破 I 的材料，H 章七）。",
   "repeatRewardId": "reward_repeat_standard",
-  "storyBefore": "",
-  "storyAfter": "",
-  "_story_note": "V2.1.4 G-九：剧情在 story/*.json 管理，属 Alpha A0.7。",
+  "storyBefore": "ch1_1_4_before",
+  "storyAfter": "ch1_1_4_after",
+  "_story_note": "V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts.",
   "bossConfig": {},
   "_outOfScope": "不引入试卷飞灵/监考者（数据不存在）、不实现装备系统（A0.5）、不实现局内三选一（A0.6）。",
   "battleRewards": {
     "school_coin": 160,
     "study_record_short": 2,
     "equipment_part": 2
-  }
+  },
+  "stageName": "背得太多",
+  "briefing": "装甲残响防御较高。前线承压时保持后方输出，留意澪的生命与再部署冷却。"
 }

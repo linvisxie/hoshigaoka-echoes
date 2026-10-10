@@ -19,6 +19,13 @@ const SCENES := {
 	"stage_select": "res://scenes/menus/stage_select.tscn",
 	"title": "res://scenes/title/title.tscn",
 	"home": "res://scenes/home/home.tscn",
+	"story": "res://scenes/story/story.tscn",
+	"briefing": "res://scenes/menus/briefing.tscn",
+	"archive": "res://scenes/menus/archive.tscn",
+	"settings": "res://scenes/menus/settings.tscn",
+	"new_game": "res://scenes/menus/new_game.tscn",
+	"character_details": "res://scenes/menus/character_details.tscn",
+	"equipment": "res://scenes/menus/equipment.tscn",
 }
 
 var _current_scene_key: String = ""

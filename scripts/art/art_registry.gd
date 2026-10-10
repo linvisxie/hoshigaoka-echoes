@@ -40,6 +40,9 @@ const FRAME_COUNT := {
 	"attack": 4,
 	"hit": 2,
 	"death": 4,
+	"deploy": 4,
+	"skill": 4,
+	"victory": 4,
 }
 
 ## 动画播放速率（帧/秒）。保持克制，避免像素动画"抽搐"。
@@ -53,11 +56,11 @@ const ANIM_FPS := {
 
 ## 关卡 -> 战斗背景（本轮指令 6.4：复用环境组件，不为每关从零绘制）
 const STAGE_ENV := {
-	"1-1": "bg_env_classroom_dusk",
-	"1-2": "bg_env_classroom_dusk",
-	"1-3": "bg_env_corridor_dusk",
-	"1-4": "bg_env_corridor_dusk",
-	"1-5": "bg_env_gym_battle",
+	"1-1": "bg_env_classroom_battle",
+	"1-2": "bg_env_classroom_battle",
+	"1-3": "bg_env_classroom_exam",
+	"1-4": "bg_env_corridor_battle",
+	"1-5": "bg_env_corridor_convergence",
 	"1-10": "bg_env_rooftop_rift",
 	"p1_0_demo": "bg_env_classroom_dusk",
 }

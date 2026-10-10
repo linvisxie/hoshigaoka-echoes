@@ -81,13 +81,16 @@
   "specialRules": [],
   "firstClearRewardId": "reward_1_1_first",
   "repeatRewardId": "reward_repeat_standard",
-  "storyBefore": "",
-  "storyAfter": "",
+  "storyBefore": "prologue_transfer",
+  "storyAfter": "ch1_1_1_after",
   "bossConfig": {},
   "_p0.3_scope": "P0.3 已实现：部署、AP、阻挡、双方攻击、死亡与失能、主动撤退、再部署冷却、Wave 调度、暂停、完整一局结果界面。未实现：技能天赋、局内强化、奖励结算。",
   "battleRewards": {
     "school_coin": 160,
     "study_record_short": 2,
     "equipment_part": 2
-  }
+  },
+  "stageName": "初次锚定",
+  "briefing": "用发光坐标部署雨宫澪，阻挡正面残响。守住防线并清除全部敌人。",
+  "_story_note": "V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts."
 }

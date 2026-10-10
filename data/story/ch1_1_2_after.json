@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_2_after",
+  "chapterId": "ch1",
+  "title": "1-2 · 远处的弓弦",
+  "background": "bg_env_corridor_dusk",
+  "music": "unheard_memory",
+  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "刚才最外侧还有一个。已经散了。"
+    },
+    {
+      "id": "1",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "你早就在附近？",
+      "emotion": "serious"
+    },
+    {
+      "id": "2",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "看见走廊的影子变长，就过来了。"
+    },
+    {
+      "id": "3",
+      "speaker": "{player}",
+      "character": "",
+      "text": "听起来，你不是第一次遇见这些。"
+    },
+    {
+      "id": "4",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "嗯。只是以前没找到能留下来的坐标。"
+    },
+    {
+      "id": "5",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "所以你一直只在远处看着？",
+      "emotion": "serious"
+    },
+    {
+      "id": "6",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "有时候。我在想，是不是看清楚就足够了。今天看来不够。"
+    },
+    {
+      "id": "7",
+      "speaker": "",
+      "character": "",
+      "text": "他把箭袋背好，目光停在你刚才留下的光点上。"
+    },
+    {
+      "id": "8",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "神谷悠真，弓道部。下次，叫上我。"
+    }
+  ]
+}
