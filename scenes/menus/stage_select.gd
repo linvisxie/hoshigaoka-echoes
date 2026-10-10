@@ -108,6 +108,8 @@ var _feedback: String = ""
 var _feedback_color: Color = TEXT
 var _feedback_timer: float = 0.0
 var _busy: bool = false
+var _native_page: CampusScreen
+var _stage_buttons: Array[Button] = []
 
 
 # ============================================================
@@ -264,6 +266,7 @@ func _ready() -> void:
 
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_rows()
+	_build_native_page()
 	_select_first_enabled()
 	GameLog.info(TAG, "关卡选择就绪（构建模式=%s，直选=%s，可进关卡=%d，背景=%s）" % [
 		BuildMode.mode_name(), str(direct_select_allowed()),
@@ -413,6 +416,43 @@ func _set_selected(index: int) -> void:
 	_selected = clampi(index, 0, _rows.size() - 1)
 	for i: int in range(_rows.size()):
 		_rows[i].set_selected(i == _selected)
+	for i: int in range(_stage_buttons.size()):
+		GameSkin.style_button(_stage_buttons[i],i == _selected)
+
+func _build_native_page() -> void:
+	for row: TitleMenuRow in _rows:
+		row.hide()
+	_native_page = CampusScreen.new()
+	add_child(_native_page)
+	_native_page.set_background("bg_title_gate")
+	_native_page.page_heading("第一章 · 新学期的残响", "调查记录  /  选择地点查看情报与出战角色")
+	_stage_buttons.clear()
+	for i: int in range(_specs.size()):
+		var spec: Dictionary = _specs[i]
+		var sid := str(spec.id)
+		if sid == BACK_ID:
+			var back := _native_page.button_at("返回校园" if bool(CampaignFlow.state().get("campaign_active",false)) else "返回标题",Rect2(75,970,370,75),func() -> void: _activate(i))
+			_stage_buttons.append(back)
+			continue
+		var cfg := DataRegistry.get_entry("stages",sid)
+		var x := 75+int(i%3)*600
+		var y := 220+int(i/3)*350
+		var card := _native_page.button_at("",Rect2(x,y,570,310),func() -> void: _activate(i))
+		card.disabled = bool(spec.disabled)
+		card.tooltip_text = str(spec.disabledNote) if card.disabled else "查看关卡情报与出战确认"
+		card.mouse_entered.connect(func() -> void: _set_selected(i))
+		_stage_buttons.append(card)
+		var image := _native_page.texture_at(ArtRegistry.stage_background(sid),Rect2(x+8,y+8,554,160))
+		image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		image.clip_contents = true
+		if card.disabled: image.modulate = Color(0.38,0.43,0.55)
+		_native_page.label_at("%s  %s" % [sid,cfg.get("stageName","")],Rect2(x+25,y+185,520,55),32,CampusScreen.WHITE if not card.disabled else CampusScreen.MUTED)
+		var state := "✓ 调查完成" if _cleared_lookup(sid) else (str(spec.disabledNote) if card.disabled else "前往调查  →")
+		if not str(spec.get("badge", "")).is_empty():
+			state = str(spec.badge)
+		_native_page.label_at(state,Rect2(x+25,y+250,520,40),24,CampusScreen.GOLD if _cleared_lookup(sid) else CampusScreen.BLUE)
+	_native_page.label_at("鼠标选择地点 · 方向键切换 · Enter 确认 · Esc 返回",Rect2(650,984,1180,45),25,CampusScreen.MUTED)
+	_native_page.fade_in_content()
 
 
 ## 上下移动选中项（跳过禁用行：禁用项不能作为当前项被确认）
@@ -538,6 +578,8 @@ func _process(delta: float) -> void:
 # ============================================================
 
 func _draw() -> void:
+	if _native_page != null:
+		return
 	var font := ThemeDB.fallback_font
 	_draw_background()
 	if font == null:

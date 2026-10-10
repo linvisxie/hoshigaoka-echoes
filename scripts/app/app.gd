@@ -7,7 +7,7 @@ extends Node
 const TAG := "App"
 
 ## 与 project.godot 的 config/version 保持一致
-const APP_VERSION := "0.2.0-prototype"
+const APP_VERSION := "0.3.0"
 const APP_NAME := "HoshigaokaEchoes"
 
 ## 当前开发阶段（V2.1.4 B4 阶段术语：Prototype / Alpha / Beta / RC / Release）

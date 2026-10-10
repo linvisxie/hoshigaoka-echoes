@@ -4,16 +4,17 @@
   "provider": "Built-in image_gen; exact model identity not exposed by tool",
   "reference": "meishu/Hoshigaoka_Art_Preview_Pack/03_p0_asset_sheet_amamiya_mio.png",
   "transforms": [
-    "4x4 slicing",
+    "4 columns; reviewed row bounds [0, 314, 627, 940, 1254]",
     "alpha threshold 128",
-    "uniform scale .25",
-    "shared 48-colour palette",
-    "fixed x offset -15",
-    "feet alignment y=60"
+    "uniform scale 0.375",
+    "shared 80-colour palette",
+    "fixed x offset -22",
+    "feet alignment y=90"
   ],
   "terms": "https://openai.com/policies/terms-of-use/",
   "termsChecked": "2026-10-10",
-  "inputReferenceRights": "User-supplied original reference; underlying rights not independently established",
+  "inputReferenceRights": "User confirms the three supplied concept images were generated with GPT on 2026-10-10",
   "releaseStatus": "Internal integrated candidate; visual approval and reference rights verification pending",
-  "notes": "16 drawn poses; no translation or rotation substitutes for attack poses. Active skill/deploy/win-specific strips not yet made."
+  "frameSize": 96,
+  "notes": "16 drawn poses; uniform registration. Deployment, skill and victory are separate drawn strips. User confirmed GPT reference provenance."
 }

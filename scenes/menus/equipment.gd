@@ -15,16 +15,31 @@ func _ready() -> void:
 	var items := EquipmentService.all_instances()
 	if selected_id.is_empty() and not items.is_empty():
 		selected_id = str(items[0].get("instanceId", ""))
-	for i: int in range(mini(items.size(), 6)):
+	var scroll := ScrollContainer.new()
+	scroll.position = Vector2(110,335)
+	scroll.size = Vector2(620,460)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	canvas.add_child(scroll)
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation",12)
+	scroll.add_child(list)
+	for i: int in range(items.size()):
 		var item: Dictionary = items[i]
 		var template := EquipmentService.template_of(str(item.get("equipmentId", "")))
 		var instance_id := str(item.get("instanceId", ""))
-		button_at("%s  +%d" % [template.get("name", "装备"), int(item.get("enhanceLevel", 0))], Rect2(110, 335 + i * 84, 610, 68), func() -> void:
+		var item_button := button_at("%s  +%d" % [template.get("name", "装备"), int(item.get("enhanceLevel", 0))], Rect2(110, 335 + i * 84, 610, 68), func() -> void:
 			selected_id = instance_id
 			SceneRouter.go_to("equipment"), instance_id == selected_id)
+		item_button.reparent(list)
+		item_button.custom_minimum_size = Vector2(590,76)
+		var owner_id := str(item.get("boundCharacterId", ""))
+		item_button.tooltip_text = EquipmentService.quality_name(str(template.get("quality", ""))) + (" · 未装备" if owner_id.is_empty() else " · " + str(DataRegistry.get_entry("characters",owner_id).get("name",owner_id)))
 	if items.is_empty():
 		label_at("背包中还没有装备。\n完成调查后，可在这里领取奖励。", Rect2(110, 350, 600, 180), 28, MUTED)
-	button_at("领取全部装备奖励", Rect2(110, 820, 610, 65), _claim)
+	var claim := button_at("领取全部装备奖励", Rect2(110, 820, 610, 65), _claim)
+	claim.disabled = EquipmentService.pending_equipment_entitlements().is_empty()
+	claim.tooltip_text = "完成关卡获得的装备会在此领取。" if claim.disabled else "领取已获得的全部装备奖励。"
 	panel(Rect2(820, 210, 1020, 710))
 	var inst := EquipmentService.find_instance(save, selected_id)
 	if not inst.is_empty():
@@ -42,13 +57,18 @@ func _ready() -> void:
 		for cid: String in ["amamiya_mio", "kamiya_yuma"]:
 			if not CampaignFlow.character_unlocked(cid):
 				continue
-			button_at("装备给" + str(DataRegistry.get_entry("characters", cid).get("name", cid)), Rect2(870 + offset * 430, 610, 400, 65), func() -> void: _result(EquipmentService.equip(cid, selected_id)))
+			var equip_button := button_at("装备给" + str(DataRegistry.get_entry("characters", cid).get("name", cid)), Rect2(870 + offset * 430, 610, 400, 65), func() -> void: _result(EquipmentService.equip(cid, selected_id)))
+			equip_button.disabled = bound == cid
+			equip_button.tooltip_text = "已装备给这名角色" if bound == cid else "替换同槽位装备；旧装备保留在背包，强化等级不变。"
 			offset += 1
 		var cost := EquipmentService.enhancement_cost_at(int(inst.get("enhanceLevel", 0)))
 		label_at("下次强化：学园币 %d · 零件 %d" % [int(cost.get("school_coin", 0)), int(cost.get("equipment_part", 0))], Rect2(870, 710, 880, 45), 25, MUTED)
-		button_at("强化 +1", Rect2(870, 780, 260, 65), func() -> void: _result(EquipmentService.enhance(selected_id)), true)
-		button_at("卸下", Rect2(1160, 780, 260, 65), func() -> void:
+		var enhance := button_at("强化 +1", Rect2(870, 780, 260, 65), func() -> void: _result(EquipmentService.enhance(selected_id)), true)
+		enhance.disabled = cost.is_empty() or int(currency.get("school_coin",0)) < int(cost.get("school_coin",0)) or int(currency.get("equipment_part",0)) < int(cost.get("equipment_part",0))
+		enhance.tooltip_text = "已达到强化上限" if cost.is_empty() else ("学园币或装备零件不足，可通过关卡奖励获取。" if enhance.disabled else "消耗上方显示的资源，提升装备属性。")
+		var unequip := button_at("卸下", Rect2(1160, 780, 260, 65), func() -> void:
 			_result(EquipmentService.unequip(bound, str(template.get("slot", "")))))
+		unequip.disabled = bound.is_empty()
 		button_at("重置 / 分解", Rect2(1450, 780, 330, 65), _confirm)
 	label_at(feedback, Rect2(100, 928, 1700, 40), 24, BLUE)
 	button_at("返回角色", Rect2(90, 980, 360, 70), func() -> void: SceneRouter.go_to("character"))
@@ -68,7 +88,7 @@ func _confirm() -> void:
 	if confirmation != null:
 		confirmation.show()
 		return
-	confirmation = panel(Rect2(380, 290, 1160, 500))
+	confirmation = modal_panel(Rect2(380, 290, 1160, 500))
 	var text := label_at("重置：保留装备，返还累计强化投入的80%。\n分解：永久销毁装备，只回收基础零件。\n直接分解会放弃强化投入。", Rect2(430, 335, 1030, 180), 30)
 	text.reparent(confirmation)
 	text.position = Vector2(50, 45)

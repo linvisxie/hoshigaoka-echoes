@@ -95,7 +95,7 @@ const STAGE_SPEC := {
 	},
 	"1-5": {
 		"timeline": 8, "waves": 5, "coreHp": 3,
-		"mapId": "ch1_corridor_echo",
+		"mapId": "ch1_old_gym_echo", # 用户 V3 补充裁决：第五关为旧体育馆。
 		"chars": [CHAR_MIO, CHAR_YUMA],
 		"composition": {
 			"echo_normal": 3, "echo_runner": 2,

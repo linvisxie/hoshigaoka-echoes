@@ -37,6 +37,8 @@ func _ready() -> void:
 		var char_cfg := DataRegistry.get_entry("characters", cid)
 		texture_at(ArtRegistry.character_portrait(cid, 256), Rect2(1040 + i * 240, 365, 210, 250))
 		label_at(str(char_cfg.get("name", cid)), Rect2(1040 + i * 240, 645, 230, 60), 30)
+		var role := "前线 · 阻挡" if str(char_cfg.get("behavior","")) == "FRONTLINE" else "远程 · 支援"
+		label_at("%s  /  %d AP" % [role,int(char_cfg.get("deployCost",0))],Rect2(1040+i*240,705,235,40),22,BLUE)
 	label_at("出战顺序  ·  点击名字调整角色卡位置", Rect2(1030, 745, 760, 50), 25, MUTED)
 	for i: int in range(party.size()):
 		button_at(str(DataRegistry.get_entry("characters", str(party[i])).get("name", party[i])), Rect2(1040 + i * 240, 815, 210, 65), _rotate_party, false)

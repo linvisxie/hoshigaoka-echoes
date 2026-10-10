@@ -71,6 +71,15 @@ func go_back() -> bool:
 func get_current_key() -> String:
 	return _current_scene_key
 
+func previous_key() -> String:
+	if _history.size() < 2:
+		return "title"
+	var previous := _history[-2]
+	for key: String in SCENES:
+		if str(SCENES[key]) == previous:
+			return key
+	return "title"
+
 
 func _change(path: String, key: String) -> bool:
 	var err := get_tree().change_scene_to_file(path)

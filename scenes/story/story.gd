@@ -15,9 +15,15 @@ var auto_timer := 0.0
 var history_panel: Panel
 var menu_panel: Panel
 var text_speed := 42.0
+var auto_button: Button
+var next_button: Button
+var save_failed := false
 
 func _ready() -> void:
 	super._ready()
+	var preferences := ConfigFile.new()
+	if preferences.load(SaveService.SETTINGS_PATH) == OK:
+		text_speed = clampf(float(preferences.get_value("story","text_speed",42.0)),15,90)
 	replay = not CampaignFlow.replay_story_id.is_empty()
 	story_id = CampaignFlow.replay_story_id if replay else str(CampaignFlow.state().get("current_story_id", "prologue_transfer"))
 	var data := DataRegistry.get_entry("story", story_id)
@@ -40,19 +46,26 @@ func _ready() -> void:
 	canvas.add_child(dialogue)
 	page = label_at("", Rect2(1540, 1005, 300, 40), 22, MUTED)
 	button_at("历史", Rect2(80, 1010, 150, 50), _show_history)
-	button_at("自动", Rect2(250, 1010, 150, 50), func() -> void: auto = not auto)
+	auto_button = button_at("自动", Rect2(250, 1010, 150, 50), func() -> void:
+		auto = not auto
+		auto_button.text = "自动 ●" if auto else "自动"
+		GameSkin.style_button(auto_button,auto))
 	button_at("菜单", Rect2(420, 1010, 150, 50), _show_menu)
-	button_at("下一句  ▸", Rect2(1510, 920, 290, 60), advance)
+	next_button = button_at("下一句  ▸", Rect2(1510, 920, 290, 60), advance)
 	label_at(str(data.get("title", "")), Rect2(80, 45, 1400, 60), 30, GOLD)
 	_show_node()
+	fade_in_content()
 
 func _process(delta: float) -> void:
 	if dialogue == null or (menu_panel != null and menu_panel.visible) or (history_panel != null and history_panel.visible):
 		return
 	if dialogue.visible_ratio < 1.0:
+		next_button.text = "显示全文  ▸"
 		dialogue.visible_ratio = minf(1.0, dialogue.visible_ratio + delta * text_speed / maxf(1, dialogue.get_total_character_count()))
 		auto_timer = 0
-	elif auto:
+	else:
+		next_button.text = "下一句  ▸"
+	if dialogue.visible_ratio >= 1.0 and auto and not save_failed:
 		auto_timer += delta
 		if auto_timer > 2.5:
 			advance()
@@ -80,9 +93,15 @@ func _show_node() -> void:
 	page.text = "%d / %d    Enter · 下一句" % [index + 1, nodes.size()]
 	history.append("%s：%s" % [speaker.text, dialogue.text])
 	if not replay and not CampaignFlow.record_node(story_id, index):
+		save_failed = true
+		auto = false
 		show_error("剧情进度未能保存，请检查磁盘后再继续。")
 
 func advance() -> void:
+	if save_failed:
+		if not CampaignFlow.record_node(story_id,index):
+			return
+		save_failed = false
 	if menu_panel != null and menu_panel.visible or history_panel != null and history_panel.visible:
 		return
 	if dialogue.visible_ratio < 1.0:
@@ -107,7 +126,7 @@ func _show_history() -> void:
 				child.text = "\n\n".join(history)
 		history_panel.visible = true
 		return
-	history_panel = panel(Rect2(240, 160, 1440, 790))
+	history_panel = modal_panel(Rect2(240, 160, 1440, 790))
 	var log_view := RichTextLabel.new()
 	log_view.position = Vector2(35, 35)
 	log_view.size = Vector2(1370, 640)
@@ -122,7 +141,7 @@ func _show_menu() -> void:
 	if menu_panel != null:
 		menu_panel.visible = true
 		return
-	menu_panel = panel(Rect2(620, 270, 680, 440))
+	menu_panel = modal_panel(Rect2(620, 270, 680, 440))
 	var hint := label_at("剧情进度已自动保存", Rect2(700, 315, 550, 70), 30, GOLD)
 	hint.reparent(menu_panel)
 	hint.position = Vector2(80, 45)

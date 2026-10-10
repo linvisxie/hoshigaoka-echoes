@@ -15,33 +15,81 @@
   "_deferred": {
     "_note": "规格 L2075～2079 列出、但当前构建无落地机制，故不进首发池；实现其依赖系统后再启用。",
     "items": [
-      {"id": "FRONT_COUNTER", "reason": "『前线反击』需要反击结算入口；当前构建无该机制。"},
-      {"id": "SCI_CHAIN", "reason": "『科学部连锁爆炸』依赖水濑纱良（无角色数据）与溅射结算。"},
-      {"id": "FOCUS_SHOT", "reason": "『连续单体增伤』需要攻击历史追踪与递增结算，未实现。"},
-      {"id": "CD_REDUCE", "reason": "技能 CD 缩减依赖主动技能系统：data/skills.json 现为 {\"skills\": []}，无消费者，施加后无任何可感知效果。"}
+      {
+        "id": "FRONT_COUNTER",
+        "reason": "『前线反击』需要反击结算入口；当前构建无该机制。"
+      },
+      {
+        "id": "SCI_CHAIN",
+        "reason": "『科学部连锁爆炸』依赖水濑纱良（无角色数据）与溅射结算。"
+      },
+      {
+        "id": "FOCUS_SHOT",
+        "reason": "『连续单体增伤』需要攻击历史追踪与递增结算，未实现。"
+      },
+      {
+        "id": "CD_REDUCE",
+        "reason": "技能 CD 缩减依赖主动技能系统：data/skills.json 现为 {\"skills\": []}，无消费者，施加后无任何可感知效果。"
+      }
     ]
   },
   "tiers": {
     "_note": "L2053：按 COMMON / ADVANCED / CORE 权重抽取。权重为第一轮候选。",
-    "COMMON": {"weight": 60},
-    "ADVANCED": {"weight": 30},
-    "CORE": {"weight": 10}
+    "COMMON": {
+      "weight": 60
+    },
+    "ADVANCED": {
+      "weight": 30
+    },
+    "CORE": {
+      "weight": 10
+    }
   },
   "rerollsPerBattle": 1,
   "_rerollsPerBattle_spec": "L2117「强化采用三选一，每场默认 1 次免费重掷」。",
   "openByStage": {
     "_note": "L2129～L2138 开放节奏（取代旧 1-3 教学草案）。1-1～1-4 不开放，专注基础战斗教学。",
     "_triggerWaves_note": "triggerWaves 列出**允许触发强化面板的『已完成波号』**（契约 docs/a0_6_ui_contract.md 第 1 节）。1-5 填 [1] ⇒ 第 1 波清空后弹出教学三选一。opens=0 的关卡 triggerWaves 一律为空数组，不得靠缺省猜。",
-    "1-1": {"opens": 0, "triggerWaves": [], "note": "L2131 不开放"},
-    "1-2": {"opens": 0, "triggerWaves": [], "note": "L2131 不开放"},
-    "1-3": {"opens": 0, "triggerWaves": [], "note": "L2131 不开放"},
-    "1-4": {"opens": 0, "triggerWaves": [], "note": "L2131 不开放"},
-    "1-5": {"opens": 1, "triggerWaves": [1], "note": "L2132 首次固定三选一教学（远程攻击+15% / 前线防御+20% / AP回复+10%）；面板在第 1 波清空后弹出"},
-    "default": {"opens": 0, "triggerWaves": [], "note": "未列入 A0.6 开放表的关卡一律不开放，避免提前扩散"}
+    "1-1": {
+      "opens": 0,
+      "triggerWaves": [],
+      "note": "L2131 不开放"
+    },
+    "1-2": {
+      "opens": 0,
+      "triggerWaves": [],
+      "note": "L2131 不开放"
+    },
+    "1-3": {
+      "opens": 0,
+      "triggerWaves": [],
+      "note": "L2131 不开放"
+    },
+    "1-4": {
+      "opens": 0,
+      "triggerWaves": [],
+      "note": "L2131 不开放"
+    },
+    "1-5": {
+      "opens": 1,
+      "triggerWaves": [
+        1
+      ],
+      "note": "L2132 首次固定三选一教学（远程攻击+15% / 前线防御+20% / AP回复+10%）；面板在第 1 波清空后弹出"
+    },
+    "default": {
+      "opens": 0,
+      "triggerWaves": [],
+      "note": "未列入 A0.6 开放表的关卡一律不开放，避免提前扩散"
+    }
   },
   "tutorialFixedChoices_1_5": {
     "_note": "L2132：1-5 首次为**固定**三选一教学（非随机），三个选项写死为教学用途。",
-    "upgradeIds": ["upgrade_ranged_atk", "upgrade_def_front", "upgrade_ap_regen"]
+    "upgradeIds": [
+      "upgrade_ranged_atk",
+      "upgrade_def_front",
+      "upgrade_ap_regen"
+    ]
   },
   "upgrades": [
     {
@@ -52,10 +100,17 @@
       "tier": "COMMON",
       "category": "攻击型",
       "icon": "icon_attack_up",
-      "tags": ["ATTACK", "ALL"],
+      "tags": [
+        "ATTACK",
+        "ALL"
+      ],
       "appliesTo": "ALL",
       "maxStacks": 3,
-      "effect": {"type": "STAT_MOD", "stat": "ATTACK", "value": 0.10},
+      "effect": {
+        "type": "STAT_MOD",
+        "stat": "ATTACK",
+        "value": 0.1
+      },
       "_specRef": "L2069 全队攻击 +10%"
     },
     {
@@ -66,11 +121,19 @@
       "tier": "COMMON",
       "category": "防御型",
       "icon": "icon_defense_up",
-      "tags": ["DEFENSE", "FRONTLINE"],
+      "tags": [
+        "DEFENSE",
+        "FRONTLINE"
+      ],
       "appliesTo": "FRONTLINE",
       "maxStacks": 3,
-      "effect": {"type": "STAT_MOD", "stat": "DEFENSE", "value": 0.20},
-      "_specRef": "L2070 前线防御 +20%；L2043 示例条目同构"
+      "effect": {
+        "type": "STAT_MOD",
+        "stat": "DEFENSE",
+        "value": 0.2
+      },
+      "_specRef": "L2070 前线防御 +20%；L2043 示例条目同构",
+      "guidance": "稳住前线承压\n适合应对持续近身攻击"
     },
     {
       "id": "upgrade_ranged_atk",
@@ -80,11 +143,19 @@
       "tier": "COMMON",
       "category": "攻击型",
       "icon": "icon_attack_up",
-      "tags": ["ATTACK", "RANGED"],
+      "tags": [
+        "ATTACK",
+        "RANGED"
+      ],
       "appliesTo": "RANGED",
       "maxStacks": 3,
-      "effect": {"type": "STAT_MOD", "stat": "ATTACK", "value": 0.15},
-      "_specRef": "L2071 远程攻击 +15%；L2132 的 1-5 教学固定选项之一"
+      "effect": {
+        "type": "STAT_MOD",
+        "stat": "ATTACK",
+        "value": 0.15
+      },
+      "_specRef": "L2071 远程攻击 +15%；L2132 的 1-5 教学固定选项之一",
+      "guidance": "强化后方火力\n适合集中处理高威胁目标"
     },
     {
       "id": "upgrade_heal_up",
@@ -94,10 +165,17 @@
       "tier": "COMMON",
       "category": "防御型",
       "icon": "icon_heal",
-      "tags": ["HEAL", "SUPPORT"],
+      "tags": [
+        "HEAL",
+        "SUPPORT"
+      ],
       "appliesTo": "HEALER",
       "maxStacks": 2,
-      "effect": {"type": "STAT_MOD", "stat": "HEAL", "value": 0.20},
+      "effect": {
+        "type": "STAT_MOD",
+        "stat": "HEAL",
+        "value": 0.2
+      },
       "_specRef": "L2072 治疗 +20%"
     },
     {
@@ -108,11 +186,19 @@
       "tier": "ADVANCED",
       "category": "资源型",
       "icon": "icon_ap",
-      "tags": ["AP", "ECONOMY"],
+      "tags": [
+        "AP",
+        "ECONOMY"
+      ],
       "appliesTo": "STAGE",
       "maxStacks": 4,
-      "effect": {"type": "STAT_MOD", "stat": "AP_REGEN", "value": 0.10},
-      "_specRef": "L2073 AP 回复 +10%；L2032 软上限『不超过 +50%』由 maxStacks=4 × 10% = +40% 保证"
+      "effect": {
+        "type": "STAT_MOD",
+        "stat": "AP_REGEN",
+        "value": 0.1
+      },
+      "_specRef": "L2073 AP 回复 +10%；L2032 软上限『不超过 +50%』由 maxStacks=4 × 10% = +40% 保证",
+      "guidance": "更快积累部署资源\n适合留出换线与补位余量"
     },
     {
       "id": "upgrade_fast_retreat",
@@ -122,10 +208,17 @@
       "tier": "ADVANCED",
       "category": "资源型",
       "icon": "icon_refresh",
-      "tags": ["AP", "RETREAT"],
+      "tags": [
+        "AP",
+        "RETREAT"
+      ],
       "appliesTo": "STAGE",
       "maxStacks": 1,
-      "effect": {"type": "RETREAT_REFUND_BONUS", "stat": "RETREAT_REFUND", "value": 0.15},
+      "effect": {
+        "type": "RETREAT_REFUND_BONUS",
+        "stat": "RETREAT_REFUND",
+        "value": 0.15
+      },
       "_specRef": "L2078 撤退返还增加；只提高返还比例，不改再部署冷却（L2033 下限与本项无关）"
     }
   ]

@@ -27,6 +27,7 @@ extends RefCounted
 const TAG := "ArtRegistry"
 
 const ART_ROOT := "res://assets/art"
+const CHARACTER_FRAME_SIZE := {"amamiya_mio": 96, "kamiya_yuma": 96}
 
 ## 特效根目录（与 art_src/tools/build_vfx.py 的输出一致）。
 ## 注意：特效刻意放在 assets/vfx/ 而不是 assets/art/ 下 —— 它是"战斗反馈"
@@ -60,7 +61,7 @@ const STAGE_ENV := {
 	"1-2": "bg_env_classroom_battle",
 	"1-3": "bg_env_classroom_exam",
 	"1-4": "bg_env_corridor_battle",
-	"1-5": "bg_env_corridor_convergence",
+	"1-5": "bg_env_gym_battle",
 	"1-10": "bg_env_rooftop_rift",
 	"p1_0_demo": "bg_env_classroom_dusk",
 }

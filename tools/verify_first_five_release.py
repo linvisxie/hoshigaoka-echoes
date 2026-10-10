@@ -6,14 +6,17 @@ import windows_art_capture as win
 ROOT = Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser()
 parser.add_argument('--continue-save',action='store_true')
+parser.add_argument('--build-dir',type=Path,default=ROOT/'dist/v3_first_five_20261010')
+parser.add_argument('--output',type=Path)
 args=parser.parse_args()
-OUT = ROOT.parent / ('_testenv/v3-twohour/release_continue' if args.continue_save else '_testenv/v3-twohour/release')
+OUT = args.output or ROOT.parent / ('_testenv/v3-twohour/release_continue' if args.continue_save else '_testenv/v3-twohour/release')
+if '_testenv' not in OUT.resolve().parts: raise SystemExit('Refuse non-isolated evidence path')
 OUT.mkdir(parents=True, exist_ok=True)
 if args.continue_save:
     destination=OUT/'appdata/HoshigaokaEchoes/save'
     destination.mkdir(parents=True,exist_ok=True)
     shutil.copy2(ROOT.parent/'_testenv/v3-twohour/campaign5/appdata/HoshigaokaEchoes/save/savegame.json',destination/'savegame.json')
-exe = ROOT / 'dist/v3_first_five_20261010/HoshigaokaEchoes.exe'
+exe = args.build_dir/'HoshigaokaEchoes.exe'
 with (OUT/'game.log').open('w', encoding='utf-8') as log:
     proc = subprocess.Popen([str(exe), '--resolution', '1280x720', '--position', '30,30'],
         env=dict(os.environ, APPDATA=str(OUT/'appdata')), stdout=log, stderr=subprocess.STDOUT)

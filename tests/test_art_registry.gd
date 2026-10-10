@@ -114,10 +114,11 @@ func test_character_strip_dimensions_match_spec() -> void:
 			if tex == null:
 				continue
 			var frames: int = int(ArtRegistry.FRAME_COUNT[anim])
-			# 角色规格 64×64
-			assert_eq(tex.get_height(), 64, "%s/%s 单帧高度应为 64" % [cid, anim])
-			assert_eq(tex.get_width(), 64 * frames,
-				"%s/%s 帧条宽度应为 64×%d" % [cid, anim, frames])
+			# 前五关两名角色由原始绘制图集重新导入为 96px，保留面部/武器细节。
+			var frame_size := int(ArtRegistry.CHARACTER_FRAME_SIZE.get(cid,64))
+			assert_eq(tex.get_height(), frame_size, "%s/%s 单帧高度应为 %d" % [cid, anim,frame_size])
+			assert_eq(tex.get_width(), frame_size * frames,
+				"%s/%s 帧条宽度应为 %d×%d" % [cid, anim,frame_size,frames])
 
 
 func test_enemy_strip_dimensions_match_spec() -> void:

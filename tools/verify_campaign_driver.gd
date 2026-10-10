@@ -106,12 +106,15 @@ func _process(_delta: float) -> void:
 				if not summaries.has(sid):
 					summaries[sid] = session.result_summary()
 					summaries[sid]["skillEvents"] = session.stage.skill_events.duplicate(true)
-					capture("result_" + sid)
+					capture("victory_pose_" + sid)
 					last_action = now
 					if session.outcome != BattleTypes.Outcome.VICTORY:
 						finish(false, "Battle failed: " + sid)
 						return
 				if now - last_action > 1800:
+					if not captured.has("result_" + sid):
+						capture("result_" + sid)
+						return
 					scene._send_click_at(scene._quit_rect.get_center())
 		"home":
 			if dwell < 1200:

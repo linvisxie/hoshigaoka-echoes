@@ -20,18 +20,15 @@ func check(ok: bool, name: String) -> void:
 	GameLog.info("FrontendEvidence", "%s: %s" % [name, ok])
 
 func click(pos: Vector2) -> void:
-	var canvas_size := get_viewport().get_visible_rect().size
-	var window_size := Vector2(get_window().size)
-	pos = Vector2(pos.x * window_size.x / canvas_size.x, pos.y * window_size.y / canvas_size.y)
 	var motion := InputEventMouseMotion.new()
 	motion.position = pos
-	Input.parse_input_event(motion)
+	get_viewport().push_input(motion, true)
 	for pressed: bool in [true, false]:
 		var event := InputEventMouseButton.new()
 		event.button_index = MOUSE_BUTTON_LEFT
 		event.position = pos
 		event.pressed = pressed
-		Input.parse_input_event(event)
+		get_viewport().push_input(event, true)
 		await get_tree().process_frame
 
 func find_button(node: Node, text: String) -> Button:
@@ -120,6 +117,19 @@ func _run() -> void:
 		await wait_ui()
 		await shot("archive_replay")
 		check(SaveService.get_current() == before_replay, "archive replay does not mutate progress or rewards")
+		await button("历史")
+		var frozen_index: int = story.index
+		await click(story.next_button.get_global_rect().get_center())
+		await wait_ui()
+		check(story.index == frozen_index and story.history_panel.visible,"history modal blocks underlying next-dialogue click")
+		await shot("story_history")
+		await button("关闭历史")
+		await button("菜单")
+		await click(story.next_button.get_global_rect().get_center())
+		await wait_ui()
+		check(story.index == frozen_index and story.menu_panel.visible,"story menu blocks underlying next-dialogue click")
+		await shot("story_menu")
+		await button("继续阅读")
 	var report := {"type": "real Windows viewport; automated UI mouse input, not human play", "checks": checks, "save": SaveService.snapshot(), "audio": AudioService.playback_status()}
 	var file := FileAccess.open("user://frontend_report.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(report, "\t"))

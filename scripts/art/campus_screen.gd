@@ -12,6 +12,7 @@ var canvas: Control
 var background: TextureRect
 
 func _ready() -> void:
+	theme = GameSkin.make_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background = TextureRect.new()
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -47,7 +48,7 @@ func panel(rect: Rect2, accent: Color = GOLD) -> Panel:
 	control.position = rect.position
 	control.size = rect.size
 	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	control.add_theme_stylebox_override("panel", box(Color(0.035, 0.055, 0.12, 0.93), Color(accent, 0.55)))
+	control.add_theme_stylebox_override("panel", GameSkin.panel(Color(0.035, 0.055, 0.12, 0.93), Color(accent, 0.65), true))
 	canvas.add_child(control)
 	return control
 
@@ -64,6 +65,22 @@ static func box(fill: Color, edge: Color, width: int = 1) -> StyleBoxFlat:
 	style.shadow_color = Color(0.01, 0.015, 0.04, 0.5)
 	style.shadow_size = 12
 	return style
+
+func modal_panel(rect: Rect2) -> Panel:
+	var dialog := panel(rect)
+	dialog.mouse_filter = Control.MOUSE_FILTER_STOP
+	var veil := ColorRect.new()
+	veil.position = -rect.position
+	veil.size = Vector2(1920, 1080)
+	veil.color = Color(0.005, 0.01, 0.03, 0.72)
+	veil.mouse_filter = Control.MOUSE_FILTER_STOP
+	dialog.add_child(veil)
+	var surface := Panel.new()
+	surface.size = rect.size
+	surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	surface.add_theme_stylebox_override("panel", GameSkin.panel(Color("111c34"), GOLD, true))
+	dialog.add_child(surface)
+	return dialog
 
 func label_at(text: String, rect: Rect2, font_size: int = 28, color: Color = WHITE) -> Label:
 	var label := Label.new()
@@ -89,6 +106,7 @@ func button_at(text: String, rect: Rect2, callback: Callable, primary: bool = fa
 	button.add_theme_stylebox_override("hover", box(Color("34466b"), BLUE, 2))
 	button.add_theme_stylebox_override("pressed", box(Color("192c49"), GOLD, 2))
 	button.add_theme_stylebox_override("focus", box(Color(0, 0, 0, 0), BLUE, 2))
+	GameSkin.style_button(button, primary)
 	button.pressed.connect(func() -> void:
 		AudioService.play_sfx("select")
 		callback.call())
@@ -97,19 +115,30 @@ func button_at(text: String, rect: Rect2, callback: Callable, primary: bool = fa
 
 func texture_at(texture: Texture2D, rect: Rect2) -> TextureRect:
 	var view := TextureRect.new()
+	view.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	view.texture = texture
 	view.position = rect.position
 	view.size = rect.size
-	view.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	view.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(view)
 	return view
 
 func page_heading(title: String, subtitle: String) -> void:
-	panel(Rect2(50, 40, 1820, 120))
-	label_at(title, Rect2(85, 50, 1400, 65), 42)
-	label_at(subtitle, Rect2(88, 116, 1550, 36), 22, MUTED)
+	panel(Rect2(50, 35, 1820, 125), BLUE)
+	texture_at(GameSkin.crest(), Rect2(75, 46, 78, 96))
+	label_at(title, Rect2(180, 46, 1470, 65), 42)
+	label_at(subtitle, Rect2(184, 112, 1560, 36), 23, MUTED)
+
+func resource_chip(currency_id: String, icon_id: String, rect: Rect2) -> void:
+	panel(rect, Color("60779f"))
+	texture_at(ArtRegistry.icon(icon_id,64),Rect2(rect.position+Vector2(16,12),Vector2(38,38)))
+	var currency: Dictionary = SaveService.get_current().get("currencies",{})
+	label_at(str(int(currency.get(currency_id,0))),Rect2(rect.position+Vector2(70,8),Vector2(rect.size.x-85,48)),28)
+
+func fade_in_content() -> void:
+	canvas.modulate.a = 0.0
+	create_tween().tween_property(canvas,"modulate:a",1.0,0.32)
 
 func show_error(message: String) -> void:
 	label_at(message, Rect2(85, 1010, 1600, 45), 25, Color("ffacb0"))

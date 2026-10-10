@@ -1,0 +1,2202 @@
+{
+	"actions": [
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.21599996089935,
+				"soundsTriggered": [],
+				"track": "after_school"
+			},
+			"capture": "title",
+			"flow": {},
+			"wallMs": 1707
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 2.78399991989136,
+				"soundsTriggered": [
+					"select"
+				],
+				"track": "after_school"
+			},
+			"capture": "name_input",
+			"flow": {},
+			"wallMs": 3274
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.52799999713898,
+				"soundsTriggered": [
+					"select"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "prologue_transfer_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "prologue_transfer",
+				"current_story_node": "6",
+				"last_stable_screen": "title",
+				"mode": "story",
+				"pending_stage_id": "1-1",
+				"pending_story_after": ""
+			},
+			"wallMs": 5520
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 4.73600006103516,
+				"soundsTriggered": [
+					"select"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "briefing_1-1",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-1",
+				"pending_story_after": ""
+			},
+			"wallMs": 8722
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 17.5160007476807,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt"
+				],
+				"track": "echo_frontline"
+			},
+			"capture": "skill_1-1_amamiya_mio",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-1",
+				"pending_story_after": ""
+			},
+			"wallMs": 27390
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 39.3279991149902,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave"
+				],
+				"track": "echo_frontline"
+			},
+			"capture": "battle_1-1",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-1",
+				"pending_story_after": ""
+			},
+			"wallMs": 49206
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": ""
+			},
+			"capture": "victory_pose_1-1",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_1_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-1",
+				"pending_story_after": "ch1_1_1_after"
+			},
+			"wallMs": 103327
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": ""
+			},
+			"capture": "result_1-1",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_1_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-1",
+				"pending_story_after": "ch1_1_1_after"
+			},
+			"wallMs": 105138
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.35599994659424,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "ch1_1_1_after_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_1_after",
+				"current_story_node": "6",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-1",
+				"pending_story_after": "ch1_1_1_after"
+			},
+			"wallMs": 107081
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.11199998855591,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "after_school"
+			},
+			"capture": "campus_after_1",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "hub",
+				"pending_stage_id": "1-1",
+				"pending_story_after": ""
+			},
+			"wallMs": 109381
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 3.39199995994568,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "after_school"
+			},
+			"capture": "character_after_1_1",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "hub",
+				"pending_stage_id": "1-1",
+				"pending_story_after": ""
+			},
+			"wallMs": 111655
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.35599994659424,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "ch1_1_2_before_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_2_before",
+				"current_story_node": "6",
+				"last_stable_screen": "home",
+				"mode": "story",
+				"pending_stage_id": "1-2",
+				"pending_story_after": ""
+			},
+			"wallMs": 114819
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 3.19199991226196,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "briefing_1-2",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-2",
+				"pending_story_after": ""
+			},
+			"wallMs": 116652
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 13.0799999237061,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "echo_frontline"
+			},
+			"capture": "skill_1-2_amamiya_mio",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-2",
+				"pending_story_after": ""
+			},
+			"wallMs": 130302
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 34.8800010681152,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "echo_frontline"
+			},
+			"capture": "battle_1-2",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-2",
+				"pending_story_after": ""
+			},
+			"wallMs": 152101
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": ""
+			},
+			"capture": "victory_pose_1-2",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_2_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-2",
+				"pending_story_after": "ch1_1_2_after"
+			},
+			"wallMs": 235519
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": ""
+			},
+			"capture": "result_1-2",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_2_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-2",
+				"pending_story_after": "ch1_1_2_after"
+			},
+			"wallMs": 237336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.36800003051758,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "ch1_1_2_after_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_2_after",
+				"current_story_node": "6",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-2",
+				"pending_story_after": "ch1_1_2_after"
+			},
+			"wallMs": 239288
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.067999958992,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "after_school"
+			},
+			"capture": "campus_after_2",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "hub",
+				"pending_stage_id": "1-2",
+				"pending_story_after": ""
+			},
+			"wallMs": 241324
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.35599994659424,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "ch1_1_3_before_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_3_before",
+				"current_story_node": "6",
+				"last_stable_screen": "home",
+				"mode": "story",
+				"pending_stage_id": "1-3",
+				"pending_story_after": ""
+			},
+			"wallMs": 243240
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 3.22399997711182,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "briefing_1-3",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-3",
+				"pending_story_after": ""
+			},
+			"wallMs": 245111
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 17.7080001831055,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"capture": "skill_1-3_amamiya_mio",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-3",
+				"pending_story_after": ""
+			},
+			"wallMs": 263394
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 27.4799995422363,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow"
+				],
+				"track": "echo_frontline"
+			},
+			"capture": "skill_1-3_kamiya_yuma",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-3",
+				"pending_story_after": ""
+			},
+			"wallMs": 273174
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 40.076000213623,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "echo_frontline"
+			},
+			"capture": "battle_1-3",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-3",
+				"pending_story_after": ""
+			},
+			"wallMs": 285768
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": ""
+			},
+			"capture": "victory_pose_1-3",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_3_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-3",
+				"pending_story_after": "ch1_1_3_after"
+			},
+			"wallMs": 385372
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": ""
+			},
+			"capture": "result_1-3",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_3_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-3",
+				"pending_story_after": "ch1_1_3_after"
+			},
+			"wallMs": 387174
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.34399998188019,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "ch1_1_3_after_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_3_after",
+				"current_story_node": "6",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-3",
+				"pending_story_after": "ch1_1_3_after"
+			},
+			"wallMs": 389108
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.067999958992,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "after_school"
+			},
+			"capture": "campus_after_3",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "hub",
+				"pending_stage_id": "1-3",
+				"pending_story_after": ""
+			},
+			"wallMs": 390947
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.35599994659424,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "ch1_1_4_before_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_4_before",
+				"current_story_node": "6",
+				"last_stable_screen": "home",
+				"mode": "story",
+				"pending_stage_id": "1-4",
+				"pending_story_after": ""
+			},
+			"wallMs": 392871
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 3.21199989318848,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "briefing_1-4",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-4",
+				"pending_story_after": ""
+			},
+			"wallMs": 394715
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 17.1959991455078,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"capture": "skill_1-4_amamiya_mio",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-4",
+				"pending_story_after": ""
+			},
+			"wallMs": 412489
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 26.9440002441406,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"capture": "skill_1-4_kamiya_yuma",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-4",
+				"pending_story_after": ""
+			},
+			"wallMs": 422240
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 39.5120010375977,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"capture": "battle_1-4",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-4",
+				"pending_story_after": ""
+			},
+			"wallMs": 434809
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": ""
+			},
+			"capture": "victory_pose_1-4",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_4_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-4",
+				"pending_story_after": "ch1_1_4_after"
+			},
+			"wallMs": 555434
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": ""
+			},
+			"capture": "result_1-4",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_4_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-4",
+				"pending_story_after": "ch1_1_4_after"
+			},
+			"wallMs": 557243
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.35599994659424,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "ch1_1_4_after_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_4_after",
+				"current_story_node": "6",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-4",
+				"pending_story_after": "ch1_1_4_after"
+			},
+			"wallMs": 559192
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.11199998855591,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "after_school"
+			},
+			"capture": "campus_after_4",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "hub",
+				"pending_stage_id": "1-4",
+				"pending_story_after": ""
+			},
+			"wallMs": 561260
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.34399998188019,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "ch1_1_5_before_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_5_before",
+				"current_story_node": "6",
+				"last_stable_screen": "home",
+				"mode": "story",
+				"pending_stage_id": "1-5",
+				"pending_story_after": ""
+			},
+			"wallMs": 563187
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 3.53200006484985,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "unheard_memory"
+			},
+			"capture": "briefing_1-5",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-5",
+				"pending_story_after": ""
+			},
+			"wallMs": 565384
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 17.1319999694824,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"capture": "skill_1-5_amamiya_mio",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-5",
+				"pending_story_after": ""
+			},
+			"wallMs": 583096
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 26.8159999847412,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"capture": "skill_1-5_kamiya_yuma",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-5",
+				"pending_story_after": ""
+			},
+			"wallMs": 592777
+		},
+		{
+			"audio": {
+				"activeVoices": 4,
+				"musicPlaying": true,
+				"musicPosition": 28.0639991760254,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"capture": "upgrade_1-5",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-5",
+				"pending_story_after": ""
+			},
+			"wallMs": 594028
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 39.6599998474121,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"capture": "battle_1-5",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "pre_battle",
+				"pending_stage_id": "1-5",
+				"pending_story_after": ""
+			},
+			"wallMs": 605621
+		},
+		{
+			"audio": {
+				"activeVoices": 3,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill",
+					"upgrade"
+				],
+				"track": ""
+			},
+			"capture": "victory_pose_1-5",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_5_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-5",
+				"pending_story_after": "ch1_1_5_after"
+			},
+			"wallMs": 723245
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": false,
+				"musicPosition": 0.0,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill",
+					"upgrade"
+				],
+				"track": ""
+			},
+			"capture": "result_1-5",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_5_after",
+				"current_story_node": "0",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-5",
+				"pending_story_after": "ch1_1_5_after"
+			},
+			"wallMs": 725061
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.32400000095367,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill",
+					"upgrade"
+				],
+				"track": "observation_club"
+			},
+			"capture": "ch1_1_5_after_dialogue",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "ch1_1_5_after",
+				"current_story_node": "6",
+				"last_stable_screen": "home",
+				"mode": "post_battle",
+				"pending_stage_id": "1-5",
+				"pending_story_after": "ch1_1_5_after"
+			},
+			"wallMs": 726974
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.067999958992,
+				"soundsTriggered": [
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"mio_skill",
+					"wave",
+					"core_hit",
+					"victory",
+					"arrow",
+					"yuma_skill",
+					"upgrade"
+				],
+				"track": "after_school"
+			},
+			"capture": "campus_after_5",
+			"flow": {
+				"campaign_active": true,
+				"current_story_id": "",
+				"current_story_node": "",
+				"last_stable_screen": "home",
+				"mode": "hub",
+				"pending_stage_id": "1-5",
+				"pending_story_after": ""
+			},
+			"wallMs": 730102
+		}
+	],
+	"evidenceType": "Real Windows viewport, automated traversal and input; not human play",
+	"ok": true,
+	"reason": "Five stages completed through normal campaign flow",
+	"save": {
+		"characters": {},
+		"currencies": {
+			"club_badge": 6,
+			"equipment_part": 10,
+			"school_coin": 2800,
+			"study_record_archive": 1,
+			"study_record_note": 4,
+			"study_record_short": 10
+		},
+		"entitlements": {
+			"fulfilled": [],
+			"pending": [
+				{
+					"entitlementId": "1-2:reward_1_2_first:EQUIPMENT:equip_ch1_1_2_fine_weapon",
+					"itemId": "equip_ch1_1_2_fine_weapon",
+					"kind": "EQUIPMENT",
+					"registeredAt": "2026-10-10T07:22:49",
+					"rewardId": "reward_1_2_first",
+					"source": "FIRST_CLEAR",
+					"stageId": "1-2"
+				}
+			]
+		},
+		"flow_state": {
+			"campaign_active": true,
+			"current_story_id": "",
+			"current_story_node": "",
+			"last_stable_screen": "home",
+			"mode": "hub",
+			"pending_stage_id": "1-5",
+			"pending_story_after": ""
+		},
+		"game_version": "0.2.0-prototype",
+		"inventory": {},
+		"profile": {
+			"createdAt": "2026-10-10T07:18:57",
+			"playerName": "观测记录"
+		},
+		"progression": {
+			"characters": {
+				"amamiya_mio": {
+					"breakthrough": 0,
+					"exp": 0,
+					"level": 1
+				},
+				"kamiya_yuma": {
+					"breakthrough": 0,
+					"exp": 0,
+					"level": 1
+				},
+				"ogawa_yui": {
+					"breakthrough": 0,
+					"exp": 0,
+					"level": 1
+				}
+			}
+		},
+		"schema_version": 1,
+		"settings": {},
+		"stages": {
+			"1-1": {
+				"clearCount": 1,
+				"cleared": true,
+				"firstClearClaimed": true
+			},
+			"1-2": {
+				"clearCount": 1,
+				"cleared": true,
+				"firstClearClaimed": true
+			},
+			"1-3": {
+				"clearCount": 1,
+				"cleared": true,
+				"firstClearClaimed": true
+			},
+			"1-4": {
+				"clearCount": 1,
+				"cleared": true,
+				"firstClearClaimed": true
+			},
+			"1-5": {
+				"clearCount": 1,
+				"cleared": true,
+				"firstClearClaimed": true
+			}
+		},
+		"statistics": {},
+		"story": {
+			"choices": {},
+			"flags": {
+				"done:ch1_1_1_after": true,
+				"done:ch1_1_2_after": true,
+				"done:ch1_1_2_before": true,
+				"done:ch1_1_3_after": true,
+				"done:ch1_1_3_before": true,
+				"done:ch1_1_4_after": true,
+				"done:ch1_1_4_before": true,
+				"done:ch1_1_5_after": true,
+				"done:ch1_1_5_before": true,
+				"done:prologue_transfer": true,
+				"hub_unlocked": true,
+				"mio_joined": true,
+				"observation_club_founded": true,
+				"yuma_joined": true
+			},
+			"readNodes": [
+				"prologue_transfer:0",
+				"prologue_transfer:1",
+				"prologue_transfer:2",
+				"prologue_transfer:3",
+				"prologue_transfer:4",
+				"prologue_transfer:5",
+				"prologue_transfer:6",
+				"prologue_transfer:7",
+				"prologue_transfer:8",
+				"prologue_transfer:9",
+				"prologue_transfer:10",
+				"prologue_transfer:11",
+				"prologue_transfer:12",
+				"prologue_transfer:13",
+				"ch1_1_1_after:0",
+				"ch1_1_1_after:1",
+				"ch1_1_1_after:2",
+				"ch1_1_1_after:3",
+				"ch1_1_1_after:4",
+				"ch1_1_1_after:5",
+				"ch1_1_1_after:6",
+				"ch1_1_1_after:7",
+				"ch1_1_1_after:8",
+				"ch1_1_1_after:9",
+				"ch1_1_2_before:0",
+				"ch1_1_2_before:1",
+				"ch1_1_2_before:2",
+				"ch1_1_2_before:3",
+				"ch1_1_2_before:4",
+				"ch1_1_2_before:5",
+				"ch1_1_2_before:6",
+				"ch1_1_2_before:7",
+				"ch1_1_2_after:0",
+				"ch1_1_2_after:1",
+				"ch1_1_2_after:2",
+				"ch1_1_2_after:3",
+				"ch1_1_2_after:4",
+				"ch1_1_2_after:5",
+				"ch1_1_2_after:6",
+				"ch1_1_2_after:7",
+				"ch1_1_2_after:8",
+				"ch1_1_3_before:0",
+				"ch1_1_3_before:1",
+				"ch1_1_3_before:2",
+				"ch1_1_3_before:3",
+				"ch1_1_3_before:4",
+				"ch1_1_3_before:5",
+				"ch1_1_3_before:6",
+				"ch1_1_3_before:7",
+				"ch1_1_3_after:0",
+				"ch1_1_3_after:1",
+				"ch1_1_3_after:2",
+				"ch1_1_3_after:3",
+				"ch1_1_3_after:4",
+				"ch1_1_3_after:5",
+				"ch1_1_3_after:6",
+				"ch1_1_3_after:7",
+				"ch1_1_4_before:0",
+				"ch1_1_4_before:1",
+				"ch1_1_4_before:2",
+				"ch1_1_4_before:3",
+				"ch1_1_4_before:4",
+				"ch1_1_4_before:5",
+				"ch1_1_4_before:6",
+				"ch1_1_4_before:7",
+				"ch1_1_4_after:0",
+				"ch1_1_4_after:1",
+				"ch1_1_4_after:2",
+				"ch1_1_4_after:3",
+				"ch1_1_4_after:4",
+				"ch1_1_4_after:5",
+				"ch1_1_4_after:6",
+				"ch1_1_4_after:7",
+				"ch1_1_4_after:8",
+				"ch1_1_5_before:0",
+				"ch1_1_5_before:1",
+				"ch1_1_5_before:2",
+				"ch1_1_5_before:3",
+				"ch1_1_5_before:4",
+				"ch1_1_5_before:5",
+				"ch1_1_5_before:6",
+				"ch1_1_5_before:7",
+				"ch1_1_5_before:8",
+				"ch1_1_5_before:9",
+				"ch1_1_5_after:0",
+				"ch1_1_5_after:1",
+				"ch1_1_5_after:2",
+				"ch1_1_5_after:3",
+				"ch1_1_5_after:4",
+				"ch1_1_5_after:5",
+				"ch1_1_5_after:6",
+				"ch1_1_5_after:7",
+				"ch1_1_5_after:8",
+				"ch1_1_5_after:9",
+				"ch1_1_5_after:10",
+				"ch1_1_5_after:11",
+				"ch1_1_5_after:12",
+				"ch1_1_5_after:13",
+				"ch1_1_5_after:14"
+			]
+		}
+	},
+	"summaries": {
+		"1-1": {
+			"apFinal": 30,
+			"apMax": 30,
+			"busiestLane": 1,
+			"coreHp": 3,
+			"coreHpMax": 5,
+			"elapsed": 89.1,
+			"healedTotal": 0,
+			"heals": 0,
+			"kills": 4,
+			"killsByType": {
+				"echo_normal": 4
+			},
+			"leaked": 2,
+			"leakedByType": {
+				"echo_normal": 2
+			},
+			"lost": 0,
+			"outcome": 1,
+			"outcomeName": "胜利",
+			"planned": 6,
+			"pressureByLane": {
+				"0": 420,
+				"1": 1680,
+				"2": 420
+			},
+			"retreatAp": 0,
+			"retreats": 0,
+			"skillEvents": [
+				{
+					"at": 13.2333333333336,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 25.2499999999998,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 37.2666666666658,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 49.2833333333318,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 61.2999999999978,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 73.3166666666638,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 85.3333333333298,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				}
+			],
+			"spawned": 6,
+			"victory": true,
+			"wave": 3,
+			"waveTotal": 3
+		},
+		"1-2": {
+			"apFinal": 30,
+			"apMax": 30,
+			"busiestLane": 1,
+			"coreHp": 2,
+			"coreHpMax": 3,
+			"elapsed": 109.1,
+			"healedTotal": 0,
+			"heals": 0,
+			"kills": 9,
+			"killsByType": {
+				"echo_normal": 6,
+				"echo_runner": 3
+			},
+			"leaked": 1,
+			"leakedByType": {
+				"echo_normal": 1
+			},
+			"lost": 0,
+			"outcome": 1,
+			"outcomeName": "胜利",
+			"planned": 10,
+			"pressureByLane": {
+				"0": 420,
+				"1": 3300,
+				"2": 0
+			},
+			"retreatAp": 0,
+			"retreats": 0,
+			"skillEvents": [
+				{
+					"at": 13.2333333333336,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 25.2499999999998,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 37.2666666666658,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 49.2833333333318,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 61.2999999999978,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 73.3166666666638,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 85.3333333333298,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 97.3499999999958,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				}
+			],
+			"spawned": 10,
+			"victory": true,
+			"wave": 3,
+			"waveTotal": 3
+		},
+		"1-3": {
+			"apFinal": 30,
+			"apMax": 30,
+			"busiestLane": 1,
+			"coreHp": 2,
+			"coreHpMax": 3,
+			"elapsed": 134.03,
+			"healedTotal": 0,
+			"heals": 0,
+			"kills": 13,
+			"killsByType": {
+				"echo_exam_sheet": 4,
+				"echo_normal": 6,
+				"echo_runner": 3
+			},
+			"leaked": 1,
+			"leakedByType": {
+				"echo_normal": 1
+			},
+			"lost": 0,
+			"outcome": 1,
+			"outcomeName": "胜利",
+			"planned": 14,
+			"pressureByLane": {
+				"0": 0,
+				"1": 4620,
+				"2": 420
+			},
+			"retreatAp": 0,
+			"retreats": 0,
+			"skillEvents": [
+				{
+					"at": 13.2333333333336,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 22.6166666666667,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 25.2499999999998,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 34.0333333333327,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 37.2666666666658,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 44.0499999999988,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 49.2833333333318,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 54.0666666666649,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 61.2999999999978,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 66.0333333333309,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 73.3166666666638,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 76.049999999997,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 85.3333333333298,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 86.0666666666631,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 97.3499999999958,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 108.033333333328,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 109.366666666662,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 118.049999999995,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 121.383333333328,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 128.066666666661,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 133.399999999998,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				}
+			],
+			"spawned": 14,
+			"victory": true,
+			"wave": 4,
+			"waveTotal": 4
+		},
+		"1-4": {
+			"apFinal": 30,
+			"apMax": 30,
+			"busiestLane": 1,
+			"coreHp": 2,
+			"coreHpMax": 3,
+			"elapsed": 155.08,
+			"healedTotal": 0,
+			"heals": 0,
+			"kills": 10,
+			"killsByType": {
+				"echo_armored": 2,
+				"echo_normal": 5,
+				"echo_runner": 3
+			},
+			"leaked": 1,
+			"leakedByType": {
+				"echo_normal": 1
+			},
+			"lost": 0,
+			"outcome": 1,
+			"outcomeName": "胜利",
+			"planned": 11,
+			"pressureByLane": {
+				"0": 420,
+				"1": 4480,
+				"2": 0
+			},
+			"retreatAp": 0,
+			"retreats": 0,
+			"skillEvents": [
+				{
+					"at": 13.2333333333336,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 22.6166666666667,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 25.2499999999998,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 36.0333333333326,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 37.2666666666658,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 46.0499999999987,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 49.2833333333318,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 56.0666666666648,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 61.2999999999978,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 70.0333333333306,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 73.3166666666638,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 80.0499999999967,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 85.3333333333298,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 90.0666666666628,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 97.3499999999958,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 109.366666666662,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 112.033333333328,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 121.383333333328,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 122.049999999994,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 132.066666666664,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 133.399999999998,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 145.416666666675,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				}
+			],
+			"spawned": 11,
+			"victory": true,
+			"wave": 4,
+			"waveTotal": 4
+		},
+		"1-5": {
+			"apFinal": 30,
+			"apMax": 30,
+			"busiestLane": 1,
+			"coreHp": 2,
+			"coreHpMax": 3,
+			"elapsed": 152.52,
+			"healedTotal": 0,
+			"heals": 0,
+			"kills": 7,
+			"killsByType": {
+				"echo_armored": 1,
+				"echo_invigilator": 2,
+				"echo_normal": 2,
+				"echo_runner": 2
+			},
+			"leaked": 1,
+			"leakedByType": {
+				"echo_normal": 1
+			},
+			"lost": 0,
+			"outcome": 1,
+			"outcomeName": "胜利",
+			"planned": 8,
+			"pressureByLane": {
+				"0": 420,
+				"1": 5360,
+				"2": 0
+			},
+			"retreatAp": 0,
+			"retreats": 0,
+			"skillEvents": [
+				{
+					"at": 13.2333333333336,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 22.55,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 25.2499999999998,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 32.5666666666661,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 37.2666666666658,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 42.5833333333322,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 49.2833333333318,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 52.5999999999983,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 61.2999999999978,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 73.3166666666638,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 74.0333333333304,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 85.3333333333298,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 97.3499999999958,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 109.366666666662,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 110.033333333328,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 120.049999999994,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				},
+				{
+					"at": 121.383333333328,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 133.399999999998,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 145.416666666675,
+					"instanceId": 1,
+					"skillId": "mio_evening_flash"
+				},
+				{
+					"at": 146.016666666675,
+					"instanceId": 2,
+					"skillId": "yuma_piercing_arrow"
+				}
+			],
+			"spawned": 8,
+			"victory": true,
+			"wave": 5,
+			"waveTotal": 5
+		}
+	},
+	"wallSeconds": 730.502
+}

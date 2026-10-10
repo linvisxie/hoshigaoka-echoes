@@ -96,7 +96,7 @@ const FLOAT_LIFE := 1.4
 const PULSE_DECAY := 2.2
 
 ## 背景遮罩：让背景退到 UI 之后，保证文字可读（与 battle_scene 的 BG_SCRIM 同思路）
-const SCRIM := Color(0.020, 0.028, 0.058, 0.78)
+const SCRIM := Color(0.020, 0.028, 0.058, 0.48)
 
 ## 字号（1920×1080 参考画布下全部 ≥ 22px；随窗口同比缩放）
 const F_TINY := 22.0
@@ -188,9 +188,11 @@ var _scale: float = 1.0
 var _sb_cache: Dictionary = {}
 var _grad_cache: Dictionary = {}
 var _tex_cache: Dictionary = {}
+var _navigation: Array[Button] = []
 
 
 func _ready() -> void:
+	theme = GameSkin.make_theme()
 	_refresh_viewport()
 	_ensure_service()
 	_pick_first_character()
@@ -203,6 +205,7 @@ func _ready() -> void:
 	back.add_theme_font_size_override("font_size", 25)
 	back.pressed.connect(func() -> void: SceneRouter.go_to("home" if not SaveService.get_current().is_empty() else "title"))
 	add_child(back)
+	_navigation.append(back)
 	var details := Button.new()
 	details.text = "技能与天赋"
 	details.position = Vector2(320, 620)
@@ -212,6 +215,7 @@ func _ready() -> void:
 		CampaignFlow.inspected_character_id = _selected_id
 		SceneRouter.go_to("character_details"))
 	add_child(details)
+	_navigation.append(details)
 	var equipment := Button.new()
 	equipment.text = "装备背包"
 	equipment.position = Vector2(70, 695)
@@ -219,10 +223,23 @@ func _ready() -> void:
 	equipment.add_theme_font_size_override("font_size", 27)
 	equipment.pressed.connect(func() -> void: SceneRouter.go_to("equipment"))
 	add_child(equipment)
+	_navigation.append(equipment)
+	for button: Button in _navigation:
+		GameSkin.style_button(button)
+		button.pressed.connect(func() -> void: AudioService.play_sfx("select"))
+	_layout_navigation()
 	GameLog.info(TAG, "角色培养界面就绪（%d 名角色，服务就绪=%s，画布 %.0fx%.0f，缩放 %.3f）"
 		% [_card_ids.size(), str(_svc != null and _svc.is_ready()),
 			_viewport.x, _viewport.y, _scale])
 	queue_redraw()
+
+func _layout_navigation() -> void:
+	if _navigation.size() != 3:
+		return
+	for i: int in range(3):
+		_navigation[i].position = Vector2(_list_rect.position.x + _px(18), _info_rect.position.y - _px(160) + _px(i * 54))
+		_navigation[i].size = Vector2(_list_rect.size.x - _px(36), _px(48))
+		_navigation[i].add_theme_font_size_override("font_size", int(_px(24)))
 
 ## 取当前**实际画布尺寸**（游戏单位），而不是 ProjectSettings 里的参考分辨率。
 ##
@@ -261,7 +278,7 @@ func _pick_first_character() -> void:
 				_card_ids.append(cid)
 		_card_ids.sort()
 	if not _card_ids.is_empty():
-		_selected_id = _card_ids[0]
+		_selected_id = CampaignFlow.inspected_character_id if _card_ids.has(CampaignFlow.inspected_character_id) else _card_ids[0]
 	GameLog.info(TAG, "角色培养界面：载入 %d 名角色（服务就绪=%s）"
 		% [_card_ids.size(), str(_svc != null and _svc.is_ready())])
 
@@ -277,6 +294,7 @@ func _process(delta: float) -> void:
 	# 每帧重取画布尺寸：窗口拉伸 / 分辨率变化时布局随之重算（仅读 size，无副作用）
 	_refresh_viewport()
 	_layout()
+	_layout_navigation()
 	queue_redraw()
 
 
@@ -350,6 +368,7 @@ func _select_character(character_id: String) -> void:
 		_preview_count = 0
 		return
 	_selected_id = character_id
+	CampaignFlow.inspected_character_id = character_id
 	_preview_count = 0
 	_delta_pulse = 0.0
 	_delta_float = 0.0
@@ -872,7 +891,7 @@ func _draw_header(font: Font) -> void:
 	# 标题徽记（icon_ap 仅作本页入口标识，不表示任何 AP 数值）
 	var emblem := _px(ICON_SIZE_EMBLEM)
 	var ex := _px(48.0)
-	_draw_icon("icon_ap", Vector2(ex, _px(42.0)), emblem)
+	draw_texture_rect(GameSkin.crest(), Rect2(ex, _px(29), emblem, _px(80)), false)
 	var tx := ex + emblem + _px(16.0)
 	_draw_text(font, Vector2(tx, _px(88.0)), "角色培养", _px(F_TITLE), TEXT)
 	_draw_text(font, Vector2(tx, _px(126.0)),

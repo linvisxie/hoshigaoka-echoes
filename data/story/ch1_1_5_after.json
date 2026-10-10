@@ -4,7 +4,7 @@
   "storyId": "ch1_1_5_after",
   "chapterId": "ch1",
   "title": "1-5 · 放课后观测会",
-  "background": "bg_env_corridor_battle",
+  "background": "bg_env_gym_battle",
   "music": "observation_club",
   "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
   "completionFlags": [
@@ -102,7 +102,7 @@
       "id": "14",
       "speaker": "",
       "character": "",
-      "text": "窗外的社团铃声照常响起。你们把散落的纸捡好，一起离开这条终于不再延长的走廊。"
+      "text": "窗外的社团铃声照常响起。你们把散落的纸捡好，一起走出终于恢复寂静的旧体育馆。"
     }
   ]
 }

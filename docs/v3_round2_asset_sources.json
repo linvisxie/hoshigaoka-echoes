@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-10",
+  "provider": "built-in image_gen",
+  "referenceOrigin": "User confirms three reference images were generated with GPT",
+  "terms": "https://openai.com/policies/terms-of-use/",
+  "assets": [
+    {
+      "asset": "assets/art/environments/bg_title_gate.png",
+      "source": "tools/source_art/exec-8e676551-a558-478f-ae72-b11b03c66b46.png",
+      "sha256": "28eb143cfc96510e5152b1218c8194c28732bd31f8955dc336b38c05883e7137"
+    },
+    {
+      "asset": "assets/art/environments/bg_env_gym_battle.png",
+      "source": "tools/source_art/exec-1c430c82-2296-43bd-906f-5cb55b39c12c.png",
+      "sha256": "684808a712535f1451b3360cfbd66eae3337b9d963302ef40df01876e02c0bdb"
+    },
+    {
+      "asset": "assets/art/ui/core_tower_six.png",
+      "source": "tools/source_art/exec-3530b28c-e79a-4c73-80e2-e936e7b37745.png",
+      "sha256": "84140a21e49bea2360428122107be5c9223c68d4fae645ad32bd215b228d605f"
+    }
+  ],
+  "crest": "Original project-native SVG; six radial petals, matching user ruling"
+}

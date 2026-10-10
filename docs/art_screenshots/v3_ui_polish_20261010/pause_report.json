@@ -1,0 +1,77 @@
+{
+	"checks": [
+		{
+			"name": "button exists: 保存并返回",
+			"ok": true
+		},
+		{
+			"name": "title settings returns to title",
+			"ok": true
+		},
+		{
+			"name": "button exists: 关卡记录",
+			"ok": true
+		},
+		{
+			"name": "five scene preview cards and return",
+			"ok": true
+		},
+		{
+			"name": "fifth card opens actual briefing",
+			"ok": true
+		},
+		{
+			"name": "button exists: Ⅱ  暂停",
+			"ok": true
+		},
+		{
+			"name": "native pause button freezes battle",
+			"ok": true
+		},
+		{
+			"name": "pause preserves domain clock",
+			"ok": true
+		},
+		{
+			"name": "button exists: 操作说明与音量",
+			"ok": true
+		},
+		{
+			"name": "button exists: 保存并返回",
+			"ok": true
+		},
+		{
+			"name": "audio settings retain pause",
+			"ok": true
+		},
+		{
+			"name": "button exists: 结束本次调查",
+			"ok": true
+		},
+		{
+			"name": "button exists: 继续调查",
+			"ok": true
+		},
+		{
+			"name": "cancel leave returns to pause",
+			"ok": true
+		},
+		{
+			"name": "Space resumes after native button interaction",
+			"ok": true
+		},
+		{
+			"name": "button exists: 结束本次调查",
+			"ok": true
+		},
+		{
+			"name": "button exists: 返回校园",
+			"ok": true
+		},
+		{
+			"name": "confirmed leave returns to campus",
+			"ok": true
+		}
+	],
+	"type": "real Windows viewport; automated native mouse/key input"
+}

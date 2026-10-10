@@ -115,15 +115,15 @@ write('ch1_1_4_after','1-4 · 可以放下一会儿',[
 
 write('ch1_1_5_before','1-5 · 监考者',[
 ('广播','距离结束还有……还有……'),
-('旁白','走廊里的广播反复停在同一个词。门上的测验安排被红笔改了又改。'),
+('旁白','广播的杂音把你们引向旧体育馆。推开沉重的门，舞台旁的测验安排已被红笔改了又改。'),
 ('澪','它在等什么？'),
 ('悠真','不是等。它在检查每一条路线。'),
-('旁白','一团被试卷和目光包围的黑影站在尽头。没有脸，视线却让人不自觉地站直。'),
+('旁白','一团被试卷和目光包围的黑影站在体育馆舞台前。没有脸，视线却让人不自觉地站直。'),
 ('你','被盯着的时候，连动作都变慢了。'),
 ('澪','别被它的节奏带走。守住坐标。'),
 ('悠真','支援在后面。先处理旁边的残响，再集中应对它。'),
 ('旁白','地面亮起一圈比以往更清晰的光。你能从残响中选择一种暂时稳定的力量。'),
-('你','这次，我们自己决定该怎样前进。')],background='bg_env_corridor_battle')
+('你','这次，我们自己决定该怎样前进。')],background='bg_env_gym_battle')
 write('ch1_1_5_after','1-5 · 放课后观测会',[
 ('旁白','监考者散去后，广播终于说完了那句早已过时的结束通知。'),
 ('凛','记录时间，十七点二十四分。异常解除。参与者三名，无人失联。'),
@@ -139,7 +139,7 @@ write('ch1_1_5_after','1-5 · 放课后观测会',[
 ('悠真','至少要规定：谁都不能只留一句“没事”就独自去。'),
 ('澪','……包括前辈。'),
 ('凛','包括我。那就这么定了。'),
-('旁白','窗外的社团铃声照常响起。你们把散落的纸捡好，一起离开这条终于不再延长的走廊。')],background='bg_env_corridor_battle',flags=('observation_club_founded',))
+('旁白','窗外的社团铃声照常响起。你们把散落的纸捡好，一起走出终于恢复寂静的旧体育馆。')],background='bg_env_gym_battle',flags=('observation_club_founded',))
 
 titles=['初次锚定','迟到的人影','被批改的空气','背得太多','监考者']
 briefings=[
@@ -156,5 +156,8 @@ for i in range(1,6):
                storyBefore='prologue_transfer' if i==1 else f'ch1_1_{i}_before',
                storyAfter=f'ch1_1_{i}_after')
     cfg['_story_note']='V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts.'
+    if i == 5:
+        cfg['mapId']='ch1_old_gym_echo'
+        cfg['_mapId_spec']='User V3 clarification: stage 1-5 is the old gym; supersedes corridor location only.'
     path.write_text(json.dumps(cfg,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 print('Authored 10 story files; bound first-five story events. Combat timelines unchanged.')

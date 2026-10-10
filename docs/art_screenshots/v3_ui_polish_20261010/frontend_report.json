@@ -1,0 +1,373 @@
+{
+	"audio": {
+		"activeVoices": 0,
+		"musicPlaying": true,
+		"musicPosition": 6.00799989700317,
+		"soundsTriggered": [
+			"select",
+			"upgrade"
+		],
+		"track": "unheard_memory"
+	},
+	"checks": [
+		{
+			"name": "seed is completed normal five-stage save",
+			"ok": true
+		},
+		{
+			"name": "button exists: 角色培养 · 装备",
+			"ok": true
+		},
+		{
+			"name": "real growth input consumes earned study record",
+			"ok": true
+		},
+		{
+			"name": "button exists: 技能与天赋",
+			"ok": true
+		},
+		{
+			"name": "character details reachable",
+			"ok": true
+		},
+		{
+			"name": "button exists: 返回培养",
+			"ok": true
+		},
+		{
+			"name": "button exists: 装备背包",
+			"ok": true
+		},
+		{
+			"name": "button exists: 领取全部装备奖励",
+			"ok": true
+		},
+		{
+			"name": "earned 1-2 weapon fulfilled",
+			"ok": true
+		},
+		{
+			"name": "button exists: 装备给神谷悠真",
+			"ok": true
+		},
+		{
+			"name": "equipment adds actual combat attack",
+			"ok": true
+		},
+		{
+			"name": "button exists: 强化 +1",
+			"ok": true
+		},
+		{
+			"name": "equipment enhancement saved",
+			"ok": true
+		},
+		{
+			"name": "button exists: 卸下",
+			"ok": true
+		},
+		{
+			"name": "unequip restores base attack",
+			"ok": true
+		},
+		{
+			"name": "button exists: 装备给神谷悠真",
+			"ok": true
+		},
+		{
+			"name": "reload after equipment mutation",
+			"ok": true
+		},
+		{
+			"name": "gear combat bonus survives reload",
+			"ok": true
+		},
+		{
+			"name": "equipment attack-speed affix affects combat interval",
+			"ok": true
+		},
+		{
+			"name": "button exists: 返回校园",
+			"ok": true
+		},
+		{
+			"name": "button exists: 设置",
+			"ok": true
+		},
+		{
+			"name": "button exists: 保存并返回",
+			"ok": true
+		},
+		{
+			"name": "settings file persisted",
+			"ok": true
+		},
+		{
+			"name": "button exists: 剧情档案",
+			"ok": true
+		},
+		{
+			"name": "archive launches replay mode",
+			"ok": true
+		},
+		{
+			"name": "archive replay does not mutate progress or rewards",
+			"ok": true
+		},
+		{
+			"name": "button exists: 历史",
+			"ok": true
+		},
+		{
+			"name": "history modal blocks underlying next-dialogue click",
+			"ok": true
+		},
+		{
+			"name": "button exists: 关闭历史",
+			"ok": true
+		},
+		{
+			"name": "button exists: 菜单",
+			"ok": true
+		},
+		{
+			"name": "story menu blocks underlying next-dialogue click",
+			"ok": true
+		},
+		{
+			"name": "button exists: 继续阅读",
+			"ok": true
+		}
+	],
+	"save": {
+		"characters": {
+			"kamiya_yuma": {
+				"equipment": {
+					"WEAPON": "inst_equip_ch1_1_2_fine_weapon_1"
+				}
+			}
+		},
+		"currencies": {
+			"club_badge": 6.0,
+			"equipment_part": 9.0,
+			"school_coin": 2760.0,
+			"study_record_archive": 1.0,
+			"study_record_note": 4.0,
+			"study_record_short": 9.0
+		},
+		"entitlements": {
+			"fulfilled": [
+				{
+					"entitlementId": "1-2:reward_1_2_first:EQUIPMENT:equip_ch1_1_2_fine_weapon",
+					"fulfilledAt": "2026-10-10T07:23:36",
+					"instanceId": "inst_equip_ch1_1_2_fine_weapon_1",
+					"itemId": "equip_ch1_1_2_fine_weapon",
+					"kind": "EQUIPMENT",
+					"registeredAt": "2026-10-10T04:46:33",
+					"rewardId": "reward_1_2_first",
+					"source": "FIRST_CLEAR",
+					"stageId": "1-2"
+				}
+			],
+			"pending": []
+		},
+		"flow_state": {
+			"campaign_active": true,
+			"current_story_id": "",
+			"current_story_node": "",
+			"last_stable_screen": "home",
+			"mode": "hub",
+			"pending_stage_id": "1-5",
+			"pending_story_after": ""
+		},
+		"game_version": "0.2.0-prototype",
+		"inventory": {
+			"equipmentInstances": [
+				{
+					"boundCharacterId": "kamiya_yuma",
+					"enhanceLevel": 1.0,
+					"equipmentId": "equip_ch1_1_2_fine_weapon",
+					"instanceId": "inst_equip_ch1_1_2_fine_weapon_1",
+					"invested": {
+						"equipment_part": 1.0,
+						"school_coin": 40.0
+					}
+				}
+			]
+		},
+		"profile": {
+			"createdAt": "2026-10-10T04:42:44",
+			"playerName": "观测记录"
+		},
+		"progression": {
+			"characters": {
+				"amamiya_mio": {
+					"breakthrough": 0.0,
+					"exp": 0.0,
+					"level": 2.0
+				},
+				"kamiya_yuma": {
+					"breakthrough": 0.0,
+					"exp": 0.0,
+					"level": 1.0
+				},
+				"ogawa_yui": {
+					"breakthrough": 0.0,
+					"exp": 0.0,
+					"level": 1.0
+				}
+			}
+		},
+		"schema_version": 1.0,
+		"settings": {},
+		"stages": {
+			"1-1": {
+				"clearCount": 1.0,
+				"cleared": true,
+				"firstClearClaimed": true
+			},
+			"1-2": {
+				"clearCount": 1.0,
+				"cleared": true,
+				"firstClearClaimed": true
+			},
+			"1-3": {
+				"clearCount": 1.0,
+				"cleared": true,
+				"firstClearClaimed": true
+			},
+			"1-4": {
+				"clearCount": 1.0,
+				"cleared": true,
+				"firstClearClaimed": true
+			},
+			"1-5": {
+				"clearCount": 1.0,
+				"cleared": true,
+				"firstClearClaimed": true
+			}
+		},
+		"statistics": {},
+		"story": {
+			"choices": {},
+			"flags": {
+				"done:ch1_1_1_after": true,
+				"done:ch1_1_2_after": true,
+				"done:ch1_1_2_before": true,
+				"done:ch1_1_3_after": true,
+				"done:ch1_1_3_before": true,
+				"done:ch1_1_4_after": true,
+				"done:ch1_1_4_before": true,
+				"done:ch1_1_5_after": true,
+				"done:ch1_1_5_before": true,
+				"done:prologue_transfer": true,
+				"hub_unlocked": true,
+				"mio_joined": true,
+				"observation_club_founded": true,
+				"yuma_joined": true
+			},
+			"readNodes": [
+				"prologue_transfer:0",
+				"prologue_transfer:1",
+				"prologue_transfer:2",
+				"prologue_transfer:3",
+				"prologue_transfer:4",
+				"prologue_transfer:5",
+				"prologue_transfer:6",
+				"prologue_transfer:7",
+				"prologue_transfer:8",
+				"prologue_transfer:9",
+				"prologue_transfer:10",
+				"prologue_transfer:11",
+				"prologue_transfer:12",
+				"prologue_transfer:13",
+				"ch1_1_1_after:0",
+				"ch1_1_1_after:1",
+				"ch1_1_1_after:2",
+				"ch1_1_1_after:3",
+				"ch1_1_1_after:4",
+				"ch1_1_1_after:5",
+				"ch1_1_1_after:6",
+				"ch1_1_1_after:7",
+				"ch1_1_1_after:8",
+				"ch1_1_1_after:9",
+				"ch1_1_2_before:0",
+				"ch1_1_2_before:1",
+				"ch1_1_2_before:2",
+				"ch1_1_2_before:3",
+				"ch1_1_2_before:4",
+				"ch1_1_2_before:5",
+				"ch1_1_2_before:6",
+				"ch1_1_2_before:7",
+				"ch1_1_2_after:0",
+				"ch1_1_2_after:1",
+				"ch1_1_2_after:2",
+				"ch1_1_2_after:3",
+				"ch1_1_2_after:4",
+				"ch1_1_2_after:5",
+				"ch1_1_2_after:6",
+				"ch1_1_2_after:7",
+				"ch1_1_2_after:8",
+				"ch1_1_3_before:0",
+				"ch1_1_3_before:1",
+				"ch1_1_3_before:2",
+				"ch1_1_3_before:3",
+				"ch1_1_3_before:4",
+				"ch1_1_3_before:5",
+				"ch1_1_3_before:6",
+				"ch1_1_3_before:7",
+				"ch1_1_3_after:0",
+				"ch1_1_3_after:1",
+				"ch1_1_3_after:2",
+				"ch1_1_3_after:3",
+				"ch1_1_3_after:4",
+				"ch1_1_3_after:5",
+				"ch1_1_3_after:6",
+				"ch1_1_3_after:7",
+				"ch1_1_4_before:0",
+				"ch1_1_4_before:1",
+				"ch1_1_4_before:2",
+				"ch1_1_4_before:3",
+				"ch1_1_4_before:4",
+				"ch1_1_4_before:5",
+				"ch1_1_4_before:6",
+				"ch1_1_4_before:7",
+				"ch1_1_4_after:0",
+				"ch1_1_4_after:1",
+				"ch1_1_4_after:2",
+				"ch1_1_4_after:3",
+				"ch1_1_4_after:4",
+				"ch1_1_4_after:5",
+				"ch1_1_4_after:6",
+				"ch1_1_4_after:7",
+				"ch1_1_4_after:8",
+				"ch1_1_5_before:0",
+				"ch1_1_5_before:1",
+				"ch1_1_5_before:2",
+				"ch1_1_5_before:3",
+				"ch1_1_5_before:4",
+				"ch1_1_5_before:5",
+				"ch1_1_5_before:6",
+				"ch1_1_5_before:7",
+				"ch1_1_5_before:8",
+				"ch1_1_5_before:9",
+				"ch1_1_5_after:0",
+				"ch1_1_5_after:1",
+				"ch1_1_5_after:2",
+				"ch1_1_5_after:3",
+				"ch1_1_5_after:4",
+				"ch1_1_5_after:5",
+				"ch1_1_5_after:6",
+				"ch1_1_5_after:7",
+				"ch1_1_5_after:8",
+				"ch1_1_5_after:9",
+				"ch1_1_5_after:10",
+				"ch1_1_5_after:11",
+				"ch1_1_5_after:12",
+				"ch1_1_5_after:13",
+				"ch1_1_5_after:14"
+			]
+		}
+	},
+	"type": "real Windows viewport; automated UI mouse input, not human play"
+}

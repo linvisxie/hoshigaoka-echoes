@@ -74,7 +74,7 @@ const HUD_BAND_HEIGHT := 200.0
 ## 核心侧留白（以格为单位，纯渲染）
 const CORE_MARGIN_TILES := 1.15
 ## 底部角色卡高度（参考画布单位）
-const CARD_HEIGHT := 190.0
+const CARD_HEIGHT := 244.0
 ## 底部角色卡带的下边距（参考画布单位）
 const CARD_BOTTOM_MARGIN := 24.0
 ## 底部卡片带总高 = 卡片 + 下边距。
@@ -83,7 +83,7 @@ const CARD_BAND_HEIGHT := CARD_HEIGHT + CARD_BOTTOM_MARGIN
 
 ## P0.4：底部为**多张角色卡**，每张对应一个本关可用角色；
 ## 卡序 = StageConfig.availableCharacters 顺序，数字键 1..N 快选。
-const CARD_WIDTH := 188.0
+const CARD_WIDTH := 210.0
 const CARD_GAP := 16.0
 
 ## 三职业占位配色（V2.1.4 J 章允许占位图形，但必须能一眼区分职责）
@@ -445,6 +445,7 @@ var _pause_rect: Rect2 = Rect2()
 var _retreat_rect: Rect2 = Rect2()
 var _skill_rect: Rect2 = Rect2()
 var _special_animations: Dictionary = {}
+var _native_hud: BattleHud
 var _result_animation_time: float = 0.0
 
 # ---- 局内强化面板状态（纯表现层缓存；唯一真值仍在 domain 层的 pending_offer）----
@@ -475,6 +476,11 @@ func _ready() -> void:
 	)
 	_update_render_scale()
 	_build_battle()
+	if session != null:
+		_native_hud = BattleHud.new()
+		_native_hud.battle = self
+		_native_hud.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		add_child(_native_hud)
 	for arg: String in OS.get_cmdline_user_args():
 		if arg == "--autoplay":
 			_autoplay = true
@@ -827,6 +833,7 @@ func _rebuild_upgrade_card_views() -> void:
 			"id": uid,
 			"name": str(cfg.get("name", uid)),
 			"description": str(cfg.get("description", "")),
+			"guidance": str(cfg.get("guidance", "")),
 			"tier": str(cfg.get("tier", "COMMON")),
 			"category": str(cfg.get("category", "")),
 			"appliesTo": str(cfg.get("appliesTo", "ALL")),
@@ -1110,7 +1117,7 @@ func _draw_upgrade_overlay() -> void:
 	var sub := "选择一项，让残响成为你的力量 · 本局有效"
 	if _upgrade_is_tutorial:
 		sub = "首次强化 · 选择立即生效，离开关卡后清空"
-	var sfs := int(_px(19.0))
+	var sfs := int(_px(23.0))
 	var sw := font.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
 	draw_string(font, Vector2(cx - sw * 0.5, _px(112.0)), sub,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, sfs,
@@ -1124,6 +1131,7 @@ func _draw_upgrade_overlay() -> void:
 			Vector2(tag_w, _px(24.0)))
 		_draw_tag(tag, Color(UPGRADE_TUTORIAL_ACCENT.r, UPGRADE_TUTORIAL_ACCENT.g,
 			UPGRADE_TUTORIAL_ACCENT.b, 0.18), UPGRADE_TUTORIAL_ACCENT)
+		draw_string(font, tag.position + Vector2(_px(10),_px(18)), "首次教学", HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(15)),UPGRADE_TUTORIAL_ACCENT)
 
 	# ---- 三张卡片 ----
 	for i: int in range(n):
@@ -1264,12 +1272,18 @@ func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
 			HORIZONTAL_ALIGNMENT_LEFT, -1, dfs, UPGRADE_DESC_COLOR)
 
 	# ---- ⑥ 作用对象 + 叠加状态 ----
+	var guidance := str(view.get("guidance", ""))
+	if not guidance.is_empty():
+		var lines := guidance.split("\n")
+		for i: int in range(lines.size()):
+			var text_width := font.get_string_size(lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(22))).x
+			draw_string(font,Vector2(x+(w-text_width)*0.5,ny+_px(105+i*34)),lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(22)),Color(0.74,0.82,0.94))
 	var target_text := _upgrade_target_text(view)
 	var stacks := int(view.get("stacks", 0))
 	var max_stacks := int(view.get("maxStacks", 1))
 	var stack_text := "不可叠加" if max_stacks <= 1 else "可叠加 %d/%d" % [stacks, max_stacks]
-	var foot := "作用对象：%s      叠加：%s" % [target_text, stack_text]
-	var ffs := int(_px(15.0))
+	var foot := "%s  ·  %s" % [target_text, stack_text]
+	var ffs := int(_px(22.0))
 	var fw := font.get_string_size(foot, HORIZONTAL_ALIGNMENT_LEFT, -1, ffs).x
 	if fw > w - _px(32.0):
 		foot = "对象：%s   叠加：%s" % [target_text, stack_text]
@@ -1311,7 +1325,7 @@ func _draw_gained_upgrades(font: Font) -> void:
 	var gained: Array[Dictionary] = session.stage.upgrade_summary()
 	var base_y := _upgrade_skip_rect.position.y + _upgrade_skip_rect.size.y + _px(28.0)
 	var head := "本局已获得强化"
-	var hfs := int(_px(16.0))
+	var hfs := int(_px(21.0))
 	var hw := font.get_string_size(head, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
 	var cx := _viewport_size.x * 0.5
 	draw_string(font, Vector2(cx - hw * 0.5, base_y), head,
@@ -1319,7 +1333,7 @@ func _draw_gained_upgrades(font: Font) -> void:
 	var y := base_y + _px(24.0)
 	if gained.is_empty():
 		var none_text := "暂无 —— 这是本局第一次强化"
-		var nfs := int(_px(15.0))
+		var nfs := int(_px(20.0))
 		var nw := font.get_string_size(none_text, HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
 		draw_string(font, Vector2(cx - nw * 0.5, y), none_text,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, nfs, Color(0.58, 0.64, 0.78))
@@ -1700,7 +1714,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_handle_upgrade_key(k)
 			return
 		if k == KEY_ESCAPE:
-			_cancel_selection()
+			if session.is_paused() and _native_hud != null:
+				_native_hud.handle_escape()
+			elif _selected_character_id != 0 or not _selected_card_id.is_empty():
+				_cancel_selection()
+			else:
+				_toggle_pause()
 			return
 		if k == KEY_SPACE:
 			_toggle_pause()
@@ -1802,7 +1821,8 @@ func _toggle_card_selection(character_id: String = "") -> void:
 
 	# 该角色已在场时不得再选（同一名角色不能同时部署多个实体）
 	if session.stage.get_character_by_id(cid) != null:
-		_show_feedback("%s 已在场上" % _display_name_of(cid), Color(1.0, 0.6, 0.4))
+		_selected_character_id = session.stage.get_character_by_id(cid).instance_id
+		_show_feedback("已选中 %s · Q 技能 / R 撤退" % _display_name_of(cid), Color(0.65, 0.87, 1.0))
 		_selected_card_id = ""
 		return
 
@@ -2038,15 +2058,15 @@ func _layout_buttons() -> void:
 		Vector2(pw, ph))
 	# 操作面板（选中角色时）的撤退按钮
 	if _selected_character_id != 0:
-		var panel_w := _px(430.0)
-		var panel_h := _px(280.0)
+		var panel_w := _px(550.0)
+		var panel_h := _px(310.0)
 		var panel_pos := Vector2(_viewport_size.x - panel_w - _px(24.0),
 			_viewport_size.y - panel_h - _px(24.0))
 		_retreat_rect = Rect2(
-			panel_pos + Vector2(_px(20.0), panel_h - _px(72.0)),
-			Vector2(_px(150.0), _px(52.0))
+			panel_pos + Vector2(_px(20.0), panel_h - _px(86.0)),
+			Vector2(_px(170.0), _px(66.0))
 		)
-		_skill_rect = Rect2(panel_pos + Vector2(_px(182.0), panel_h - _px(72.0)), Vector2(_px(228.0), _px(52.0)))
+		_skill_rect = Rect2(panel_pos + Vector2(_px(210.0), panel_h - _px(86.0)), Vector2(_px(320.0), _px(66.0)))
 	else:
 		_retreat_rect = Rect2()
 		_skill_rect = Rect2()
@@ -2275,7 +2295,8 @@ func _draw() -> void:
 	if grid == null or session == null:
 		return
 	_draw_stage_background()
-	_draw_hud_backdrop()
+	if _native_hud == null:
+		_draw_hud_backdrop()
 	_draw_board()
 	_draw_lane_warnings()
 	_draw_core()
@@ -2288,16 +2309,17 @@ func _draw() -> void:
 	_draw_vfx()
 	_draw_death_particles()
 	_draw_damage_pops()
-	_draw_hud_text()
-	_draw_wave_banner()
-	_draw_character_card()
-	_draw_character_panel()
+	if _native_hud == null:
+		_draw_hud_text()
+		_draw_wave_banner()
+		_draw_character_card()
+		_draw_character_panel()
 	_draw_tutorial_cards()
 	_draw_feedback()
 	# Alpha A0.6：强化面板画在暂停遮罩**之前**，因此面板优先于暂停遮罩。
 	# 但两者不会同时出现：面板出现时域层冻结 advance()，而 paused 是另一套状态
 	# （面板激活期间 _toggle_pause 被拦截，见 _unhandled_input）。
-	if session.is_paused():
+	if session.is_paused() and _native_hud == null:
 		_draw_pause_overlay()
 	_draw_upgrade_overlay()
 	if session.is_decided():
@@ -2490,7 +2512,7 @@ func _draw_core() -> void:
 	var flash := clampf((_core_flash_until - now) / CORE_FLASH_SECONDS, 0.0, 1.0)
 	var energy := Color(0.62, 0.74, 1.0) if not danger else Color(1.0, 0.40, 0.57)
 	energy = energy.lerp(Color(1, 0.94, 0.85), flash)
-	var tower := ArtRegistry.load_texture("res://assets/art/ui/core_tower.png")
+	var tower := ArtRegistry.load_texture("res://assets/art/ui/core_tower_six.png")
 	var core_center := Vector2(_origin.x - tile * 0.92, _origin.y + spacing)
 	if tower != null:
 		var tower_h := spacing * 2.0 + tile * 0.34
@@ -3377,32 +3399,31 @@ func _draw_tutorial_cards() -> void:
 		alpha = clampf(alpha, 0.0, 1.0)
 		var title := str(card["title"])
 		var text := str(card["text"])
-		var fs_title := int(_px(19.0))
-		var fs_text := int(_px(17.0))
+		var fs_title := int(_px(23.0))
+		var fs_text := int(_px(21.0))
 		var w_title := 0.0
 		if not title.is_empty():
 			w_title = font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_title).x
 		var w_text := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_text).x
 		var box_w := maxf(w_title, w_text) + _px(30.0)
-		var box_h := _px(34.0) + (_px(24.0) if not title.is_empty() else 0.0)
+		var box_h := _px(44.0) + (_px(30.0) if not title.is_empty() else 0.0)
 		var box := Rect2(Vector2(_px(24.0), y), Vector2(box_w, box_h))
 		# 多张卡纵向堆叠：上一轮实机截图发现两卡同帧时完全重叠、文字互压。
 		# y 在每张实际绘制的卡之后推进（含 8px 间隙）。
 		y += box_h + _px(8.0)
-		draw_rect(box, Color(0.05, 0.06, 0.12, 0.90 * alpha), true)
+		_draw_round_rect(box, _px(6), Color(0.035, 0.055, 0.12, 0.94 * alpha), Color(0.35,0.46,0.65,0.6*alpha),1)
 		# 左侧强调条：新敌人提示用品红（危险语义），教学提示用冰蓝（可交互语义）
 		var accent := DANGER_COLOR if not str(card["enemyId"]).is_empty() else Color(0.45, 0.78, 1.0)
 		draw_rect(Rect2(box.position, Vector2(_px(6.0), box.size.y)),
 			Color(accent.r, accent.g, accent.b, alpha), true)
-		var ty := box.position.y + _px(24.0)
+		var ty := box.position.y + _px(29.0)
 		if not title.is_empty():
 			draw_string(font, Vector2(box.position.x + _px(18.0), ty),
 				"新敌人 · %s" % title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_title,
 				Color(accent.r, accent.g, accent.b, alpha))
-			ty += _px(24.0)
+			ty += _px(30.0)
 		draw_string(font, Vector2(box.position.x + _px(18.0), ty), text,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, fs_text, Color(0.92, 0.95, 1.0, alpha))
-		y += box_h + _px(10.0)
 
 
 ## 部署反馈：选中时的合法/非法格高亮 + 悬停描边 + **射程覆盖预览**。

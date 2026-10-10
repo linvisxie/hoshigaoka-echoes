@@ -4,7 +4,7 @@
   "storyId": "ch1_1_5_before",
   "chapterId": "ch1",
   "title": "1-5 · 监考者",
-  "background": "bg_env_corridor_battle",
+  "background": "bg_env_gym_battle",
   "music": "unheard_memory",
   "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
   "completionFlags": [],
@@ -19,7 +19,7 @@
       "id": "1",
       "speaker": "",
       "character": "",
-      "text": "走廊里的广播反复停在同一个词。门上的测验安排被红笔改了又改。"
+      "text": "广播的杂音把你们引向旧体育馆。推开沉重的门，舞台旁的测验安排已被红笔改了又改。"
     },
     {
       "id": "2",
@@ -38,7 +38,7 @@
       "id": "4",
       "speaker": "",
       "character": "",
-      "text": "一团被试卷和目光包围的黑影站在尽头。没有脸，视线却让人不自觉地站直。"
+      "text": "一团被试卷和目光包围的黑影站在体育馆舞台前。没有脸，视线却让人不自觉地站直。"
     },
     {
       "id": "5",

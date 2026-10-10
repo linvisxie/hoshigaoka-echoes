@@ -8,7 +8,7 @@
       "id": "amamiya_mio",
       "source": "tools/source_art/amamiya_mio_special_v3.png",
       "sha256": "ff44e611629225a0563912ded3dc69ab6ea7d5b2642597e1451a5579b3218965",
-      "scale": 0.155,
+      "scale": 0.23249999999999998,
       "poses": 12,
       "rows": [
         "deploy",
@@ -20,7 +20,7 @@
       "id": "kamiya_yuma",
       "source": "tools/source_art/kamiya_yuma_special_v3.png",
       "sha256": "2ab575868f8ca6a63e2d143ec33abebff4c64ae43d56b525f8a9e230c2130fdf",
-      "scale": 0.135,
+      "scale": 0.2025,
       "poses": 12,
       "rows": [
         "deploy",
