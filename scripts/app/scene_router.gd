@@ -8,11 +8,15 @@ const TAG := "SceneRouter"
 
 ## 已登记的场景路径。
 ## P0.1 起含 battle；Alpha A0.1 起含 character（角色培养，V2.1.4 H 章三十三）。
-## title / home（校园 Hub）属 Alpha A0.7。
+## Alpha A0.7 起含 title；stage_select（关卡选择）本轮新增——
+##   在校园 Hub（home，J0.4）与关卡情报流程落地前，它是玩家**在界面上**唯一
+##   能选择 1-1～1-5 的入口（Retail 构建拒绝开发参数 --stage）。
+## home（校园 Hub）属 Alpha A0.7，**尚未实现**，故本表虽有 key 但资源不存在。
 const SCENES := {
 	"bootstrap": "res://scenes/bootstrap/bootstrap.tscn",
 	"battle": "res://scenes/battle/battle_scene.tscn",
 	"character": "res://scenes/menus/character_screen.tscn",
+	"stage_select": "res://scenes/menus/stage_select.tscn",
 	"title": "res://scenes/title/title.tscn",
 	"home": "res://scenes/home/home.tscn",
 }

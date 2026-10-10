@@ -1,0 +1,79 @@
+[gd_scene load_steps=3 format=3 uid="uid://c57a9eselect01"]
+
+[ext_resource type="Script" path="res://scenes/menus/stage_select.gd" id="1_stagesel"]
+[ext_resource type="Script" path="res://scenes/title/title_menu_row.gd" id="2_row"]
+
+[node name="StageSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_stagesel")
+
+[node name="MenuList" type="Control" parent="."]
+layout_mode = 0
+offset_right = 1520.0
+offset_bottom = 594.0
+mouse_filter = 2
+
+[node name="Row_1-1" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_right = 1520.0
+offset_bottom = 84.0
+script = ExtResource("2_row")
+item_id = "1-1"
+label_zh = "关卡 1-1"
+icon_name = "icon_confirm"
+
+[node name="Row_1-2" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_top = 102.0
+offset_right = 1520.0
+offset_bottom = 186.0
+script = ExtResource("2_row")
+item_id = "1-2"
+label_zh = "关卡 1-2"
+icon_name = "icon_confirm"
+
+[node name="Row_1-3" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_top = 204.0
+offset_right = 1520.0
+offset_bottom = 288.0
+script = ExtResource("2_row")
+item_id = "1-3"
+label_zh = "关卡 1-3"
+icon_name = "icon_confirm"
+
+[node name="Row_1-4" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_top = 306.0
+offset_right = 1520.0
+offset_bottom = 390.0
+script = ExtResource("2_row")
+item_id = "1-4"
+label_zh = "关卡 1-4"
+icon_name = "icon_confirm"
+
+[node name="Row_1-5" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_top = 408.0
+offset_right = 1520.0
+offset_bottom = 492.0
+script = ExtResource("2_row")
+item_id = "1-5"
+label_zh = "关卡 1-5"
+icon_name = "icon_confirm"
+
+[node name="Row___back__" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_top = 510.0
+offset_right = 1520.0
+offset_bottom = 594.0
+script = ExtResource("2_row")
+item_id = "__back__"
+label_zh = "返回标题"
+label_en = "BACK"
+icon_name = "icon_home"

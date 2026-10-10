@@ -21,6 +21,7 @@
 ## 命令行参数（Godot 用户参数，需写在 -- 之后）：
 ##   （无）                  进入标题画面
 ##   --scene=title          同上
+##   --scene=stage_select   进入关卡选择
 ##   --scene=battle         进入战斗场景，加载默认关卡（Prototype 演示关 p1_0_demo）
 ##   --scene=character      进入角色培养界面
 ##   --scene=bootstrap      停留在启动场景（空白 Node2D，仅诊断用）
@@ -43,12 +44,14 @@ const TAG := "Bootstrap"
 
 ## 支持的启动目标（与 SceneRouter.SCENES 的 key 对齐）
 ## battle 为 P0.1 起新增；character 为 Alpha A0.1 起新增（角色培养界面）；
-## title 为 Alpha A0.7 起新增（标题画面）。
+## title 为 Alpha A0.7 起新增（标题画面）；
+## stage_select 为 Alpha A0.7 起新增（关卡选择，便于自动化与实机验收直接打开）。
 const BOOT_TARGETS := {
 	"bootstrap": "res://scenes/bootstrap/bootstrap.tscn",
 	"title": "res://scenes/title/title.tscn",
 	"battle": "res://scenes/battle/battle_scene.tscn",
 	"character": "res://scenes/menus/character_screen.tscn",
+	"stage_select": "res://scenes/menus/stage_select.tscn",
 }
 
 ## 启动场景 key 前缀

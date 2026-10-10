@@ -15,7 +15,7 @@ script = ExtResource("1_title")
 [node name="MenuList" type="Control" parent="."]
 layout_mode = 0
 offset_right = 660.0
-offset_bottom = 388.0
+offset_bottom = 480.0
 mouse_filter = 2
 
 [node name="Row_continue" type="Control" parent="MenuList"]
@@ -39,11 +39,22 @@ label_zh = "新游戏"
 label_en = "NEW GAME"
 icon_name = "icon_home"
 
-[node name="Row_settings" type="Control" parent="MenuList"]
+[node name="Row_stage_select" type="Control" parent="MenuList"]
 layout_mode = 0
 offset_top = 200.0
 offset_right = 660.0
 offset_bottom = 288.0
+script = ExtResource("2_row")
+item_id = "stage_select"
+label_zh = "关卡选择"
+label_en = "STAGE SELECT"
+icon_name = "icon_home"
+
+[node name="Row_settings" type="Control" parent="MenuList"]
+layout_mode = 0
+offset_top = 300.0
+offset_right = 660.0
+offset_bottom = 388.0
 script = ExtResource("2_row")
 item_id = "settings"
 label_zh = "设置"
@@ -54,9 +65,9 @@ disabled_note = "未实现"
 
 [node name="Row_quit" type="Control" parent="MenuList"]
 layout_mode = 0
-offset_top = 300.0
+offset_top = 400.0
 offset_right = 660.0
-offset_bottom = 388.0
+offset_bottom = 488.0
 script = ExtResource("2_row")
 item_id = "quit"
 label_zh = "退出游戏"

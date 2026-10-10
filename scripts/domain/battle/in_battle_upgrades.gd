@@ -41,12 +41,51 @@ const APPLIES_RANGED := "RANGED"
 const APPLIES_HEALER := "HEALER"
 const APPLIES_STAGE := "STAGE"
 
+## 强化类别白名单（V2.1.4 L1979 表 79 的类别名）。
+##
+## 纪律（A0.6 数据层新增 category 字段时确立）：
+##   * 这是**代码里的静态表**，不是运行期读磁盘得到的集合 —— 校验必须在
+##     「没有磁盘/没有导入资源」的 headless 测试环境里也成立；
+##   * 表 79 还列有「控制型 / 特殊型」两类，但当前构建没有任何落地机制
+##     （减速/击退/异常 与 攻击模式改变均未实现），因此**不入白名单**：
+##     与其收下一个无法生效的类别名，不如在构建期报错（"宁可不开也不带坏数据跑"）。
+##   * 表 79 中的「防御型」明列「HP、防御、减伤、**治疗**」，故治疗类强化归入防御型。
+const CATEGORIES := ["攻击型", "防御型", "资源型", "技能型", "职业型"]
+
+## 图标名白名单（assets/art/ui/icons/<icon>_64.png 必须真实存在）。
+##
+## 与 CATEGORIES 同理：静态表，运行期不读磁盘。
+## tests/test_a0_6_upgrade_offer.gd 会**逐项断言它们真实存在**，
+## 从而把「代码白名单」与「美术资产」之间的漂移变成可执行守卫
+## （改名/删图会红，而不是等到实机画不出图标才发现）。
+const ICON_WHITELIST := [
+	"icon_attack_up",
+	"icon_defense_up",
+	"icon_heal",
+	"icon_ap",
+	"icon_refresh",
+	"icon_awareness",
+	"icon_armor",
+	"icon_skillbook",
+]
+
 ## 全部强化定义（来自数据，构造时注入；不复制数值）
 var _definitions: Dictionary = {}
 ## 层级权重（来自数据）
 var _tier_weights: Dictionary = {}
 ## 已选强化：upgradeId -> 已选次数（叠加计数）
 var _selected: Dictionary = {}
+## 获得顺序（只记**首次获得**的顺序，供 upgrade_summary() 按获得顺序输出）。
+##
+## 为什么需要它：_selected 是 Dictionary，遍历顺序不保证是获得顺序；
+## 而契约（docs/a0_6_ui_contract.md 第 1 节）要求 upgrade_summary() 按**获得顺序**返回。
+var _gained_order: Array[String] = []
+## 本场允许触发强化面板的「已完成波号」（来自数据 openByStage.<stage>.triggerWaves）。
+## 域层只持有数据，触发判定由 StageRuntime 在波次完成点执行。
+var trigger_waves: Array[int] = []
+## 1-5 教学固定三选一的 id 列表（来自数据 tutorialFixedChoices_1_5）；
+## 非教学关为空。域层持有副本，使教学候选的判定不必再依赖调用方传数据。
+var tutorial_fixed_ids: Array[String] = []
 ## 每场免费重掷次数（L2117；由数据/关卡配置给定，本类只记账）
 var rerolls_remaining: int = 0
 ## 本场可选择的总次数（L2116 普通关约 2 次、Boss 关约 3 次；由 openByStage 给定）
@@ -105,6 +144,22 @@ static func from_data(upgrade_domain: Dictionary) -> InBattleUpgrades:
 				APPLIES_HEALER, APPLIES_STAGE].has(applies):
 			u.load_errors.append("强化 %s 的 appliesTo 未知：%s" % [id, applies])
 			continue
+		# ---- A0.6 新增：category（L1979 表 79）与 icon（真实存在的图标名）----
+		# 缺字段 / 非法值一律**拒绝该条目并记错**：面板要显示「类别」与「图标」，
+		# 收下一个没有类别或图标名不存在的条目 = 实机卡面缺一块。
+		var category := str(cfg.get("category", ""))
+		if category.is_empty():
+			u.load_errors.append("强化 %s 缺少 category（L1979 表 79 类别名必填）" % id)
+			continue
+		if not CATEGORIES.has(category):
+			u.load_errors.append("强化 %s 的 category 非法：'%s'（允许：%s）"
+				% [id, category, ", ".join(CATEGORIES)])
+			continue
+		var icon := str(cfg.get("icon", ""))
+		if not is_icon_allowed(icon):
+			u.load_errors.append("强化 %s 的 icon 非法：'%s'（必须在静态白名单内且资产存在）"
+				% [id, icon])
+			continue
 		u._definitions[id] = cfg.duplicate(true)
 	var tiers: Variant = upgrade_domain.get("tiers", {})
 	if typeof(tiers) == TYPE_DICTIONARY:
@@ -124,6 +179,17 @@ static func from_data(upgrade_domain: Dictionary) -> InBattleUpgrades:
 
 static func _tier_of(cfg: Dictionary) -> String:
 	return str(cfg.get("tier", ""))
+
+
+## 图标名是否被静态白名单接受。
+## 纪律：**不读磁盘**——白名单本身在测试里被逐项对照真实资产（见 CATEGORIES/ICON_WHITELIST 注释）。
+static func is_icon_allowed(icon_name: String) -> bool:
+	return ICON_WHITELIST.has(icon_name)
+
+
+## 类别名是否合法
+static func is_category_allowed(category: String) -> bool:
+	return CATEGORIES.has(category)
 
 
 ## 已选次数
@@ -152,6 +218,8 @@ func apply(upgrade_id: String) -> bool:
 		GameLog.warn(TAG, "强化不可选：%s（未知或已达叠加上限）" % upgrade_id)
 		return false
 	_selected[upgrade_id] = stacks_of(upgrade_id) + 1
+	if int(_selected[upgrade_id]) == 1:
+		_gained_order.append(upgrade_id)
 	GameLog.info(TAG, "局内强化生效：%s ×%d/%d" % [
 		upgrade_id, int(_selected[upgrade_id]),
 		int(_definitions[upgrade_id].get("maxStacks", 0))])
@@ -278,3 +346,47 @@ func to_debug_dict() -> Dictionary:
 		"apRegenBonusPct": snappedf(ap_regen_bonus_pct(), 0.001),
 		"retreatRefundBonus": snappedf(retreat_refund_bonus(), 0.001),
 	}
+
+
+## 本局已获得强化（**按获得顺序**），供 HUD「本局构筑」与结算展示。
+## 契约：docs/a0_6_ui_contract.md 第 1 节 upgrade_summary()。
+##
+## 数据来源纪律：name / category / icon / maxStacks / tier **全部读自 upgrades.json**
+## （本类构造时注入的定义），本函数不写死任何中文名或数值。
+func upgrade_summary() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	# 先按获得顺序输出；再补上任何"不在顺序表里但确实被计过数"的条目，
+	# 保证 summary 与 _selected 不会出现"有层数却列不出来"的不一致。
+	var ordered: Array[String] = _gained_order.duplicate()
+	for id: String in _selected.keys():
+		if not ordered.has(id):
+			ordered.append(id)
+	for id: String in ordered:
+		if id.is_empty() or not _selected.has(id):
+			continue
+		var out_entry := summary_entry(id)
+		if not out_entry.is_empty():
+			out.append(out_entry)
+	return out
+
+
+## 单条强化在「已获得」列表里的展示结构（无该强化或未获得时返回 {}）。
+func summary_entry(upgrade_id: String) -> Dictionary:
+	if not _selected.has(upgrade_id):
+		return {}
+	var cfg: Dictionary = _definitions.get(upgrade_id, {})
+	return {
+		"id": upgrade_id,
+		"name": str(cfg.get("name", upgrade_id)),
+		"description": str(cfg.get("description", "")),
+		"stacks": stacks_of(upgrade_id),
+		"maxStacks": int(cfg.get("maxStacks", 0)),
+		"tier": str(cfg.get("tier", "")),
+		"category": str(cfg.get("category", "")),
+		"icon": str(cfg.get("icon", "")),
+	}
+
+
+## 开放次数是否已用尽（**含跳过**：skip 同样计入 selections_used，L2051 + L2045）。
+func is_exhausted() -> bool:
+	return selections_used >= total_opens

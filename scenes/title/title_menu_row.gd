@@ -58,6 +58,16 @@ const OUTLINE := Color(0.03, 0.04, 0.09, 0.85)
 @export var disabled: bool = false
 ## 禁用原因标注（如「未实现」）；非空时绘制在中文标签右侧
 @export var disabled_note: String = ""
+## 状态标注（如关卡选择页的「已通关 / 未通关」）；非空时绘制在中文标签右侧。
+##
+## Alpha A0.7（关卡选择）新增：**默认空串**，因此标题画面（title.gd）的行为与
+## 像素完全不变——标题画面不设置本字段，绘制路径逐像素与改动前一致。
+@export var status_text: String = ""
+## 追加标注（如关卡选择页的「Alpha 预览 · 未按主线解锁」徽标）；默认空串。
+@export var extra_note: String = ""
+## 追加标注是否使用**警示色**（琥珀）；默认 false（用正文色）。
+## 仅当 extra_note 非空时生效。
+@export var extra_note_warn: bool = false
 
 ## 是否为当前选中行（由 TitleScreen 设置）
 var selected: bool = false
@@ -189,15 +199,36 @@ func _draw() -> void:
 	var zh_size := int(_px(36.0))
 	var baseline := cy + _px(13.0)
 	var zh_x := _px(100.0)
+	var base_w := font.get_string_size(label_zh, HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size).x
 	_draw_text_outlined(font, Vector2(zh_x, baseline), label_zh,
 		zh_size, TEXT_COLOR if interactive else TEXT_DISABLED)
 
-	# 禁用原因（如「未实现」）：紧跟在中文标签右侧，并在图标右上角点一个琥珀小点
+	# 标签右侧的标注区：**顺序绘制，逐项右推光标**（不得各自用同一个固定 x，
+	# 否则「状态」与「禁用原因」会叠在一起——关卡选择页 Retail 分支实测到过该重叠）。
+	# 顺序：状态（如「未通关」）→ 禁用原因（如「需先通关 1-4」）→ 追加标注（如预览徽标）。
+	#
+	# 标题画面**只**会用到「禁用原因」这一项（status_text / extra_note 均为空串），
+	# 此时首个标注的 x 仍为 zh_x + zh_w + 14px、字号仍为 26px，
+	# 因此标题画面的排版与改动前**逐像素一致**。
+	var note_x := zh_x + base_w + _px(14.0)
+	if not status_text.is_empty():
+		var st_size := int(_px(28.0))
+		var st_col := TEXT_COLOR if interactive else TEXT_DISABLED
+		_draw_text_outlined(font, Vector2(note_x, cy + _px(11.0)), status_text, st_size, st_col)
+		note_x += font.get_string_size(
+			status_text, HORIZONTAL_ALIGNMENT_LEFT, -1, st_size).x + _px(16.0)
 	if disabled and not disabled_note.is_empty():
-		var zh_w := font.get_string_size(label_zh, HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size).x
-		_draw_text_outlined(font, Vector2(zh_x + zh_w + _px(14.0), cy + _px(10.0)), disabled_note,
-			int(_px(26.0)), NOTE_COLOR_DISABLED)
+		var dn_size := int(_px(26.0))
+		_draw_text_outlined(font, Vector2(note_x, cy + _px(10.0)), disabled_note,
+			dn_size, NOTE_COLOR_DISABLED)
+		note_x += font.get_string_size(
+			disabled_note, HORIZONTAL_ALIGNMENT_LEFT, -1, dn_size).x + _px(16.0)
 		draw_circle(icon_pos + Vector2(icon_size * 0.88, icon_size * 0.16), _px(5.0), NOTE_MARK)
+	if not extra_note.is_empty():
+		var ex_size := int(_px(28.0))
+		var ex_col := NOTE_COLOR_DISABLED if extra_note_warn else (
+			TEXT_COLOR if interactive else TEXT_DISABLED)
+		_draw_text_outlined(font, Vector2(note_x, cy + _px(11.0)), extra_note, ex_size, ex_col)
 
 	# 英文副标签：右对齐
 	if not label_en.is_empty():

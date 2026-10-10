@@ -72,10 +72,15 @@ const TITLE_SUB_BASELINE := 392.0
 
 ## 菜单单一数据源：顺序即上下键顺序。
 ## disabled=true 的项**不可点**（设置页属后续阶段，本轮不实现、不伪造）。
+##
+## Alpha A0.7：新增「关卡选择」（stage_select）——在校园 Hub 与关卡情报流程落地前，
+## 它是玩家**在界面上**唯一能选择 1-5 等关卡的入口（Retail 构建拒绝 --stage 开发参数）。
 const MENU_ITEMS := [
 	{"id": "continue", "zh": "继续游戏", "en": "CONTINUE", "icon": "icon_play",
 		"disabled": false, "note": ""},
 	{"id": "new_game", "zh": "新游戏", "en": "NEW GAME", "icon": "icon_home",
+		"disabled": false, "note": ""},
+	{"id": "stage_select", "zh": "关卡选择", "en": "STAGE SELECT", "icon": "icon_home",
 		"disabled": false, "note": ""},
 	{"id": "settings", "zh": "设置", "en": "SETTINGS", "icon": "icon_settings",
 		"disabled": true, "note": SETTINGS_NOTE},
@@ -85,14 +90,18 @@ const MENU_ITEMS := [
 
 ## 参考画布下的菜单几何（左对齐的竖排）
 ## 行距对照概念图放宽（原 88+12=100 偏挤；概念图约为行高 92 + 间距 34）。
-## 垂直预算（参考画布 1080）：第 4 行下沿 = 462 + 3×126 + 92 = 932，
-## 与底部提示行（基线 964，字顶约 945）留 13px 净空；再往下才是版本行（1032）。
-## 三者（菜单 / 提示行 / 版本行）互不重叠——改动本组常量后必须重新核对这条等式。
+##
+## 垂直预算（参考画布 1080）——**Alpha A0.7 加入「关卡选择」后由 4 行变 5 行，已重算**：
+##   第 5 行下沿 = 436 + 4×(80+20) + 80 = 916，
+##   与底部提示行（基线 964，字号 26，字顶约 945）留 29px 净空；
+##   提示行之下才是版本行（基线 1032）。
+##   上方：菜单顶 436 与标题块末行（TITLE_SUB_BASELINE 392）留 44px 净空。
+##   三者（菜单 / 提示行 / 版本行）互不重叠——改动本组常量后必须重新核对这条等式。
 const MENU_LEFT := 96.0
-const MENU_TOP := 462.0
+const MENU_TOP := 436.0
 const MENU_WIDTH := 780.0
-const MENU_ROW_H := 92.0
-const MENU_GAP := 34.0
+const MENU_ROW_H := 80.0
+const MENU_GAP := 20.0
 
 var _viewport: Vector2 = Vector2(REF_W, REF_H)
 var _scale: float = 1.0
@@ -297,6 +306,8 @@ func _activate(index: int) -> void:
 	match id:
 		"continue", "new_game":
 			_start_battle()
+		"stage_select":
+			_open_stage_select()
 		"quit":
 			_quit()
 		_:
@@ -316,6 +327,22 @@ func _start_battle() -> void:
 	if not SceneRouter.go_to("battle"):
 		_busy = false
 		_show("进入战斗失败", WARN)
+
+
+## 打开关卡选择画面（Alpha A0.7）。
+##
+## 这是玩家在校园 Hub / 关卡情报流程落地前，**在界面上**选择 1-1～1-5 的唯一入口：
+## 「继续游戏 / 新游戏」只会进入 PrototypeEntry.default_stage_id() 决策的单一默认关。
+## 本函数只做一次路由切换，不复制任何解锁规则——解锁判定全在 StageSelectScreen 内。
+func _open_stage_select() -> void:
+	if not ResourceLoader.exists(str(SceneRouter.SCENES.get("stage_select", ""))):
+		_show("关卡选择画面缺失，无法打开", WARN)
+		GameLog.error(TAG, "关卡选择场景资源不存在")
+		return
+	_busy = true
+	if not SceneRouter.go_to("stage_select"):
+		_busy = false
+		_show("打开关卡选择失败", WARN)
 
 
 func _quit() -> void:
@@ -583,9 +610,10 @@ func _draw_version(font: Font) -> void:
 func _draw_hint(font: Font) -> void:
 	# 操作提示 / 临时反馈放在底部**单独一行**（参考画布基线 964，字号 26）。
 	# 与左下版本行（基线 1032）、右下题词第二行（基线 924）互不重叠：
-	# 提示行字顶约 945，在菜单第 4 行下沿（932）之下、题词第二行（924）之下，
+	# 提示行字顶约 945，在菜单第 5 行下沿（916）之下、题词第二行（924）之下，
 	# 且提示行居中、题词靠右，横向也不重叠。
 	# **不得**把提示行下移到版本行同一基线上（那是上一轮修过的重叠 bug）。
+	# Alpha A0.7 加入第 5 行后已重算：916 → 945 仍有 29px 净空。
 	var text := _feedback if _feedback_timer > 0.0 else "↑ ↓ 选择　Enter / Space 确认　鼠标可直接点击"
 	var col := _feedback_color if _feedback_timer > 0.0 else Color(0.58, 0.64, 0.78)
 	var size := int(_px(26.0))

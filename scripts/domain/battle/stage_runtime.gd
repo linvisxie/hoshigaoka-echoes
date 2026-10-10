@@ -1253,10 +1253,11 @@ func _complete_current_wave() -> void:
 		return
 	if int(_wave_states[_current_wave_index]["status"]) == WAVE_CLEARED:
 		return
+	var completed_wave := int(waves[_current_wave_index]["number"])
 	_wave_states[_current_wave_index]["status"] = WAVE_CLEARED
 	GameLog.info("StageRuntime", "Wave %d 完成（生成 %d，击杀 %d，漏怪 %d）"
 		% [
-			int(waves[_current_wave_index]["number"]),
+			completed_wave,
 			int(_wave_states[_current_wave_index]["spawned"]),
 			int(_wave_states[_current_wave_index]["killed"]),
 			int(_wave_states[_current_wave_index]["leaked"]),
@@ -1270,6 +1271,89 @@ func _complete_current_wave() -> void:
 				int(waves[_current_wave_index]["enemyCount"]),
 				str(waves[_current_wave_index]["lanes"]),
 			])
+	# A0.6（契约「触发时机」）：波次清空后判定是否建立三选一面板。
+	# 放在**本函数末尾**（已完成波号已知、下一波已开启）而不是调用方 _step：
+	# 这样「核心归零失败时不得触发」由 _update_wave_progress 的既有早退天然保证，
+	# 不会出现"败北瞬间弹强化面板"的荒谬状态。
+	_maybe_open_offer(completed_wave)
+
+
+## A0.6：波次完成点判定是否建立三选一请求。
+##
+## 触发条件（全部满足才建立，契约第 1 节）：
+##   ① 本关启用了强化系统（upgrades != null，由 openByStage 显式 opens>0 决定）；
+##   ② 当前完成波号 ∈ 数据的 triggerWaves；
+##   ③ 已用开放次数（含跳过）< total_opens；
+##   ④ 战斗未结束（running 且核心仍有 HP）；
+##   ⑤ 不在玩家暂停态（paused 是另一套状态，暂停中不应弹出要求玩家操作的面板）。
+##
+## 候选为空（池耗尽 / 无可选教学项且随机池也空）→ **不建立** pending、不消耗开放次数，
+## 只记警告——否则会弹出一个"点了也没用"的空面板，并白白吃掉一次开放。
+func _maybe_open_offer(completed_wave: int) -> void:
+	if upgrades == null:
+		return
+	if _offer_battle_finished():
+		return
+	# 玩家暂停中不建立面板：paused 是"玩家主动停表"，面板则要求玩家立刻做选择——
+	# 两者混用会让「继续」按钮同时承担两种语义（契约明令两者不可混用）。
+	if paused:
+		return
+	if pending_offer_active_guard():
+		return
+	if not upgrades.trigger_waves.has(completed_wave):
+		return
+	# 次数用尽（含跳过）后不再开放：避免"空面板"与"跳过后仍能再刷"。
+	if upgrades.is_exhausted():
+		return
+	# 本波清空后已无任何可打的目标（全部波次完成 + 场上无存活敌人）⇒ 下一 tick
+	# 上层就会判定胜利。此时**不得**再建立请求：契约「战斗未结束才触发」，
+	# 且胜负已定后 resolve/reroll/skip 一律返回 false，弹出面板等于给玩家一个
+	# 点不动的死面板（结算界面还会被它盖住）。
+	if all_waves_cleared() and not has_living_enemies():
+		return
+	var candidates := _roll_offer_candidates()
+	if candidates.is_empty():
+		GameLog.warn("StageRuntime",
+			"Wave %d 完成但强化候选为空（池已耗尽或教学项不可用），本次不建立面板、不消耗开放次数"
+			% completed_wave)
+		return
+	pending_offer = {
+		"candidates": candidates,
+		"isTutorial": _offer_is_tutorial(),
+		"offerIndex": upgrades.selections_used + 1,
+		"rerollsRemaining": upgrades.rerolls_remaining,
+	}
+	GameLog.info("StageRuntime", "局内强化面板已建立：第 %d 次开放（Wave %d 完成，教学=%s，候选 %s，剩余重掷 %d）"
+		% [int(pending_offer["offerIndex"]), completed_wave,
+			str(pending_offer["isTutorial"]), str(candidates),
+			int(pending_offer["rerollsRemaining"])])
+
+
+## 契约里 pending 非空即"已有待处理请求"，此处做一次显式自检（含字典被外部置空键的情况）。
+func pending_offer_active_guard() -> bool:
+	if pending_offer.is_empty():
+		return false
+	var c: Variant = pending_offer.get("candidates", [])
+	return typeof(c) == TYPE_ARRAY and not (c as Array).is_empty()
+
+
+## 本次是否走固定教学三选一（L2132）：开关已开 **且** 教学三项当前都仍可选。
+## 任一项不可用（缺失 / 已满叠）→ 整体回落随机候选（不硬凑"缺一个"的教学）。
+func _offer_is_tutorial() -> bool:
+	if not _tutorial_offer_enabled:
+		return false
+	return not tutorial_upgrade_choices(_upgrades_domain).is_empty()
+
+
+## 当前候选：教学优先，其次随机抽取。**不写死任何 id**（教学项来自数据）。
+func _roll_offer_candidates() -> Array[String]:
+	if upgrades == null:
+		return []
+	if _offer_is_tutorial():
+		return tutorial_upgrade_choices(_upgrades_domain)
+	var profile := _party_profile()
+	return UpgradeCandidateRoller.roll(
+		upgrades, profile["behaviors"], profile["tags"], _upgrade_seed())
 
 
 ## 每逻辑步的 Wave 完成判定。
@@ -1338,6 +1422,12 @@ func advance(delta_seconds: float) -> Array[EnemyRuntime]:
 	# 暂停或胜负已定时不推进任何计时器（V2.1.4 D-35 / D-40）
 	if paused or not running:
 		return reached
+	# A0.6（契约「冻结战斗」）：pending_offer 非空期间不推进任何计时器，返回空数组。
+	# 这里**不设置 paused** —— 玩家暂停与强化冻结必须保持为两套独立状态。
+	# 同时清空累积器：解冻后不得补跑选择期间的时间（L1972）。
+	if has_pending_offer():
+		_accumulator = 0.0
+		return reached
 
 	_accumulator += delta_seconds
 	var steps := 0
@@ -1350,6 +1440,13 @@ func advance(delta_seconds: float) -> Array[EnemyRuntime]:
 		steps += 1
 		elapsed_seconds += LOGIC_STEP_SECONDS
 		_step(LOGIC_STEP_SECONDS, reached)
+		# A0.6（L1972）：本逻辑步内建立了强化面板 ⇒ 立即停止推进，并**丢弃**本次调用
+		# 剩余的时间累积。丢弃而不是结转是必需的：若把剩余时间留在累积器里，
+		# 解冻后的第一帧就会补跑「选择期间」的时长，L1972
+		# 「选择界面不计入技能 CD 或敌人移动时间」立刻不成立。
+		if has_pending_offer():
+			_accumulator = 0.0
+			break
 	return reached
 
 
@@ -2204,6 +2301,72 @@ func _cleanup_dead() -> void:
 var upgrades: InBattleUpgrades = null
 
 
+# ============================================================
+#  A0.6 局内强化：三选一面板的领域层状态（契约 docs/a0_6_ui_contract.md 第 1 节）
+# ============================================================
+#
+# 分层纪律（L3，同 upgrades 字段）：
+#   * 本区块只做**纯逻辑**：建立/清空 pending、校验玩家请求、冻结推进。
+#     不读存档、不碰 UI、不依赖场景节点。
+#   * 表现层（battle_scene.gd）只读 pending_offer 并**转发**玩家操作，
+#     合法性裁决全部在本区块。
+
+## 当前待处理的三选一请求。{} = 无请求。
+##
+## 非空时字段（契约冻结）：
+##   candidates: Array[String]   当前候选（1~3 项）
+##   isTutorial: bool            是否为 1-5 首次固定教学三选一
+##   offerIndex: int             本次是第几次开放（1 起）
+##   rerollsRemaining: int       剩余免费重掷次数
+##
+## **冻结语义**：非空期间 advance() 不推进任何计时器（返回空数组），
+## 且**不得**把 paused 置为 true（玩家暂停与强化冻结是两套状态，混用会让
+## 暂停按钮语义错乱：玩家点「继续」会误跳到下一波）。依据 L1972。
+var pending_offer: Dictionary = {}
+
+## 本关注入的 upgrades 数据域（仅在校验通过、且本关开放时保留）。
+## 用途：教学固定三选一的 id 列表在数据里，reroll 时要能重新读出它。
+var _upgrades_domain: Dictionary = {}
+
+## 1-5 首次通关前为 true：本次走固定教学三选一（L2132）。
+## 「是否首次」由表现/存档层判定后注入（域层不读存档，L3）。
+var _tutorial_offer_enabled: bool = false
+
+## 本场已消耗的开放次数（**含跳过**，见 skip_offer）。
+## 为什么跳过也计入：L2051 允许跳过，但若不计入库，玩家就能靠"跳过→面板再来"
+## 无限刷候选，等于取消 L2045「重掷不能反复刷到满意为止」的限制。
+func _offer_battle_finished() -> bool:
+	# 「战斗已结束」的域层口径：上层停表（running=false，BattleSession 在
+	# 胜负确定时设置）或核心 HP 耗尽（D-41 立即失败）。
+	return (not running) or core_hp <= 0
+
+
+## 当前是否有待处理的三选一请求
+func has_pending_offer() -> bool:
+	return not pending_offer.is_empty()
+
+
+## 本局已获得强化（按获得顺序）。未开放本系统时返回空数组。
+## 条目：{id, name, description, stacks, maxStacks, tier, category, icon}
+## 数据全部来自数据层（本函数不写死任何中文名/数值）。
+func upgrade_summary() -> Array[Dictionary]:
+	if upgrades == null:
+		return []
+	return upgrades.upgrade_summary()
+
+
+## 启用/关闭固定教学三选一（L2132「首次」由表现/存档层判定后注入）。
+func set_tutorial_offer_enabled(value: bool) -> void:
+	if _tutorial_offer_enabled == value:
+		return
+	_tutorial_offer_enabled = value
+	GameLog.info("StageRuntime", "教学强化模式：%s" % ("启用（固定三选一）" if value else "关闭（走随机候选）"))
+
+
+func is_tutorial_offer_enabled() -> bool:
+	return _tutorial_offer_enabled
+
+
 ## 取某单位的攻击倍率（无强化系统时恒为 1.0）。
 func _atk_mult(c: CharacterRuntime) -> float:
 	if upgrades == null:
@@ -2250,7 +2413,10 @@ func _ap_regen_mult() -> float:
 ##   * 数据未注入（tools/ 模拟器、未升级的调用方）→ 不启用，倍率恒 1.0；
 ##   * 关卡未在 openByStage 中**显式**列出 → 不启用（不拿 default 当开放依据），
 ##     避免"忘了配就自动开"这种静默改变既有关卡体验的行为；
-##   * 数据校验有错 → 不启用并把错误并入 _errors（宁可不开，也不带坏数据跑）。
+##   * 数据校验有错 → 不启用并把错误并入 _errors（宁可不开，也不带坏数据跑）；
+##   * triggerWaves（A0.6）在**同一处**读入并做同样纪律的校验：
+##     缺失 / 非数组 / 含非法波号 → 不启用 + 报错。
+##     **绝不静默兜底成"每波都能触发"**——那会让所有开放关卡每波弹一次面板。
 func _configure_upgrades(upgrades_domain: Dictionary) -> void:
 	if upgrades_domain.is_empty():
 		return
@@ -2264,16 +2430,52 @@ func _configure_upgrades(upgrades_domain: Dictionary) -> void:
 	var opens := int((entry as Dictionary).get("opens", 0))
 	if opens <= 0:
 		return
+	# ---- triggerWaves：与 opens 同一处的严格校验 ----
+	var trigger_waves: Array[int] = []
+	var raw_waves: Variant = (entry as Dictionary).get("triggerWaves", null)
+	if raw_waves == null:
+		_errors.append("upgrades.openByStage.%s 缺少 triggerWaves（A0.6 契约要求显式声明触发波号）" % stage_id)
+		return
+	if typeof(raw_waves) != TYPE_ARRAY:
+		_errors.append("upgrades.openByStage.%s.triggerWaves 必须是数组" % stage_id)
+		return
+	for v: Variant in (raw_waves as Array):
+		if typeof(v) != TYPE_INT and typeof(v) != TYPE_FLOAT:
+			_errors.append("upgrades.openByStage.%s.triggerWaves 含非数字项：%s" % [stage_id, str(v)])
+			return
+		var wn := int(v)
+		if wn < 1:
+			_errors.append("upgrades.openByStage.%s.triggerWaves 波号必须 ≥ 1，实际 %d" % [stage_id, wn])
+			return
+		if not trigger_waves.has(wn):
+			trigger_waves.append(wn)
 	var u := InBattleUpgrades.from_data(upgrades_domain)
 	if not u.get_errors().is_empty():
 		for e: String in u.get_errors():
 			_errors.append("upgrades 数据错误：%s" % e)
 		return
+	# 教学固定项：与 triggerWaves 同一纪律——声明了就必须自洽；不自洽只是
+	# "教学不可用"（回落随机），但 id 列表本身非法（非数组）要报错。
+	var tutorial_ids: Array[String] = []
+	var fixed: Variant = upgrades_domain.get("tutorialFixedChoices_1_5", null)
+	if typeof(fixed) == TYPE_DICTIONARY:
+		var raw_ids: Variant = (fixed as Dictionary).get("upgradeIds", [])
+		if typeof(raw_ids) != TYPE_ARRAY:
+			_errors.append("upgrades.tutorialFixedChoices_1_5.upgradeIds 必须是数组")
+			return
+		for v: Variant in (raw_ids as Array):
+			tutorial_ids.append(str(v))
+	elif fixed != null:
+		_errors.append("upgrades.tutorialFixedChoices_1_5 必须是对象")
+		return
 	u.total_opens = opens
 	u.rerolls_remaining = int(upgrades_domain.get("rerollsPerBattle", 0))
+	u.trigger_waves = trigger_waves
+	u.tutorial_fixed_ids = tutorial_ids
 	upgrades = u
-	GameLog.info("StageRuntime", "局内强化已启用：%s（开放 %d 次，免费重掷 %d 次）"
-		% [stage_id, opens, u.rerolls_remaining])
+	_upgrades_domain = upgrades_domain
+	GameLog.info("StageRuntime", "局内强化已启用：%s（开放 %d 次，免费重掷 %d 次，触发波 %s）"
+		% [stage_id, opens, u.rerolls_remaining, str(trigger_waves)])
 
 
 ## 本关可用队伍的「行为集合」与「标签并集」——候选算法的输入（L2051 第 1 步）。
@@ -2313,14 +2515,21 @@ func upgrade_choices() -> Array[String]:
 func tutorial_upgrade_choices(upgrades_domain: Dictionary) -> Array[String]:
 	if upgrades == null:
 		return []
+	# id 列表优先取本关注入的数据域；调用方另传一份（测试夹具）时以传入者为准。
+	var ids: Array = []
 	var fixed: Variant = upgrades_domain.get("tutorialFixedChoices_1_5", null)
-	if typeof(fixed) != TYPE_DICTIONARY:
-		return []
-	var ids: Variant = (fixed as Dictionary).get("upgradeIds", [])
-	if typeof(ids) != TYPE_ARRAY or (ids as Array).size() != 3:
+	if typeof(fixed) == TYPE_DICTIONARY:
+		var raw_ids: Variant = (fixed as Dictionary).get("upgradeIds", [])
+		if typeof(raw_ids) == TYPE_ARRAY:
+			ids = raw_ids
+	if ids.is_empty():
+		# 数据域未随本次调用传入（例如表现层只传了自身缓存）→ 用启用时读入的副本，
+		# 避免"数据明明配了却拿不到教学项"。
+		ids = upgrades.tutorial_fixed_ids
+	if ids.size() != 3:
 		return []
 	var out: Array[String] = []
-	for v: Variant in (ids as Array):
+	for v: Variant in ids:
 		var id := str(v)
 		if not upgrades.has_definition(id) or not upgrades.can_select(id):
 			return []   # 有一项不可用就整体回落，不给"缺一个"的教学
@@ -2345,14 +2554,157 @@ func choose_upgrade(upgrade_id: String) -> bool:
 	return true
 
 
-## 消耗一次免费重掷（L2117）。
+## 消耗一次免费重掷（L2117）。**不重建 pending 候选**（老入口，保留兼容）。
 func reroll_upgrades() -> bool:
 	if upgrades == null or upgrades.rerolls_remaining <= 0:
 		return false
 	upgrades.rerolls_remaining -= 1
 	upgrades.reroll_count += 1
+	_sync_offer_rerolls()
 	GameLog.info("StageRuntime", "使用免费重掷，剩余 %d 次" % upgrades.rerolls_remaining)
 	return true
+
+
+# ============================================================
+#  A0.6 三选一面板：玩家操作入口（契约 docs/a0_6_ui_contract.md 第 1 节）
+# ============================================================
+
+## 玩家选定一项。
+##
+## 成功：应用效果 + 计入 selections_used + 清空 pending + 战斗恢复（由 advance 解冻）。
+## 失败返回 false 且**不清空** pending（可重试）：无 pending / id 非法 /
+## **id 不在当前候选内**（越权防护）/ 次数用尽 / 战斗已结束。
+##
+## 「id 必须属于当前候选」是本函数的**关键防线**：表现层拿到的只是卡面快照，
+## 若不校验，任何调用方都能凭 id 直接注入任意强化（UI 越权 = 绕过三选一规则）。
+func resolve_offer(upgrade_id: String) -> bool:
+	if upgrades == null:
+		GameLog.warn("StageRuntime", "本关未开放局内强化，忽略选择请求：%s" % upgrade_id)
+		return false
+	if not has_pending_offer():
+		GameLog.warn("StageRuntime", "当前没有待处理的强化选择，忽略：%s" % upgrade_id)
+		return false
+	if _offer_battle_finished():
+		GameLog.warn("StageRuntime", "战斗已结束，拒绝强化选择：%s" % upgrade_id)
+		return false
+	if upgrades.is_exhausted():
+		GameLog.warn("StageRuntime", "本场强化选择次数已用尽（%d/%d），拒绝：%s"
+			% [upgrades.selections_used, upgrades.total_opens, upgrade_id])
+		return false
+	var candidates: Array = pending_offer.get("candidates", [])
+	if not candidates.has(upgrade_id):
+		GameLog.warn("StageRuntime", "强化 %s 不在本次候选中（%s），拒绝（防越权注入）"
+			% [upgrade_id, str(candidates)])
+		return false
+	if not upgrades.apply(upgrade_id):
+		# 未知 id 或已达叠加上限：同样不清空 pending，让玩家改选别的
+		return false
+	upgrades.selections_used += 1
+	GameLog.info("StageRuntime", "局内强化已选择：%s（第 %d 次开放，累计选择 %d/%d，层数 %d）"
+		% [upgrade_id, int(pending_offer.get("offerIndex", 0)),
+			upgrades.selections_used, upgrades.total_opens,
+			upgrades.stacks_of(upgrade_id)])
+	pending_offer = {}
+	_sync_offer_rerolls()
+	return true
+
+
+## 消耗 1 次免费重掷并就地重建候选（保持 pending）。无 pending / 无次数返回 false。
+##
+## 重掷确定性（契约）：候选仍由 _upgrade_seed() 派生，**重掷次数参与种子**
+## （UpgradeCandidateRoller 抽取前 reroll_count 已 +1），因此
+## 「同一状态 ⇒ 同一候选」在重掷后依然成立，帧率无关性不受破坏
+## （种子刻意不含 elapsed_seconds）。
+##
+## 教学态取舍（L2132）：1-5 首次是**固定**三选一，重掷后候选项仍是教学三项，
+## 但**照常消耗**那 1 次重掷（保持 L2117「每场默认 1 次免费重掷」与既有
+## test_reroll_is_single_use 的语义）。理由：第一次见到强化系统就被告知
+## "选项是随机的"才是错误的教学。
+func reroll_offer() -> bool:
+	if upgrades == null or not has_pending_offer():
+		return false
+	if _offer_battle_finished():
+		GameLog.warn("StageRuntime", "战斗已结束，拒绝重掷")
+		return false
+	if upgrades.rerolls_remaining <= 0:
+		GameLog.warn("StageRuntime", "没有剩余的重掷次数（已用 %d 次）" % upgrades.reroll_count)
+		return false
+	var was_tutorial := bool(pending_offer.get("isTutorial", false))
+	upgrades.rerolls_remaining -= 1
+	upgrades.reroll_count += 1
+	var rebuilt := _roll_offer_candidates()
+	if rebuilt.is_empty():
+		# 池耗尽（极端情形）：候选整体清空 ⇒ 面板已无内容可选。
+		# 这里**不**顺势消耗开放次数：本次开放作废，玩家可继续重掷（若有次数）。
+		GameLog.warn("StageRuntime", "重掷后候选为空（池耗尽），本次开放作废、不消耗开放次数")
+		pending_offer = {}
+		return false
+	pending_offer["candidates"] = rebuilt
+	pending_offer["isTutorial"] = _offer_is_tutorial()
+	pending_offer["rerollsRemaining"] = upgrades.rerolls_remaining
+	if was_tutorial:
+		GameLog.info("StageRuntime",
+			"教学态重掷：候选保持固定 %s（L2132 首次固定三选一，不切换为随机）；剩余重掷 %d 次"
+			% [str(rebuilt), upgrades.rerolls_remaining])
+	else:
+		GameLog.info("StageRuntime", "重掷完成：新候选 %s（第 %d 次重掷，剩余 %d 次）"
+			% [str(rebuilt), upgrades.reroll_count, upgrades.rerolls_remaining])
+	return true
+
+
+## 跳过本次强化（L2051：V2.1 允许玩家「跳过强化」，普通情况下**没有额外奖励**；
+## 该功能用于极端构筑需求和测试）。
+##
+## 跳过**计入已用开放次数**：若不计入，玩家可用"跳过 → 面板再开"无限刷候选，
+## 等于取消 L2045「重掷不能反复刷到满意为止」的限制。跳过不应用任何效果，
+## 也不进入 upgrade_summary()（跳过 ≠ 获得）。
+func skip_offer() -> bool:
+	if upgrades == null or not has_pending_offer():
+		return false
+	if _offer_battle_finished():
+		GameLog.warn("StageRuntime", "战斗已结束，拒绝跳过")
+		return false
+	if upgrades.is_exhausted():
+		return false
+	upgrades.selections_used += 1
+	GameLog.info("StageRuntime", "玩家跳过本次强化（L2051，无额外奖励）：第 %d 次开放，累计 %d/%d"
+		% [int(pending_offer.get("offerIndex", 0)),
+			upgrades.selections_used, upgrades.total_opens])
+	pending_offer = {}
+	_sync_offer_rerolls()
+	return true
+
+
+## 把 rebase 后的重掷剩余同步进 pending 快照（表现层读 pending 显示「剩余重掷：N」）。
+func _sync_offer_rerolls() -> void:
+	if upgrades == null or pending_offer.is_empty():
+		return
+	pending_offer["rerollsRemaining"] = upgrades.rerolls_remaining
+
+
+## 探针/测试用：pending 状态的只读快照（契约第 3 节 upgradeOffer 的域层对应物）。
+func offer_debug_dict() -> Dictionary:
+	var ids: Array = []
+	var it_tut := false
+	var offer_index := 0
+	var rerolls := 0
+	if upgrades != null:
+		rerolls = upgrades.rerolls_remaining
+	if not pending_offer.is_empty():
+		var c: Variant = pending_offer.get("candidates", [])
+		if typeof(c) == TYPE_ARRAY:
+			for v: Variant in (c as Array):
+				ids.append(str(v))
+		it_tut = bool(pending_offer.get("isTutorial", false))
+		offer_index = int(pending_offer.get("offerIndex", 0))
+		rerolls = int(pending_offer.get("rerollsRemaining", rerolls))
+	return {
+		"active": has_pending_offer(),
+		"ids": ids,
+		"isTutorial": it_tut,
+		"offerIndex": offer_index,
+		"rerollsRemaining": rerolls,
+	}
 
 
 ## 派生抽取种子。
@@ -2569,6 +2921,9 @@ func to_debug_dict() -> Dictionary:
 		"paused": paused,
 		"wave": current_wave_number(),
 		"waveTotal": total_wave_count(),
+		# A0.6：强化面板域层状态（探针/测试读取；表现层另有自己的画布坐标快照）。
+		"upgradeOffer": offer_debug_dict(),
+		"gainedUpgrades": upgrade_summary(),
 		"enemies": enemies_dbg,
 		"characters": chars_dbg,
 	}

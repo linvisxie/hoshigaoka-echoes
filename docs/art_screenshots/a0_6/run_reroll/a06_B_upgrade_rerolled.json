@@ -1,0 +1,133 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T09:01:47.652140",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [
+      "vfx_impact",
+      "vfx_slash",
+      "vfx_death"
+    ],
+    "actualDrawLedger": {
+      "char_anim:attack": 723,
+      "char_anim:hit": 61,
+      "char_anim:idle": 4452,
+      "enemy_anim:attack": 141,
+      "enemy_anim:death": 349,
+      "enemy_anim:hit": 188,
+      "enemy_anim:idle": 226,
+      "enemy_anim:move": 1140,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_attack.png": 499,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_hit.png": 61,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 2811,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_attack.png": 224,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_idle.png": 1641,
+      "res://assets/art/enemies/echo_normal/echo_normal_attack.png": 141,
+      "res://assets/art/enemies/echo_normal/echo_normal_death.png": 277,
+      "res://assets/art/enemies/echo_normal/echo_normal_hit.png": 167,
+      "res://assets/art/enemies/echo_normal/echo_normal_idle.png": 225,
+      "res://assets/art/enemies/echo_normal/echo_normal_move.png": 944,
+      "res://assets/art/enemies/echo_runner/echo_runner_death.png": 72,
+      "res://assets/art/enemies/echo_runner/echo_runner_hit.png": 21,
+      "res://assets/art/enemies/echo_runner/echo_runner_idle.png": 1,
+      "res://assets/art/enemies/echo_runner/echo_runner_move.png": 196,
+      "res://assets/vfx/vfx_arrow.png": 201,
+      "res://assets/vfx/vfx_death.png": 407,
+      "res://assets/vfx/vfx_deploy.png": 102,
+      "res://assets/vfx/vfx_impact.png": 752,
+      "res://assets/vfx/vfx_slash.png": 476,
+      "vfx:vfx_arrow": 201,
+      "vfx:vfx_death": 407,
+      "vfx:vfx_deploy": 102,
+      "vfx:vfx_impact": 752,
+      "vfx:vfx_slash": 476
+    },
+    "canvas": [
+      1920.0,
+      1080.0
+    ],
+    "cardRects": [
+      [
+        24.0,
+        886.0,
+        300.0,
+        170.0
+      ],
+      [
+        340.0,
+        886.0,
+        300.0,
+        170.0
+      ]
+    ],
+    "characters": [
+      {
+        "code": "amamiya_mio",
+        "column": 2,
+        "hp": 892,
+        "id": 1,
+        "lane": 1
+      },
+      {
+        "code": "kamiya_yuma",
+        "column": 1,
+        "hp": 620,
+        "id": 2,
+        "lane": 1
+      }
+    ],
+    "enemies": [],
+    "gainedUpgrades": [],
+    "missedDamageEvents": 0,
+    "outcome": "进行中",
+    "renderFrame": 3511,
+    "stage": "1-5",
+    "time": 24.1833333333332,
+    "upgradeOffer": {
+      "active": true,
+      "cardRects": [
+        [
+          328.0,
+          150.0,
+          400.0,
+          470.0
+        ],
+        [
+          760.0,
+          150.0,
+          400.0,
+          470.0
+        ],
+        [
+          1192.0,
+          150.0,
+          400.0,
+          470.0
+        ]
+      ],
+      "ids": [
+        "upgrade_ranged_atk",
+        "upgrade_def_front",
+        "upgrade_ap_regen"
+      ],
+      "isTutorial": true,
+      "rerollRect": [
+        718.0,
+        650.0,
+        260.0,
+        56.0
+      ],
+      "rerollsRemaining": 0,
+      "skipRect": [
+        1002.0,
+        650.0,
+        200.0,
+        56.0
+      ]
+    }
+  },
+  "image": "D:\\星丘残响\\_testenv\\a06_capture\\final_reroll\\upgrade_rerolled.png"
+}

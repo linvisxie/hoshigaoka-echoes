@@ -225,6 +225,81 @@ const CRYSTAL_COLOR := Color(0.60, 0.46, 1.0)
 const CRYSTAL_CORE := Color(0.85, 0.78, 1.0)
 const CRYSTAL_GLOW := Color(0.45, 0.35, 0.95)
 
+# ============================================================
+#  局内强化三选一（Alpha A0.6，规格 I 章 L1963～2058）
+# ============================================================
+#
+# 规格依据（v214_ordered.txt 行号）：
+#   L1969～1972  出现频率：普通关 2 次；**触发强化时战斗短暂停止**，
+#                选择界面不计入技能 CD 或敌人移动时间（由域层冻结实现，见 StageRuntime）
+#   L1973～1978  三选一：3 个选项、队伍加权、至少 2 个有用、同项有限叠加、
+#                已无效项自动移出候选
+#   L2033～2039  品质：内部 COMMON / ADVANCED / CORE 三档；**首版 UI 不使用
+#                抽卡式稀有度颜色体系**，但 CORE 需要独特边框形成记忆点
+#   L2040～2044  CORE 需明显图标、名称与描述
+#   L2045～2049  重掷：每场默认 1 次免费；使用后重新生成当前 3 个选项
+#   L2051        允许玩家跳过强化（本版提供，无额外奖励）
+#   L2052～2058  选择 UI：战斗暂停后中央弹出**三张横向卡片**，每张一眼展示
+#                **名称、类别图标、作用对象、效果描述、是否可叠加**；
+#                卡面避免长段文字；具体数值高亮；职业限定显示职业图标；
+#                CORE 用独特边框；**底部显示「剩余重掷：1」**
+#   L2059～2060  暂停菜单与强化选择界面**可查看本局已获得强化**（按类别分组）
+#
+# 分层纪律（L3）：本区块只**读** domain 层的 pending_offer / upgrade_summary()
+# 与 upgrades.json 经域层导出的定义，只**转发** resolve_offer / reroll_offer /
+# skip_offer。面板自身不做任何合法性判定、不改任何数值、不决定触发时机
+# （触发时机在 StageRuntime，见 _complete_current_wave）。
+
+## 面板遮罩与底板（沿用暂停面板的家族色，保证同一套 UI 语言）
+const UPGRADE_SCRIM := Color(0.015, 0.020, 0.045, 0.72)
+
+## 卡片几何（参考画布单位）
+const UPGRADE_CARD_W := 400.0
+const UPGRADE_CARD_H := 470.0
+const UPGRADE_CARD_GAP := 32.0
+const UPGRADE_PANEL_PAD_X := 44.0
+const UPGRADE_PANEL_PAD_TOP := 150.0
+const UPGRADE_PANEL_PAD_BOTTOM := 150.0
+
+## 卡面配色：普通项为冷蓝家族，CORE 用暖金边框形成记忆点（L2057：**不做抽卡式炫耀**，
+## 因此只用边框与一个小标签区分，不用发光、不用彩虹、不加星星）。
+const UPGRADE_CARD_FILL := Color(0.075, 0.090, 0.165, 0.985)
+const UPGRADE_CARD_EDGE := Color(0.44, 0.53, 0.78, 0.90)
+const UPGRADE_CARD_HOVER_FILL := Color(0.115, 0.140, 0.240, 0.99)
+const UPGRADE_CARD_HOVER_EDGE := Color(0.74, 0.86, 1.0, 1.0)
+const UPGRADE_CARD_CORE_EDGE := Color(0.90, 0.72, 0.34, 0.95)
+const UPGRADE_TIER_ADVANCED_EDGE := Color(0.58, 0.70, 0.96, 0.95)
+const UPGRADE_TIER_LABEL_COMMON := Color(0.66, 0.72, 0.86)
+const UPGRADE_TIER_LABEL_ADVANCED := Color(0.62, 0.82, 1.0)
+const UPGRADE_TIER_LABEL_CORE := Color(0.96, 0.80, 0.44)
+const UPGRADE_ICON_BG := Color(0.040, 0.052, 0.105, 0.95)
+const UPGRADE_ICON_EDGE := Color(0.48, 0.58, 0.84, 0.75)
+## 具体数值高亮色（L2055：具体数值高亮）
+const UPGRADE_VALUE_COLOR := Color(1.0, 0.90, 0.50)
+const UPGRADE_DESC_COLOR := Color(0.86, 0.90, 0.99)
+const UPGRADE_TUTORIAL_ACCENT := Color(0.55, 0.95, 0.78)
+
+## 底部操作条
+const UPGRADE_REROLL_BG := Color(0.17, 0.24, 0.42, 0.96)
+const UPGRADE_REROLL_BG_DISABLED := Color(0.10, 0.11, 0.16, 0.90)
+const UPGRADE_SKIP_BG := Color(0.16, 0.15, 0.20, 0.92)
+const UPGRADE_GAINED_BG := Color(0.055, 0.065, 0.120, 0.92)
+
+## 作用对象 -> 显示文案与职业图标（L2056：职业限定需显示对应职业图标）。
+## 图标名必须在 ArtRegistry 的 UI 图标目录真实存在，缺失时回退几何图形。
+const UPGRADE_TARGET_TEXT := {
+	"ALL": "全队",
+	"FRONTLINE": "前线",
+	"RANGED": "远程",
+	"HEALER": "治疗",
+	"STAGE": "战场",
+}
+const UPGRADE_TARGET_ICON := {
+	"FRONTLINE": "icon_defense_up",
+	"RANGED": "icon_attack_up",
+	"HEALER": "icon_heal",
+}
+
 var session: BattleSession
 var grid: BattleGrid
 
@@ -345,6 +420,15 @@ var _last_wave_number: int = 0
 ## 它走与玩家完全一致的输入管线，但**不冒充真人操作证据**；
 ## 真人键鼠验收另见 docs/P0.3_验收报告.md 的实机章节。
 var _autoplay := false
+## 自动选择强化的抑制开关（--autoplay-hold-upgrade）。
+##
+## 为什么需要：`--autoplay` 会在`_process` 的同一次调用里立刻把 pending_offer 消费掉，
+## 而探针写入发生在其后 —— 结果是**探针从结构上不可能观察到 `upgradeOffer.active == true`**，
+## 取证工具（事件驱动、拒绝盲拍）因此永远拍不到强化面板。
+## 打开本开关后 autoplay 只负责部署与推进波次（好让 Wave 1 能清空、面板能出现），
+## 但**不抢答强化选择**，面板会一直留在屏幕上，等真实鼠标取证接手。
+## 这同时让证据更硬：走的是真人输入路径，而不是 autoplay 旁路。
+var _autoplay_hold_upgrade := false
 var _autoplay_phase := 0
 var _autoplay_target_col := 2
 var _autoplay_target_lane := 1
@@ -359,6 +443,24 @@ var _quit_rect: Rect2 = Rect2()
 var _pause_rect: Rect2 = Rect2()
 var _retreat_rect: Rect2 = Rect2()
 
+# ---- 局内强化面板状态（纯表现层缓存；唯一真值仍在 domain 层的 pending_offer）----
+## 上一帧 domain 层是否处于「有强化待选择」。仅用于检测**开始**与**结束**两条边沿，
+## 用来做一次性反馈与把面板渲染成"冻结中"（不改暂停态）。
+var _upgrade_offer_was_active: bool = false
+## 本轮候选的呈现快照：Array[{id,name,effectText,targetText,tier,category,icon,maxStacks,stacks}]
+## 每轮 offer 建立时重新生成一次，避免每帧重算文本。
+var _upgrade_card_views: Array[Dictionary] = []
+## 卡片命中矩形（画布坐标；绘制与点击共用）
+var _upgrade_card_rects: Array[Rect2] = []
+## 鼠标悬停的卡片下标（-1 = 无）
+var _upgrade_hover_index: int = -1
+## 1-5 首次通关才有固定教学三选一（L2132）。是否"首次"由存档层判定后注入域层，
+## 表现层只读取并据此显示教学提示条。
+var _upgrade_is_tutorial: bool = false
+## 底部按钮命中矩形
+var _upgrade_reroll_rect: Rect2 = Rect2()
+var _upgrade_skip_rect: Rect2 = Rect2()
+
 
 
 func _ready() -> void:
@@ -372,7 +474,9 @@ func _ready() -> void:
 		if arg == "--autoplay":
 			_autoplay = true
 			GameLog.info(TAG, "P0.3 自动回归模式已启用（仅用于自动化，不作为真人操作证据）")
-			break
+		elif arg == "--autoplay-hold-upgrade":
+			_autoplay_hold_upgrade = true
+			GameLog.info(TAG, "已启用 --autoplay-hold-upgrade：autoplay 不抢答强化选择（供真鼠标取证）")
 	queue_redraw()
 
 
@@ -486,6 +590,11 @@ func _build_battle() -> void:
 	session.character_healed.connect(_on_character_healed)
 	_last_wave_number = session.stage.current_wave_number()
 
+	# Alpha A0.6（L2132）：1-5 的**首次**三选一是固定教学项，不是随机。
+	# 「是否首次」以存档的首通标记为准（只读；stage_reward_service 负责写）。
+	# 为什么放在表现层：域层不读存档（L3 分层纪律），它只接受一个已判定好的布尔。
+	_configure_tutorial_offer(stage_id)
+
 	# 角色卡顺序 = StageConfig.availableCharacters 顺序
 	_roster = session.stage.available_characters.duplicate()
 
@@ -593,11 +702,624 @@ func _build_enemy_table() -> Dictionary:
 	return table
 
 
+# ============================================================
+#  Alpha A0.6 局内强化三选一：状态同步 / 交互 / 绘制
+# ============================================================
+#
+# 触发时机（何时弹）**不在本区块**：域层在 Wave 清空时建立 pending_offer
+# （规格 L1969～1971「普通关 2 次，建议节点为进度百分比 / 波次间安全窗口」）。
+# 表现层只做三件事：
+#   ① 检测 pending_offer 的开始 / 结束边沿，建立 / 清空卡面快照；
+#   ② 把鼠标与键盘输入**转发**成 resolve_offer / reroll_offer / skip_offer；
+#   ③ 绘制面板，并保证面板激活期间战斗输入被拦截（不误操作战场）。
+#
+# 「选择界面不计入技能 CD 或敌人移动时间」（L1972）由域层冻结 advance() 实现，
+# 表现层**不**调用 set_paused(true) —— 把玩家暂停与强化冻结混用会让
+# 暂停按钮语义错乱（玩家点「继续」时会误跳到下一波）。
+
+
+## 1-5 首次为固定教学三选一（L2132）。「是否首次」以存档首通标记为准（只读）。
+##
+## 纪律：域层不读存档（L3），因此这里判定后**注入**域层一个布尔。
+## 首通之后重玩 1-5 走随机候选 —— 教学只发生一次，符合 L2132「首次」的字面语义。
+func _configure_tutorial_offer(stage_id: String) -> void:
+	if session == null or session.stage == null or session.stage.upgrades == null:
+		return
+	var is_first := false
+	if not StageRewardService.is_first_cleared(stage_id):
+		is_first = true
+	session.stage.set_tutorial_offer_enabled(is_first)
+	_upgrade_is_tutorial = is_first
+	GameLog.info(TAG, "局内强化教学判定：%s %s（首通标记=%s）" % [
+		stage_id, "本次为固定教学三选一" if is_first else "本次走随机候选",
+		"已通关" if not is_first else "未通关"])
+
+
+## 同步强化面板状态（每帧在 session.tick() 之后调用）。
+##
+## 唯一真值 = session.stage.pending_offer。本函数只在**边沿**上做一次性工作，
+## 不做任何合法性判断（那是域层的事）。
+func _sync_upgrade_offer() -> void:
+	# 显式标注 bool：三元式里混用 `!= null` 与 `and` 时，`:=` 的类型推断
+	# 在部分构建上会退化成 Variant 并报 "Cannot infer the type of active"。
+	var active: bool = session.stage != null and session.stage.has_pending_offer()
+	if active and not _upgrade_offer_was_active:
+		_on_upgrade_offer_started()
+	elif not active and _upgrade_offer_was_active:
+		_on_upgrade_offer_ended()
+	# 面板激活期间，鼠标悬停要让位给卡片（战场悬停高亮不该在遮罩下闪）
+	if active:
+		_hover_column = -1
+		_hover_lane = -1
+		_hover_deploy_ok = false
+		_hover_reject_reason = ""
+
+
+## 面板出现：生成本轮卡面快照 + 关闭战斗侧的选择状态 + 给一次明确反馈。
+##
+## 为什么要关闭 _selected_card_id / _selected_character_id：
+## 面板弹出时若还留着"选中了某张角色卡"，玩家点卡片位置可能穿透到部署逻辑
+## （虽然 _handle_left_click 已优先处理面板，但状态残留会在关闭面板后立刻触发部署）。
+func _on_upgrade_offer_started() -> void:
+	_upgrade_offer_was_active = true
+	_selected_card_id = ""
+	_selected_character_id = 0
+	_rebuild_upgrade_card_views()
+	var offer: Dictionary = session.stage.pending_offer
+	var tutorial := bool(offer.get("isTutorial", false))
+	_upgrade_is_tutorial = tutorial
+	GameLog.info(TAG, "局内强化三选一已弹出：%s（第 %d 次开放，教学=%s，剩余重掷 %d）" % [
+		str(offer.get("candidates", [])), int(offer.get("offerIndex", 0)),
+		str(tutorial), int(offer.get("rerollsRemaining", 0))])
+	_show_feedback("强化选择：三选一（点击卡片或按 1/2/3）",
+		UPGRADE_TUTORIAL_ACCENT if tutorial else Color(0.62, 0.86, 1.0))
+
+
+## 面板关闭（已选择 / 已跳过 / 战斗结束）：清理呈现状态。
+func _on_upgrade_offer_ended() -> void:
+	_upgrade_offer_was_active = false
+	_upgrade_card_views.clear()
+	_upgrade_card_rects.clear()
+	_upgrade_hover_index = -1
+	_upgrade_reroll_rect = Rect2()
+	_upgrade_skip_rect = Rect2()
+
+
+## 依据 domain 层的候选重建卡面视图。
+##
+## 数据来源纪律：名称 / 描述 / 类别 / 图标 / 叠加上限**全部来自 upgrades.json**
+## （经 InBattleUpgrades.definition() 导出），本类**不写死任何中文名或数值**。
+func _rebuild_upgrade_card_views() -> void:
+	_upgrade_card_views.clear()
+	_upgrade_card_rects.clear()
+	if session == null or session.stage == null:
+		return
+	var offer: Dictionary = session.stage.pending_offer
+	var ids: Variant = offer.get("candidates", [])
+	if typeof(ids) != TYPE_ARRAY:
+		return
+	for v: Variant in (ids as Array):
+		var uid := str(v)
+		var cfg: Dictionary = session.stage.upgrades.definition(uid)
+		if cfg.is_empty():
+			continue
+		var effect: Dictionary = cfg.get("effect", {})
+		_upgrade_card_views.append({
+			"id": uid,
+			"name": str(cfg.get("name", uid)),
+			"description": str(cfg.get("description", "")),
+			"tier": str(cfg.get("tier", "COMMON")),
+			"category": str(cfg.get("category", "")),
+			"appliesTo": str(cfg.get("appliesTo", "ALL")),
+			"icon": str(cfg.get("icon", "")),
+			"maxStacks": int(cfg.get("maxStacks", 1)),
+			"stacks": session.stage.upgrades.stacks_of(uid),
+			"effectType": str(effect.get("type", "")),
+			"effectStat": str(effect.get("stat", "")),
+			"effectValue": float(effect.get("value", 0.0)),
+		})
+	# 立刻排一次版面，让**矩形在被绘制的第一帧之前就存在**。
+	#
+	# 为什么必须在这里排而不是等 _draw：`_write_art_probe()` 在 `_draw()` **之前**执行，
+	# 若矩形只由绘制填充，就会出现「探针说面板已开、但 cardRects 为空」的一帧，
+	# 取证工具（事件驱动、拒绝盲猜坐标）会读到那一帧并判定"没有卡片矩形"而放弃取证。
+	# 这是实测踩到的缺陷（`SKIP-OCCLUDED … no such card rect in probe`），不是理论顾虑。
+	_layout_upgrade_cards()
+
+
+## 把「效果」翻译成卡面上的一行高亮数值文案（L2055：具体数值高亮）。
+##
+## 纪律：数值来自数据，文案只做**单位换算展示**（0.15 -> +15%），
+## 不在表现层重新定义任何效果语义。
+func _upgrade_effect_text(view: Dictionary) -> String:
+	var etype := str(view.get("effectType", ""))
+	var value := float(view.get("effectValue", 0.0))
+	var stat := str(view.get("effectStat", ""))
+	if etype == "RETREAT_REFUND_BONUS":
+		# 撤退返还是「比例提高」而非百分比增减，显示为「返还比例 +15%」。
+		# 注意不要写成 "撤退返还 +15%"：那会被读成"返还额提高 15% 的绝对值"，
+		# 而实际语义是"返还比例 +15 个百分点"（50% → 65%）。
+		return "返还比例 +%d%%" % int(round(value * 100.0))
+	match stat:
+		"ATTACK":
+			return "攻击 +%d%%" % int(round(value * 100.0))
+		"DEFENSE":
+			return "防御 +%d%%" % int(round(value * 100.0))
+		"HEAL":
+			return "治疗量 +%d%%" % int(round(value * 100.0))
+		"AP_REGEN":
+			return "AP 自然回复 +%d%%" % int(round(value * 100.0))
+	# 未知 stat：回退到数据自己的描述，绝不臆造一个数值文案
+	return str(view.get("description", ""))
+
+
+## 卡面上的「补充说明」行。
+##
+## 为什么不直接把 description 画上去：数据的 description（如「前线防御 +20%」）
+## 与卡面已有的两处信息**完全重叠** —— 数值行显示「防御 +20%」、底部显示
+## 「作用对象：前线」，合起来就是「前线防御 +20%」。两行叠在一起读起来像渲染
+## bug（实测截图里「防御 +20%」正下方紧接「前线防御 +20%」）。
+##
+## 判据：把 description 去掉数字/百分号/空白后的「语义骨架」，若其每个字都
+## 已经出现在「数值行 + 作用对象」的骨架里 → 这一行没有新信息，不画。
+## 反之（例如「撤退返还比例提高（50% → 65%）」含有 50→65 的机制信息）就画。
+func _upgrade_extra_note(view: Dictionary) -> String:
+	var desc := str(view.get("description", "")).strip_edges()
+	if desc.is_empty():
+		return ""
+	var covered := _semantic_skeleton(_upgrade_effect_text(view)) \
+		+ _semantic_skeleton(_upgrade_target_text(view))
+	var skeleton := _semantic_skeleton(desc)
+	if skeleton.is_empty():
+		return ""
+	var redundant := true
+	for ch: String in skeleton:
+		if not covered.contains(ch):
+			redundant = false
+			break
+	if redundant:
+		return ""
+	return desc
+
+
+## 文本语义骨架：剔除数字、百分号、空白与全角符号，只留"讲的是什么"。
+func _semantic_skeleton(text: String) -> String:
+	var out := ""
+	for ch: String in text:
+		if ch >= "0" and ch <= "9":
+			continue
+		if ch == "%" or ch == "％" or ch == "+" or ch == "-":
+			continue
+		if ch == " " or ch == "　" or ch == "：" or ch == ":":
+			continue
+		out += ch
+	return out
+
+
+## 作用对象文案（L2053「作用对象」必须一眼可见）。
+func _upgrade_target_text(view: Dictionary) -> String:
+	var applies := str(view.get("appliesTo", "ALL"))
+	return str(UPGRADE_TARGET_TEXT.get(applies, applies))
+
+
+## 效果对应的图标名：优先用数据声明的 icon（A0.6 数据层新增字段），
+## 数据没写时按作用对象回退（绝不返回空串）。
+##
+## ⚠ 不要按作用对象去回退**职业图标**：`upgrade_def_front` 的 appliesTo=FRONTLINE
+## 且 icon 未声明时会回退到 icon_defense_up，而「前线」的职业图标也是
+## icon_defense_up —— 那会在卡片右下角画出与主图标**完全相同**的第二张图，
+## 读起来像渲染重影（实测截图确认）。同源即视为无独立职业标识。
+func _upgrade_icon_name(view: Dictionary) -> String:
+	var declared := str(view.get("icon", ""))
+	if not declared.is_empty():
+		return declared
+	var applies := str(view.get("appliesTo", ""))
+	return str(UPGRADE_TARGET_ICON.get(applies, "icon_awareness"))
+
+
+## 职业限定的职业图标（L2056）：非 ALL/STAGE 时额外画一个职业小图标。
+## 返回空串 = 不画（数据没声明主图标、或职业图标与主图标同源时都不画）。
+func _upgrade_role_icon_name(view: Dictionary) -> String:
+	var applies := str(view.get("appliesTo", ""))
+	var role := str(UPGRADE_TARGET_ICON.get(applies, ""))
+	if role.is_empty():
+		return ""
+	# 与主图标同源 → 不画（否则就是同一张图叠两次）
+	if role == _upgrade_icon_name(view):
+		return ""
+	return role
+
+
+## 卡片几何（画布坐标）。三张横向居中；少于 3 张时同样居中，不留空位错觉。
+func _layout_upgrade_cards() -> void:
+	_upgrade_card_rects.clear()
+	var n := _upgrade_card_views.size()
+	if n <= 0:
+		return
+	var card_w := _px(UPGRADE_CARD_W)
+	var card_h := _px(UPGRADE_CARD_H)
+	var gap := _px(UPGRADE_CARD_GAP)
+	var total := card_w * float(n) + gap * float(n - 1)
+	var start_x := (_viewport_size.x - total) * 0.5
+	var y := _px(UPGRADE_PANEL_PAD_TOP)
+	for i: int in range(n):
+		_upgrade_card_rects.append(Rect2(
+			Vector2(start_x + float(i) * (card_w + gap), y),
+			Vector2(card_w, card_h)))
+	# 底部操作条（重掷 / 跳过）
+	var bar_y := y + card_h + _px(30.0)
+	var bh := _px(56.0)
+	var bgap := _px(24.0)
+	var reroll_w := _px(260.0)
+	var skip_w := _px(200.0)
+	var total_b := reroll_w + bgap + skip_w
+	var bx := (_viewport_size.x - total_b) * 0.5
+	_upgrade_reroll_rect = Rect2(Vector2(bx, bar_y), Vector2(reroll_w, bh))
+	_upgrade_skip_rect = Rect2(Vector2(bx + reroll_w + bgap, bar_y), Vector2(skip_w, bh))
+
+
+## 面板是否正在拦截输入。域层 pending_offer 是唯一真值。
+func _upgrade_panel_active() -> bool:
+	return session != null and session.stage != null and session.stage.has_pending_offer()
+
+## 点选第 index 张卡片。
+##
+## 纪律：合法性**全部**由域层 resolve_offer 裁决（候选归属、次数用尽、战斗结束）。
+## 表现层只负责把结果翻译成反馈，绝不"本地先判定再调用"。
+func _choose_upgrade_index(index: int) -> void:
+	if not _upgrade_panel_active():
+		return
+	if index < 0 or index >= _upgrade_card_views.size():
+		return
+	# 候选矩形必须在被绘制前就存在（点击可能先于本帧绘制到达，取证也可能先读探针）
+	if _upgrade_card_rects.size() != _upgrade_card_views.size():
+		_layout_upgrade_cards()
+	var view: Dictionary = _upgrade_card_views[index]
+	var uid := str(view["id"])
+	var name_text := str(view["name"])
+	var effect_text := _upgrade_effect_text(view)
+	if session.stage.resolve_offer(uid):
+		var stacks := session.stage.upgrades.stacks_of(uid)
+		_show_feedback("已获得强化：%s（%s）%s" % [
+			name_text, effect_text, "" if stacks <= 1 else " 第 %d 层" % stacks],
+			UPGRADE_TUTORIAL_ACCENT)
+		GameLog.info(TAG, "玩家选择局内强化：%s（%s）累计 %d 层" % [uid, effect_text, stacks])
+	else:
+		# 域层拒绝（重复点击 / 次数用尽 / 战斗已结束）——不静默，明确反馈
+		_show_feedback("该强化当前不可选（请查看剩余次数）", Color(1.0, 0.62, 0.42))
+
+
+## 使用免费的 1 次重掷（L2045～2049）。
+func _reroll_upgrade() -> void:
+	if not _upgrade_panel_active():
+		return
+	if session.stage.reroll_offer():
+		_rebuild_upgrade_card_views()
+		_upgrade_hover_index = -1
+		_show_feedback("已重掷：重新生成 3 个选项（剩余重掷 %d）"
+			% session.stage.upgrades.rerolls_remaining, Color(0.72, 0.86, 1.0))
+		GameLog.info(TAG, "玩家使用免费重掷，剩余 %d 次" % session.stage.upgrades.rerolls_remaining)
+	else:
+		_show_feedback("没有剩余的重掷次数", Color(1.0, 0.62, 0.42))
+
+
+## 跳过本次强化（L2051 允许跳过，且**没有额外奖励**）。
+func _skip_upgrade() -> void:
+	if not _upgrade_panel_active():
+		return
+	if session.stage.skip_offer():
+		# 措辞明确说明"没有额外奖励"，避免玩家误以为跳过是更优解
+		_show_feedback("已跳过本次强化（不提供额外奖励）", Color(0.88, 0.84, 0.70))
+		GameLog.info(TAG, "玩家跳过局内强化（无额外奖励）")
+	else:
+		_show_feedback("当前无法跳过", Color(1.0, 0.62, 0.42))
+
+
+## 面板上的鼠标左键。返回 true = 已消费（调用方不得继续走战场逻辑）。
+func _handle_upgrade_click(pos: Vector2) -> bool:
+	if not _upgrade_panel_active():
+		return false
+	# 卡片矩形未必已被本帧的 _draw 刷新（点击可能先于绘制到达），先重算一次，
+	# 保证命中判定用的是**当前帧的几何**，而不是上一帧或空矩形。
+	if _upgrade_card_rects.size() != _upgrade_card_views.size():
+		_layout_upgrade_cards()
+	# 卡片
+	for i: int in range(_upgrade_card_rects.size()):
+		if _upgrade_card_rects[i].has_point(pos):
+			_choose_upgrade_index(i)
+			return true
+	if _upgrade_reroll_rect.has_point(pos):
+		_reroll_upgrade()
+		return true
+	if _upgrade_skip_rect.has_point(pos):
+		_skip_upgrade()
+		return true
+	# 面板激活期间，点面板以外的地方也一律消费掉：
+	# 否则点击会穿透到部署 / 撤退 / 暂停，玩家会做出自己没想做的操作。
+	_show_feedback("请先完成强化选择（点击卡片，或按 1/2/3）", Color(0.95, 0.85, 0.45))
+	return true
+
+
+## 面板上的键盘输入。返回 true = 已消费。
+##
+## 注意：这里刻意**不**处理 ESC 关闭面板——强化必须做出选择或明确跳过，
+## 否则玩家可以靠连按 Esc 无限回避系统（规格无此意图）。
+func _handle_upgrade_key(keycode: int) -> bool:
+	if not _upgrade_panel_active():
+		return false
+	if keycode >= KEY_1 and keycode <= KEY_3:
+		_choose_upgrade_index(keycode - KEY_1)
+		return true
+	if keycode == KEY_R:
+		_reroll_upgrade()
+		return true
+	if keycode == KEY_S:
+		_skip_upgrade()
+		return true
+	# 其余键一律吞掉：避免 Space 在面板上把战斗暂停/继续切过去
+	return true
+
+
+## 绘制面板（在 _draw() 的最后、暂停与结算所画之前调用）。
+##
+## 层级：强化面板 > 暂停遮罩 > 战斗 HUD。理由：面板出现时战斗已被域层冻结，
+## 此时"暂停遮罩 + 强化面板"同时出现会让玩家以为是两套系统；面板自带遮罩更清晰。
+func _draw_upgrade_overlay() -> void:
+	if not _upgrade_panel_active():
+		return
+	var font := ThemeDB.fallback_font
+	if font == null:
+		return
+	_layout_upgrade_cards()
+	draw_rect(Rect2(Vector2.ZERO, _viewport_size), UPGRADE_SCRIM, true)
+
+	var n := _upgrade_card_views.size()
+	var card_w := _px(UPGRADE_CARD_W)
+	var card_h := _px(UPGRADE_CARD_H)
+	var gap := _px(UPGRADE_CARD_GAP)
+	var total := card_w * float(n) + gap * float(maxi(0, n - 1))
+	var start_x := (_viewport_size.x - total) * 0.5
+
+	# ---- 顶部标题区 ----
+	var cx := _viewport_size.x * 0.5
+	var title := "残 响 强 化"
+	var tfs := int(_px(40.0))
+	var tw := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tfs).x
+	draw_string(font, Vector2(cx - tw * 0.5, _px(78.0)), title,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, tfs, Color(0.97, 0.94, 0.74))
+	var sub := "选择一项强化（本局构筑）"
+	if _upgrade_is_tutorial:
+		sub = "教学：首次强化 — 选择一项立即生效（本局有效，离开关卡后清空）"
+	var sfs := int(_px(19.0))
+	var sw := font.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
+	draw_string(font, Vector2(cx - sw * 0.5, _px(112.0)), sub,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, sfs,
+		UPGRADE_TUTORIAL_ACCENT if _upgrade_is_tutorial else DIM_TEXT)
+
+	# 教学条：明确告诉玩家这是"第一次"，与后续随机强化区分（L2132）
+	if _upgrade_is_tutorial:
+		var tag_w := font.get_string_size("首次教学", HORIZONTAL_ALIGNMENT_LEFT, -1,
+			int(_px(15.0))).x + _px(20.0)
+		var tag := Rect2(Vector2(cx - tag_w * 0.5, _px(124.0)),
+			Vector2(tag_w, _px(24.0)))
+		_draw_tag(tag, Color(UPGRADE_TUTORIAL_ACCENT.r, UPGRADE_TUTORIAL_ACCENT.g,
+			UPGRADE_TUTORIAL_ACCENT.b, 0.18), UPGRADE_TUTORIAL_ACCENT)
+
+	# ---- 三张卡片 ----
+	for i: int in range(n):
+		_draw_upgrade_card(i, _upgrade_card_rects[i], font)
+
+	# ---- 底部操作条 ----
+	var offer: Dictionary = session.stage.pending_offer
+	var rerolls := int(offer.get("rerollsRemaining", 0))
+	# L2058：底部显示「剩余重掷：1」
+	var rr_text := "剩余重掷：%d" % rerolls
+	var rr_fs := int(_px(22.0))
+	var rr_w := font.get_string_size(rr_text, HORIZONTAL_ALIGNMENT_LEFT, -1, rr_fs).x
+	draw_string(font, Vector2(cx - rr_w * 0.5, _upgrade_reroll_rect.position.y - _px(18.0)),
+		rr_text, HORIZONTAL_ALIGNMENT_LEFT, -1, rr_fs,
+		Color(0.86, 0.90, 1.0) if rerolls > 0 else Color(0.55, 0.58, 0.66))
+
+	_draw_upgrade_button(_upgrade_reroll_rect, "重掷（R）",
+		UPGRADE_REROLL_BG if rerolls > 0 else UPGRADE_REROLL_BG_DISABLED, rerolls > 0)
+	_draw_upgrade_button(_upgrade_skip_rect, "跳过（S）", UPGRADE_SKIP_BG, true)
+
+	# ---- 本局已获得强化（L2059～2060：按类别分组，避免玩家忘了自己构筑了什么）----
+	_draw_gained_upgrades(font)
+
+
+## 单张强化卡（L2053：每张卡必须一眼展示名称、类别图标、作用对象、效果描述、是否可叠加）。
+##
+## 版式（自上而下，全部在参考画布单位内）：
+##   ① 顶部类别条：类别名（如「攻击型」）+ 右侧层级标签（COMMON/ADVANCED/CORE）
+##   ② 图标：数据声明的 icon（64px 资产），职业限定额外画职业小图标
+##   ③ 名称（大字）
+##   ④ 效果数值（高亮大字：+15% 之类）—— 一眼可读
+##   ⑤ 描述（来自数据的 description，短句）
+##   ⑥ 作用对象（含职业图标）+ 叠加状态（第 n/上限 层）
+func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
+	var view: Dictionary = _upgrade_card_views[index]
+	var hovered := (_upgrade_hover_index == index)
+	var tier := str(view.get("tier", "COMMON"))
+
+	# 边框按层级区分：CORE 用暖金（L2057 独特边框、但不做抽卡式炫耀）
+	var edge := UPGRADE_CARD_EDGE
+	if tier == "CORE":
+		edge = UPGRADE_CARD_CORE_EDGE
+	elif tier == "ADVANCED":
+		edge = UPGRADE_TIER_ADVANCED_EDGE
+	if hovered:
+		edge = UPGRADE_CARD_HOVER_EDGE
+	var fill := UPGRADE_CARD_HOVER_FILL if hovered else UPGRADE_CARD_FILL
+
+	var draw_rect_body := rect
+	if hovered:
+		draw_rect_body = Rect2(rect.position - Vector2(0.0, _px(4.0)), rect.size)
+	_draw_cut_panel(draw_rect_body, _px(16.0), fill, edge, 3.0 if hovered else 2.0)
+	_draw_corner_marks(draw_rect_body, _px(20.0), edge, 2.0)
+
+	var x := draw_rect_body.position.x
+	var y := draw_rect_body.position.y
+	var w := draw_rect_body.size.x
+
+	# ---- ① 顶部类别条 ----
+	var cat_h := _px(40.0)
+	draw_rect(Rect2(Vector2(x, y), Vector2(w, cat_h)),
+		Color(edge.r, edge.g, edge.b, 0.16), true)
+	draw_line(Vector2(x, y + cat_h), Vector2(x + w, y + cat_h),
+		Color(edge.r, edge.g, edge.b, 0.55), 1.5)
+	var cat_text := str(view.get("category", ""))
+	if cat_text.is_empty():
+		cat_text = tier
+	draw_string(font, Vector2(x + _px(18.0), y + _px(27.0)), cat_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), Color(0.88, 0.92, 1.0))
+	# 层级标签（右侧；CORE 用暖金字色形成记忆点）
+	var tier_text := tier
+	var tier_col := UPGRADE_TIER_LABEL_COMMON
+	if tier == "CORE":
+		tier_col = UPGRADE_TIER_LABEL_CORE
+	elif tier == "ADVANCED":
+		tier_col = UPGRADE_TIER_LABEL_ADVANCED
+	var tier_w := font.get_string_size(tier_text, HORIZONTAL_ALIGNMENT_LEFT, -1,
+		int(_px(15.0))).x
+	draw_string(font, Vector2(x + w - _px(18.0) - tier_w, y + _px(26.0)), tier_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(15.0)), tier_col)
+
+	# ---- ② 图标（缺失回退菱形，绝不空、绝不崩）----
+	var isz := _px(88.0)
+	var ix := x + w * 0.5 - isz * 0.5
+	var iy := y + _px(58.0)
+	var ibox := Rect2(Vector2(ix, iy), Vector2(isz, isz))
+	_draw_round_rect(ibox, _px(10.0), UPGRADE_ICON_BG, UPGRADE_ICON_EDGE, 1.5)
+	var tex := ArtRegistry.icon(_upgrade_icon_name(view), 64)
+	if tex != null:
+		var pad := _px(10.0)
+		draw_texture_rect(tex, ibox.grow(-pad), false)
+	else:
+		var c := ibox.get_center()
+		var d := isz * 0.28
+		draw_colored_polygon(PackedVector2Array([
+			c + Vector2(0.0, -d), c + Vector2(d, 0.0),
+			c + Vector2(0.0, d), c + Vector2(-d, 0.0),
+		]), Color(0.48, 0.64, 0.88, 0.90))
+	# 职业小图标（L2056）：贴在图标框右下角
+	var role_icon := _upgrade_role_icon_name(view)
+	if not role_icon.is_empty():
+		var rtex := ArtRegistry.icon(role_icon, 32)
+		if rtex != null:
+			var rsz := _px(28.0)
+			draw_texture_rect(rtex, Rect2(
+				Vector2(ibox.position.x + ibox.size.x - rsz * 0.62,
+					ibox.position.y + ibox.size.y - rsz * 0.62),
+				Vector2(rsz, rsz)), false)
+
+	# ---- ③ 名称 ----
+	var name_text := str(view.get("name", ""))
+	var ny := iy + isz + _px(42.0)
+	var nfs := int(_px(30.0))
+	var nw := font.get_string_size(name_text, HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
+	draw_string(font, Vector2(x + w * 0.5 - nw * 0.5, ny), name_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, nfs, Color(0.97, 0.99, 1.0))
+
+	# ---- ④ 效果数值（高亮）----
+	var eff_text := _upgrade_effect_text(view)
+	var efs := int(_px(24.0))
+	var ew := font.get_string_size(eff_text, HORIZONTAL_ALIGNMENT_LEFT, -1, efs).x
+	draw_string(font, Vector2(x + w * 0.5 - ew * 0.5, ny + _px(34.0)), eff_text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, efs, UPGRADE_VALUE_COLOR)
+
+	# ---- ⑤ 补充说明（只在能提供额外信息时画，见 _upgrade_extra_note）----
+	var desc := _upgrade_extra_note(view)
+	if not desc.is_empty():
+		var dfs := int(_px(16.0))
+		var dw := font.get_string_size(desc, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x
+		# 过宽时压缩字号，避免溢出卡面（卡面避免长段文字，L2054）
+		if dw > w - _px(36.0):
+			dfs = int(_px(14.0))
+			dw = font.get_string_size(desc, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x
+		draw_string(font, Vector2(x + w * 0.5 - dw * 0.5, ny + _px(64.0)), desc,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, dfs, UPGRADE_DESC_COLOR)
+
+	# ---- ⑥ 作用对象 + 叠加状态 ----
+	var target_text := _upgrade_target_text(view)
+	var stacks := int(view.get("stacks", 0))
+	var max_stacks := int(view.get("maxStacks", 1))
+	var stack_text := "不可叠加" if max_stacks <= 1 else "可叠加 %d/%d" % [stacks, max_stacks]
+	var foot := "作用对象：%s      叠加：%s" % [target_text, stack_text]
+	var ffs := int(_px(15.0))
+	var fw := font.get_string_size(foot, HORIZONTAL_ALIGNMENT_LEFT, -1, ffs).x
+	if fw > w - _px(32.0):
+		foot = "对象：%s   叠加：%s" % [target_text, stack_text]
+		fw = font.get_string_size(foot, HORIZONTAL_ALIGNMENT_LEFT, -1, ffs).x
+	draw_string(font, Vector2(x + w * 0.5 - fw * 0.5, y + rect.size.y - _px(38.0)),
+		foot, HORIZONTAL_ALIGNMENT_LEFT, -1, ffs, Color(0.74, 0.80, 0.94))
+
+	# 底部提示条：明确"点击即生效"，避免玩家以为还要再确认。
+	# 与上一行留出净空（38 - 14 = 24px），否则两行会贴在一起读成一行。
+	if hovered:
+		var hint := "点击选择"
+		var hfs := int(_px(15.0))
+		var hw := font.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
+		draw_string(font, Vector2(x + w * 0.5 - hw * 0.5, y + rect.size.y - _px(14.0)),
+			hint, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, UPGRADE_CARD_HOVER_EDGE)
+
+
+## 面板按钮（重掷 / 跳过）。enabled=false 时灰显但仍可见（玩家要知道"用完了"）。
+func _draw_upgrade_button(rect: Rect2, label: String, base: Color, enabled: bool) -> void:
+	if rect.size.x <= 0.0:
+		return
+	var font := ThemeDB.fallback_font
+	var hovered := enabled and rect.has_point(_mouse_pos)
+	var fill := base.lightened(0.18) if hovered else base
+	_draw_round_rect(rect, _px(8.0), fill,
+		Color(0.92, 0.96, 1.0, 0.85) if hovered else Color(0.46, 0.54, 0.76, 0.70), 2.0)
+	var fs := int(_px(21.0))
+	var s := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	draw_string(font, Vector2(rect.position.x + (rect.size.x - s) * 0.5,
+			rect.position.y + rect.size.y * 0.66),
+		label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
+		Color(0.96, 0.98, 1.0) if enabled else Color(0.52, 0.55, 0.62))
+
+
+## 本局已获得强化（L2059～2060）。按**获得顺序**列出，附层数；空则明确写"暂无"。
+##
+## 位置：底部操作条下方居中，一行一项，最多显示 4 项（信息克制，不压满屏幕）。
+func _draw_gained_upgrades(font: Font) -> void:
+	var gained: Array[Dictionary] = session.stage.upgrade_summary()
+	var base_y := _upgrade_skip_rect.position.y + _upgrade_skip_rect.size.y + _px(28.0)
+	var head := "本局已获得强化"
+	var hfs := int(_px(16.0))
+	var hw := font.get_string_size(head, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
+	var cx := _viewport_size.x * 0.5
+	draw_string(font, Vector2(cx - hw * 0.5, base_y), head,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, Color(0.70, 0.78, 0.94))
+	var y := base_y + _px(24.0)
+	if gained.is_empty():
+		var none_text := "暂无 —— 这是本局第一次强化"
+		var nfs := int(_px(15.0))
+		var nw := font.get_string_size(none_text, HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
+		draw_string(font, Vector2(cx - nw * 0.5, y), none_text,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, nfs, Color(0.58, 0.64, 0.78))
+		return
+	for i: int in range(mini(gained.size(), 4)):
+		var g: Dictionary = gained[i]
+		var line := "%s ×%d（%s）" % [str(g.get("name", "")), int(g.get("stacks", 1)),
+			str(g.get("category", ""))]
+		var gfs := int(_px(15.0))
+		var gw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, gfs).x
+		draw_string(font, Vector2(cx - gw * 0.5, y), line,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, gfs, Color(0.88, 0.92, 0.72))
+		y += _px(20.0)
+
+
 func _process(delta: float) -> void:
 	if session == null:
 		return
 	var was_running := session.is_running()
 	session.tick(delta)
+	# Alpha A0.6：强化面板的出现 / 消失都以 domain 层的 pending_offer 为唯一真值。
+	# 必须在 tick() 之后同步（域层在波次完成的那一刻建立或由玩家操作清空）。
+	_sync_upgrade_offer()
 	# 选中的角色可能已离场（撤退 / 失能）→ 关闭操作面板
 	if _selected_character_id != 0 and session.stage.get_character(_selected_character_id) == null:
 		_selected_character_id = 0
@@ -609,10 +1331,13 @@ func _process(delta: float) -> void:
 	queue_redraw()
 	if was_running and session.is_decided():
 		GameLog.info(TAG, "战斗结束：%s" % BattleTypes.outcome_name(session.outcome))
-	if _autoplay:
-		_drive_autoplay()
+	# 探针必须在 autoplay **之前**写：否则 autoplay 会先消费掉同一帧内的 pending_offer，
+	# 探针看到的永远是已被清空的 offer —— 取证工具（事件驱动、拒绝盲拍）因此
+	# 在结构上无法观察到「强化面板已弹出」。这是真实缺陷，不是工具问题。
 	# 开发/验收探针（函数内部按 _testenv 隔离自 gating；正式玩家目录不会写）
 	_write_art_probe()
+	if _autoplay:
+		_drive_autoplay()
 
 
 # ============================================================
@@ -938,6 +1663,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		# 结果界面：只用界面按钮，键盘不参与（避免误触退出）
 		if session.is_decided():
 			return
+		# Alpha A0.6：强化面板激活时，键盘优先交给面板（1/2/3 选择、R 重掷、S 跳过），
+		# 其余键一律吞掉——否则 Space 会把战斗暂停/继续切过去，导致面板与暂停两套
+		# "冻住"状态叠加，玩家无法判断自己在哪一层。
+		if _upgrade_panel_active():
+			_handle_upgrade_key(k)
+			return
 		if k == KEY_ESCAPE:
 			_cancel_selection()
 			return
@@ -978,12 +1709,32 @@ func _unhandled_input(event: InputEvent) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_mouse_pos = (event as InputEventMouseMotion).position
+		# Alpha A0.6：强化面板激活时，悬停只在卡片与面板按钮上生效，
+		# 且**不**更新战场格子悬停（面板遮罩下不该出现战场高亮）。
+		if _upgrade_panel_active():
+			_update_upgrade_hover(_mouse_pos)
+			return
+		_upgrade_hover_index = -1
 		_update_hover(_mouse_pos)
+
+
+## 更新强化卡片的悬停下标（-1 = 未悬停任何卡片）。
+func _update_upgrade_hover(pos: Vector2) -> void:
+	_layout_upgrade_cards()
+	_upgrade_hover_index = -1
+	for i: int in range(_upgrade_card_rects.size()):
+		if _upgrade_card_rects[i].has_point(pos):
+			_upgrade_hover_index = i
+			return
 
 
 ## 暂停 / 继续（V2.1.4 D-35）
 func _toggle_pause() -> void:
 	if session == null or session.is_decided():
+		return
+	# Alpha A0.6：强化选择期间不允许切入暂停态（两套冻结混用会让"继续"语义错乱）
+	if _upgrade_panel_active():
+		_show_feedback("请先完成强化选择（点击卡片，或按 1/2/3）", Color(0.95, 0.85, 0.45))
 		return
 	var now := session.toggle_pause()
 	_show_feedback("已暂停（Space 继续）" if now else "已继续",
@@ -993,6 +1744,11 @@ func _toggle_pause() -> void:
 ## 选中 / 取消选中某张角色卡（P0.4：按 characterId）
 func _toggle_card_selection(character_id: String = "") -> void:
 	if session == null or session.is_decided():
+		return
+	# Alpha A0.6：强化选择期间不得操作战场（面板遮罩下点卡片会被 _handle_upgrade_click 吃掉，
+	# 但数字键 1..6 走的是这条路径，同样必须拦住）
+	if _upgrade_panel_active():
+		_show_feedback("请先完成强化选择（点击卡片，或按 1/2/3）", Color(0.95, 0.85, 0.45))
 		return
 	if session.is_paused():
 		_show_feedback("暂停中：先按 Space 继续", Color(0.95, 0.85, 0.45))
@@ -1025,6 +1781,10 @@ func _toggle_card_selection(character_id: String = "") -> void:
 
 
 func _cancel_selection() -> void:
+	# Alpha A0.6：强化面板里的 Esc 不当"取消选择"用——面板必须被明确选择或跳过。
+	# （_unhandled_input 已在面板激活时把按键交给 _handle_upgrade_key，这里是第二道防线。）
+	if _upgrade_panel_active():
+		return
 	var had := not _selected_card_id.is_empty() or _selected_character_id != 0
 	_selected_card_id = ""
 	_selected_character_id = 0
@@ -1082,6 +1842,11 @@ func _handle_left_click(pos: Vector2) -> void:
 	# 战斗结束：只处理结果界面上的按钮
 	if session.is_decided():
 		_handle_result_click(pos)
+		return
+
+	# Alpha A0.6：强化面板优先于一切战斗输入。面板激活时 _handle_upgrade_click
+	# 一律返回 true（含点空白处），因此点击**不会**穿透到部署 / 撤退 / 暂停。
+	if _handle_upgrade_click(pos):
 		return
 
 	# 暂停按钮
@@ -1241,14 +2006,9 @@ func _layout_buttons() -> void:
 		_retreat_rect = Rect2()
 	# 结果界面按钮
 	if session != null and session.is_decided():
-		var bw := _px(240.0)
-		var bh := _px(64.0)
-		var gap := _px(32.0)
-		var total := bw * 2.0 + gap
-		var bx := (_viewport_size.x - total) * 0.5
-		var by := _viewport_size.y * 0.5 + _px(160.0)
-		_relaunch_rect = Rect2(Vector2(bx, by), Vector2(bw, bh))
-		_quit_rect = Rect2(Vector2(bx + bw + gap, by), Vector2(bw, bh))
+		var rects := _result_buttons_rect(_result_panel_rect(session.result_summary()))
+		_relaunch_rect = rects[0]
+		_quit_rect = rects[1]
 
 
 ## P0.3 自动回归：按阶段注入真实输入事件，覆盖「部署 → 撤退 → 冷却 → 换线重部署 → 胜负」。
@@ -1267,6 +2027,21 @@ func _drive_autoplay() -> void:
 			_autoplay_result_captured = true
 			_ap_capture("result")
 			GameLog.info(TAG, "[autoplay] 已确认结果：%s" % BattleTypes.outcome_name(session.outcome))
+		return
+	# Alpha A0.6：长跑回归必须能走过强化面板，否则 1-5 会卡死在这里。
+	# 纪律：**仅自动化**路径直接调用选择入口（与玩家点击走同一域层入口 resolve_offer），
+	# 并在日志里明确标注——不得把这条当作"玩家真的会选"的证据。
+	if _upgrade_panel_active():
+		# 取证模式：让面板留在屏幕上等真实鼠标点击（见 _autoplay_hold_upgrade 的说明）。
+		if _autoplay_hold_upgrade:
+			return
+		if _upgrade_card_views.is_empty():
+			GameLog.warn(TAG, "[autoplay] 强化面板无可选卡片，跳过以避免卡死")
+			session.stage.skip_offer()
+			return
+		var first_id := str(_upgrade_card_views[0]["id"])
+		GameLog.info(TAG, "[autoplay] 自动选择强化：%s（自动化输入，非真人证据）" % first_id)
+		_choose_upgrade_index(0)
 		return
 	if _autoplay_wall_started < 0:
 		_autoplay_wall_started = Time.get_ticks_msec()
@@ -1472,8 +2247,12 @@ func _draw() -> void:
 	_draw_character_panel()
 	_draw_tutorial_cards()
 	_draw_feedback()
+	# Alpha A0.6：强化面板画在暂停遮罩**之前**，因此面板优先于暂停遮罩。
+	# 但两者不会同时出现：面板出现时域层冻结 advance()，而 paused 是另一套状态
+	# （面板激活期间 _toggle_pause 被拦截，见 _unhandled_input）。
 	if session.is_paused():
 		_draw_pause_overlay()
+	_draw_upgrade_overlay()
 	if session.is_decided():
 		_draw_result_overlay()
 
@@ -3347,6 +4126,64 @@ func _draw_pause_overlay() -> void:
 		info, HORIZONTAL_ALIGNMENT_LEFT, -1, ifs, Color(0.60, 0.68, 0.86))
 
 
+## 结果面板几何（**绘制与按钮命中共用同一份**）。
+##
+## 为什么必须共享：Alpha A0.6 给结果面板加了「本局构筑」区块，原先写死的
+## 860×680 面板会让复盘文字与按钮重叠（实测布局计算溢出 100+ px）。
+## 现在高度按**内容行数**推导，并把按钮放在面板内底部，
+## 因此「画出来的面板」与「能点的按钮」不可能对不上。
+func _result_panel_rect(summary: Dictionary) -> Rect2:
+	var w := _px(860.0)
+	var main_rows := 6                       # 与 _draw_result_overlay 的 lines 数量一致
+	var build_rows := 0
+	var gained: Array[Dictionary] = []
+	if session != null and session.stage != null:
+		gained = session.stage.upgrade_summary()
+	if gained.is_empty():
+		build_rows = 1
+	else:
+		build_rows = gained.size()
+		var cats: Array[String] = []
+		for g: Dictionary in gained:
+			var cat := str(g.get("category", ""))
+			if not cat.is_empty() and not cats.has(cat):
+				cats.append(cat)
+		if not cats.is_empty():
+			build_rows += 1
+	var review_rows := 0
+	if not summary.is_empty():
+		review_rows = _build_review_lines(summary).size()
+	# 参考画布单位下的纵向预算（与绘制代码的 ly 推进逐段对应）
+	var h_ref := 180.0                      # 标题区 + 一句话结论
+	h_ref += float(main_rows) * 28.0        # 主要结算数据
+	h_ref += 10.0 + 30.0                    # 构筑分隔 + 小标题
+	h_ref += float(maxi(build_rows, 1)) * 24.0
+	h_ref += 14.0 + 36.0                    # 复盘分隔 + 小标题
+	h_ref += float(review_rows) * 26.0
+	h_ref += 28.0 + 64.0 + 28.0             # 内容与按钮间距 + 按钮 + 底部留白
+	var h := _px(h_ref)
+	# 视口不足时压缩（只压面板，不压字号，保证文字仍可读）
+	var max_h := _viewport_size.y - _px(40.0)
+	h = minf(h, max_h)
+	var x := _viewport_size.x * 0.5 - w * 0.5
+	var y := _viewport_size.y * 0.5 - h * 0.5
+	return Rect2(Vector2(x, y), Vector2(w, h))
+
+
+## 结果面板底部两个按钮的命中矩形（由面板矩形推导，返回 [重新挑战, 退出战斗]）。
+func _result_buttons_rect(panel: Rect2) -> Array[Rect2]:
+	var bw := _px(240.0)
+	var bh := _px(64.0)
+	var gap := _px(32.0)
+	var total := bw * 2.0 + gap
+	var bx := panel.position.x + (panel.size.x - total) * 0.5
+	var by := panel.position.y + panel.size.y - bh - _px(28.0)
+	return [
+		Rect2(Vector2(bx, by), Vector2(bw, bh)),
+		Rect2(Vector2(bx + bw + gap, by), Vector2(bw, bh)),
+	]
+
+
 ## 结果界面。
 ##
 ## 显示内容依据 V2.1.4：
@@ -3370,8 +4207,10 @@ func _draw_result_overlay() -> void:
 	var titlebar_fill := Color(0.185, 0.150, 0.075, 0.96) if victory \
 		else Color(0.190, 0.075, 0.095, 0.96)
 
-	var panel := Rect2(Vector2(_viewport_size.x * 0.5 - _px(430.0),
-			_viewport_size.y * 0.5 - _px(340.0)), Vector2(_px(860.0), _px(680.0)))
+	# 面板高度由内容驱动（Alpha A0.6 加入「本局构筑」区块后，原先写死的 680
+	# 会与复盘区块、按钮发生重叠）。绘制与按钮布局共用同一次几何计算，
+	# 保证「画出来的面板」与「按钮命中区」永远一致。
+	var panel := _result_panel_rect(summary)
 	_draw_cut_panel(panel, _px(24.0), panel_bg, panel_edge, 3.0)
 	_draw_corner_marks(panel, _px(26.0), theme, 2.5)
 
@@ -3417,7 +4256,71 @@ func _draw_result_overlay() -> void:
 			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), TEXT_COLOR)
 		ly += _px(28.0)
 
+	# ---- 本局构筑（Alpha A0.6，L2136～2137「这局我是靠什么赢的」）----
+	#
+	# 为什么放在主要结算数据之后、复盘之前：玩家读完胜负数字后的第一个疑问就是
+	# 「我这一局和别人有什么不同」，构筑是本局唯一可变的部分，因此优先于通用复盘。
+	# 纪律：内容**全部来自域层 upgrade_summary()**（数据来自 upgrades.json），
+	# 表现层不推断、不美化、不补默认值；本局没选过强化时明确写「本局未获得强化」
+	# （1-1～1-4 与跳过强化的局都会走到这里，不能留空让人以为界面坏了）。
+	var gained: Array[Dictionary] = []
+	if session != null and session.stage != null:
+		gained = session.stage.upgrade_summary()
+	ly += _px(10.0)
+	draw_line(Vector2(panel.position.x + _px(60.0), ly - _px(18.0)),
+		Vector2(panel.position.x + panel.size.x - _px(60.0), ly - _px(18.0)),
+		RESULT_DIVIDER, 1.5)
+	var bhead := "本局构筑：你是靠什么打的"
+	var bhfs := int(_px(19.0))
+	var bhw := font.get_string_size(bhead, HORIZONTAL_ALIGNMENT_LEFT, -1, bhfs).x
+	var build_col := Color(0.78, 0.90, 1.0) if victory else Color(0.92, 0.78, 0.60)
+	var btag := Rect2(Vector2(cx - bhw * 0.5 - _px(12.0), ly - _px(15.0)),
+		Vector2(bhw + _px(24.0), _px(26.0)))
+	_draw_tag(btag, Color(build_col.r, build_col.g, build_col.b, 0.16),
+		Color(build_col.r, build_col.g, build_col.b, 0.55))
+	draw_string(font, Vector2(cx - bhw * 0.5, ly + _px(4.0)), bhead,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, bhfs, build_col)
+	ly += _px(30.0)
+	if gained.is_empty():
+		var none_line := "本局未获得强化（本关未开放，或你选择了跳过）"
+		var nlfs := int(_px(17.0))
+		var nlw := font.get_string_size(none_line, HORIZONTAL_ALIGNMENT_LEFT, -1, nlfs).x
+		draw_string(font, Vector2(cx - nlw * 0.5, ly), none_line,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, nlfs, Color(0.62, 0.68, 0.80))
+		ly += _px(24.0)
+	else:
+		for g: Dictionary in gained:
+			var line := "%s ×%d  ——  %s" % [
+				str(g.get("name", "")), int(g.get("stacks", 1)),
+				str(g.get("description", ""))]
+			var glfs := int(_px(17.0))
+			var glw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, glfs).x
+			draw_string(font, Vector2(cx - glw * 0.5, ly), line,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, glfs, Color(0.92, 0.94, 0.76))
+			ly += _px(24.0)
+		# 一句话总结本局的构筑方向（用**类别**归纳，不编造效果）
+		var cats: Array[String] = []
+		for g: Dictionary in gained:
+			var cat := str(g.get("category", ""))
+			if not cat.is_empty() and not cats.has(cat):
+				cats.append(cat)
+		if not cats.is_empty():
+			var summary_line := "构筑方向：%s" % "、".join(cats)
+			var slfs := int(_px(16.0))
+			var slw := font.get_string_size(summary_line, HORIZONTAL_ALIGNMENT_LEFT, -1, slfs).x
+			draw_string(font, Vector2(cx - slw * 0.5, ly), summary_line,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, slfs, Color(0.70, 0.80, 0.94))
+			ly += _px(22.0)
+
 	# ---- 复盘区块（V2.1.4 G-八）：失败时解释原因，胜利时给出压力分布 ----
+	#
+	# A0.6 加固：本区块**锚定在按钮之上**（必要时向上收拢）。
+	# 加入「本局构筑」后前面内容变高，若不收拢，复盘文字会与按钮重叠。
+	var review_lines := _build_review_lines(summary)
+	var result_buttons := _result_buttons_rect(panel)
+	var review_block_h := _px(36.0) + float(review_lines.size()) * _px(26.0)
+	var bottom_limit := result_buttons[0].position.y - _px(14.0)
+	ly = minf(ly, bottom_limit - review_block_h)
 	ly += _px(14.0)
 	draw_line(Vector2(panel.position.x + _px(60.0), ly - _px(24.0)),
 		Vector2(panel.position.x + panel.size.x - _px(60.0), ly - _px(24.0)),
@@ -3434,7 +4337,7 @@ func _draw_result_overlay() -> void:
 	draw_string(font, Vector2(cx - hw * 0.5, ly + _px(4.0)), head,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, head_col)
 	ly += _px(36.0)
-	for line: String in _build_review_lines(summary):
+	for line: String in review_lines:
 		var lw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0))).x
 		draw_string(font, Vector2(cx - lw * 0.5, ly), line,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), Color(0.82, 0.87, 0.98))
@@ -3727,13 +4630,39 @@ func _write_art_probe() -> void:
 		var card_rects: Array = []
 		for r: Rect2 in _card_rects:
 			card_rects.append([r.position.x, r.position.y, r.size.x, r.size.y])
+		# Alpha A0.6：强化面板探针（契约见 docs/a0_6_ui_contract.md 第 3 节）。
+		# 取证工具据此用**真实 OS 鼠标**点击强化卡与重掷按钮；键名不得改动。
+		var offer_ids: Array = []
+		var offer_rects: Array = []
+		if _upgrade_panel_active():
+			for v: Dictionary in _upgrade_card_views:
+				offer_ids.append(str(v["id"]))
+			for r: Rect2 in _upgrade_card_rects:
+				offer_rects.append([r.position.x, r.position.y, r.size.x, r.size.y])
+		var offer_state: Dictionary = session.stage.pending_offer
+		var gained: Array = []
+		for g: Dictionary in session.stage.upgrade_summary():
+			gained.append({"id": str(g.get("id", "")), "name": str(g.get("name", "")),
+				"stacks": int(g.get("stacks", 1)), "category": str(g.get("category", ""))})
 		file.store_string(JSON.stringify({"stage": session.stage.stage_id, "time": _now(),
 			"outcome": BattleTypes.outcome_name(session.outcome), "enemies": enemies,
 			"characters": characters, "activeVfx": active_vfx, "actualDrawLedger": _art_drawn,
 			"missedDamageEvents": _damage_events.missed_events,
 			"cardRects": card_rects,
 			"canvas": [get_viewport_rect().size.x, get_viewport_rect().size.y],
-			"renderFrame": Engine.get_frames_drawn()}))
+			"renderFrame": Engine.get_frames_drawn(),
+			"upgradeOffer": {
+				"active": _upgrade_panel_active(),
+				"ids": offer_ids,
+				"isTutorial": bool(offer_state.get("isTutorial", false)),
+				"rerollsRemaining": int(offer_state.get("rerollsRemaining", 0)),
+				"cardRects": offer_rects,
+				"rerollRect": [_upgrade_reroll_rect.position.x, _upgrade_reroll_rect.position.y,
+					_upgrade_reroll_rect.size.x, _upgrade_reroll_rect.size.y],
+				"skipRect": [_upgrade_skip_rect.position.x, _upgrade_skip_rect.position.y,
+					_upgrade_skip_rect.size.x, _upgrade_skip_rect.size.y],
+			},
+			"gainedUpgrades": gained}))
 
 func _report_after_last_draw() -> void:
 	await RenderingServer.frame_post_draw

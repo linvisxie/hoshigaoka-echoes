@@ -1,0 +1,55 @@
+{
+  "labels": [
+    "active_vfx_arrow",
+    "active_vfx_death",
+    "active_vfx_deploy",
+    "active_vfx_impact",
+    "active_vfx_slash",
+    "deployed_amamiya_mio",
+    "deployed_kamiya_yuma",
+    "enemy_present_echo_armored",
+    "enemy_present_echo_invigilator",
+    "enemy_present_echo_normal",
+    "enemy_present_echo_runner",
+    "outcome_胜利",
+    "upgrade_card_hover_0",
+    "upgrade_chosen",
+    "upgrade_panel_offered",
+    "upgrade_rerolled"
+  ],
+  "ownedPids": [
+    7244,
+    16100
+  ],
+  "duration": 167.98499999999967,
+  "labelsVerifiedOnDisk": [
+    "active_vfx_arrow",
+    "active_vfx_death",
+    "active_vfx_deploy",
+    "active_vfx_impact",
+    "active_vfx_slash",
+    "deployed_amamiya_mio",
+    "deployed_kamiya_yuma",
+    "enemy_present_echo_armored",
+    "enemy_present_echo_invigilator",
+    "enemy_present_echo_normal",
+    "enemy_present_echo_runner",
+    "initial",
+    "outcome_胜利",
+    "result_settled",
+    "upgrade_card_hover_0",
+    "upgrade_chosen",
+    "upgrade_panel_offered",
+    "upgrade_rerolled"
+  ],
+  "labelsClaimedButNotSaved": [],
+  "upgradeRequested": [
+    "upgrade_panel_offered",
+    "upgrade_card_hover_0",
+    "upgrade_rerolled",
+    "upgrade_chosen",
+    "result_settled"
+  ],
+  "upgradeMissing": [],
+  "upgradeEvidenceComplete": true
+}

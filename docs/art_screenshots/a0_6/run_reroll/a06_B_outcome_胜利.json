@@ -1,0 +1,129 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-10T09:04:03.534108",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "activeVfx": [
+      "vfx_impact",
+      "vfx_arrow",
+      "vfx_impact",
+      "vfx_slash",
+      "vfx_death"
+    ],
+    "actualDrawLedger": {
+      "char_anim:attack": 3445,
+      "char_anim:hit": 245,
+      "char_anim:idle": 40454,
+      "enemy_anim:attack": 379,
+      "enemy_anim:death": 774,
+      "enemy_anim:hit": 1319,
+      "enemy_anim:idle": 1229,
+      "enemy_anim:move": 4574,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_attack.png": 1458,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_hit.png": 245,
+      "res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 21122,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_attack.png": 1987,
+      "res://assets/art/characters/kamiya_yuma/kamiya_yuma_idle.png": 19332,
+      "res://assets/art/enemies/echo_armored/echo_armored_attack.png": 7,
+      "res://assets/art/enemies/echo_armored/echo_armored_death.png": 74,
+      "res://assets/art/enemies/echo_armored/echo_armored_hit.png": 260,
+      "res://assets/art/enemies/echo_armored/echo_armored_idle.png": 106,
+      "res://assets/art/enemies/echo_armored/echo_armored_move.png": 817,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_attack.png": 231,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_death.png": 75,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_hit.png": 793,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_idle.png": 896,
+      "res://assets/art/enemies/echo_invigilator/echo_invigilator_move.png": 1874,
+      "res://assets/art/enemies/echo_normal/echo_normal_attack.png": 141,
+      "res://assets/art/enemies/echo_normal/echo_normal_death.png": 478,
+      "res://assets/art/enemies/echo_normal/echo_normal_hit.png": 219,
+      "res://assets/art/enemies/echo_normal/echo_normal_idle.png": 226,
+      "res://assets/art/enemies/echo_normal/echo_normal_move.png": 1526,
+      "res://assets/art/enemies/echo_runner/echo_runner_death.png": 147,
+      "res://assets/art/enemies/echo_runner/echo_runner_hit.png": 47,
+      "res://assets/art/enemies/echo_runner/echo_runner_idle.png": 1,
+      "res://assets/art/enemies/echo_runner/echo_runner_move.png": 357,
+      "res://assets/vfx/vfx_arrow.png": 1803,
+      "res://assets/vfx/vfx_death.png": 977,
+      "res://assets/vfx/vfx_deploy.png": 102,
+      "res://assets/vfx/vfx_impact.png": 3423,
+      "res://assets/vfx/vfx_slash.png": 1394,
+      "vfx:vfx_arrow": 1803,
+      "vfx:vfx_death": 977,
+      "vfx:vfx_deploy": 102,
+      "vfx:vfx_impact": 3423,
+      "vfx:vfx_slash": 1394
+    },
+    "canvas": [
+      1920.0,
+      1080.0
+    ],
+    "cardRects": [
+      [
+        24.0,
+        886.0,
+        300.0,
+        170.0
+      ],
+      [
+        340.0,
+        886.0,
+        300.0,
+        170.0
+      ]
+    ],
+    "characters": [
+      {
+        "code": "amamiya_mio",
+        "column": 2,
+        "hp": 443,
+        "id": 1,
+        "lane": 1
+      },
+      {
+        "code": "kamiya_yuma",
+        "column": 1,
+        "hp": 620,
+        "id": 2,
+        "lane": 1
+      }
+    ],
+    "enemies": [],
+    "gainedUpgrades": [
+      {
+        "category": "攻击型",
+        "id": "upgrade_ranged_atk",
+        "name": "会心准备",
+        "stacks": 1
+      }
+    ],
+    "missedDamageEvents": 0,
+    "outcome": "胜利",
+    "renderFrame": 22177,
+    "stage": "1-5",
+    "time": 159.200000000019,
+    "upgradeOffer": {
+      "active": false,
+      "cardRects": [],
+      "ids": [],
+      "isTutorial": false,
+      "rerollRect": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rerollsRemaining": 0,
+      "skipRect": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "image": "D:\\星丘残响\\_testenv\\a06_capture\\final_reroll\\outcome_胜利.png"
+}
