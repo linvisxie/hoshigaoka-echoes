@@ -2949,8 +2949,14 @@ func _draw_sprite_anchored(tex: Texture2D, center: Vector2, target_h: float,
 	# unused top band. Clip only that band at draw time, preserving full-frame
 	# scale and foot registration; never crop the bow, sword or character body.
 	var source_path: String = (tex.atlas.resource_path if tex is AtlasTexture else tex.resource_path)
+	var top := 0.0
 	if source_path.ends_with("amamiya_mio_skill.png") or source_path.ends_with("kamiya_yuma_skill.png"):
-		var top := minf(16.0,th*0.17)
+		top = minf(16.0,th*0.17)
+	elif source_path.ends_with("echo_normal_move.png") or source_path.ends_with("echo_runner_move.png"):
+		# Source-sheet caption remnants occupy rows 4-5; creature pixels start
+		# at row 13/14. Clip the unused band without changing foot registration.
+		top = 8.0
+	if top > 0.0:
 		draw_texture_rect_region(tex,Rect2(dst.position+Vector2(0,top*s),Vector2(w,h-top*s)),Rect2(0,top,tw,th-top),mod)
 	else:
 		draw_texture_rect(tex, dst, false, mod)

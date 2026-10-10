@@ -41,6 +41,11 @@ func _process(_delta: float) -> void:
 		return
 	var session: BattleSession = battle.session
 	var now := session.stage.elapsed_seconds
+	for enemy: EnemyRuntime in session.stage.enemies:
+		if enemy.enemy_id in ["echo_normal", "echo_runner"] and enemy.state == BattleTypes.EnemyState.MOVING:
+			var label := "move_clean_" + enemy.enemy_id
+			if not captured.has(label):
+				shot(label)
 	if empowered_frames == 0 and not empowered_recording:
 		for effect: Dictionary in battle._vfx:
 			if effect.get("name", "") == "vfx_arrow" and bool(effect.get("charged", false)):
