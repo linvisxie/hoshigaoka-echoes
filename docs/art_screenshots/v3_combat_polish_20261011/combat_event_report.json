@@ -1,0 +1,1784 @@
+{
+	"attackFrames": 10,
+	"audioHistory": [
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 0.256000012159348,
+				"playedAssets": {},
+				"soundsTriggered": [],
+				"track": "corridor_pressure"
+			},
+			"shot": "initial",
+			"time": 0.516666666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 0.907999992370605,
+				"playedAssets": {
+					"ui_confirm": 1,
+					"ui_hover": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "deployment_preview",
+			"time": 1.0
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 16.2159996032715,
+				"playedAssets": {
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 2,
+					"foley_crystal_01": 1,
+					"foley_hit_01": 2,
+					"foley_hit_02": 2,
+					"foley_hit_03": 1,
+					"hurt": 3,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "two_characters",
+			"time": 12.6000000000002
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 17.8040008544922,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_00",
+			"time": 13.2333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 18.1040000915527,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_00",
+			"time": 13.3833333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 18.1040000915527,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_01",
+			"time": 13.3833333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 18.7000007629395,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_01",
+			"time": 13.5166666666669
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 18.7000007629395,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_02",
+			"time": 13.5166666666669
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 19.2880001068115,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_02",
+			"time": 13.6333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 19.2880001068115,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_03",
+			"time": 13.6333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 19.8840007781982,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_03",
+			"time": 13.7666666666669
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 19.8840007781982,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_04",
+			"time": 13.7666666666669
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 20.492000579834,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_04",
+			"time": 13.9000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 20.492000579834,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_05",
+			"time": 13.9000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 21.1000003814697,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_05",
+			"time": 14.0333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 21.1000003814697,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_06",
+			"time": 14.0333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 21.7399997711182,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_06",
+			"time": 14.166666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 21.7399997711182,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_07",
+			"time": 14.166666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 22.3799991607666,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_07",
+			"time": 14.3000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 22.3799991607666,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_08",
+			"time": 14.3000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 23.0319995880127,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_08",
+			"time": 14.4333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 23.0319995880127,
+				"playedAssets": {
+					"arrow": 1,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 2,
+					"foley_hit_03": 2,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_09",
+			"time": 14.4333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 31.6399993896484,
+				"playedAssets": {
+					"arrow": 3,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_00",
+			"time": 22.6333333333333
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 31.9479999542236,
+				"playedAssets": {
+					"arrow": 3,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_01",
+			"time": 22.8
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 32.2560005187988,
+				"playedAssets": {
+					"arrow": 3,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_02",
+			"time": 22.9666666666666
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 32.568000793457,
+				"playedAssets": {
+					"arrow": 3,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_03",
+			"time": 23.1333333333333
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 32.8759994506836,
+				"playedAssets": {
+					"arrow": 3,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_04",
+			"time": 23.3
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 33.1839981079102,
+				"playedAssets": {
+					"arrow": 3,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 1,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 3,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_05",
+			"time": 23.4666666666666
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 33.9119987487793,
+				"playedAssets": {
+					"arrow": 4,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 2,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 4,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2,
+					"upgrade": 1,
+					"wave": 1,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_06",
+			"time": 23.6166666666666
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 33.9119987487793,
+				"playedAssets": {
+					"arrow": 4,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 2,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 4,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 2,
+					"ui_hover": 2,
+					"upgrade": 1,
+					"wave": 1,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "upgrade_offer",
+			"time": 23.6166666666666
+		},
+		{
+			"audio": {
+				"activeVoices": 3,
+				"musicPlaying": true,
+				"musicPosition": 34.431999206543,
+				"playedAssets": {
+					"arrow": 4,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 2,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 4,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"wave": 1,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_07",
+			"time": 23.7333333333333
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 34.7760009765625,
+				"playedAssets": {
+					"arrow": 4,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 2,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 4,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"wave": 1,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_08",
+			"time": 23.8999999999999
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 41.0480003356934,
+				"playedAssets": {
+					"arrow": 4,
+					"deploy": 2,
+					"foley_blade_01": 3,
+					"foley_blade_02": 3,
+					"foley_crystal_01": 2,
+					"foley_crystal_02": 1,
+					"foley_hit_01": 4,
+					"foley_hit_02": 3,
+					"foley_hit_03": 3,
+					"hurt": 3,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"wave": 1,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "battle_30s",
+			"time": 30.0166666666662
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 27.5756568908691,
+				"playedAssets": {
+					"arrow": 14,
+					"deploy": 2,
+					"foley_blade_01": 6,
+					"foley_blade_02": 6,
+					"foley_crystal_01": 2,
+					"foley_crystal_02": 2,
+					"foley_hit_01": 8,
+					"foley_hit_02": 8,
+					"foley_hit_03": 8,
+					"hurt": 5,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"wave": 2,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "battle_60s",
+			"time": 60.0166666666645
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 38.54296875,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_00",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 38.9149703979492,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_01",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 0.375999987125397,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_02",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 0.736000001430511,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_03",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.11199998855591,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_04",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.48399996757507,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_05",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.85599994659424,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_06",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 2.22000002861023,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_07",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 3.14800000190735,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_08",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 3.51999998092651,
+				"playedAssets": {
+					"arrow": 36,
+					"deploy": 2,
+					"foley_blade_01": 11,
+					"foley_blade_02": 10,
+					"foley_crystal_01": 4,
+					"foley_crystal_02": 4,
+					"foley_hit_01": 15,
+					"foley_hit_02": 14,
+					"foley_hit_03": 14,
+					"foley_metal_01": 5,
+					"foley_metal_02": 5,
+					"hurt": 8,
+					"mio_skill": 1,
+					"ui_confirm": 3,
+					"ui_hover": 3,
+					"upgrade": 2,
+					"victory": 1,
+					"wave": 4,
+					"yuma_skill": 1
+				},
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"enemy_death",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"hit_armor",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "result",
+			"time": 157.716666666684
+		}
+	],
+	"evidenceType": "Real Windows Godot viewport; automated input, not human play",
+	"outcome": "胜利",
+	"shots": [
+		"initial",
+		"deployment_preview",
+		"two_characters",
+		"attack_00",
+		"skill_amamiya_mio_00",
+		"attack_01",
+		"skill_amamiya_mio_01",
+		"attack_02",
+		"skill_amamiya_mio_02",
+		"attack_03",
+		"skill_amamiya_mio_03",
+		"attack_04",
+		"skill_amamiya_mio_04",
+		"attack_05",
+		"skill_amamiya_mio_05",
+		"attack_06",
+		"skill_amamiya_mio_06",
+		"attack_07",
+		"skill_amamiya_mio_07",
+		"attack_08",
+		"skill_amamiya_mio_08",
+		"attack_09",
+		"skill_kamiya_yuma_00",
+		"skill_kamiya_yuma_01",
+		"skill_kamiya_yuma_02",
+		"skill_kamiya_yuma_03",
+		"skill_kamiya_yuma_04",
+		"skill_kamiya_yuma_05",
+		"skill_kamiya_yuma_06",
+		"upgrade_offer",
+		"skill_kamiya_yuma_07",
+		"skill_kamiya_yuma_08",
+		"battle_30s",
+		"battle_60s",
+		"victory_00",
+		"victory_01",
+		"victory_02",
+		"victory_03",
+		"victory_04",
+		"victory_05",
+		"victory_06",
+		"victory_07",
+		"victory_08",
+		"result"
+	],
+	"stage": "1-5",
+	"summary": {
+		"apFinal": 30,
+		"apMax": 30,
+		"busiestLane": 1,
+		"coreHp": 3,
+		"coreHpMax": 3,
+		"elapsed": 157.72,
+		"healedTotal": 0,
+		"heals": 0,
+		"kills": 8,
+		"killsByType": {
+			"echo_armored": 1,
+			"echo_invigilator": 2,
+			"echo_normal": 3,
+			"echo_runner": 2
+		},
+		"leaked": 0,
+		"leakedByType": {},
+		"lost": 0,
+		"outcome": 1,
+		"outcomeName": "胜利",
+		"planned": 8,
+		"pressureByLane": {
+			"0": 420,
+			"1": 5360,
+			"2": 0
+		},
+		"retreatAp": 0,
+		"retreats": 0,
+		"spawned": 8,
+		"victory": true,
+		"wave": 5,
+		"waveTotal": 5
+	},
+	"time": 157.716666666684,
+	"victoryFrames": 9
+}

@@ -25,6 +25,15 @@ var _last_sound: Dictionary = {}
 var _current_music := ""
 var _music_tween: Tween
 var _streams: Dictionary = {}
+var _variant_cursor: Dictionary = {}
+var _played_assets: Dictionary = {}
+
+const FOLEY := {
+	"slash": ["foley_blade_01","foley_blade_02"],
+	"hit": ["foley_hit_01","foley_hit_02","foley_hit_03"],
+	"hit_armor": ["foley_metal_01","foley_metal_02"],
+	"enemy_death": ["foley_crystal_01","foley_crystal_02"],
+}
 
 
 func _ready() -> void:
@@ -88,7 +97,10 @@ func play_sfx(sound: String, gain_db: float = 0.0) -> void:
 	if now - int(_last_sound.get(sound, -1000)) < 70:
 		return
 	var cue := "ui_confirm" if sound == "select" else sound
-	var path := "res://assets/audio/sfx/%s.%s" % [cue,"ogg" if cue.begins_with("ui_") else "wav"]
+	var turn := int(_variant_cursor.get(sound,0))
+	if FOLEY.has(sound):
+		cue = str(FOLEY[sound][turn % FOLEY[sound].size()])
+	var path := "res://assets/audio/sfx/%s.%s" % [cue,"ogg" if cue.begins_with("ui_") or FOLEY.has(sound) else "wav"]
 	if not _streams.has(path):
 		if not ResourceLoader.exists(path):
 			return
@@ -96,9 +108,12 @@ func play_sfx(sound: String, gain_db: float = 0.0) -> void:
 	for voice: AudioStreamPlayer in _voices:
 		if not voice.playing:
 			_last_sound[sound] = now
+			_variant_cursor[sound] = turn+1
 			voice.stream = _streams[path]
-			voice.volume_db = -9.0 + gain_db
+			voice.volume_db = (-11.0 if FOLEY.has(sound) else -9.0) + gain_db
+			voice.pitch_scale = 0.99+float(turn%3)*0.01 if FOLEY.has(sound) else 1.0
 			voice.play()
+			_played_assets[cue] = int(_played_assets.get(cue,0))+1
 			return
 
 
@@ -109,7 +124,7 @@ func playback_status() -> Dictionary:
 			active += 1
 	return {"track": _current_music, "musicPlaying": _music != null and _music.playing,
 		"musicPosition": _music.get_playback_position() if _music != null else 0.0,
-		"activeVoices": active, "soundsTriggered": _last_sound.keys()}
+		"activeVoices": active, "soundsTriggered": _last_sound.keys(),"playedAssets":_played_assets.duplicate()}
 
 
 ## 设置某总线音量（0～100）。

@@ -1,0 +1,13 @@
+{
+  "evidenceType": "Windows WASAPI default speaker loopback; automated, not human listening",
+  "requestedScene": "Development fifth-stage battle",
+  "speaker": "扬声器 (Realtek(R) Audio)",
+  "physicalMicrophoneUsed": false,
+  "sampleRate": 48000,
+  "baselineRms": 0.0,
+  "gameRms": 0.08617476665082832,
+  "peak": 0.9862060546875,
+  "clippedSamples": 0,
+  "nonSilent": true,
+  "sourceAttributionLimit": "System mix may contain other applications"
+}

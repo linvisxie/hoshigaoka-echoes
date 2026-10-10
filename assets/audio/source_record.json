@@ -66,7 +66,7 @@
     }
   ],
   "externalMelodies": [],
-  "commercialUse": "Original melodies rendered with CC0-1.0 piano samples; project synthesized accompaniment/SFX; Kenney CC0 UI cues separately recorded",
+  "commercialUse": "Original melodies rendered with CC0-1.0 piano samples; project synthesized accompaniment/SFX; Kenney CC0 UI and combat cues separately recorded",
   "status": "Sampled piano mix; Windows runtime and loopback checked separately; user listening approval pending",
   "files": [
     "assets/audio/bgm/after_school.wav",
@@ -95,5 +95,6 @@
     "assets/audio/sfx/yuma_skill.wav"
   ],
   "additionalSource": "tools/build_ch1_audio.py",
-  "renderSource": "tools/render_sampled_score.py"
+  "renderSource": "tools/render_sampled_score.py",
+  "combatFoleyRecord": "docs/v3_combat_foley_sources.json"
 }

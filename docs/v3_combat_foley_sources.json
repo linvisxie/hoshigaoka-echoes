@@ -1,0 +1,58 @@
+{
+  "author": "Kenney (www.kenney.nl)",
+  "license": "CC0-1.0",
+  "cost": 0,
+  "sources": [
+    "https://kenney.nl/assets/rpg-audio",
+    "https://kenney.nl/assets/impact-sounds"
+  ],
+  "usage": "Blade swishes, normal impacts, armored impacts, crystal dissipation; rotating takes with bounded existing voice pool",
+  "assets": [
+    {
+      "asset": "assets/audio/sfx/foley_blade_01.ogg",
+      "source": "kenney_rpg-audio/Audio/knifeSlice.ogg",
+      "sha256": "4cd96dc630bed9840c15f1dd2306da2cc56a4da26a5d3f1a03c5a7265ac5e54f"
+    },
+    {
+      "asset": "assets/audio/sfx/foley_blade_02.ogg",
+      "source": "kenney_rpg-audio/Audio/knifeSlice2.ogg",
+      "sha256": "6c2064d0ef988d1ec3d56868e823ea8823a5cac00f2742560052633529407def"
+    },
+    {
+      "asset": "assets/audio/sfx/foley_hit_01.ogg",
+      "source": "kenney_impact-sounds/Audio/impactGeneric_light_000.ogg",
+      "sha256": "f0e982611e97512fee5f777986b67e8b435434b601f94992ec044f7e89fb5acb"
+    },
+    {
+      "asset": "assets/audio/sfx/foley_hit_02.ogg",
+      "source": "kenney_impact-sounds/Audio/impactGeneric_light_001.ogg",
+      "sha256": "c3cd1c073d186ae8fa35788ba94de581f1826e7427a7bb26490b2695fac18efa"
+    },
+    {
+      "asset": "assets/audio/sfx/foley_hit_03.ogg",
+      "source": "kenney_impact-sounds/Audio/impactGeneric_light_002.ogg",
+      "sha256": "d0bf60905b59ff630ffe01eb0edeeacd2504eaa8fb6523aeef7d2458b78264d3"
+    },
+    {
+      "asset": "assets/audio/sfx/foley_metal_01.ogg",
+      "source": "kenney_impact-sounds/Audio/impactMetal_light_000.ogg",
+      "sha256": "33b5e6e37c6e9d54e07bf5a89b12c76e879f40c1ea83cdd82714df1d6f9fec6d"
+    },
+    {
+      "asset": "assets/audio/sfx/foley_metal_02.ogg",
+      "source": "kenney_impact-sounds/Audio/impactMetal_light_001.ogg",
+      "sha256": "fba69c467ddd85da7b1d82e259f936b876d9ba6a3d6f1b24bdd10468e46bfe08"
+    },
+    {
+      "asset": "assets/audio/sfx/foley_crystal_01.ogg",
+      "source": "kenney_impact-sounds/Audio/impactGlass_light_000.ogg",
+      "sha256": "d750cf88097d0c3e69920e6e14496e1444e1a9da01aa4cca8f5ec8cb44c57b4f"
+    },
+    {
+      "asset": "assets/audio/sfx/foley_crystal_02.ogg",
+      "source": "kenney_impact-sounds/Audio/impactGlass_light_001.ogg",
+      "sha256": "05e513fbd42829060eb37855f8c3866722ec5c39a8937c9bfde518cc609effa2"
+    }
+  ],
+  "listeningApproval": "Pending; runtime event checks and Windows loopback are distinct from human listening"
+}

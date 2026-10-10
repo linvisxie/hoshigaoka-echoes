@@ -317,10 +317,22 @@ func _process(delta: float) -> void:
 		hint.add_theme_stylebox_override("normal",background_style)
 	hint.position = Vector2(520,vp.y-(126 if feedback else 76))
 	hint.size = Vector2(800,100 if feedback else 48)
-	hint.text = battle._feedback_text if feedback else ("选择角色卡 · 点击地面部署" if battle._selected_card_id.is_empty() else "点击发光站位部署 · 右键取消")
+	hint.text = battle._feedback_text if feedback else _context_hint(s)
 	hint.add_theme_color_override("font_color",battle._feedback_color if feedback else GameSkin.MUTED)
 	hint.modulate.a = clampf(battle._feedback_timer/0.3,0,1) if feedback else 1.0
 	hint.visible = feedback or battle._selected_character_id == 0
+
+func _context_hint(s: StageRuntime) -> String:
+	if not battle._selected_card_id.is_empty():
+		return "点击发光站位部署 · 右键取消"
+	var deployed := false
+	for card: Dictionary in cards:
+		var unit := s.get_character_by_id(str(card.id))
+		if unit != null:
+			deployed = true
+			if unit.skill_ready():
+				return "%s技能就绪 · 选择角色后按 Q" % unit.display_name
+	return "点击在场角色查看技能 · R 撤退换位" if deployed else "选择角色卡 · 点击地面部署"
 
 func _update_card(card: Dictionary, index: int, factor: float) -> void:
 	var b: Button = card.button
@@ -354,23 +366,30 @@ func _update_card(card: Dictionary, index: int, factor: float) -> void:
 		card.low_hp = low_hp
 		(card.hp as ProgressBar).add_theme_stylebox_override("fill",GameSkin.bar(GameSkin.RED if low_hp else GameSkin.GREEN))
 	if unit != null:
+		var range_text := "同路前方 %.2f 格 · 阻挡 %d" % [unit.attack_range_tiles,unit.block_count_max]
+		if unit.allow_cross_lane and unit.max_lane_delta > 0:
+			range_text = "同路 %.1f 格 / 相邻路线 %.1f 格 · 阻挡 %d" % [unit.attack_range_tiles,unit.adjacent_lane_range_tiles,unit.block_count_max]
+		b.tooltip_text = "%s · %s\n生命 %d / %d · 点击选中\n%s\nQ 释放技能 · R 撤退换位" % [unit.display_name,battle._role_label(str(cfg.get("behavior",""))),unit.hp,unit.max_hp,range_text]
 		status.text = ("Q 技能就绪" if active else "技能就绪 · 点击") if unit.skill_ready() else ("技能生效中" if unit.skill_active_remaining>0 or unit.skill_charged else "技能 %.0f 秒" % ceilf(unit.skill_cooldown_remaining))
 		status.add_theme_color_override("font_color",GameSkin.GOLD if unit.skill_ready() else card.role)
 		(card.hp as ProgressBar).value = unit.hp_ratio()
 		var total := maxf(1,float(unit.skill_config.get("cooldownSeconds",1)))
 		(card.cd as ProgressBar).value = 1.0-clampf(unit.skill_cooldown_remaining/total,0,1)
 	elif cooldown>0:
+		b.tooltip_text = "%s\n再部署剩余 %.1f 秒" % [str(cfg.get("name",cid)),cooldown]
 		status.text = "再部署  %.1f 秒" % cooldown
 		status.add_theme_color_override("font_color",GameSkin.MUTED)
 		(card.hp as ProgressBar).value = 0
 		(card.cd as ProgressBar).value = 0
 	elif cost>s.ap:
+		b.tooltip_text = "%s · 部署需要 %d AP\n当前 %d AP，能量恢复后即可部署。" % [str(cfg.get("name",cid)),cost,s.ap]
 		var regen := s.ap_regen_per_second*s._ap_regen_mult()
 		status.text = "等待 %.0f 秒" % ceilf(float(cost-s.ap)/regen) if regen>0 else "AP 不足"
 		status.add_theme_color_override("font_color",GameSkin.MUTED)
 		(card.hp as ProgressBar).value = 1
 		(card.cd as ProgressBar).value = 0
 	else:
+		b.tooltip_text = "%s · %s\n部署消耗 %d AP\n点击后选择地面发光站位。" % [str(cfg.get("name",cid)),battle._role_label(str(cfg.get("behavior",""))),cost]
 		status.text = "选择站位" if battle._selected_card_id == cid else "可部署 · " + battle._role_label(str(cfg.get("behavior","")))
 		status.add_theme_color_override("font_color",card.role)
 		(card.hp as ProgressBar).value = 1

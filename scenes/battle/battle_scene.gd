@@ -1440,7 +1440,11 @@ func _consume_damage_events() -> void:
 		if str(ev.get("sourceKind", "")) == "character":
 			var source := session.stage.get_character(int(ev.get("sourceId", 0)))
 			AudioService.play_sfx("arrow" if source != null and source.behavior == CharacterRuntime.Behavior.RANGED else "slash", -3.0)
-		AudioService.play_sfx("hurt" if kind == "character" else "hit", -4.0)
+		var impact := "hurt" if kind == "character" else "hit"
+		var target_enemy: EnemyRuntime = s.get_enemy(tid) if kind == "enemy" else null
+		if target_enemy != null and (s._enemy_configs.get(target_enemy.enemy_id,{}) as Dictionary).get("tags",[]).has("ARMORED"):
+			impact = "hit_armor"
+		AudioService.play_sfx(impact, -4.0)
 		var event_anchor := _logical_to_screen(ev["targetPos"]) if bool(ev.get("hasPosition", false)) else _damage_pop_anchor(kind, tid)
 		# 受击闪白（命中反馈的视觉通道之一）
 		_hit_flashes.append({"kind": kind, "targetId": tid, "until": now + HIT_FLASH_SECONDS})
@@ -1494,6 +1498,7 @@ func _consume_kills() -> void:
 		if eid <= 0 or _particle_done_ids.has(eid):
 			continue
 		_particle_done_ids[eid] = true
+		AudioService.play_sfx("enemy_death", -8.0)
 		_death_particles.append({
 			"lane": int(r.get("lane", 0)),
 			"x": float(r.get("x", BattleGrid.CORE_X)),

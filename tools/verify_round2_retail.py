@@ -40,6 +40,13 @@ with (OUT/'game.log').open('w',encoding='utf8') as log:
             if (actual.x,actual.y)!=point:raise RuntimeError('Windows cursor did not reach intended point')
             print('Clicked',x,y,'at physical',point,flush=True)
             time.sleep(.7)
+        def move(x,y):
+            ox,oy,w,h=win.client(hwnd)
+            if win.U.GetForegroundWindow()!=hwnd:raise RuntimeError('Refuse move outside owned foreground window')
+            point=(ox+round(x*w/1920),oy+round(y*h/1080))
+            win.U.SetCursorPos(*point)
+            actual=win.W.POINT();win.U.GetCursorPos(ctypes.byref(actual))
+            if (actual.x,actual.y)!=point:raise RuntimeError('Windows cursor did not reach tooltip target')
         def reached(fragment):
             current=(OUT/'game.log').read_text(encoding='utf8',errors='replace')
             if fragment not in current:raise RuntimeError('Expected scene/action absent: '+fragment)
@@ -64,6 +71,11 @@ with (OUT/'game.log').open('w',encoding='utf8') as log:
         click(926,506) # Mio at middle lane, column 2
         time.sleep(.5)
         shot('battle_deployed')
+        time.sleep(3)
+        shot('battle_context_hint')
+        move(90,930)
+        time.sleep(1)
+        shot('deployed_card_tooltip')
         click(1815,55) # Native pause button
         shot('pause')
         click(960,713) # End current investigation

@@ -1,14 +1,22 @@
 """Package a concrete Retail candidate with source provenance and save isolation."""
 from pathlib import Path
-import hashlib,json,shutil,subprocess,zipfile
+import argparse,hashlib,json,shutil,subprocess,zipfile
 ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT/'dist/v3_concept_polish_20261011'
+parser=argparse.ArgumentParser()
+parser.add_argument('--output',type=Path,default=ROOT/'dist/v3_concept_polish_20261011')
+parser.add_argument('--version',default='0.4.0')
+parser.add_argument('--archive',type=Path,default=ROOT/'dist/星丘残响_前五关_画面交互改进版_20261011.zip')
+args=parser.parse_args()
+OUT=args.output.resolve()
+assert OUT.is_relative_to(ROOT/'dist'),'Package must stay under project dist'
 assert (OUT/'HoshigaokaEchoes.exe').is_file() and (OUT/'HoshigaokaEchoes.pck').is_file()
 (OUT/'启动前五关.cmd').write_text('@echo off\nsetlocal\ncd /d "%~dp0"\nset "APPDATA=%~dp0_testenv\\player\\appdata"\nif not exist "%APPDATA%" mkdir "%APPDATA%"\nstart "" "%~dp0HoshigaokaEchoes.exe" --resolution 1280x720\nendlocal\n',encoding='ascii')
 notice=OUT/'素材授权';notice.mkdir(exist_ok=True)
 for p in (ROOT/'assets/licenses').glob('*.txt'):shutil.copy2(p,notice/p.name)
 shutil.copy2(ROOT/'docs/v3_round3_external_assets.json',notice/'外部素材来源.json')
 shutil.copy2(ROOT/'assets/audio/source_record.json',notice/'音乐制作记录.json')
+if (ROOT/'docs/v3_combat_foley_sources.json').exists():
+ shutil.copy2(ROOT/'docs/v3_combat_foley_sources.json',notice/'战斗拟音来源.json')
 readme='''《星丘残响》前五关画面与交互改进候选版 · 0.4.0 · 2026-10-11
 
 解压后双击“启动前五关.cmd”。请保留 exe 与 pck 在同一目录。
@@ -30,13 +38,17 @@ Noto 字体、Lucide 图标与音频许可见“素材授权”目录。
 1-6～1-10、后续可操作角色和最终 Boss 未包含；未将其标为完成。
 实际验证与未完成项见工程 docs/V3_20261011_概念画面与交互改进记录.md。
 '''
+readme=readme.replace('0.4.0',args.version)
+if args.version!='0.4.0':
+ readme=readme.replace('界面使用 Kenney CC0 音效。','界面与剑击、普通命中、护甲命中、残响消散使用 Kenney CC0 音效，多段素材轮换。')
 (OUT/'试玩说明.txt').write_text(readme,encoding='utf-8-sig')
 files=[p for p in sorted(OUT.rglob('*')) if p.is_file() and '_testenv' not in p.parts and p.name!='build_manifest.json']
 manifest={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
- 'version':'0.4.0','type':'Windows Retail first-five playable candidate; final concept and user acceptance pending',
+ 'version':args.version,'type':'Windows Retail first-five playable candidate; final concept and user acceptance pending',
  'sha256':{p.relative_to(OUT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
 (OUT/'build_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf8')
-archive=OUT.parent/'星丘残响_前五关_画面交互改进版_20261011.zip'
+archive=args.archive.resolve()
+assert archive.is_relative_to(ROOT/'dist'),'Archive must stay under project dist'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
  for p in files+[OUT/'build_manifest.json']:z.write(p,p.relative_to(OUT).as_posix())
 with zipfile.ZipFile(archive) as z:

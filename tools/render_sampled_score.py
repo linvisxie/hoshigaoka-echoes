@@ -89,7 +89,7 @@ data.update({'renderSource':'tools/render_sampled_score.py',
  'url':'https://github.com/sgossner/VSCO-2-CE','license':'CC0-1.0',
  'rawSamplesDistributed':False,
  'samples':[{'name':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(SAMPLES.glob('*.wav'))]}],
- 'commercialUse':'Original melodies rendered with CC0-1.0 piano samples; project synthesized accompaniment/SFX; Kenney CC0 UI cues separately recorded',
+ 'commercialUse':'Original melodies rendered with CC0-1.0 piano samples; project synthesized accompaniment/SFX; Kenney CC0 UI and combat cues separately recorded',
  'status':'Sampled piano mix; Windows runtime and loopback checked separately; user listening approval pending'})
 data['files']=[p.relative_to(base.ROOT).as_posix() for p in sorted((base.ROOT/'assets/audio').rglob('*.wav'))]
 record.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf8')
