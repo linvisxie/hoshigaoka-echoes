@@ -1,0 +1,1 @@
+PNG 为真实 Godot 视口或 Windows 客户区原始截图；JSON 标记来源与自动操作。GIF 为连续实机帧的缩放回放，不是重新绘制的动画。concept_runtime_comparison.jpg 是排版后的对照图，不能作为单张实机截图。完整五关为正常计时自动流程，不等于人工试玩或最终美术验收。

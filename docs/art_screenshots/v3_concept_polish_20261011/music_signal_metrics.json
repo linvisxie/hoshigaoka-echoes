@@ -1,0 +1,75 @@
+{
+  "type": "offline signal metrics; not human listening or runtime evidence",
+  "tracks": [
+    {
+      "track": "after_school",
+      "seconds": 89.3023125,
+      "rate": 32000,
+      "channels": 2,
+      "rms": 0.12607959149373132,
+      "peak": 0.462890625,
+      "clipped": 0,
+      "loopBoundaryDelta": 0.00372314453125
+    },
+    {
+      "track": "battle_defeat",
+      "seconds": 8.0,
+      "rate": 32000,
+      "channels": 2,
+      "rms": 0.03900122705955265,
+      "peak": 0.339080810546875,
+      "clipped": 0,
+      "loopBoundaryDelta": null
+    },
+    {
+      "track": "battle_victory",
+      "seconds": 8.0,
+      "rate": 32000,
+      "channels": 2,
+      "rms": 0.048855204727215135,
+      "peak": 0.401519775390625,
+      "clipped": 0,
+      "loopBoundaryDelta": null
+    },
+    {
+      "track": "corridor_pressure",
+      "seconds": 43.63634375,
+      "rate": 32000,
+      "channels": 2,
+      "rms": 0.08146439178347525,
+      "peak": 0.310028076171875,
+      "clipped": 0,
+      "loopBoundaryDelta": 0.001129150390625
+    },
+    {
+      "track": "echo_frontline",
+      "seconds": 66.206875,
+      "rate": 32000,
+      "channels": 2,
+      "rms": 0.12977147729997535,
+      "peak": 0.51531982421875,
+      "clipped": 0,
+      "loopBoundaryDelta": 0.004730224609375
+    },
+    {
+      "track": "observation_club",
+      "seconds": 61.27659375,
+      "rate": 32000,
+      "channels": 2,
+      "rms": 0.08350692487761896,
+      "peak": 0.287689208984375,
+      "clipped": 0,
+      "loopBoundaryDelta": 0.000335693359375
+    },
+    {
+      "track": "unheard_memory",
+      "seconds": 80.0,
+      "rate": 32000,
+      "channels": 2,
+      "rms": 0.07810011912703693,
+      "peak": 0.280609130859375,
+      "clipped": 0,
+      "loopBoundaryDelta": 0.00048828125
+    }
+  ]
+}

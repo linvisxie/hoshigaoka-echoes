@@ -1,0 +1,13 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-11T05:37:07.634788",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "binary": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_concept_polish_20261011\\HoshigaokaEchoes.exe",
+    "input": "real Windows mouse/keyboard; automated"
+  },
+  "image": "D:\\星丘残响\\_testenv\\v3-round3\\retail_latest\\battle_deployed.png"
+}

@@ -32,8 +32,8 @@ const BG := Color(0.055, 0.063, 0.098)
 const PANEL_BG := Color(0.055, 0.066, 0.128, 0.94)
 const CARD_BG := Color(0.090, 0.110, 0.200, 0.90)
 const CARD_BG_HOVER := Color(0.130, 0.165, 0.280, 0.94)
-const CARD_SELECTED := Color(0.130, 0.300, 0.580, 0.94)
-const CARD_SELECTED_HOVER := Color(0.170, 0.370, 0.680, 0.96)
+const CARD_SELECTED := Color(0.14, 0.21, 0.34, 0.96)
+const CARD_SELECTED_HOVER := Color(0.18, 0.28, 0.43, 0.96)
 const TEXT := Color(0.90, 0.94, 1.0)
 const DIM := Color(0.62, 0.68, 0.82)
 const FAINT := Color(0.42, 0.47, 0.62)
@@ -67,8 +67,8 @@ const BUTTON_BORDER_REJECT := Color(0.92, 0.42, 0.42)
 ## 细笔画压在深色/亮背景上会发虚；描边不改字号就能显著提升可读性）。
 ## 小字 1px、大字 2px（参考画布像素，随 _scale 同比缩放）。
 const OUTLINE_COLOR := Color(0.012, 0.020, 0.045, 0.95)
-const OUTLINE_PX_SMALL := 1.0
-const OUTLINE_PX_LARGE := 2.0
+const OUTLINE_PX_SMALL := 0.0
+const OUTLINE_PX_LARGE := 0.0
 ## 达到该字号起用粗描边
 const OUTLINE_BOLD_FROM := 32.0
 
@@ -694,7 +694,7 @@ func _draw_text(font: Font, pos: Vector2, text: String, size: float, color: Colo
 	var fs := int(size)
 	if fs <= 0 or text.is_empty():
 		return
-	if outline:
+	if outline and _outline_w(size) > 0:
 		draw_string_outline(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
 			int(ceil(_outline_w(size))), OUTLINE_COLOR)
 	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, color)
@@ -835,7 +835,7 @@ func _max_affordable() -> int:
 func _draw() -> void:
 	_draw_background()
 
-	var font := ThemeDB.fallback_font
+	var font := GameSkin.body_font()
 	if _svc == null or not _svc.is_ready():
 		var box := Rect2(Vector2(_viewport.x * 0.5 - _px(430.0), _viewport.y * 0.5 - _px(60.0)),
 			Vector2(_px(860.0), _px(120.0)))
@@ -874,7 +874,7 @@ func _draw_background() -> void:
 
 
 func _draw_center_text(text: String, color: Color) -> void:
-	var font := ThemeDB.fallback_font
+	var font := GameSkin.body_font()
 	var w := _text_w(font, text, F_LABEL)
 	_draw_text(font, Vector2((_viewport.x - w) * 0.5, _viewport.y * 0.5), text,
 		_px(F_LABEL), color)
@@ -893,7 +893,7 @@ func _draw_header(font: Font) -> void:
 	var ex := _px(48.0)
 	draw_texture_rect(GameSkin.crest(), Rect2(ex, _px(29), emblem, _px(80)), false)
 	var tx := ex + emblem + _px(16.0)
-	_draw_text(font, Vector2(tx, _px(88.0)), "角色培养", _px(F_TITLE), TEXT)
+	_draw_text(GameSkin.serif(), Vector2(tx, _px(88.0)), "角色培养", _px(F_TITLE), TEXT)
 	_draw_text(font, Vector2(tx, _px(126.0)),
 		"培养 · 等级与突破    /    装备 · 属性与强化",
 		_px(F_TINY), DIM)
@@ -944,14 +944,23 @@ func _draw_currency_bar(font: Font) -> void:
 		nx += _text_w(font, label, F_LABEL) + _px(8.0)
 		# 数量：等宽字体，紧贴资源名左对齐；整条 chip 宽度按固定槽预留，
 		# 因此数字位数变化时 chip 本身与相邻 chip 都不会移动。
-		_draw_text(_mono_font(), Vector2(nx, text_base), str(_svc.get_currency(cid)),
+		_draw_text(_mono_font(), Vector2(nx, text_base), str(_display_currency_count(cid)),
 			_px(F_LABEL), ACCENT)
 		x += widths[i] + gap
 
 
 ## 角色卡：真实头像 + 姓名 + 等级 + 定位 + 迷你经验条
+func _display_currency_count(cid: String) -> int:
+	if cid == "study_record":
+		var count := 0
+		for item_id: String in _svc.study_record_items():
+			count += _svc.get_currency(item_id)
+		return count
+	return _svc.get_currency(cid)
+
+
 func _draw_character_card(character_id: String, rect: Rect2, index: int) -> void:
-	var font := ThemeDB.fallback_font
+	var font := GameSkin.body_font()
 	var p := _svc.get_progress(character_id)
 	var selected := character_id == _selected_id
 	var hovered := rect.has_point(_mouse_pos)
@@ -1459,7 +1468,7 @@ func _draw_feedback(font: Font) -> void:
 ##   active: 当前生效的档位（如「投入 5 份」正是预览中的份数）
 func _draw_button(rect: Rect2, label: String, enabled: bool, icon: String = "",
 		active: bool = false) -> void:
-	var font := ThemeDB.fallback_font
+	var font := GameSkin.body_font()
 	var over := rect.has_point(_mouse_pos)
 	var hovered := enabled and over
 

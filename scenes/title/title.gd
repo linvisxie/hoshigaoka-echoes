@@ -61,7 +61,7 @@ const TITLE_EN_BASELINE := 336.0
 ## fallback_font 无字距（tracking）控制，英文副标逐字绘制时手工加这么多间距
 const TITLE_EN_TRACKING := 8.0
 const TITLE_SUB_SIZE := 30.0
-const TITLE_SUB_BASELINE := 392.0
+const TITLE_SUB_BASELINE := 382.0
 
 ## 菜单单一数据源：顺序即上下键顺序。
 ## disabled=true 的项不可点；已实现设置页面可正常进入。
@@ -72,8 +72,6 @@ const MENU_ITEMS := [
 	{"id": "continue", "zh": "继续游戏", "en": "CONTINUE", "icon": "icon_play",
 		"disabled": false, "note": ""},
 	{"id": "new_game", "zh": "新游戏", "en": "NEW GAME", "icon": "icon_home",
-		"disabled": false, "note": ""},
-	{"id": "stage_select", "zh": "关卡选择", "en": "STAGE SELECT", "icon": "icon_home",
 		"disabled": false, "note": ""},
 	{"id": "settings", "zh": "设置", "en": "SETTINGS", "icon": "icon_settings",
 		"disabled": false, "note": ""},
@@ -90,11 +88,11 @@ const MENU_ITEMS := [
 ##   提示行之下才是版本行（基线 1032）。
 ##   上方：菜单顶 436 与标题块末行（TITLE_SUB_BASELINE 392）留 44px 净空。
 ##   三者（菜单 / 提示行 / 版本行）互不重叠——改动本组常量后必须重新核对这条等式。
-const MENU_LEFT := 96.0
-const MENU_TOP := 436.0
+const MENU_LEFT := 128.0
+const MENU_TOP := 455.0
 const MENU_WIDTH := 780.0
-const MENU_ROW_H := 80.0
-const MENU_GAP := 20.0
+const MENU_ROW_H := 90.0
+const MENU_GAP := 14.0
 
 var _viewport: Vector2 = Vector2(REF_W, REF_H)
 var _scale: float = 1.0
@@ -114,6 +112,8 @@ var _feedback_timer: float = 0.0
 
 ## 防止同一帧内重复触发（连点保护）
 var _busy: bool = false
+var _ambient_time := 0.0
+var _quit_confirmation: Control
 
 
 func _ready() -> void:
@@ -211,7 +211,7 @@ func _layout_rows() -> void:
 	for i: int in range(_rows.size()):
 		var row := _rows[i]
 		row.position = Vector2(0.0, y)
-		row.size = Vector2(_px(540.0), _px(MENU_ROW_H))
+		row.size = Vector2(_px(520.0), _px(MENU_ROW_H))
 		row.set_ui_scale(_scale)
 		y += _px(MENU_ROW_H + MENU_GAP)
 
@@ -230,6 +230,8 @@ func _select_first_enabled() -> void:
 func _set_selected(index: int) -> void:
 	if _rows.is_empty():
 		return
+	if index != _selected:
+		AudioService.play_sfx("ui_hover",-14.0)
 	_selected = clampi(index, 0, _rows.size() - 1)
 	for i: int in range(_rows.size()):
 		_rows[i].set_selected(i == _selected)
@@ -269,6 +271,12 @@ func _on_row_activated(item_id: String) -> void:
 
 func _input(event: InputEvent) -> void:
 	if _busy:
+		return
+	if _quit_confirmation != null and _quit_confirmation.visible:
+		if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+			_quit_confirmation.hide()
+			AudioService.play_sfx("ui_back",-5.0)
+			accept_event()
 		return
 	if event is InputEventKey:
 		var k := event as InputEventKey
@@ -351,8 +359,52 @@ func _open_stage_select() -> void:
 
 
 func _quit() -> void:
-	_busy = true
-	App.request_quit()
+	if _quit_confirmation != null:
+		_quit_confirmation.show()
+		return
+	_quit_confirmation = Control.new()
+	_quit_confirmation.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_quit_confirmation.mouse_filter = Control.MOUSE_FILTER_STOP
+	_quit_confirmation.theme = GameSkin.make_theme()
+	add_child(_quit_confirmation)
+	var veil := ColorRect.new()
+	veil.color = Color(0.015,0.025,0.06,0.76)
+	veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_quit_confirmation.add_child(veil)
+	var panel := Panel.new()
+	panel.position = (_viewport-Vector2(_px(720),_px(330)))*0.5
+	panel.size = Vector2(_px(720),_px(330))
+	panel.add_theme_stylebox_override("panel",GameSkin.panel(Color("101a31"),GameSkin.GOLD,true))
+	_quit_confirmation.add_child(panel)
+	var title := Label.new()
+	title.text = "暂别星丘？"
+	title.position = Vector2(_px(42),_px(34))
+	title.size = Vector2(_px(636),_px(60))
+	title.add_theme_font_override("font",GameSkin.serif())
+	title.add_theme_font_size_override("font_size",int(_px(36)))
+	panel.add_child(title)
+	var note := Label.new()
+	note.text = "已保存的观测记录会保留。"
+	note.position = Vector2(_px(42),_px(114))
+	note.add_theme_font_size_override("font_size",int(_px(25)))
+	note.add_theme_color_override("font_color",GameSkin.MUTED)
+	panel.add_child(note)
+	for i: int in range(2):
+		var b := Button.new()
+		b.text = "留在这里" if i==0 else "退出游戏"
+		b.position = Vector2(_px(42+330*i),_px(220))
+		b.size = Vector2(_px(306),_px(68))
+		b.add_theme_font_size_override("font_size",int(_px(27)))
+		GameSkin.style_button(b,i==0)
+		b.pressed.connect(func() -> void:
+			if i==0:
+				_quit_confirmation.hide()
+				AudioService.play_sfx("ui_back",-5.0)
+			else:
+				_busy = true
+				App.request_quit())
+		panel.add_child(b)
 
 
 func _show(text: String, color: Color) -> void:
@@ -365,6 +417,8 @@ func _show(text: String, color: Color) -> void:
 # ============================================================ 每帧
 
 func _process(delta: float) -> void:
+	_ambient_time += delta
+	queue_redraw()
 	if _feedback_timer > 0.0:
 		_feedback_timer = maxf(0.0, _feedback_timer - delta)
 		queue_redraw()
@@ -373,7 +427,7 @@ func _process(delta: float) -> void:
 # ============================================================ 绘制（背景 + 文本装饰）
 
 func _draw() -> void:
-	var font := ThemeDB.fallback_font
+	var font := GameSkin.serif()
 	_draw_background()
 	if font == null:
 		return
@@ -382,6 +436,7 @@ func _draw() -> void:
 	_draw_epigraph(font)
 	_draw_version(font)
 	_draw_hint(font)
+	_draw_petals()
 
 
 ## 背景：等比覆盖裁剪（cover），绝不变形；贴图缺失时走渐变回退
@@ -395,6 +450,15 @@ func _draw_background() -> void:
 		draw_texture_rect(_bg_tex,
 			Rect2(Vector2((_viewport.x - dw) * 0.5, (_viewport.y - dh) * 0.5), Vector2(dw, dh)),
 			false)
+		# Architectural sign is separate from the clean plate and uses the formal crest.
+		var offset := Vector2((_viewport.x-dw)*0.5,(_viewport.y-dh)*0.5)
+		var crest_rect := Rect2(offset+Vector2(709,488)*s,Vector2(62,67)*s)
+		draw_rect(crest_rect,Color("152139"))
+		draw_texture_rect(GameSkin.crest(),crest_rect.grow(-3*s),false,Color("c2a66d"))
+		var plaque_font := GameSkin.serif()
+		var plaque := "私立星丘高等学校"
+		for i: int in range(plaque.length()):
+			draw_string(plaque_font,offset+Vector2(728,586+float(i)*26)*s,plaque.substr(i,1),HORIZONTAL_ALIGNMENT_LEFT,-1,int(22*s),Color("c5a06b"))
 	else:
 		_draw_gradient_fallback()
 	_draw_atmosphere()
@@ -430,13 +494,6 @@ func _draw_gradient_fallback() -> void:
 ## 单块矩形会在贴图上留下肉眼可见的硬边（实测截图里表现为一条竖缝 + 一条横缝），
 ## 而细带渐隐不会产生任何可见接缝。
 func _draw_atmosphere() -> void:
-	var cx := _viewport.x * 0.5
-	var cy := _viewport.y * 0.52
-	# 紫蓝星光裂隙（同心圆 + 低不透明度近似径向辉光；禁 MSAA 下多边形更可预测）
-	for i: int in range(6):
-		var r := (0.10 + 0.055 * float(i)) * minf(_viewport.x, _viewport.y)
-		var a := RIFT_COLOR.a * (1.0 - float(i) / 6.0)
-		draw_circle(Vector2(cx, cy), r, Color(RIFT_COLOR.r, RIFT_COLOR.g, RIFT_COLOR.b, a * 0.35))
 	var shade := Color(0.02, 0.03, 0.07)
 	# 左侧渐隐：保证标题与菜单文字在亮部天空上依然清晰。
 	# 对照概念图逐轮下调（0.46 → 0.40），并且**分两段线性衰减**近似曲线：
@@ -490,7 +547,7 @@ func _draw_h_fade(rect: Rect2, left_alpha: float, right_alpha: float, col: Color
 ## 标题画面的背景是**亮部黄昏天空**，纯色文字（尤其细体英文）会被冲淡，
 ## 因此正文一律带描边；描边宽度随缩放同比。
 func _draw_text_outlined(font: Font, pos: Vector2, text: String, fs: int, col: Color) -> void:
-	var o := maxf(1.0, _px(2.0))
+	var o := _px(0.7)
 	for dx: float in [-o, 0.0, o]:
 		for dy: float in [-o, 0.0, o]:
 			if is_zero_approx(dx) and is_zero_approx(dy):
@@ -512,9 +569,9 @@ func _draw_title_block(font: Font) -> void:
 
 	# 英文副标：fallback_font 没有字距控制，因此**逐字绘制**并手工加 tracking，
 	# 让 HOSHIOKA · RESONANCE 像概念图那样疏朗，而不是挤成一团。
-	var en_size := int(_px(TITLE_EN_SIZE))
+	var en_size := int(_px(23.0))
 	var ey := _px(TITLE_EN_BASELINE)
-	var ex := x
+	var ex := x + _px(50)
 	var en_w := 0.0
 	for i: int in range(TITLE_EN.length()):
 		var ch := TITLE_EN.substr(i, 1)
@@ -529,7 +586,7 @@ func _draw_title_block(font: Font) -> void:
 
 	# 一行小字
 	_draw_text_outlined(font, Vector2(x, _px(TITLE_SUB_BASELINE)), TITLE_SUB,
-		int(_px(TITLE_SUB_SIZE)), DIM)
+		int(_px(27)), Color("e3deed"))
 
 
 ## 主标题的淡青辉光：在 8 个方向画两层低不透明度副本，形成柔光边缘。
@@ -576,8 +633,20 @@ func _draw_title_rule(from: Vector2, width: float, from_alpha: float, to_alpha: 
 ## 这里**刻意不画实心面板**：实测单块半透明 draw_rect 会在背景贴图上留下
 ## 肉眼可见的硬边（竖缝 + 横缝），渐隐方案没有任何可见接缝。
 func _draw_left_panel(_font: Font) -> void:
-	draw_rect(Rect2(_px(80), _px(420), _px(570), _px(510)), Color(0.025, 0.045, 0.11, 0.75), true)
-	draw_line(Vector2(_px(80), _px(420)), Vector2(_px(650), _px(420)), Color(0.55, 0.65, 0.95, 0.5), _px(1.5))
+	_draw_h_fade(Rect2(_px(128), _px(455), _px(560), _px(402)), 0.48, 0.0, Color("0c1430"))
+
+
+func _draw_petals() -> void:
+	for i: int in range(22):
+		var seed := float(i)
+		var x := fposmod(seed * 137.7 + _ambient_time * (18 + fmod(seed, 4) * 5), REF_W + 80) - 40
+		var y := fposmod(seed * 73.3 + _ambient_time * (10 + fmod(seed, 3) * 3), REF_H + 80) - 40
+		var center := Vector2(_px(x), _px(y + sin(_ambient_time * 0.8 + seed) * 20))
+		var radius := _px(3 + fmod(seed, 4))
+		var angle := _ambient_time * 0.45 + seed
+		var axis := Vector2(cos(angle),sin(angle)) * radius
+		var side := axis.orthogonal() * 0.38
+		draw_colored_polygon(PackedVector2Array([center-axis,center+side,center+axis,center-side]),Color(0.96,0.64,0.78,0.24 + fmod(seed,3)*0.10))
 
 
 func _draw_epigraph(font: Font) -> void:
@@ -599,7 +668,7 @@ func _draw_epigraph(font: Font) -> void:
 func _draw_version(font: Font) -> void:
 	var text := "Ver %s · Windows · 前五关试玩" % App.APP_VERSION
 	_draw_text_outlined(font, Vector2(_px(96.0), _viewport.y - _px(48.0)), text,
-		int(_px(28.0)), DIM)
+		int(_px(20.0)), DIM)
 
 
 func _draw_hint(font: Font) -> void:
@@ -609,9 +678,8 @@ func _draw_hint(font: Font) -> void:
 	# 且提示行居中、题词靠右，横向也不重叠。
 	# **不得**把提示行下移到版本行同一基线上（那是上一轮修过的重叠 bug）。
 	# Alpha A0.7 加入第 5 行后已重算：916 → 945 仍有 29px 净空。
-	var text := _feedback if _feedback_timer > 0.0 else "↑ ↓ 选择　Enter / Space 确认　鼠标可直接点击"
+	var text := _feedback if _feedback_timer > 0.0 else "↑ ↓ 选择     Enter 确认"
 	var col := _feedback_color if _feedback_timer > 0.0 else Color(0.58, 0.64, 0.78)
-	var size := int(_px(26.0))
-	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	_draw_text_outlined(font, Vector2((_viewport.x - w) * 0.5, _viewport.y - _px(116.0)),
+	var size := int(_px(20.0))
+	_draw_text_outlined(font, Vector2(_px(128), _viewport.y - _px(136.0)),
 		text, size, col)

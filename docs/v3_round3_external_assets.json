@@ -1,0 +1,84 @@
+{
+  "sources": [
+    {
+      "asset": "Noto Serif CJK SC Regular",
+      "url": "https://github.com/notofonts/noto-cjk",
+      "license": "SIL OFL 1.1",
+      "usage": "title menu and display headings; unmodified font"
+    },
+    {
+      "asset": "Lucide menu icons",
+      "url": "https://github.com/lucide-icons/lucide",
+      "license": "ISC and included Feather MIT notices",
+      "usage": "monochrome settings, exit, play and sparkles; stroke recolored"
+    },
+    {
+      "asset": "Kenney Interface Sounds 1.0",
+      "url": "https://kenney.nl/assets/interface-sounds",
+      "license": "CC0; bundled author license retained",
+      "files": {
+        "ui_hover": "click_001.ogg",
+        "ui_confirm": "confirmation_001.ogg",
+        "ui_back": "back_001.ogg",
+        "ui_error": "error_003.ogg"
+      }
+    },
+    {
+      "asset": "Noto Sans CJK SC Regular",
+      "url": "https://github.com/notofonts/noto-cjk",
+      "license": "SIL OFL 1.1",
+      "usage": "body text; unmodified font"
+    },
+    {
+      "asset": "VSCO 2 Community Edition Upright Piano",
+      "url": "https://github.com/sgossner/VSCO-2-CE",
+      "license": "CC0-1.0",
+      "authors": "Versilian Studios / Sam Gossner; Ivy Audio / Simon Dalzell",
+      "usage": "Rendered original project music only; raw samples stay under D:/星丘基础/downloads/ui-polish/VSCO2",
+      "sampleHashes": "assets/audio/source_record.json"
+    }
+  ],
+  "cost": 0,
+  "conceptDerivatives": [
+    {
+      "asset": "tools/source_art/title_concept_clean_v3.png",
+      "tool": "built-in image_gen",
+      "reference": "01_title_screen_concept.png",
+      "operation": "Remove all UI, logo, lettering from reference while preserving exact school gate, left stone pillar, right clock tower, sunset and rift composition. Native interactive title and plaque lettering drawn separately.",
+      "runtime": "assets/art/environments/bg_title_gate.png"
+    },
+    {
+      "asset": "tools/source_art/landing_battle_v3.png",
+      "tool": "built-in image_gen",
+      "reference": "existing project corridor/classroom environment and visual bible",
+      "operation": "Faithful sunset classroom-adjacent broad stair landing, indigo shadows, sakura windows, restrained early rift; unobstructed battle floor.",
+      "runtime": "assets/art/environments/bg_env_landing_battle.png"
+    }
+  ],
+  "rulings": {
+    "1-2": "Keep locked mapId ch1_classroom_sunset and story facts; battle camera shows adjacent classroom stair landing already mentioned in story.",
+    "1-5": "Old gym per explicit user ruling; existing gym visuals retained.",
+    "crest": "Six petals per explicit user ruling, including native title gate plaque.",
+    "title": "Four concept menu entries; functional stage selection stays in campus.",
+    "generatedAssets": "User says all three concepts GPT-generated. No blanket legal guarantee or user visual approval inferred."
+  },
+  "sha256": {
+    "assets/fonts/NotoSansCJKsc-Regular.otf": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b",
+    "assets/fonts/NotoSerifCJKsc-Regular.otf": "2a2eae2628df83556c54018c41e20fa532c1b862c5256ae8b3f23feb918d12ca",
+    "assets/licenses/Kenney-Interface-Sounds-CC0.txt": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+    "assets/licenses/Lucide-ISC-MIT.txt": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+    "assets/licenses/NotoSansCJK-OFL.txt": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+    "assets/licenses/NotoSerifCJK-OFL.txt": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+    "assets/licenses/VSCO2-CE-CC0.txt": "36ffd9dc085d529a7e60e1276d73ae5a030b020313e6c5408593a6ae2af39673",
+    "assets/licenses/VSCO2-CE-Readme.txt": "101ddb88eb013900cc911834ecbdfbd49497bcd913bf09417160b9677952bb38",
+    "assets/art/ui/menu/log-out.svg": "e97cdca8dddbbfe0cc2ceab285276c01c9ebfdcf4514319db2cbfd2378df3d4a",
+    "assets/art/ui/menu/play.svg": "4165f3544748d34385754db5348e960d99ad8d22dd595c0f02580e986f4ec71a",
+    "assets/art/ui/menu/settings.svg": "80c779d7683341014c7578d0f54f9c4a0f7ca45b79a8b7d3262aa86f5ad9aab4",
+    "assets/art/ui/menu/sparkles.svg": "6a0375e72cb456de8b746fede36c5201e30c85a6fc37aec10fffe21c3f9aa7e8",
+    "tools/source_art/title_concept_clean_v3.png": "65f444548f76157e51f4184732135243f0a75d1b7b764df0a579a4d85ff94843",
+    "assets/art/environments/bg_title_gate.png": "dfe9dbc7e087ac7efa02afeb46c12d88b084492c8445db7fb2c6899e193ead14",
+    "tools/source_art/landing_battle_v3.png": "fdedfc5e3de67bb365828ddf15c752dbc3d79e902ea0add40a345ab3366f7928",
+    "assets/art/environments/bg_env_landing_battle.png": "f800addcd27d45afbd47362a42846ab969d6855c251648426afdd3b18e607533"
+  },
+  "visualAcceptance": "Pending actual comparison and user judgment; imported assets are not proof of final concept quality."
+}

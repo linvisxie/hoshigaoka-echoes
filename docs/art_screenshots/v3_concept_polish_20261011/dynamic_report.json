@@ -1,0 +1,1015 @@
+{
+	"attackFrames": 10,
+	"audioHistory": [
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 0.256000012159348,
+				"soundsTriggered": [],
+				"track": "corridor_pressure"
+			},
+			"shot": "initial",
+			"time": 0.516666666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 0.959999978542328,
+				"soundsTriggered": [
+					"ui_hover",
+					"select"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "deployment_preview",
+			"time": 1.0
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 16.503999710083,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "two_characters",
+			"time": 12.5333333333335
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 18.2000007629395,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_00",
+			"time": 13.2333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 18.5200004577637,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_00",
+			"time": 13.3666666666669
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 18.5200004577637,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_01",
+			"time": 13.3666666666669
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 19.1280002593994,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_01",
+			"time": 13.5000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 19.1280002593994,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_02",
+			"time": 13.5000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 19.7759990692139,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_02",
+			"time": 13.6333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 19.7759990692139,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_03",
+			"time": 13.6333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 20.3840007781982,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_03",
+			"time": 13.7666666666669
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 20.3840007781982,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_04",
+			"time": 13.7666666666669
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 20.992000579834,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_04",
+			"time": 13.9000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 20.992000579834,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_05",
+			"time": 13.9000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 21.6119995117188,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_05",
+			"time": 14.0333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 21.6119995117188,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_06",
+			"time": 14.0333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 22.2080001831055,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_06",
+			"time": 14.166666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 22.2080001831055,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_07",
+			"time": 14.166666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 22.8159999847412,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_07",
+			"time": 14.3000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 22.8159999847412,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_08",
+			"time": 14.3000000000003
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 23.4039993286133,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_amamiya_mio_08",
+			"time": 14.4333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 23.4039993286133,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "attack_09",
+			"time": 14.4333333333336
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 31.8719997406006,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_00",
+			"time": 22.5666666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 32.1920013427734,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_01",
+			"time": 22.7166666666667
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 32.5120010375977,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_02",
+			"time": 22.8833333333333
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 32.8240013122559,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_03",
+			"time": 23.05
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 33.1319999694824,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_04",
+			"time": 23.2166666666666
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 33.4519996643066,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_05",
+			"time": 23.3833333333333
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 33.7599983215332,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_06",
+			"time": 23.5499999999999
+		},
+		{
+			"audio": {
+				"activeVoices": 2,
+				"musicPlaying": true,
+				"musicPosition": 34.5200004577637,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "upgrade_offer",
+			"time": 23.6166666666666
+		},
+		{
+			"audio": {
+				"activeVoices": 4,
+				"musicPlaying": true,
+				"musicPosition": 34.7960014343262,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_07",
+			"time": 23.7333333333333
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 35.1360015869141,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "skill_kamiya_yuma_08",
+			"time": 23.8833333333333
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 41.431999206543,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "battle_30s",
+			"time": 30.0166666666662
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 27.9716567993164,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade"
+				],
+				"track": "corridor_pressure"
+			},
+			"shot": "battle_60s",
+			"time": 60.0166666666645
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 38.9349670410156,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_00",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 39.3189697265625,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_01",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 1,
+				"musicPlaying": true,
+				"musicPosition": 0.38400000333786,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_02",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 0.76800000667572,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_03",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.16400003433228,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_04",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.53600001335144,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_05",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 1.91999995708466,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_06",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 2.2960000038147,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_07",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 3.21199989318848,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "victory_08",
+			"time": 157.716666666684
+		},
+		{
+			"audio": {
+				"activeVoices": 0,
+				"musicPlaying": true,
+				"musicPosition": 3.60800004005432,
+				"soundsTriggered": [
+					"ui_hover",
+					"select",
+					"deploy",
+					"slash",
+					"hit",
+					"hurt",
+					"arrow",
+					"mio_skill",
+					"yuma_skill",
+					"wave",
+					"upgrade",
+					"victory"
+				],
+				"track": "battle_victory"
+			},
+			"shot": "result",
+			"time": 157.716666666684
+		}
+	],
+	"evidenceType": "Real Windows Godot viewport; automated input, not human play",
+	"outcome": "胜利",
+	"shots": [
+		"initial",
+		"deployment_preview",
+		"two_characters",
+		"attack_00",
+		"skill_amamiya_mio_00",
+		"attack_01",
+		"skill_amamiya_mio_01",
+		"attack_02",
+		"skill_amamiya_mio_02",
+		"attack_03",
+		"skill_amamiya_mio_03",
+		"attack_04",
+		"skill_amamiya_mio_04",
+		"attack_05",
+		"skill_amamiya_mio_05",
+		"attack_06",
+		"skill_amamiya_mio_06",
+		"attack_07",
+		"skill_amamiya_mio_07",
+		"attack_08",
+		"skill_amamiya_mio_08",
+		"attack_09",
+		"skill_kamiya_yuma_00",
+		"skill_kamiya_yuma_01",
+		"skill_kamiya_yuma_02",
+		"skill_kamiya_yuma_03",
+		"skill_kamiya_yuma_04",
+		"skill_kamiya_yuma_05",
+		"skill_kamiya_yuma_06",
+		"upgrade_offer",
+		"skill_kamiya_yuma_07",
+		"skill_kamiya_yuma_08",
+		"battle_30s",
+		"battle_60s",
+		"victory_00",
+		"victory_01",
+		"victory_02",
+		"victory_03",
+		"victory_04",
+		"victory_05",
+		"victory_06",
+		"victory_07",
+		"victory_08",
+		"result"
+	],
+	"stage": "1-5",
+	"summary": {
+		"apFinal": 30,
+		"apMax": 30,
+		"busiestLane": 1,
+		"coreHp": 3,
+		"coreHpMax": 3,
+		"elapsed": 157.72,
+		"healedTotal": 0,
+		"heals": 0,
+		"kills": 8,
+		"killsByType": {
+			"echo_armored": 1,
+			"echo_invigilator": 2,
+			"echo_normal": 3,
+			"echo_runner": 2
+		},
+		"leaked": 0,
+		"leakedByType": {},
+		"lost": 0,
+		"outcome": 1,
+		"outcomeName": "胜利",
+		"planned": 8,
+		"pressureByLane": {
+			"0": 420,
+			"1": 5360,
+			"2": 0
+		},
+		"retreatAp": 0,
+		"retreats": 0,
+		"spawned": 8,
+		"victory": true,
+		"wave": 5,
+		"waveTotal": 5
+	},
+	"time": 157.716666666684,
+	"victoryFrames": 9
+}

@@ -87,7 +87,8 @@ func play_sfx(sound: String, gain_db: float = 0.0) -> void:
 	# Sound-specific debounce plus a bounded voice pool prevent combat clipping.
 	if now - int(_last_sound.get(sound, -1000)) < 70:
 		return
-	var path := "res://assets/audio/sfx/%s.wav" % sound
+	var cue := "ui_confirm" if sound == "select" else sound
+	var path := "res://assets/audio/sfx/%s.%s" % [cue,"ogg" if cue.begins_with("ui_") else "wav"]
 	if not _streams.has(path):
 		if not ResourceLoader.exists(path):
 			return

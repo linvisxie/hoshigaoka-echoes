@@ -31,6 +31,8 @@ var paused_settings: Control
 var leave_confirmation: Control
 var menu_status: Label
 var _normal_size := Vector2.ZERO
+var _feedback_active := false
+var overlays: BattleOverlays
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -48,6 +50,11 @@ func _ready() -> void:
 	_build_pause()
 	hint = _label(normal, "", Rect2(550, 965, 800, 48), 24, GameSkin.MUTED)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	overlays = BattleOverlays.new()
+	overlays.hud = self
+	overlays.battle = battle
+	canvas.add_child(overlays)
 
 func _panel(parent: Node, rect: Rect2, accent: Color = Color("58719b")) -> Panel:
 	var p := Panel.new()
@@ -97,6 +104,7 @@ func _button(parent: Node, text: String, rect: Rect2, action: Callable, primary:
 	return b
 
 func handle_escape() -> void:
+	AudioService.play_sfx("ui_back",-5.0)
 	if leave_confirmation != null and leave_confirmation.visible:
 		leave_confirmation.hide()
 	elif paused_settings != null and paused_settings.visible:
@@ -166,7 +174,7 @@ func _build_cards() -> void:
 		cost.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		var name_label := _label(b, str(cfg.get("name","")), Rect2(12,154,186,35), 26)
 		var status := _label(b, "", Rect2(12,188,186,30), 21, role)
-		var hp := _bar(b, Rect2(10,224,190,5), role)
+		var hp := _bar(b, Rect2(10,224,190,5), GameSkin.GREEN)
 		var cd := _bar(b, Rect2(10,233,190,4), GameSkin.GOLD)
 		cards.append({"id":cid,"button":b,"image":image,"strip":strip,"cost":cost,"name":name_label,"status":status,"hp":hp,"cd":cd,"role":role,"key":key})
 
@@ -196,6 +204,7 @@ func _build_pause() -> void:
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_texture(pause_panel,GameSkin.crest(),Rect2(325,24,100,110))
 	var title := _label(pause_panel,"时间暂歇",Rect2(35,145,680,65),42)
+	title.add_theme_font_override("font",GameSkin.serif())
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var note := _label(pause_panel,"角色、残响与技能冷却均已暂停",Rect2(35,214,680,40),24,GameSkin.MUTED)
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -261,6 +270,7 @@ func _process(delta: float) -> void:
 	var vp: Vector2 = battle._viewport_size / factor
 	canvas.scale = Vector2.ONE * factor
 	canvas.size = vp
+	overlays.sync(vp,factor)
 	var modal: bool = battle._upgrade_panel_active() or battle.session.is_decided()
 	normal.visible = not modal and not battle.session.is_paused()
 	pause_layer.visible = not modal and battle.session.is_paused()
@@ -274,7 +284,7 @@ func _process(delta: float) -> void:
 	var cfg: Dictionary = battle._stage_config_for_rewards
 	stage_label.text = "%s  %s" % [s.stage_id,str(cfg.get("stageName",""))]
 	stage_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	location_label.text = "旧体育馆 · 残响汇聚" if s.stage_id == "1-5" else ("教学楼 · 异常走廊" if s.stage_id == "1-4" else "教学楼 · 黄昏教室")
+	location_label.text = str({"1-1":"教学楼 · 初次锚定","1-2":"教学楼 · 楼梯平台","1-3":"教学楼 · 测验教室","1-4":"教学楼 · 异常走廊","1-5":"旧体育馆 · 残响汇聚"}.get(s.stage_id,"教学楼"))
 	var danger := s.core_hp <= 1
 	defense.text = "防线  " + "◆ ".repeat(s.core_hp) + "◇ ".repeat(maxi(0,s.core_hp_max-s.core_hp)) + "  %d / %d" % [s.core_hp,s.core_hp_max]
 	defense.add_theme_color_override("font_color",GameSkin.RED if danger else GameSkin.BLUE)
@@ -295,9 +305,22 @@ func _process(delta: float) -> void:
 	for i: int in range(cards.size()):
 		_update_card(cards[i],i,factor)
 	_update_selected(factor,vp)
-	hint.position = Vector2(520,vp.y-76)
-	hint.text = "选择角色卡 · 点击地面部署" if battle._selected_card_id.is_empty() else "点击发光站位部署 · 右键取消"
-	hint.visible = battle._selected_character_id == 0 and battle._feedback_timer <= 0
+	var feedback: bool = battle._feedback_timer > 0 and not battle._feedback_text.is_empty()
+	if feedback != _feedback_active:
+		_feedback_active = feedback
+		var background_style: StyleBox = StyleBoxEmpty.new()
+		if feedback:
+			var toast := GameSkin.panel(Color(0.035,0.055,0.12,0.94),Color("52678f"))
+			toast.content_margin_top = 8
+			toast.content_margin_bottom = 8
+			background_style = toast
+		hint.add_theme_stylebox_override("normal",background_style)
+	hint.position = Vector2(520,vp.y-(126 if feedback else 76))
+	hint.size = Vector2(800,100 if feedback else 48)
+	hint.text = battle._feedback_text if feedback else ("选择角色卡 · 点击地面部署" if battle._selected_card_id.is_empty() else "点击发光站位部署 · 右键取消")
+	hint.add_theme_color_override("font_color",battle._feedback_color if feedback else GameSkin.MUTED)
+	hint.modulate.a = clampf(battle._feedback_timer/0.3,0,1) if feedback else 1.0
+	hint.visible = feedback or battle._selected_character_id == 0
 
 func _update_card(card: Dictionary, index: int, factor: float) -> void:
 	var b: Button = card.button
@@ -326,8 +349,12 @@ func _update_card(card: Dictionary, index: int, factor: float) -> void:
 		b.add_theme_stylebox_override("normal",GameSkin.panel(Color("182842") if active else Color("101d34"),edge,active))
 	(card.image as TextureRect).modulate = Color(0.65,0.68,0.8) if cooldown>0 else Color.WHITE
 	var status: Label = card.status
+	var low_hp := unit != null and unit.hp_ratio() <= 0.25
+	if bool(card.get("low_hp",false)) != low_hp:
+		card.low_hp = low_hp
+		(card.hp as ProgressBar).add_theme_stylebox_override("fill",GameSkin.bar(GameSkin.RED if low_hp else GameSkin.GREEN))
 	if unit != null:
-		status.text = "Q 技能就绪" if unit.skill_ready() else ("技能生效中" if unit.skill_active_remaining>0 or unit.skill_charged else "技能 %.0f 秒" % ceilf(unit.skill_cooldown_remaining))
+		status.text = ("Q 技能就绪" if active else "技能就绪 · 点击") if unit.skill_ready() else ("技能生效中" if unit.skill_active_remaining>0 or unit.skill_charged else "技能 %.0f 秒" % ceilf(unit.skill_cooldown_remaining))
 		status.add_theme_color_override("font_color",GameSkin.GOLD if unit.skill_ready() else card.role)
 		(card.hp as ProgressBar).value = unit.hp_ratio()
 		var total := maxf(1,float(unit.skill_config.get("cooldownSeconds",1)))

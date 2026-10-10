@@ -34,7 +34,7 @@ static func bar(fill: Color, roundness: int = 3) -> StyleBoxFlat:
 
 static func make_theme() -> Theme:
 	var t := Theme.new()
-	t.default_font = ThemeDB.fallback_font
+	t.default_font = body_font()
 	t.default_font_size = 26
 	t.set_color("font_color", "Label", WHITE)
 	t.set_color("font_color", "Button", WHITE)
@@ -53,7 +53,15 @@ static func make_theme() -> Theme:
 	t.set_font_size("font_size", "TooltipLabel", 24)
 	t.set_stylebox("normal", "LineEdit", panel(Color("111b31"), Color("4c638e")))
 	t.set_stylebox("focus", "LineEdit", panel(Color("142942"), BLUE))
-	t.set_stylebox("scroll", "HSlider", bar(Color("314566")))
+	var track := bar(Color("314566"))
+	track.content_margin_top = 3
+	track.content_margin_bottom = 3
+	t.set_stylebox("slider", "HSlider", track)
+	t.set_stylebox("grabber_area", "HSlider", bar(Color("6ba7c4")))
+	t.set_stylebox("grabber_area_highlight", "HSlider", bar(BLUE))
+	t.set_icon("grabber", "HSlider", preload("res://assets/art/ui/slider_grabber.svg"))
+	t.set_icon("grabber_highlight", "HSlider", preload("res://assets/art/ui/slider_grabber_hover.svg"))
+	t.set_icon("grabber_disabled", "HSlider", preload("res://assets/art/ui/slider_grabber.svg"))
 	t.set_stylebox("scroll", "VScrollBar", bar(Color("17253f")))
 	t.set_stylebox("grabber", "VScrollBar", bar(Color("6583af")))
 	t.set_stylebox("grabber_highlight", "VScrollBar", bar(BLUE))
@@ -66,6 +74,22 @@ static func style_button(button: Button, primary: bool = false) -> void:
 	button.add_theme_stylebox_override("disabled", panel(Color("111a2b"), Color("35415b")))
 	button.add_theme_stylebox_override("focus", panel(Color(0,0,0,0), GOLD, true))
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	for state: String in ["normal","hover","pressed","disabled","focus"]:
+		var style := button.get_theme_stylebox(state) as StyleBoxFlat
+		if style != null:
+			style.content_margin_top = 6
+			style.content_margin_bottom = 6
+	if not button.has_meta("skin_hover_audio"):
+		button.set_meta("skin_hover_audio",true)
+		button.mouse_entered.connect(func() -> void:
+			if not button.disabled:
+				AudioService.play_sfx("ui_hover",-14.0))
 
 static func crest() -> Texture2D:
 	return ArtRegistry.load_texture("res://assets/art/ui/school_crest_six.svg")
+
+static func serif() -> Font:
+	return preload("res://assets/fonts/NotoSerifCJKsc-Regular.otf")
+
+static func body_font() -> Font:
+	return preload("res://assets/fonts/NotoSansCJKsc-Regular.otf")

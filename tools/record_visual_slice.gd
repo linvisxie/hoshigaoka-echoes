@@ -72,7 +72,7 @@ func _process(_delta: float) -> void:
 			recording = false
 	if battle._upgrade_panel_active() and not captured.has("upgrade_offer"):
 		shot("upgrade_offer")
-		RenderingServer.frame_post_draw.connect(func() -> void: battle._choose_upgrade_index(0), CONNECT_ONE_SHOT)
+		RenderingServer.frame_post_draw.connect(func() -> void: battle._send_click_at(battle._upgrade_card_rects[0].get_center()), CONNECT_ONE_SHOT)
 	if now >= 30 and not captured.has("battle_30s"):
 		shot("battle_30s")
 	if now >= 60 and not captured.has("battle_60s"):

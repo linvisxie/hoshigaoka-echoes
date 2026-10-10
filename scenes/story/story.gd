@@ -8,6 +8,8 @@ var dialogue: RichTextLabel
 var speaker: Label
 var page: Label
 var portrait: TextureRect
+var portrait_frame: Panel
+var name_plate: Panel
 var figure: TextureRect
 var history: Array[String] = []
 var auto := false
@@ -32,14 +34,21 @@ func _ready() -> void:
 	set_background(str(data.get("background", "bg_env_corridor_dusk")))
 	AudioService.play_music(str(data.get("music", "after_school")))
 	figure = texture_at(null, Rect2(1040, 100, 680, 750))
-	panel(Rect2(70, 740, 1780, 260))
-	panel(Rect2(85, 700, 400, 70), BLUE)
-	speaker = label_at("", Rect2(115, 714, 500, 55), 32, GOLD)
-	portrait = texture_at(null, Rect2(95, 785, 170, 170))
+	var dialogue_panel := panel(Rect2(70, 730, 1780, 270), BLUE)
+	dialogue_panel.add_theme_stylebox_override("panel",GameSkin.panel(Color(0.025,0.045,0.105,0.94),Color("7c9acb"),true))
+	portrait_frame = panel(Rect2(84, 745, 238, 238), Color("718bc2"))
+	portrait = texture_at(null, Rect2(90, 751, 226, 226))
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	name_plate = panel(Rect2(356, 750, 330, 55), BLUE)
+	name_plate.add_theme_stylebox_override("panel",GameSkin.panel(Color("c5d4f4"),Color("8babe1")))
+	speaker = label_at("", Rect2(376, 750, 292, 55), 30, Color("192440"))
+	speaker.add_theme_font_override("font",GameSkin.serif())
+	speaker.add_theme_constant_override("outline_size",0)
 	dialogue = RichTextLabel.new()
-	dialogue.position = Vector2(300, 790)
-	dialogue.size = Vector2(1460, 165)
+	dialogue.position = Vector2(368, 822)
+	dialogue.size = Vector2(1410, 125)
 	dialogue.add_theme_font_size_override("normal_font_size", 34)
+	dialogue.add_theme_font_override("normal_font",GameSkin.body_font())
 	dialogue.add_theme_color_override("default_color", WHITE)
 	dialogue.scroll_active = false
 	dialogue.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -51,7 +60,8 @@ func _ready() -> void:
 		auto_button.text = "自动 ●" if auto else "自动"
 		GameSkin.style_button(auto_button,auto))
 	button_at("菜单", Rect2(420, 1010, 150, 50), _show_menu)
-	next_button = button_at("下一句  ▸", Rect2(1510, 920, 290, 60), advance)
+	next_button = button_at("下一句  ▸", Rect2(1510, 936, 290, 50), advance)
+	next_button.add_theme_font_size_override("font_size",23)
 	label_at(str(data.get("title", "")), Rect2(80, 45, 1400, 60), 30, GOLD)
 	_show_node()
 	fade_in_content()
@@ -80,10 +90,22 @@ func _show_node() -> void:
 	dialogue.text = str(node.get("text", "")).replace("{player}", str(SaveService.get_current().get("profile", {}).get("playerName", "转校生")))
 	dialogue.visible_ratio = 0.0
 	portrait.texture = ArtRegistry.character_portrait(cid, 256) if not cid.is_empty() else null
+	portrait.visible = portrait.texture != null
+	portrait_frame.visible = portrait.visible
+	if speaker.text.is_empty():
+		speaker.text = "观测记录"
+	name_plate.position.x = 356 if portrait.visible else 110
+	speaker.position.x = name_plate.position.x + 20
+	dialogue.position.x = 368 if portrait.visible else 122
+	dialogue.size.x = 1410 if portrait.visible else 1656
 	if cid == "amamiya_mio" and node.has("emotion"):
 		var emotion_tex := ArtRegistry.load_texture("res://assets/art/characters/amamiya_mio/amamiya_mio_portrait_%s.png" % str(node["emotion"]))
 		if emotion_tex != null:
-			portrait.texture = emotion_tex
+			# Frame the illustration, excluding the source sheet's caption/border.
+			var framed := AtlasTexture.new()
+			framed.atlas = emotion_tex
+			framed.region = Rect2(emotion_tex.get_size()*Vector2(0.035,0.015),emotion_tex.get_size()*Vector2(0.93,0.86))
+			portrait.texture = framed
 	var figure_path := "res://assets/art/characters/%s/%s_story.png" % [cid, cid]
 	figure.texture = ArtRegistry.load_texture(figure_path) if not cid.is_empty() else null
 	if node.has("background"):

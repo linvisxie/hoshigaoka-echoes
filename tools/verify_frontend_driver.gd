@@ -58,6 +58,10 @@ func _run() -> void:
 	await button("角色培养 · 装备")
 	await shot("character")
 	var character := get_tree().current_scene
+	var record_count := 0
+	for record_id: String in App.growth.study_record_items():
+		record_count += App.growth.get_currency(record_id)
+	check(character._display_currency_count("study_record") == record_count,"growth header counts all actual study-record denominations")
 	var before := int(App.growth.get_progress("amamiya_mio").level)
 	for spec: Dictionary in character._btn_rects:
 		if spec.action == "preview" and int(spec.get("arg", 0)) == 1:

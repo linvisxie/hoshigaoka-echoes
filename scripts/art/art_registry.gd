@@ -58,7 +58,7 @@ const ANIM_FPS := {
 ## 关卡 -> 战斗背景（本轮指令 6.4：复用环境组件，不为每关从零绘制）
 const STAGE_ENV := {
 	"1-1": "bg_env_classroom_battle",
-	"1-2": "bg_env_classroom_battle",
+	"1-2": "bg_env_landing_battle",
 	"1-3": "bg_env_classroom_exam",
 	"1-4": "bg_env_corridor_battle",
 	"1-5": "bg_env_gym_battle",

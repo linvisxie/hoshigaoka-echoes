@@ -24,14 +24,15 @@ def cue(name, bpm, dark=False):
  for delay,gain in [(.13,.16),(.31,.09),(.49,.04)]:out+=np.roll(dry,int(delay*SR),axis=0)[:,::-1]*gain
  save('bgm/'+name,np.tanh(out)*.8)
 
-cue('unheard_memory',72,True)
-cue('observation_club',94,False)
-cue('corridor_pressure',132,True)
-sfx('mio_skill',.9,[330,660,1320],noise=.45,sweep=950)
-sfx('yuma_skill',.75,[880,1760],noise=.25,sweep=1800)
-sfx('status',.45,[196,277,392],noise=.16,sweep=-230)
-record=ROOT/'assets/audio/source_record.json'
-data=json.loads(record.read_text(encoding='utf8'))
-data['additionalSource']='tools/build_ch1_audio.py'
-data['files']=[p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'assets/audio').rglob('*.wav'))]
-record.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf8')
+if __name__ == '__main__':
+ cue('unheard_memory',72,True)
+ cue('observation_club',94,False)
+ cue('corridor_pressure',132,True)
+ sfx('mio_skill',.9,[330,660,1320],noise=.45,sweep=950)
+ sfx('yuma_skill',.75,[880,1760],noise=.25,sweep=1800)
+ sfx('status',.45,[196,277,392],noise=.16,sweep=-230)
+ record=ROOT/'assets/audio/source_record.json'
+ data=json.loads(record.read_text(encoding='utf8'))
+ data['additionalSource']='tools/build_ch1_audio.py'
+ data['files']=[p.relative_to(ROOT).as_posix() for p in sorted((ROOT/'assets/audio').rglob('*.wav'))]
+ record.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf8')

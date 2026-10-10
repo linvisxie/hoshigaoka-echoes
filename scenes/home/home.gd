@@ -3,7 +3,7 @@ extends CampusScreen
 func _ready() -> void:
 	super._ready()
 	set_background("bg_title_gate")
-	AudioService.play_music("after_school")
+	AudioService.play_music("observation_club")
 	var profile: Dictionary = SaveService.get_current().get("profile", {})
 	var player := str(profile.get("playerName", "转校生"))
 	page_heading("私立星丘高等学校", "第一章 · 新学期的残响     /     %s 的学生手册" % player)

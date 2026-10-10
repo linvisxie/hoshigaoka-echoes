@@ -1,0 +1,13 @@
+{
+	"actualDrawLedger": {
+		"enemy_anim:idle": 3,
+		"enemy_anim:move": 1584,
+		"res://assets/art/enemies/echo_normal/echo_normal_idle.png": 3,
+		"res://assets/art/enemies/echo_normal/echo_normal_move.png": 1584
+	},
+	"evidenceType": "Godot native viewport (not desktop)",
+	"logicalTime": 26.0833333333331,
+	"renderFrame": 1507,
+	"shot": "core_break_02",
+	"stage": "1-2"
+}

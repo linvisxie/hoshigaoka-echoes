@@ -76,6 +76,7 @@ var hovered: bool = false
 ## 参考画布 -> 屏幕的缩放系数（由 TitleScreen 在布局时下发）
 var ui_scale: float = 1.0
 var stacked_subtitle := false
+var _highlight := 0.0
 
 
 func _ready() -> void:
@@ -133,7 +134,7 @@ func _gui_input(event: InputEvent) -> void:
 ## 带描边的文字绘制：先沿 8 个方向画描边，再画正文。
 ## 这是保证「亮背景 + 细体英文」可读性的最稳做法（描边宽度随缩放同比）。
 func _draw_text_outlined(font: Font, pos: Vector2, text: String, fs: int, col: Color) -> void:
-	var o := maxf(1.0, _px(2.0))
+	var o := _px(0.6) if stacked_subtitle else maxf(1.0, _px(2.0))
 	for dx: float in [-o, 0.0, o]:
 		for dy: float in [-o, 0.0, o]:
 			if is_zero_approx(dx) and is_zero_approx(dy):
@@ -144,6 +145,9 @@ func _draw_text_outlined(font: Font, pos: Vector2, text: String, fs: int, col: C
 
 
 func _draw() -> void:
+	if stacked_subtitle:
+		_draw_concept_row()
+		return
 	var font := ThemeDB.fallback_font
 	if font == null:
 		return
@@ -240,6 +244,42 @@ func _draw() -> void:
 		var en_pos := Vector2(zh_x, cy + _px(26.0)) if stacked_subtitle else Vector2(size.x - _px(24.0) - en_w, cy + _px(10.0))
 		_draw_text_outlined(font, en_pos, label_en,
 			en_size, EN_COLOR if interactive else EN_DISABLED)
+
+
+func _process(delta: float) -> void:
+	if not stacked_subtitle:
+		return
+	var target := 1.0 if selected and not disabled else 0.0
+	var next := move_toward(_highlight,target,delta * 7.0)
+	if not is_equal_approx(next,_highlight):
+		_highlight = next
+		queue_redraw()
+
+
+func _draw_concept_row() -> void:
+	var font := GameSkin.serif()
+	var row := Rect2(Vector2.ZERO,size)
+	var cy := size.y * 0.5
+	if _highlight > 0.01:
+		_draw_hl_bar(row,Color(0.17,0.30,0.67,0.67*_highlight),Color(0.17,0.29,0.50,0.04*_highlight))
+		draw_line(Vector2(_px(2),0),Vector2(_px(2),size.y),Color(0.64,0.75,1.0,_highlight),_px(3))
+		draw_line(Vector2(0,0),Vector2(size.x,0),Color(0.6,0.7,1.0,0.35*_highlight),_px(1))
+		draw_line(Vector2(0,size.y),Vector2(size.x,size.y),Color(0.6,0.7,1.0,0.25*_highlight),_px(1))
+	var icon_file: String = str({"continue":"play","new_game":"sparkles","settings":"settings","quit":"log-out"}.get(item_id,"play"))
+	var tex := ArtRegistry.load_texture("res://assets/art/ui/menu/%s.svg" % icon_file)
+	var alpha := 0.38 if disabled else 1.0
+	if tex != null:
+		draw_texture_rect(tex,Rect2(_px(28),cy-_px(22),_px(44),_px(44)),false,Color(1,1,1,alpha))
+	var x := _px(112 + 3 * _highlight)
+	_draw_text_outlined(font,Vector2(x,cy+_px(1)),label_zh,int(_px(36)),Color(0.97,0.95,1.0,alpha))
+	var english_font := ThemeDB.fallback_font
+	var ex := x
+	for i: int in range(label_en.length()):
+		var character := label_en.substr(i,1)
+		draw_string(english_font,Vector2(ex,cy+_px(29)),character,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(17)),Color(0.73,0.65,0.97,alpha))
+		ex += english_font.get_string_size(character,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(17))).x + _px(4)
+	if disabled and not disabled_note.is_empty():
+		draw_string(font,Vector2(_px(305),cy+_px(1)),disabled_note,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color(0.72,0.70,0.80,0.8))
 
 
 ## 选中/悬停高亮条：**左侧实、向右渐隐**（逐顶点颜色插值，不会有硬边）。

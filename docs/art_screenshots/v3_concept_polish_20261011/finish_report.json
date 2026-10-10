@@ -1,0 +1,85 @@
+{
+	"checks": [
+		{
+			"name": "title has concept four-menu structure",
+			"ok": true
+		},
+		{
+			"name": "real title settings row opens settings",
+			"ok": true
+		},
+		{
+			"name": "button exists: 保存并返回",
+			"ok": true
+		},
+		{
+			"name": "settings returns to title",
+			"ok": true
+		},
+		{
+			"name": "Escape opens exit confirmation",
+			"ok": true
+		},
+		{
+			"name": "button exists: 留在这里",
+			"ok": true
+		},
+		{
+			"name": "cancel exit keeps game open",
+			"ok": true
+		},
+		{
+			"name": "continue resumes campus",
+			"ok": true
+		},
+		{
+			"name": "button exists: 关卡记录",
+			"ok": true
+		},
+		{
+			"name": "second card opens actual stage briefing",
+			"ok": true
+		},
+		{
+			"name": "button exists: 开始战斗   →",
+			"ok": true
+		},
+		{
+			"name": "second stage launches",
+			"ok": true
+		},
+		{
+			"name": "button exists: Ⅱ  暂停",
+			"ok": true
+		},
+		{
+			"name": "native pause works after compact button style",
+			"ok": true
+		},
+		{
+			"name": "button exists: 结束本次调查",
+			"ok": true
+		},
+		{
+			"name": "button exists: 返回校园",
+			"ok": true
+		},
+		{
+			"name": "emotion illustration is framed without source caption",
+			"ok": true
+		},
+		{
+			"name": "dialogue advance fits within panel",
+			"ok": true
+		},
+		{
+			"name": "button exists: 历史",
+			"ok": true
+		},
+		{
+			"name": "history blocks underlying next button",
+			"ok": true
+		}
+	],
+	"type": "Windows renderer; real viewport mouse/keyboard events; earned isolated save"
+}

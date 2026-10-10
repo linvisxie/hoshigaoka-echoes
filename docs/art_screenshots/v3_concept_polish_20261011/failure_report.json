@@ -1,0 +1,43 @@
+{
+	"breakFrames": 8,
+	"dangerFrames": 6,
+	"ok": true,
+	"rewards": {
+		"firstClear": false,
+		"granted": {},
+		"ok": true,
+		"reason": "失败不发放奖励"
+	},
+	"summary": {
+		"apFinal": 30,
+		"apMax": 30,
+		"busiestLane": 1,
+		"coreHp": 0,
+		"coreHpMax": 3,
+		"elapsed": 26.08,
+		"healedTotal": 0,
+		"heals": 0,
+		"kills": 0,
+		"killsByType": {},
+		"leaked": 3,
+		"leakedByType": {
+			"echo_normal": 3
+		},
+		"lost": 0,
+		"outcome": 2,
+		"outcomeName": "失败",
+		"planned": 10,
+		"pressureByLane": {
+			"0": 420,
+			"1": 3300,
+			"2": 0
+		},
+		"retreatAp": 0,
+		"retreats": 0,
+		"spawned": 3,
+		"victory": false,
+		"wave": 1,
+		"waveTotal": 3
+	},
+	"type": "real Windows normal battle; no deployments, no stat/time overrides"
+}

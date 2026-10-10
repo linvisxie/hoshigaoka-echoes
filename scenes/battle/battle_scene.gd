@@ -132,7 +132,7 @@ const VFX_LIMIT := 24
 const VFX_SIZE_PX := 96.0
 
 ## 教学卡片停留时长（秒）与同屏上限
-const TUTORIAL_CARD_LIFETIME := 5.0
+const TUTORIAL_CARD_LIFETIME := 7.5
 const TUTORIAL_CARD_LIMIT := 2
 ## 核心威胁脉冲距离（tile）：敌人进入核心前该距离内即开始轻微脉冲
 const CORE_WARN_DISTANCE_TILES := 1.0
@@ -796,8 +796,9 @@ func _on_upgrade_offer_started() -> void:
 	GameLog.info(TAG, "局内强化三选一已弹出：%s（第 %d 次开放，教学=%s，剩余重掷 %d）" % [
 		str(offer.get("candidates", [])), int(offer.get("offerIndex", 0)),
 		str(tutorial), int(offer.get("rerollsRemaining", 0))])
-	_show_feedback("强化选择：三选一（点击卡片或按 1/2/3）",
-		UPGRADE_TUTORIAL_ACCENT if tutorial else Color(0.62, 0.86, 1.0))
+	if _native_hud == null:
+		_show_feedback("强化选择：三选一（点击卡片或按 1/2/3）",
+			UPGRADE_TUTORIAL_ACCENT if tutorial else Color(0.62, 0.86, 1.0))
 
 
 ## 面板关闭（已选择 / 已跳过 / 战斗结束）：清理呈现状态。
@@ -1548,7 +1549,13 @@ func _spawn_attacker_vfx(ev: Dictionary, now: float) -> void:
 	if attacker == null or not bool(ev.get("hasPosition", false)):
 		return
 	var name := "vfx_arrow" if attacker.behavior == CharacterRuntime.Behavior.RANGED else "vfx_slash"
-	_spawn_vfx_at(name, _logical_to_screen(ev["sourcePos"]), now, VFX_ATTACK_LIFETIME)
+	var source := _logical_to_screen(ev["sourcePos"])
+	var target := _logical_to_screen(ev["targetPos"])
+	_spawn_vfx_at(name, target if name == "vfx_slash" else source, now, VFX_ATTACK_LIFETIME)
+	_vfx[-1]["from"] = source
+	_vfx[-1]["to"] = target
+	_vfx[-1]["scale"] = 1.45 if name == "vfx_slash" else 1.0
+	_vfx[-1]["charged"] = attacker.skill_charged or float(ev.get("skillMultiplier",1.0)) > 1.0
 
 
 func _spawn_vfx_at(name: String, screen_pos: Vector2, now: float, life: float) -> void:
@@ -1573,6 +1580,15 @@ func _draw_vfx() -> void:
 		if tex == null:
 			continue
 		var center: Vector2 = v["pos"]
+		if v.has("from") and str(v["name"]) == "vfx_arrow":
+			var source: Vector2 = v["from"]
+			var target: Vector2 = v["to"]
+			center = source.lerp(target, minf(1.0,k * 3.0))
+			var direction := (target-source).normalized()
+			var trail := center - direction * minf(_px(115),source.distance_to(center))
+			var arrow_color := Color(1.0,0.77,0.38,1.0-k)
+			draw_line(trail,center,Color(arrow_color,arrow_color.a*0.3),_px(6),true)
+			draw_line(trail,center,arrow_color,_px(2),true)
 		# 尾段淡出（避免突然消失）
 		var fade := 1.0 - k * k
 		var effect_size := s * float(v.get("scale", 1.0))
@@ -1887,6 +1903,7 @@ func _request_retreat_selected() -> void:
 		GameLog.info(TAG, "玩家撤退 %s（返还 %d AP，再部署冷却 %.0f 秒）"
 			% [name_text, r.refund_granted, r.cooldown])
 	else:
+		AudioService.play_sfx("ui_error", -5.0)
 		_show_feedback("撤退失败：%s" % r.reason_text(), Color(1.0, 0.45, 0.4))
 
 
@@ -1971,6 +1988,7 @@ func _handle_left_click(pos: Vector2) -> void:
 		GameLog.info(TAG, "玩家部署 %s 于 (col%d, lane%d)"
 			% [result.character.display_name, column, lane])
 	else:
+		AudioService.play_sfx("ui_error", -5.0)
 		_show_feedback("部署失败：%s" % result.reason_text(), Color(1.0, 0.45, 0.4))
 
 
@@ -2315,14 +2333,16 @@ func _draw() -> void:
 		_draw_character_card()
 		_draw_character_panel()
 	_draw_tutorial_cards()
-	_draw_feedback()
+	if _native_hud == null:
+		_draw_feedback()
 	# Alpha A0.6：强化面板画在暂停遮罩**之前**，因此面板优先于暂停遮罩。
 	# 但两者不会同时出现：面板出现时域层冻结 advance()，而 paused 是另一套状态
 	# （面板激活期间 _toggle_pause 被拦截，见 _unhandled_input）。
 	if session.is_paused() and _native_hud == null:
 		_draw_pause_overlay()
-	_draw_upgrade_overlay()
-	if session.is_decided():
+	if _native_hud == null:
+		_draw_upgrade_overlay()
+	if session.is_decided() and _native_hud == null:
 		if session.outcome != BattleTypes.Outcome.VICTORY or _result_animation_time >= 1.0:
 			_draw_result_overlay()
 
@@ -2520,8 +2540,18 @@ func _draw_core() -> void:
 		var tower_rect := Rect2(core_center.x - tower_w * 0.5, core_center.y - tower_h * 0.5, tower_w, tower_h)
 		var modulate_color := Color(1, 1, 1).lerp(energy, 0.65 if danger else flash * 0.7)
 		if hp <= 0:
-			modulate_color = Color(0.28, 0.24, 0.34, 0.65)
-		draw_texture_rect(tower, tower_rect, false, modulate_color)
+			var break_progress := clampf(_result_animation_time/0.75,0,1)
+			for piece: int in range(8):
+				var column := piece%2
+				var row := piece/2
+				var source := Rect2(float(column)*tower.get_width()/2.0,float(row)*tower.get_height()/4.0,tower.get_width()/2.0,tower.get_height()/4.0)
+				var part := Rect2(tower_rect.position+Vector2(float(column)*tower_w*0.5,float(row)*tower_h*0.25),Vector2(tower_w*0.5,tower_h*0.25))
+				part.position += Vector2((-1.0 if column==0 else 1.0)*(22+row*6)*break_progress,break_progress*break_progress*80-row*break_progress*12)*_render_scale
+				draw_texture_rect_region(tower,part,source,Color(0.70,0.63,0.84,1.0-break_progress*0.85))
+		else:
+			if danger:
+				modulate_color = modulate_color.lerp(Color(1.25,0.55,0.65),0.16+0.16*sin(now*7))
+			draw_texture_rect(tower, tower_rect, false, modulate_color)
 	var tex := ArtRegistry.load_texture("res://assets/art/ui/core_anchor.svg")
 	for lane: int in range(grid.lanes):
 		var center := Vector2(_origin.x - tile * 0.46, _origin.y + float(lane) * spacing)
@@ -2618,6 +2648,14 @@ func _draw_characters(lane_filter: int = -1) -> void:
 						_mark_drawn("char_special:" + str(special["anim"]))
 			var redrawn := c.character_id in ["amamiya_mio", "kamiya_yuma"]
 			_draw_sprite_anchored(sprite, Vector2(px_x, px_y), tile * (1.28 if redrawn else 0.96), mod, 0.25 if redrawn else 0.33)
+			if c.skill_active_remaining > 0 or c.skill_charged:
+				var aura := Color("a9cfff") if c.character_id == "amamiya_mio" else Color("ffd58c")
+				var foot := Vector2(px_x,px_y+tile*0.32)
+				_draw_ground_shadow(foot,tile*0.34,Color(aura,0.14+0.04*sin(now*5)))
+				for spark: int in range(6):
+					var phase := fposmod(now*0.65+float(spark)/6.0,1.0)
+					var offset := Vector2(sin(float(spark)*2.4+now)*tile*0.30,-phase*tile*0.82)
+					draw_rect(Rect2(foot+offset,Vector2.ONE*_px(3)),Color(aura,(1.0-phase)*0.65))
 			if frame_tex != null:
 				_mark_drawn("char_anim:%s" % st.anim)
 				_mark_drawn(ArtRegistry.character_strip_path(c.character_id, st.anim))
@@ -2890,7 +2928,15 @@ func _draw_sprite_anchored(tex: Texture2D, center: Vector2, target_h: float,
 	var feet_y := center.y + target_h * baseline_ratio
 	var dst := Rect2(center.x - w * 0.5, feet_y - h, w, h)
 	_draw_ground_shadow(Vector2(center.x, feet_y - _px(4.0)), w * 0.30, Color(0.015, 0.018, 0.035, 0.44 * mod.a))
-	draw_texture_rect(tex, dst, false, mod)
+	# The two special-skill sheets retain a few source-caption pixels in the
+	# unused top band. Clip only that band at draw time, preserving full-frame
+	# scale and foot registration; never crop the bow, sword or character body.
+	var source_path: String = (tex.atlas.resource_path if tex is AtlasTexture else tex.resource_path)
+	if source_path.ends_with("amamiya_mio_skill.png") or source_path.ends_with("kamiya_yuma_skill.png"):
+		var top := minf(16.0,th*0.17)
+		draw_texture_rect_region(tex,Rect2(dst.position+Vector2(0,top*s),Vector2(w,h-top*s)),Rect2(0,top,tw,th-top),mod)
+	else:
+		draw_texture_rect(tex, dst, false, mod)
 
 
 ## 选中环：双色同心圆，读作"已选中"而不遮挡 Sprite。
@@ -3383,7 +3429,7 @@ func _draw_lane_warnings() -> void:
 func _draw_tutorial_cards() -> void:
 	if _tutorial_cards.is_empty():
 		return
-	var font := ThemeDB.fallback_font
+	var font := GameSkin.body_font()
 	var now := _now()
 	var y := _px(HUD_BAND_HEIGHT) + _px(16.0)
 	for card: Dictionary in _tutorial_cards:
@@ -3399,14 +3445,20 @@ func _draw_tutorial_cards() -> void:
 		alpha = clampf(alpha, 0.0, 1.0)
 		var title := str(card["title"])
 		var text := str(card["text"])
-		var fs_title := int(_px(23.0))
-		var fs_text := int(_px(21.0))
-		var w_title := 0.0
-		if not title.is_empty():
-			w_title = font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_title).x
-		var w_text := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_text).x
-		var box_w := maxf(w_title, w_text) + _px(30.0)
-		var box_h := _px(44.0) + (_px(30.0) if not title.is_empty() else 0.0)
+		var fs_title := int(_px(25.0))
+		var fs_text := int(_px(23.0))
+		var box_w := _px(520.0)
+		var lines: Array[String] = []
+		var line := ""
+		for character: String in text:
+			if character == "\n" or (not line.is_empty() and font.get_string_size(line+character,HORIZONTAL_ALIGNMENT_LEFT,-1,fs_text).x > box_w-_px(44)):
+				lines.append(line)
+				line = "" if character == "\n" else character
+			else:
+				line += character
+		if not line.is_empty():
+			lines.append(line)
+		var box_h := _px(22.0+float(lines.size())*31.0+(36.0 if not title.is_empty() else 0.0))
 		var box := Rect2(Vector2(_px(24.0), y), Vector2(box_w, box_h))
 		# 多张卡纵向堆叠：上一轮实机截图发现两卡同帧时完全重叠、文字互压。
 		# y 在每张实际绘制的卡之后推进（含 8px 间隙）。
@@ -3421,9 +3473,11 @@ func _draw_tutorial_cards() -> void:
 			draw_string(font, Vector2(box.position.x + _px(18.0), ty),
 				"新敌人 · %s" % title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_title,
 				Color(accent.r, accent.g, accent.b, alpha))
-			ty += _px(30.0)
-		draw_string(font, Vector2(box.position.x + _px(18.0), ty), text,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, fs_text, Color(0.92, 0.95, 1.0, alpha))
+			ty += _px(36.0)
+		for wrapped: String in lines:
+			draw_string(font, Vector2(box.position.x + _px(22.0), ty), wrapped,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, fs_text, Color(0.92, 0.95, 1.0, alpha))
+			ty += _px(31.0)
 
 
 ## 部署反馈：选中时的合法/非法格高亮 + 悬停描边 + **射程覆盖预览**。
@@ -3769,6 +3823,7 @@ func _request_skill_selected() -> void:
 		return
 	var result := session.cast_skill(_selected_character_id)
 	if not bool(result.get("ok", false)):
+		AudioService.play_sfx("ui_error", -5.0)
 		_show_feedback(str(result.get("reason", "当前无法释放技能")), Color(1.0, 0.7, 0.55))
 		return
 	var character := session.stage.get_character(_selected_character_id)
@@ -3885,7 +3940,7 @@ func _stage_display_name() -> String:
 	# Prototype 演示关给一个玩家可读的名字；正式关卡仍以 stageId 显示
 	if sid == "p1_0_demo":
 		return "Prototype 演示关 — 三职业 × 三种残响体"
-	return "关卡 %s" % sid
+	return "%s · %s" % [sid,str(_stage_config_for_rewards.get("stageName","校园调查"))]
 
 
 ## 操作反馈提示（底部中央）
@@ -4081,18 +4136,18 @@ func _build_review_lines(summary: Dictionary) -> Array[String]:
 		if leaked_by.size() > 1:
 			out.append("多条路线同时被突破：注意为「下一波」预告预留远程换线时间")
 		elif not leaked_by.is_empty():
-			out.append("只有一条路线被突破：把远程或治疗调整到该路线即可")
+			out.append("只有一条路线被突破：提前在该路线部署，换线前留意撤退冷却")
 		if int(summary["retreats"]) == 0 and int(summary["wave"]) >= 3:
 			out.append("本局未使用过主动撤退：远程无法换线，建议用撤退重新部署")
 		if int(summary["lost"]) > 0:
-			out.append("有 %d 名角色失能：注意用治疗维持前线生命" % int(summary["lost"]))
-		if int(summary["heals"]) == 0:
-			out.append("本局没有任何治疗：治疗角色能显著延长前线存活时间")
+			out.append("有 %d 名角色失能：受压时主动撤退，留足再部署的时间和 AP" % int(summary["lost"]))
+		if int(summary["heals"]) == 0 and _roster.has("ogawa_yui"):
+			out.append("治疗角色能延长前线存活时间，注意站位与覆盖范围")
 	else:
 		if int(summary["healedTotal"]) > 0:
 			out.append("总治疗量 %d HP" % int(summary["healedTotal"]))
 		else:
-			out.append("本局未发生治疗；留意前线生命与撤退冷却")
+			out.append("留意前线生命，预留换线所需的 AP 与撤退冷却")
 		if int(summary["retreats"]) > 0:
 			out.append("使用 %d 次主动撤退完成换线，这是本关的关键操作"
 				% int(summary["retreats"]))
@@ -4164,8 +4219,8 @@ func _on_outcome_decided(_outcome: int) -> void:
 	if _outcome == BattleTypes.Outcome.VICTORY:
 		for character: CharacterRuntime in session.stage.characters:
 			_special_animations[character.instance_id] = {"anim": "victory", "born": 0.0, "life": 1.5}
-	AudioService.stop_music()
-	AudioService.play_sfx("victory" if _outcome == BattleTypes.Outcome.VICTORY else "defeat")
+	AudioService.play_music("battle_victory" if _outcome == BattleTypes.Outcome.VICTORY else "battle_defeat", false)
+	AudioService.play_sfx("victory" if _outcome == BattleTypes.Outcome.VICTORY else "defeat", -5.0)
 	_layout_buttons()
 	# Alpha A0.1：胜利结算发放资源，使「战斗 → 成长」形成闭环。
 	# 纪律：奖励数值来自关卡配置/奖励表，**不在此处硬编码**；

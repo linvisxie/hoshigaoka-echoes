@@ -90,7 +90,7 @@ func label_at(text: String, rect: Rect2, font_size: int = 28, color: Color = WHI
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", Color("091021"))
-	label.add_theme_constant_override("outline_size", 2)
+	label.add_theme_constant_override("outline_size", 1)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(label)
 	return label
@@ -127,7 +127,7 @@ func texture_at(texture: Texture2D, rect: Rect2) -> TextureRect:
 func page_heading(title: String, subtitle: String) -> void:
 	panel(Rect2(50, 35, 1820, 125), BLUE)
 	texture_at(GameSkin.crest(), Rect2(75, 46, 78, 96))
-	label_at(title, Rect2(180, 46, 1470, 65), 42)
+	label_at(title, Rect2(180, 46, 1470, 65), 42).add_theme_font_override("font",GameSkin.serif())
 	label_at(subtitle, Rect2(184, 112, 1560, 36), 23, MUTED)
 
 func resource_chip(currency_id: String, icon_id: String, rect: Rect2) -> void:

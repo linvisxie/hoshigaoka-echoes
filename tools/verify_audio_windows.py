@@ -21,7 +21,8 @@ with loop.recorder(samplerate=sr,channels=2) as rec:
     silence=rec.record(numframes=sr*2)
     env=dict(os.environ,APPDATA=str(out/'appdata'))
     command=([str(args.exe)] if args.exe else [r'D:\星丘基础\godot\Godot_v4.7.2-stable_win64_console.exe','--path',str(ROOT)])
-    command+=['--resolution','1280x720','--','--scene=battle','--stage=1-5','--autoplay']
+    command+=['--resolution','1280x720']
+    if not args.exe:command+=['--','--scene=battle','--stage=1-5','--autoplay']
     with (out/'game.log').open('w',encoding='utf-8') as log:
         proc=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT)
         try:
@@ -37,6 +38,7 @@ with wave.open(str(out/'windows_loopback.wav'),'wb') as wav:
     wav.setnchannels(2);wav.setsampwidth(2);wav.setframerate(sr);wav.writeframes(pcm.tobytes())
 rms=lambda a:float(np.sqrt(np.mean(a.astype(float)**2)))
 report={'evidenceType':'Windows WASAPI default speaker loopback; automated, not human listening',
+        'requestedScene':'Retail title (no developer scene entry)' if args.exe else 'Development fifth-stage battle',
         'speaker':speaker.name,'physicalMicrophoneUsed':False,'sampleRate':sr,
         'baselineRms':rms(silence),'gameRms':rms(data),'peak':float(np.max(np.abs(data))),
         'clippedSamples':int(np.sum(np.abs(data)>=.999)),

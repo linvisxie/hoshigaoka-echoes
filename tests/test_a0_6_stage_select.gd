@@ -33,13 +33,13 @@ const BACK_ID := "__back__"
 const ALPHA_BADGE := "Alpha 预览 · 未按主线解锁"
 
 ## 标题画面布局预算常量（与 title.gd 对齐，用于重叠核算）
-const MENU_TOP := 436.0
-const MENU_ROW_H := 80.0
-const MENU_GAP := 20.0
+const MENU_TOP := 455.0
+const MENU_ROW_H := 90.0
+const MENU_GAP := 14.0
 const HINT_BASELINE := 1080.0 - 116.0
 const HINT_SIZE := 26.0
 const VERSION_BASELINE := 1080.0 - 48.0
-const TITLE_SUB_BASELINE := 392.0
+const TITLE_SUB_BASELINE := 382.0
 
 
 func after_each() -> void:
@@ -352,7 +352,7 @@ func test_07_scene_rows_match_data_source() -> void:
 #  用例 8：标题画面接线与垂直预算
 # ============================================================
 
-func test_08_title_menu_has_stage_select_and_no_overlap() -> void:
+func test_08_title_concept_menu_and_campus_stage_select() -> void:
 	var consts: Dictionary = (load(TITLE_SCRIPT) as GDScript).get_script_constant_map()
 	var items: Array = consts["MENU_ITEMS"]
 
@@ -369,15 +369,15 @@ func test_08_title_menu_has_stage_select_and_no_overlap() -> void:
 			assert_false(bool(item["disabled"]), "「关卡选择」必须是可点项")
 			assert_eq(str(item["zh"]), "关卡选择", "中文标签应为「关卡选择」")
 			assert_eq(str(item["en"]), "STAGE SELECT", "英文标签应为 STAGE SELECT")
-	assert_true(has_stage_select, "标题菜单应含 stage_select 项")
-	assert_eq(items.size(), 5, "标题菜单应为 5 行（实际 %d）" % items.size())
+	assert_false(has_stage_select, "V3 概念图四项标题菜单，关卡选择移至校园")
+	assert_eq(items.size(), 4, "标题菜单应为 4 行（实际 %d）" % items.size())
 
 	# 「继续游戏 / 新游戏」既有行为不得改动
 	assert_eq(str((items[0] as Dictionary)["id"]), "continue", "第 1 行应仍为继续游戏")
 	assert_eq(str((items[1] as Dictionary)["id"]), "new_game", "第 2 行应仍为新游戏")
-	assert_false(bool((items[3] as Dictionary)["disabled"]), "已实现的音量及显示设置应可进入")
+	assert_false(bool((items[2] as Dictionary)["disabled"]), "已实现的音量及显示设置应可进入")
 	assert_true(ResourceLoader.exists("res://scenes/menus/settings.tscn"))
-	assert_eq(str((items[4] as Dictionary)["id"]), "quit", "最后一行应仍为退出游戏")
+	assert_eq(str((items[3] as Dictionary)["id"]), "quit", "最后一行应仍为退出游戏")
 
 	# 布局常量必须与下方等式一致（防止只改代码不改注释 / 只改注释不改代码）
 	assert_eq(float(consts["MENU_TOP"]), MENU_TOP, "MENU_TOP 应与预算等式一致")
@@ -389,8 +389,8 @@ func test_08_title_menu_has_stage_select_and_no_overlap() -> void:
 	# ---- 垂直预算：菜单 / 提示行 / 版本行互不重叠 ----
 	var n := items.size()
 	var bottom := MENU_TOP + float(n) * MENU_ROW_H + float(n - 1) * MENU_GAP
-	assert_eq(bottom, 916.0,
-		"5 行菜单下沿应等于重算后的预算值 916（实际 %.1f）" % bottom)
+	assert_eq(bottom, 857.0,
+		"4 行菜单下沿应为 857（实际 %.1f）" % bottom)
 
 	var hint_top := HINT_BASELINE - HINT_SIZE + 7.0
 	assert_lt(bottom, hint_top,
