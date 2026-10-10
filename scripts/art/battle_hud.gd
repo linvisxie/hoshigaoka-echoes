@@ -168,15 +168,27 @@ func _build_cards() -> void:
 		strip.color = Color(0.02,0.035,0.08,0.92)
 		strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		b.add_child(strip)
-		var key := _label(b, str(i+1), Rect2(12,10,34,31), 23)
-		key.add_theme_stylebox_override("normal", GameSkin.panel())
-		var cost := _label(b, "", Rect2(130,9,66,36), 29, GameSkin.BLUE)
+		var key := _label(b, str(i+1), Rect2(12,10,34,38), 23)
+		var key_style := GameSkin.panel(Color("14213a"),Color("52678e"))
+		key_style.set_content_margin_all(0)
+		key_style.set_corner_radius_all(5)
+		key_style.shadow_size = 0
+		key.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		key.add_theme_stylebox_override("normal", key_style)
+		var cost_badge := _panel(b, Rect2(118,10,82,40), GameSkin.BLUE)
+		var cost_style := GameSkin.panel(Color("0c1930"),Color("52678e"))
+		cost_style.set_content_margin_all(0)
+		cost_style.set_corner_radius_all(5)
+		cost_style.shadow_size = 0
+		cost_badge.add_theme_stylebox_override("panel",cost_style)
+		_texture(cost_badge,ArtRegistry.icon("icon_ap",64),Rect2(7,8,24,24))
+		var cost := _label(cost_badge, "", Rect2(31,0,43,40), 27, GameSkin.BLUE)
 		cost.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		var name_label := _label(b, str(cfg.get("name","")), Rect2(12,154,186,35), 26)
 		var status := _label(b, "", Rect2(12,188,186,30), 21, role)
 		var hp := _bar(b, Rect2(10,224,190,5), GameSkin.GREEN)
 		var cd := _bar(b, Rect2(10,233,190,4), GameSkin.GOLD)
-		cards.append({"id":cid,"button":b,"image":image,"strip":strip,"cost":cost,"name":name_label,"status":status,"hp":hp,"cd":cd,"role":role,"key":key})
+		cards.append({"id":cid,"button":b,"image":image,"strip":strip,"cost":cost,"cost_badge":cost_badge,"name":name_label,"status":status,"hp":hp,"cd":cd,"role":role,"key":key})
 
 func _build_selected() -> void:
 	selected = _panel(normal, Rect2(1346,746,550,310), GameSkin.GOLD)
@@ -343,7 +355,7 @@ func _update_card(card: Dictionary, index: int, factor: float) -> void:
 	(card.image as Control).size = Vector2(width-16,145)
 	(card.strip as Control).position = Vector2(6,150)
 	(card.strip as Control).size = Vector2(width-12,90)
-	(card.cost as Control).position.x = width-78
+	(card.cost_badge as Control).position.x = width-92
 	(card.hp as Control).size.x = width-20
 	(card.cd as Control).size.x = width-20
 	var cid := str(card.id)

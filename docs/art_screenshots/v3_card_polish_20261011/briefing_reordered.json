@@ -1,0 +1,13 @@
+{
+  "evidenceType": "real Windows client screenshot, automated operation (not human playtest)",
+  "captured": "2026-10-11T06:06:11.247490",
+  "clientPhysicalPixels": [
+    1280,
+    720
+  ],
+  "context": {
+    "binary": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_card_polish_20261011\\HoshigaokaEchoes.exe",
+    "input": "real Windows mouse/keyboard; automated"
+  },
+  "image": "D:\\星丘残响\\_testenv\\v3-round6\\retail\\briefing_reordered.png"
+}

@@ -1,0 +1,11 @@
+{
+  "binary": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_card_polish_20261011\\HoshigaokaEchoes.exe",
+  "realWindowsInput": true,
+  "stage": "1-5",
+  "deployment": true,
+  "pause": true,
+  "saveIsolated": true,
+  "normalExit": true,
+  "binarySha256": "a1843963d2daf87a09a1ed41e646cff3abe052a35127ea518a911a4a9b316af6",
+  "pckSha256": "dd8b7e0727f6b099adec13a3cfbcbd23b7269e967af0dfd46cce447566b48d0f"
+}
