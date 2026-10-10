@@ -128,5 +128,33 @@ python tools\windows_art_capture.py --output _testenv\a06_capture\repro `
   它证明"真实窗口在真实鼠标事件下呈现出正确画面"，**不等于**真人试玩体验验收。
 - `stderr.log`（442 B）是**正确告警**：1-5 无治疗角色上阵，故 `vfx_heal` 从未触发；
   非缺陷，与既有 A0.6 结论一致。
-- 本轮**未**重新导出 EXE（源码未冻结）；构建与包内容核验见
-  `tools/a0_6_export.py` 与 `dist/a0_6/export_report.json`。
+- 上述截图取自**编辑器/开发路径**（`--stage 1-5` 直启），不是从 Retail EXE 点进去的。
+
+---
+
+## 7. 构建产物：为什么是两份（重要）
+
+本轮导出**两份**构建，因为它们的可达性不同：
+
+| 构建 | preset | 目录 | 关卡选择「直选」 | 能否到达 1-5 |
+| --- | --- | --- | --- | --- |
+| Retail（正式发行入口） | `Windows Retail` | `dist/a0_6/` | `直选=false` | **不行**（严格主线解锁，需先通关 1-4） |
+| Prototype（可玩验收入口） | `Windows Desktop` | `dist/a0_6_play/` | `直选=true` | **可以**（Alpha 预览直选，带诚实徽标） |
+
+依据：真实存档 `savegame.json` 里 `stages` 只通关过 **1-1**，
+而 Retail 分支按主线严格解锁 → 点 1-5 会被拒（日志：`关卡 1-5 为未解锁态（需先通关 1-4）`）。
+因此若只交付 Retail，用户双击后**到不了本轮目标关卡 1-5**。
+
+Retail 仍然保留（它是诚实的正式构建，不因验收方便而放宽解锁）；
+Prototype 作为「本轮目标可玩」的入口，其直选能力在关卡选择界面会打上
+「Alpha 预览·未按主线解锁」徽标，**不伪装成已解锁**。
+
+两份产物的核验结果完全一致（367 条目全量 md5 allMatch、`data/upgrades.json`
+逐字节同源且 6 条定义、`tests/`+`addons/gut/`+`tools/`+`docs/` 条目全 0、
+历史基线 mtime 未变、title+battle+stage_select 三路冒烟零 SCRIPT ERROR）。
+两者 PCK 的 SHA256 **不同**（预期内：`custom_features` 一个是 `prototype`、一个是 `retail`），
+exe 因同为同一模板而未变。
+
+三路冒烟中的 `stage_select` 断言按 preset **分别**校验：Prototype 必须出现
+`直选=true`、Retail 必须出现 `直选=false`——已用故意写错的期望值反向验证过该断言
+**确实会失败**（不是永真的空检查）。

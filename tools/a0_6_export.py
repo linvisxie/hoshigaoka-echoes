@@ -23,6 +23,16 @@ EXE_NAME = 'HoshigaokaEchoes.exe'
 PCK_NAME = 'HoshigaokaEchoes.pck'
 PROTECTED = ['dist/retail', 'dist/retail2', 'dist/windows']
 
+# Preset name -> output dir. Retail is the shipping entry point; the Prototype
+# build ships alongside it because the Retail branch enforces strict main-line
+# gating, so a fresh profile cannot reach 1-5 through the level-select screen.
+# Each preset gets its OWN directory: neither may overwrite the other, and
+# neither may touch the historical baselines in PROTECTED.
+PRESET_OUT_DIRS = {
+    'Windows Retail': ROOT / 'dist' / 'a0_6',
+    'Windows Desktop': ROOT / 'dist' / 'a0_6_play',
+}
+
 # --- requirement: must be inside the pack / must NOT be inside the pack -------
 MUST_INCLUDE = ['data/upgrades.json']
 MUST_EXCLUDE_PREFIX = ['tests/', 'addons/gut/', 'tools/', 'docs/']
@@ -224,15 +234,21 @@ def seed_export_templates(appdata_root):
     return report
 
 
-def export(report):
+def export(report, preset=PRESET_NAME, out_dir=OUT_DIR):
     if not GODOT.is_file():
         raise SystemExit(f'Godot not found: {GODOT}')
     missing = [p for p in PROTECTED if not (ROOT / p).is_dir()]
     if missing:
         raise SystemExit(f'Refuse: expected baseline dirs missing {missing}')
+    # Guard: never let a preset's own export_path dir collide with a protected
+    # historical baseline, whatever names are passed in.
+    resolved = Path(out_dir).resolve()
+    for p in PROTECTED:
+        if resolved == (ROOT / p).resolve():
+            raise SystemExit(f'Refuse: output dir {resolved} is a protected baseline')
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    exe, pck = OUT_DIR / EXE_NAME, OUT_DIR / PCK_NAME
+    out_dir.mkdir(parents=True, exist_ok=True)
+    exe, pck = out_dir / EXE_NAME, out_dir / PCK_NAME
     before = {p: (ROOT / p / EXE_NAME).stat().st_mtime for p in PROTECTED
               if (ROOT / p / EXE_NAME).is_file()}
     for stale in (exe, pck):
@@ -240,27 +256,27 @@ def export(report):
             stale.unlink()
 
     # Godot writes editor/import state under APPDATA; keep the real profile clean.
-    appdata = OUT_DIR / '_appdata'
+    appdata = out_dir / '_appdata'
     appdata.mkdir(parents=True, exist_ok=True)
     report['templates'] = seed_export_templates(appdata)
     env = dict(os.environ, APPDATA=str(appdata))
-    import_ok = run_godot(['--headless', '--path', str(ROOT), '--import'], env,
-                          OUT_DIR / 'import.log')
-    report['import'] = import_ok
+    report['import'] = run_godot(['--headless', '--path', str(ROOT), '--import'], env,
+                                 out_dir / 'import.log')
     cmd = [str(GODOT), '--headless', '--path', str(ROOT),
-           '--export-release', PRESET_NAME, str(exe)]
+           '--export-release', preset, str(exe)]
     stamp = datetime.datetime.now().isoformat()
-    with (OUT_DIR / 'export.log').open('w', encoding='utf-8') as log:
+    with (out_dir / 'export.log').open('w', encoding='utf-8') as log:
         proc = subprocess.run(cmd, cwd=ROOT, env=env, stdout=log,
                               stderr=subprocess.STDOUT, timeout=900)
-    text = (OUT_DIR / 'export.log').read_text(encoding='utf-8', errors='replace')
+    text = (out_dir / 'export.log').read_text(encoding='utf-8', errors='replace')
     report['export'] = {'cmd': cmd, 'exitCode': proc.returncode,
+                        'preset': preset, 'outDir': str(out_dir),
                         'started': stamp,
                         'logTail': text[-2000:],
                         'errors': [ln for ln in text.splitlines()
                                    if 'ERROR' in ln or 'error:' in ln][:20]}
     if not exe.is_file() or not pck.is_file():
-        raise SystemExit(f'Export produced no artifacts (exit {proc.returncode}); see dist/a0_6/export.log')
+        raise SystemExit(f'Export produced no artifacts (exit {proc.returncode}); see {out_dir}/export.log')
     after = {p: (ROOT / p / EXE_NAME).stat().st_mtime for p in PROTECTED
              if (ROOT / p / EXE_NAME).is_file()}
     report['baselinesUntouched'] = {'before': before, 'after': after, 'equal': before == after}
@@ -283,7 +299,7 @@ def run_godot(args, env, log):
                              if 'SCRIPT ERROR' in ln or 'Parse Error' in ln][:10]}
 
 
-def launch_smoke(exe, report, seconds=10.0):
+def launch_smoke(exe, report, seconds=10.0, out_dir=OUT_DIR, scenes=None, expect=None):
     """Prove the exported EXE is double-click runnable: actually start it.
 
     Runs with an ISOLATED APPDATA (the game writes save/settings under
@@ -291,24 +307,37 @@ def launch_smoke(exe, report, seconds=10.0):
     asserts the process stays alive and logs no script/parse error. This is a
     liveness probe on the real shipped binary, not on the editor.
 
-    TWO scenes are exercised on purpose. The title screen alone is not enough:
-    export tokenises scripts without necessarily failing on a script that does
-    not parse, so a broken battle_scene.gd ships happily and only blows up when
-    that scene is actually loaded. Running the battle scene too is what turns
-    "the exe starts" into "the shipped scripts actually run".
+    The title screen alone is NOT enough: export tokenises scripts without
+    necessarily failing on a script that does not parse, so a broken
+    battle_scene.gd ships happily and only blows up when that scene is loaded.
+    That is why the battle scene is exercised too.
+
+    `scenes` controls which paths run; `expect` maps a run name to a list of
+    literal log substrings that must appear (currently used to assert the level
+    select screen really became ready, i.e. the user can reach 1-5).
     """
-    smoke_dir = OUT_DIR / '_smoke'
+    scenes = scenes or [('title', []), ('battle', ['--', '--scene=battle', '--autoplay'])]
+    expect = expect or {}
+    smoke_dir = out_dir / '_smoke'
     smoke_dir.mkdir(parents=True, exist_ok=True)
     runs = {}
-    for name, extra in (('title', []), ('battle', ['--', '--scene=battle', '--autoplay'])):
+    for name, extra in scenes:
         runs[name] = _run_once(exe, smoke_dir, name, extra, seconds)
+        wants = expect.get(name)
+        if wants:
+            text = (smoke_dir / f'{name}.log').read_text(encoding='utf-8', errors='replace')
+            runs[name]['expect'] = {
+                label: (label in text) for label in wants
+            }
+            runs[name]['expectAllMet'] = all(runs[name]['expect'].values())
+            runs[name]['launchable'] = runs[name]['launchable'] and runs[name]['expectAllMet']
     report['launchSmoke'] = runs
-    # The scene most likely to expose a broken build is the battle scene; the
-    # build is only launchable if both runs stay up and neither logs a script error.
     report['launchSmokeVerdict'] = {
         'launchable': all(r['launchable'] for r in runs.values()),
         'stayedAlive': all(r['stayedAlive'] for r in runs.values()),
         'scriptErrors': {k: v['scriptErrors'] for k, v in runs.items() if v['scriptErrors']},
+        'expectationsMissed': {k: [l for l, ok in (v.get('expect') or {}).items() if not ok]
+                               for k, v in runs.items() if v.get('expect') and not v['expectAllMet']},
     }
     return runs
 
@@ -351,6 +380,12 @@ def _run_once(exe, smoke_dir, name, extra, seconds):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument('--preset', default=PRESET_NAME,
+                    help=f'Export preset name from export_presets.cfg '
+                         f'(default {PRESET_NAME!r}). The output directory is '
+                         f'derived from it: {PRESET_OUT_DIRS}')
+    ap.add_argument('--out-dir', type=Path, default=None,
+                    help='Override the derived output directory')
     ap.add_argument('--verify-only', type=Path, default=None,
                     help='Skip export; parse and report on an existing .pck')
     ap.add_argument('--json', type=Path, default=None, help='Where to write the report')
@@ -358,9 +393,13 @@ def main():
                     help='Skip starting the exported exe')
     ap.add_argument('--smoke-seconds', type=float, default=10.0)
     a = ap.parse_args()
+
+    # With no --preset the module-level default is used, so the previous
+    # invocation style (and its Retail -> dist/a0_6 mapping) is unchanged.
+    out_dir = (a.out_dir or PRESET_OUT_DIRS.get(a.preset) or OUT_DIR).resolve()
     started = time.monotonic()
     report = {'tool': 'tools/a0_6_export.py',
-              'preset': PRESET_NAME, 'root': str(ROOT),
+              'preset': a.preset, 'outDir': str(out_dir), 'root': str(ROOT),
               'started': datetime.datetime.now().isoformat()}
 
     if a.verify_only:
@@ -369,10 +408,21 @@ def main():
             raise SystemExit(f'No such pck: {pck}')
         verify(pck, None, report)
     else:
-        exe, pck = export(report)
+        exe, pck = export(report, a.preset, out_dir)
         verify(pck, exe, report)
         if not a.no_launch_smoke:
-            launch_smoke(exe, report, a.smoke_seconds)
+            # Both presets must boot stage_select, but the *direct-select* flag is
+            # the whole reason the Prototype build exists: Retail gates levels
+            # behind main-line clears, so a fresh profile cannot reach 1-5 there.
+            # Asserting the flag per preset makes that difference machine-checked
+            # instead of something a human has to eyeball in the log.
+            direct = 'true' if a.preset == 'Windows Desktop' else 'false'
+            launch_smoke(exe, report, a.smoke_seconds, out_dir,
+                         scenes=[('title', []),
+                                 ('battle', ['--', '--scene=battle', '--autoplay']),
+                                 ('stage_select', ['--', '--scene=stage_select'])],
+                         expect={'stage_select': ['StageSelect | 关卡选择就绪',
+                                                  f'直选={direct}']})
 
     # ---- verdict -------------------------------------------------------------
     problems = []
@@ -397,12 +447,20 @@ def main():
     if smoke and not smoke.get('launchable'):
         problems.append(f"exported exe not launchable: stayedAlive={smoke.get('stayedAlive')} "
                         f"scriptErrors={smoke.get('scriptErrors')}")
+    if smoke and smoke.get('expectationsMissed'):
+        problems.append(f"smoke log expectations not met: {smoke['expectationsMissed']}")
+    # The Prototype build exists to make 1-5 reachable; the whole point is that
+    # the level-select screen boots. Assert its readiness line actually appeared
+    # rather than trusting that "the scene was requested".
+    ss = (report.get('launchSmoke') or {}).get('stage_select')
+    if ss is not None and not ss.get('expectAllMet'):
+        problems.append(f"stage_select did not report ready; expect={ss.get('expect')}")
     report['problems'] = problems
     report['verdict'] = 'PASS' if not problems else 'FAIL'
     report['elapsedSec'] = round(time.monotonic() - started, 1)
     report['finished'] = datetime.datetime.now().isoformat()
 
-    target = a.json or (OUT_DIR / 'export_report.json')
+    target = a.json or (out_dir / 'export_report.json')
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
 

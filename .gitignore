@@ -47,3 +47,8 @@ crash_*.txt
 
 # 证据截图不参与资源管线（docs 已从导出排除）
 docs/**/*.import
+
+# --- Python 工具链缓存（tools/ 下的取证与验收脚本）---
+# 这些脚本每次运行都会生成 __pycache__/，它属于本机执行产物而非工程内容。
+__pycache__/
+*.pyc
