@@ -460,8 +460,8 @@ func test_first_clear_currency_values_unchanged() -> void:
 func test_budget_total_unchanged_by_hardening() -> void:
 	var total := StageRewardService.first_clear_budget_total()
 	assert_eq(int(total["club_badge"]), 6, "社团徽章全章应为 6")
-	assert_eq(int(total["school_coin"]), 2800, "已配置 5 关的学园币应为 2800")
-	assert_eq(int(total["study_record_exp"]), 5000, "已配置 5 关的学习记录应为 5000 EXP")
+	assert_eq(int(total["school_coin"]), 5200, "十关学园币总预算")
+	assert_eq(int(total["study_record_exp"]), 8500, "十关学习记录总预算")
 
 
 # ============================================================

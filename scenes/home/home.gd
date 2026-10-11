@@ -22,8 +22,8 @@ func _ready() -> void:
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button_at("继续主线   →",Rect2(110,790,540,85),func() -> void: CampaignFlow.open_stage(next),true).grab_focus()
 	else:
-		label_at("观测会，成立。",Rect2(110,465,540,85),44)
-		var note := label_at("前五次调查已收入学生手册。\n凛已加入重访阵容，协助调度 AP。\n可在 1-3～1-5 重访时与她并肩调查。",Rect2(110,600,510,150),28,MUTED)
+		label_at("那些声音，已被听见。",Rect2(110,465,540,85),40)
+		var note := label_at("第一章十次调查已收入学生手册。\n千夏正式加入观测会，可参与后半章重访。\n文化祭的故事，留待下一次放课后。",Rect2(110,600,510,150),28,MUTED)
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button_at("重温已开放关卡",Rect2(110,790,540,85),func() -> void: SceneRouter.go_to("stage_select"),true).grab_focus()
 	panel(Rect2(1260,300,570,625),BLUE)

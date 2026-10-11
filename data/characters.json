@@ -138,7 +138,9 @@
       "deployCost": 14,
       "redeployTime": 20.0,
       "damageType": "PHYSICAL",
-      "skillIds": [],
+      "skillIds": [
+        "yui_small_light"
+      ],
       "talentIds": [],
       "unlockStage": "1-6",
       "_unlockStage_spec": "V2.1.4 G-三 / 表 51：小川结衣 1-6 剧情出现并常规可部署。P0.4 不得为测试方便把她解锁到 1-1。",
@@ -147,7 +149,8 @@
         "battleIdle": "char_ogawa_yui_battle_idle_01.png",
         "portrait": "char_ogawa_yui_portrait_01.png"
       },
-      "_spec": "V2.1.4 表 30 小川结衣 / 表 47 第 3 行"
+      "_spec": "V2.1.4 表 30 小川结衣 / 表 47 第 3 行",
+      "weaponType": "MEDICAL"
     },
     {
       "id": "fujiwara_rin",
@@ -190,6 +193,84 @@
       "spriteFramePx": 96,
       "_spec": "V2.1.4 table 47: no normal attack, global AP support. RANGED is the legacy non-blocking runtime category, not an offensive role.",
       "_replayDecision": "2026-10-11: after first-clearing 1-5 and reading its ending, Rin can join replays of 1-3 to 1-5. First-clear teaching sequence remains unchanged."
+    },
+    {
+      "id": "minase_sara",
+      "name": "水濑纱良",
+      "nameShort": "纱良",
+      "grade": "高一",
+      "club": "科学部",
+      "classType": "DEVICE",
+      "behavior": "RANGED",
+      "roleTags": [
+        "RANGED",
+        "SUPPORT"
+      ],
+      "baseStats": {
+        "hp": 650,
+        "attack": 115,
+        "defense": 25
+      },
+      "growthProfileId": "growth_standard",
+      "attackInterval": 1.8,
+      "attackRange": {
+        "shape": "lane_band",
+        "direction": "forward",
+        "rangeTiles": 3.5,
+        "maxLaneDelta": 0
+      },
+      "blockCount": 0,
+      "deployCost": 18,
+      "redeployTime": 22,
+      "damageType": "SPECIAL",
+      "skillIds": [
+        "sara_experiment"
+      ],
+      "talentIds": [
+        "sara_analysis"
+      ],
+      "weaponType": "DEVICE",
+      "unlockStage": "1-8",
+      "spriteFramePx": 96
+    },
+    {
+      "id": "shiraishi_chinatsu",
+      "name": "白石千夏",
+      "nameShort": "千夏",
+      "grade": "高一",
+      "club": "轻音部",
+      "classType": "GUITAR",
+      "behavior": "RANGED",
+      "roleTags": [
+        "RANGED",
+        "SUPPORT"
+      ],
+      "baseStats": {
+        "hp": 700,
+        "attack": 75,
+        "defense": 35
+      },
+      "growthProfileId": "growth_standard",
+      "attackInterval": 1.6,
+      "attackRange": {
+        "shape": "lane_band",
+        "direction": "forward",
+        "rangeTiles": 3,
+        "maxLaneDelta": 0
+      },
+      "blockCount": 0,
+      "deployCost": 15,
+      "redeployTime": 20,
+      "damageType": "SPECIAL",
+      "skillIds": [
+        "chinatsu_beat"
+      ],
+      "talentIds": [
+        "chinatsu_presence"
+      ],
+      "weaponType": "GUITAR",
+      "unlockStage": "1-10",
+      "spriteFramePx": 96
     }
   ],
   "_growth_note": "Alpha A0.1：growthProfileId 指向 character_growth.json 的 growthProfiles[].id。等级只提升 hp/attack/defense/healPower 四项（V2.1.4 H 章三），攻击范围/阻挡数/部署费用不随等级变化。"

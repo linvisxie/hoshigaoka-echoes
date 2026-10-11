@@ -27,6 +27,14 @@ var _talent_configs: Dictionary = {}
 var skill_events: Array[Dictionary] = []
 var _deploy_discount: Dictionary = {}
 var ap_regen_bonus_cap: float = 0.5
+var boss_config: Dictionary = {}
+var boss_state: Dictionary = {}
+var boss_events: Array[Dictionary] = []
+var boss_warnings: Array[Dictionary] = []
+var device_expiry: Dictionary = {}
+var device_owner: Dictionary = {}
+var rank_cooldowns: Dictionary = {}
+var _chapter_rng := RandomNumberGenerator.new()
 
 func configure_skills(domain: Dictionary) -> void:
 	_skill_configs.clear()
@@ -37,6 +45,167 @@ func configure_skills(domain: Dictionary) -> void:
 		_skill_configs[str(config.get("id", ""))] = config.duplicate(true)
 	for character: CharacterRuntime in characters:
 		_assign_skill(character)
+
+func field_character_count() -> int:
+	var count := 0
+	for c: CharacterRuntime in characters:
+		if c.character_id != "sara_device": count += 1
+	return count
+
+func place_experiment(owner_id: int, column: int, lane: int) -> Dictionary:
+	var owner := get_character(owner_id)
+	if paused or not running or owner == null or not owner.skill_ready() or owner.skill_config.get("effect", "") != "DEVICE":
+		return {"ok":false,"reason":"实验装置尚未就绪"}
+	if not BattleTypes.is_valid_column(column) or not BattleTypes.is_valid_lane(lane) or get_character_at(column,lane) != null:
+		return {"ok":false,"reason":"请选择合法空部署格"}
+	var cfg := owner.skill_config
+	# One device per owner; replace only after validating the new cell.
+	for iid: Variant in device_owner.keys():
+		if int(device_owner[iid]) == owner_id:
+			_expire_device(int(iid))
+	var device_cfg := {"id":"sara_device","name":"实验装置","behavior":"FRONTLINE","baseStats":{"hp":int(cfg.get("deviceHp",480)),"attack":0,"defense":int(cfg.get("deviceDefense",60))},"attackInterval":1.0,"attackRange":{"rangeTiles":0,"maxLaneDelta":0},"blockCount":int(cfg.get("deviceBlock",1)),"damageType":"SPECIAL"}
+	var device := CharacterRuntime.from_config(device_cfg,column,lane,_next_character_instance_id)
+	_next_character_instance_id += 1
+	characters.append(device)
+	character_instances.append(device)
+	device_expiry[device.instance_id] = elapsed_seconds+float(cfg.get("durationSeconds",12))
+	device_owner[device.instance_id] = owner_id
+	owner.skill_cooldown_remaining = float(cfg.get("cooldownSeconds",24))
+	skill_events.append({"instanceId":owner_id,"skillId":cfg.id,"at":elapsed_seconds,"column":column,"lane":lane})
+	return {"ok":true,"name":cfg.get("name","")}
+
+func _expire_device(iid: int) -> void:
+	var device := get_character(iid)
+	if device != null:
+		device.hp = 0
+		# Release relations before removing the occupancy.
+		for enemy: EnemyRuntime in enemies:
+			if enemy.blocked_by_character_id == iid:
+				enemy.blocked_by_character_id = 0
+				enemy.state = BattleTypes.EnemyState.MOVING
+		_remove_character_instance(iid)
+		_append_removal(Removal.RETREATED,"sara_device",iid,device.column,device.lane)
+	device_expiry.erase(iid)
+	device_owner.erase(iid)
+
+func _apply_area_support(source: CharacterRuntime, cfg: Dictionary, duration: float, prefix: String) -> void:
+	for other: CharacterRuntime in characters:
+		if other.instance_id == source.instance_id or other.character_id == "sara_device": continue
+		var lanes := absi(other.lane-source.lane)
+		if lanes > int(cfg.get("maxLaneDelta",1)) or absi(other.column-source.column)+lanes > int(cfg.get("rangeTiles",2)): continue
+		for pair: Array in [["ATTACK_SPEED","attackSpeedPct"],["CD_RECOVERY","cdRecoveryPct"]]:
+			if float(cfg.get(pair[1],0)) == 0: continue
+			other.apply_status_effect_from_config({"effectId":prefix+str(pair[0]),"sourceId":source.character_id,"category":pair[0],"pct":cfg[pair[1]],"durationSeconds":duration},elapsed_seconds)
+
+func chapter_boss() -> EnemyRuntime:
+	for enemy: EnemyRuntime in enemies:
+		if enemy.mechanic.get("kind", "") == "CHAPTER_BOSS" and enemy.is_active(): return enemy
+	return null
+
+func _boss_event(name: String, kind: String = "skill") -> void:
+	boss_events.append({"at":elapsed_seconds,"name":name,"kind":kind,"phase":int(boss_state.get("phase",1))})
+	if boss_events.size()>128: boss_events.pop_front()
+
+func _tick_chapter_mechanics(step: float) -> void:
+	for iid: Variant in device_expiry.keys():
+		if elapsed_seconds >= float(device_expiry[iid]) or get_character(int(iid)) == null: _expire_device(int(iid))
+	for source: CharacterRuntime in characters:
+		if source.talent_config.get("effect","") == "AREA_SPEED": _apply_area_support(source,source.talent_config,.05,"presence")
+	for enemy: EnemyRuntime in enemies:
+		if not enemy.is_active(): continue
+		if enemy.mechanic.get("kind","") == "ANXIETY_AURA":
+			for c: CharacterRuntime in characters:
+				if absf(enemy.logical_x-c.column)+absi(enemy.lane-c.lane)>float(enemy.mechanic.get("radiusTiles",2)): continue
+				for pair: Array in [["ATTACK_SPEED","attackSpeedPct"],["CD_RECOVERY","cdRecoveryPct"]]:
+					c.apply_status_effect_from_config({"effectId":"anxiety_"+str(pair[0]),"sourceId":enemy.enemy_id,"category":pair[0],"pct":enemy.mechanic[pair[1]],"durationSeconds":.05},elapsed_seconds)
+		elif enemy.mechanic.get("kind","") == "RANK_COMPARE":
+			var remaining := float(rank_cooldowns.get(enemy.instance_id,enemy.mechanic.get("intervalSeconds",8)))-step
+			if remaining<=0:
+				var target: CharacterRuntime=null
+				for c: CharacterRuntime in characters:
+					if absf(enemy.logical_x-c.column)+absi(enemy.lane-c.lane)>float(enemy.mechanic.get("rangeTiles",3.5)): continue
+					if target==null or c.effective_attack()>target.effective_attack(): target=c
+				if target!=null:
+					target.apply_status_effect_from_config({"effectId":"rank_compare","sourceId":enemy.enemy_id,"category":"ATTACK","pct":enemy.mechanic.get("attackPct",-.15),"durationSeconds":enemy.mechanic.get("durationSeconds",5)},elapsed_seconds)
+					remaining=float(enemy.mechanic.get("intervalSeconds",8))
+			rank_cooldowns[enemy.instance_id]=remaining
+	# Recalculate temporary speed from baseline; expired boosts cannot persist.
+	for enemy: EnemyRuntime in enemies:
+		var boost := 0.0
+		if enemy.time_up_triggered: boost = maxf(boost,float(enemy.time_up_config().get("moveSpeedPct",0)))
+		if elapsed_seconds < float(boss_state.get("anxietyUntil",-1)) and enemy.lane == int(boss_state.get("anxietyLane",-1)): boost += float(boss_config.get("anxietySpeedPct",.3))
+		enemy.move_speed = enemy.base_move_speed*(1+boost)
+	var boss := chapter_boss()
+	if boss == null:
+		if not boss_state.is_empty(): boss_warnings.clear()
+		return
+	if boss_state.is_empty():
+		boss_state={"born":elapsed_seconds,"phase":1,"standard":elapsed_seconds+float(boss_config.get("standardInterval",12)),"compare":elapsed_seconds+float(boss_config.get("comparisonInterval",15)),"anxiety":elapsed_seconds+float(boss_config.get("anxietyInterval",12)),"mistake":elapsed_seconds+float(boss_config.get("mistakeInterval",18)),"ranking":elapsed_seconds+float(boss_config.get("rankingInterval",15))}
+		_boss_event("无名优等生 · 正常考试","entrance")
+	var thresholds: Array = boss_config.get("phaseThresholds",[.6,.3])
+	var ratio := float(boss.hp)/maxf(1,boss.hp_max)
+	var phase := 3 if ratio<float(thresholds[1]) else (2 if ratio<float(thresholds[0]) else 1)
+	if phase > int(boss_state.phase):
+		boss_state.phase=phase
+		boss_warnings.clear()
+		boss_state.anxietyUntil=-1
+		for c: CharacterRuntime in characters:
+			c.status_effects = c.status_effects.filter(func(effect: StatusEffect) -> bool: return not effect.effect_id.begins_with("boss_"))
+		var first_cast := elapsed_seconds+float(boss_config.get("phaseFirstCastSeconds",3))
+		for timer: String in ["standard","compare","anxiety","mistake","ranking"]: boss_state[timer]=first_cast
+		_boss_event("排名焦虑" if phase==2 else "最后五分钟","phase")
+	if phase==3:
+		boss.move_speed *= 1+float(boss_config.get("finalMovePct",.4))
+		boss.attack_interval = float((_enemy_configs[boss.enemy_id] as Dictionary).get("attackInterval",2))/(1+float(boss_config.get("finalAttackSpeedPct",.2)))
+	var age := elapsed_seconds-float(boss_state.born)
+	if age>float(boss_config.get("enrageSeconds",480)):
+		boss.move_speed *= 1+(age-float(boss_config.get("enrageSeconds",480)))/60
+	for warning: Dictionary in boss_warnings.duplicate():
+		if elapsed_seconds<float(warning.due): continue
+		if warning.kind=="standard":
+			for i: int in range(2):
+				var spawn := EnemyRuntime.from_config(_enemy_configs["echo_normal"],int(warning.lane),_next_enemy_instance_id,boss.wave_number,true,boss.instance_id)
+				_next_enemy_instance_id+=1
+				spawn.logical_x=BattleGrid.SPAWN_X+float(i)*.25
+				enemies.append(spawn)
+		else:
+			for c: CharacterRuntime in characters:
+				if absf(float(c.column)-float(warning.column))+absf(float(c.lane)-float(warning.lane)) <= float(boss_config.get("mistakeRadius",1)):
+					var damage := c.take_damage(combat_math.compute_damage(float(boss_config.get("mistakeDamage",220)),c.defense,CombatMath.DamageType.SPECIAL))
+					_record_damage_event(false,c.instance_id,damage,c.hp<=0,"enemy",boss.instance_id,Vector2(boss.logical_x,boss.lane),Vector2(c.column,c.lane),CombatMath.DamageType.SPECIAL,true)
+		boss_warnings.erase(warning)
+	if phase in [1,3] and elapsed_seconds >= float(boss_state.standard):
+		var lane := _chapter_rng.randi_range(0,2)
+		boss_state.standardCount=int(boss_state.get("standardCount",0))+1
+		boss_warnings.append({"kind":"standard","lane":lane,"born":elapsed_seconds,"due":elapsed_seconds+float(boss_config.get("warningSeconds",3))})
+		boss_state.standard=elapsed_seconds+float(boss_config.get("finalSummonInterval",12) if phase==3 else boss_config.get("standardInterval",12))
+		_boss_event("最后五分钟 · 残响汇聚" if phase==3 else "标准答案 · 增援预告")
+	if phase==1 and elapsed_seconds >= float(boss_state.compare) and not characters.is_empty():
+		var ranked: Array[CharacterRuntime]=characters.duplicate()
+		ranked.sort_custom(func(a: CharacterRuntime,b: CharacterRuntime) -> bool: return a.effective_attack()>b.effective_attack())
+		ranked[0].apply_status_effect_from_config({"effectId":"boss_compare","category":"ATTACK","pct":float(boss_config.get("comparisonPct",-.15)),"durationSeconds":float(boss_config.get("comparisonDuration",5))},elapsed_seconds)
+		boss_state.compare=elapsed_seconds+float(boss_config.get("comparisonInterval",15))
+		_boss_event("比较 · 最高攻击角色被标记")
+	if phase==2 and elapsed_seconds>=float(boss_state.anxiety):
+		boss_state.anxietyLane=_chapter_rng.randi_range(0,2)
+		boss_state.anxietyUntil=elapsed_seconds+float(boss_config.get("anxietyDuration",6))
+		boss_state.anxiety=elapsed_seconds+float(boss_config.get("anxietyInterval",12))
+		_boss_event("排名焦虑 · 路线加速")
+	if phase==2 and elapsed_seconds>=float(boss_state.mistake) and not characters.is_empty():
+		var target: CharacterRuntime=characters[_chapter_rng.randi_range(0,characters.size()-1)]
+		boss_state.mistakeCount=int(boss_state.get("mistakeCount",0))+1
+		boss_warnings.append({"kind":"mistake","column":target.column,"lane":target.lane,"born":elapsed_seconds,"due":elapsed_seconds+float(boss_config.get("warningSeconds",3))})
+		boss_state.mistake=elapsed_seconds+float(boss_config.get("mistakeInterval",18))
+		_boss_event("错题 · 3秒后区域爆发")
+	if phase==3 and elapsed_seconds>=float(boss_state.ranking):
+		var candidates := characters.duplicate()
+		for i: int in range(mini(2,characters.size())):
+			var index := _chapter_rng.randi_range(0,candidates.size()-1)
+			var chosen: CharacterRuntime = candidates.pop_at(index)
+			chosen.apply_status_effect_from_config({"effectId":"boss_ranking","category":"ATTACK","pct":float(boss_config.get("rankingPct",-.25)),"durationSeconds":float(boss_config.get("rankingDuration",6))},elapsed_seconds)
+		boss_state.rankingCount=int(boss_state.get("rankingCount",0))+1
+		boss_state.ranking=elapsed_seconds+float(boss_config.get("rankingInterval",15))
+		_boss_event("排名公布 · 两名角色攻击降低")
 
 func _assign_skill(character: CharacterRuntime) -> void:
 	var cfg: Dictionary = _character_configs.get(character.character_id, {})
@@ -67,6 +236,19 @@ func cast_skill(instance_id: int) -> Dictionary:
 		character.skill_charged = true
 	elif kind == "AP_GAIN":
 		add_ap(int(cfg.get("apGain", 0)))
+	elif kind == "AREA_HEAL":
+		for other: CharacterRuntime in characters:
+			if other.character_id == "sara_device" or not _is_in_heal_range(character, other):
+				continue
+			var amount := other.receive_healing(character.compute_heal_amount(float(cfg.get("healMultiplier", 1))))
+			if amount > 0:
+				character.total_healing_done += amount
+				total_healing_done += amount
+				heal_events.append({"healerId":instance_id,"targetId":other.instance_id,"amount":amount,"at":elapsed_seconds})
+	elif kind == "AREA_BUFF":
+		_apply_area_support(character, cfg, float(cfg.get("durationSeconds", 10)), "beat")
+	elif kind == "DEVICE":
+		return {"ok":false,"reason":"请选择空部署格放置实验装置","needsCell":true}
 	else:
 		return {"ok": false, "reason": "技能效果尚未实现"}
 	character.skill_cooldown_remaining = float(cfg.get("cooldownSeconds", 0))
@@ -273,6 +455,8 @@ static func from_config(
 	if sid.is_empty():
 		rt._errors.append("StageConfig 缺少 stageId")
 	rt.stage_id = sid
+	rt._chapter_rng.seed = sid.hash()
+	rt.boss_config = stage_config.get("bossConfig", {}).duplicate(true)
 
 	# ---- 核心 HP ----
 	var core_hp_raw: Variant = stage_config.get("coreHp", null)
@@ -784,7 +968,7 @@ func has_living_enemies() -> bool:
 func living_character_count() -> int:
 	var n := 0
 	for c: CharacterRuntime in characters:
-		if not c.is_incapacitated():
+		if not c.is_incapacitated() and c.character_id != "sara_device":
 			n += 1
 	return n
 
@@ -912,7 +1096,7 @@ func query_deploy(character_id: String, column: int, lane: int) -> DeployResult:
 	# 场上同时部署上限（V2.1.4 LOCKED，L614/L1811/L2113）。置于 AP 判定之前：
 	# 满员时 AP 再够也放不了，先报"上限"比"AP 不足"更准确（AP 会自然回复，
 	# 空位不会自己出现）。启用条件：field_deploy_limit > 0（见字段注释）。
-	if field_deploy_limit > 0 and characters.size() >= field_deploy_limit:
+	if field_deploy_limit > 0 and field_character_count() >= field_deploy_limit:
 		r.reason = DeployReject.FIELD_LIMIT_REACHED
 		r.field_limit = field_deploy_limit
 		r.cost = int(_character_configs[character_id].get("deployCost", 0))
@@ -1592,6 +1776,7 @@ func _step(step: float, reached: Array[EnemyRuntime]) -> void:
 
 	# 5.5 A0.2：敌人机制结算（时间到 / 复制 / 注视）
 	_process_enemy_mechanics(step)
+	_tick_chapter_mechanics(step)
 
 	# 6. 移动
 	_move_enemies(step)
@@ -2140,7 +2325,10 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 		multiplier *= 1.0 + minf(float(c.talent_same_target_hits) * float(c.talent_config.get("bonusPerHitPct", 0.0)), float(c.talent_config.get("maxBonusPct", 0.0)))
 	var atk := float(c.effective_attack()) * _atk_mult(c) * multiplier
 	for target: EnemyRuntime in targets:
-		var dmg := combat_math.compute_damage(atk, target.defense, c.damage_type)
+		var effective_atk := atk
+		if c.talent_config.get("effect", "") == "ARMORED_SPECIAL" and target.defense >= int(c.talent_config.get("defenseThreshold", 80)):
+			effective_atk *= 1.0 + float(c.talent_config.get("damageBonusPct", 0.15))
+		var dmg := combat_math.compute_damage(effective_atk, target.defense, c.damage_type)
 		var applied := target.take_damage(dmg)
 		c.total_damage_dealt += applied
 		_record_damage_event(true, target.instance_id, applied, target.hp <= 0,
@@ -2148,6 +2336,18 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 			Vector2(target.logical_x, target.lane), c.damage_type, skill_attack)
 		GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
 			% [c.display_name, target.enemy_id, applied, target.hp])
+		if c.talent_config.get("effect", "") == "ARMORED_SPECIAL":
+			for other: EnemyRuntime in enemies:
+				if other.instance_id == target.instance_id or not other.is_active() or other.lane != target.lane:
+					continue
+				if absf(other.logical_x-target.logical_x) > float(c.talent_config.get("splashRange", .75)):
+					continue
+				var splash_atk := atk * float(c.talent_config.get("splashMultiplier", .7))
+				if other.defense >= int(c.talent_config.get("defenseThreshold",80)):
+					splash_atk *= 1.0 + float(c.talent_config.get("damageBonusPct",.15))
+				var splash := other.take_damage(combat_math.compute_damage(splash_atk,other.defense,c.damage_type))
+				c.total_damage_dealt += splash
+				_record_damage_event(true,other.instance_id,splash,other.hp<=0,"character",c.instance_id,Vector2(c.column,c.lane),Vector2(other.logical_x,other.lane),c.damage_type)
 	if skill_attack:
 		c.skill_charged = false
 	c.attack_cooldown = c.effective_attack_interval()
@@ -2233,6 +2433,8 @@ func _select_heal_target_for(c: CharacterRuntime) -> CharacterRuntime:
 	var best: CharacterRuntime = null
 	var best_ratio := 2.0
 	for other: CharacterRuntime in characters:
+		if other.character_id == "sara_device":
+			continue
 		if other.instance_id == c.instance_id:
 			continue
 		if not other.is_wounded():

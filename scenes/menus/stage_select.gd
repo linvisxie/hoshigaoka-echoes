@@ -435,22 +435,22 @@ func _build_native_page() -> void:
 			_stage_buttons.append(back)
 			continue
 		var cfg := DataRegistry.get_entry("stages",sid)
-		var x := 75+int(i%3)*600
-		var y := 220+int(i/3)*350
-		var card := _native_page.button_at("",Rect2(x,y,570,310),func() -> void: _activate(i))
+		var x := 75+int(i%4)*450
+		var y := 205+int(i/4)*244
+		var card := _native_page.button_at("",Rect2(x,y,425,225),func() -> void: _activate(i))
 		card.disabled = bool(spec.disabled)
 		card.tooltip_text = str(spec.disabledNote) if card.disabled else "查看关卡情报与出战确认"
 		card.mouse_entered.connect(func() -> void: _set_selected(i))
 		_stage_buttons.append(card)
-		var image := _native_page.texture_at(ArtRegistry.stage_background(sid),Rect2(x+8,y+8,554,160))
+		var image := _native_page.texture_at(ArtRegistry.stage_background(sid),Rect2(x+8,y+8,409,115))
 		image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		image.clip_contents = true
 		if card.disabled: image.modulate = Color(0.38,0.43,0.55)
-		_native_page.label_at("%s  %s" % [sid,cfg.get("stageName","")],Rect2(x+25,y+185,520,55),32,CampusScreen.WHITE if not card.disabled else CampusScreen.MUTED)
+		_native_page.label_at("%s  %s" % [sid,cfg.get("stageName","")],Rect2(x+20,y+135,390,42),28,CampusScreen.WHITE if not card.disabled else CampusScreen.MUTED)
 		var state := "✓ 调查完成" if _cleared_lookup(sid) else (str(spec.disabledNote) if card.disabled else "前往调查  →")
 		if not str(spec.get("badge", "")).is_empty():
 			state = str(spec.badge)
-		_native_page.label_at(state,Rect2(x+25,y+250,520,40),24,CampusScreen.GOLD if _cleared_lookup(sid) else CampusScreen.BLUE)
+		_native_page.label_at(state,Rect2(x+20,y+182,390,35),22,CampusScreen.GOLD if _cleared_lookup(sid) else CampusScreen.BLUE)
 	_native_page.label_at("鼠标选择地点 · 方向键切换 · Enter 确认 · Esc 返回",Rect2(650,984,1180,45),25,CampusScreen.MUTED)
 	_native_page.fade_in_content()
 

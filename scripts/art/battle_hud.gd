@@ -35,6 +35,7 @@ var _feedback_active := false
 var overlays: BattleOverlays
 var tutorial_stack: VBoxContainer
 var tutorial_views: Array[Dictionary] = []
+var boss_hp: ProgressBar
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -47,6 +48,8 @@ func _ready() -> void:
 	normal.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(normal)
 	_build_top()
+	boss_hp = _bar(normal,Rect2(710,139,500,9),GameSkin.RED)
+	boss_hp.visible = false
 	_build_cards()
 	_build_selected()
 	_build_pause()
@@ -317,15 +320,26 @@ func _process(delta: float) -> void:
 	var cfg: Dictionary = battle._stage_config_for_rewards
 	stage_label.text = "%s  %s" % [s.stage_id,str(cfg.get("stageName",""))]
 	stage_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	location_label.text = str({"1-1":"教学楼 · 初次锚定","1-2":"教学楼 · 楼梯平台","1-3":"教学楼 · 测验教室","1-4":"教学楼 · 异常走廊","1-5":"旧体育馆 · 残响汇聚"}.get(s.stage_id,"教学楼"))
+	location_label.text = str({"1-1":"教学楼 · 初次锚定","1-2":"教学楼 · 楼梯平台","1-3":"教学楼 · 测验教室","1-4":"教学楼 · 异常走廊","1-5":"旧体育馆 · 残响汇聚","1-6":"保健室 · 不熄的灯","1-7":"成绩榜 · 比较的回声","1-8":"实验楼 · 无声频率","1-9":"旧档案室 · 空白姓名","1-10":"体育馆 · 核心残响"}.get(s.stage_id,"教学楼"))
 	var danger := s.core_hp <= 1
 	defense.text = "防线  " + "◆ ".repeat(s.core_hp) + "◇ ".repeat(maxi(0,s.core_hp_max-s.core_hp)) + "  %d / %d" % [s.core_hp,s.core_hp_max]
 	defense.add_theme_color_override("font_color",GameSkin.RED if danger else GameSkin.BLUE)
 	var center := normal.get_node("WavePanel") as Control
 	center.position.x = (vp.x-center.size.x)*0.5
 	waves.text = "WAVE  %02d / %02d" % [s.current_wave_number(),s.total_wave_count()]
+	var boss := s.chapter_boss()
+	boss_hp.visible = boss != null
+	if boss != null:
+		waves.text = "BOSS · 无名优等生  /  阶段 %d" % int(s.boss_state.get("phase",1))
+		waves.add_theme_font_size_override("font_size",25)
+		boss_hp.position.x = (vp.x-500)*.5
+		boss_hp.value = float(boss.hp)/maxf(1,boss.hp_max)
 	var next := s.next_wave_preview()
 	preview.text = "最终波 · 清除全部残响体" if next.is_empty() else "下一波  %s · %d 名" % [battle._lanes_text(next["lanes"]),int(next["enemyCount"])]
+	if boss != null:
+		preview.text = "%d / %d HP" % [boss.hp,boss.hp_max]
+		if not s.boss_events.is_empty() and s.elapsed_seconds-float(s.boss_events.back().at)<4:
+			preview.text = str(s.boss_events.back().name)
 	for i: int in range(wave_marks.get_child_count()):
 		(wave_marks.get_child(i) as ColorRect).color = GameSkin.GOLD if i<s.current_wave_number() else Color("354465")
 	var ap := normal.get_node("APPanel") as Control
@@ -348,6 +362,8 @@ func _process(delta: float) -> void:
 	var hint_width := clampf(measured+64,400,760)
 	var hint_height := 98.0 if measured > 696 else 68.0
 	hint.position = Vector2((vp.x-hint_width)*0.5,vp.y-hint_height-28)
+	if cards.size()>3:
+		hint.position = Vector2((vp.x-hint_width)*.5,166)
 	hint.size = Vector2(hint_width,hint_height)
 	hint.add_theme_color_override("font_color",battle._feedback_color if feedback else Color("d8eee9"))
 	hint.modulate.a = clampf(battle._feedback_timer/0.3,0,1) if feedback else 1.0

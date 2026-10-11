@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_6_after",
+  "chapterId": "ch1",
+  "title": "1-6 · 保健室的灯 · 调查后",
+  "background": "bg_env_infirmary_battle",
+  "music": "observation_club",
+  "authorship": "Project original dialogue adapted from V2.1.4 locked chapter events.",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "最后一团影子散去，吊灯终于停止摇晃。"
+    },
+    {
+      "id": "1",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "原来被人照顾的时候，也可以不用说对不起。"
+    },
+    {
+      "id": "2",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "你刚才也是。自己的伤口，还没包扎。"
+    },
+    {
+      "id": "3",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "……被发现了。那可以请你帮我拿一下绷带吗？"
+    },
+    {
+      "id": "4",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "观测会的紧急联络表，还缺一位保健委员。"
+    },
+    {
+      "id": "5",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "写我的名字吧。但也要把你们自己的名字留在“需要帮助的人”那一栏。"
+    },
+    {
+      "id": "6",
+      "speaker": "",
+      "character": "",
+      "text": "结衣关好药柜，没有熄灯。窗台上，一张无署名的排名表缓缓卷起。"
+    }
+  ]
+}

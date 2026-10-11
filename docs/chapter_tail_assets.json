@@ -1,0 +1,232 @@
+[
+  {
+    "name": "bg_env_infirmary_battle",
+    "source": "tools\\source_art\\chapter_tail\\bg_env_infirmary_battle.png",
+    "targets": [
+      "assets\\art\\environments\\bg_env_infirmary_battle.png"
+    ],
+    "sha256": "907e7940ff572c563a1fb19b0b24ad492fa41f01f3bbd5c3101d689cd0a051d7",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "bg_env_ranking_battle",
+    "source": "tools\\source_art\\chapter_tail\\bg_env_ranking_battle.png",
+    "targets": [
+      "assets\\art\\environments\\bg_env_ranking_battle.png"
+    ],
+    "sha256": "7758865a7564cf5b953071b9a8850cbe9b66b8ad5a3474c84058a019e17804a7",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "bg_env_science_battle",
+    "source": "tools\\source_art\\chapter_tail\\bg_env_science_battle.png",
+    "targets": [
+      "assets\\art\\environments\\bg_env_science_battle.png"
+    ],
+    "sha256": "925c8809b24176637199dc451ded965d57d11e9c7768f8e33bb572789b034888",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "bg_env_archive_battle",
+    "source": "tools\\source_art\\chapter_tail\\bg_env_archive_battle.png",
+    "targets": [
+      "assets\\art\\environments\\bg_env_archive_battle.png"
+    ],
+    "sha256": "8fd6a111b42e39da8a97f702e8884d77e5e7c9e260fea60e49b3a0c0467f84a8",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "bg_env_boss_exam",
+    "source": "tools\\source_art\\chapter_tail\\bg_env_boss_exam.png",
+    "targets": [
+      "assets\\art\\environments\\bg_env_boss_exam.png"
+    ],
+    "sha256": "f8979ffd86572e481b348ca383d790a6751e392d56630952d10c11b1c74ec258",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "minase_sara",
+    "source": "tools\\source_art\\chapter_tail\\minase_sara_sheet.png",
+    "targets": [
+      "assets\\art\\characters\\minase_sara\\minase_sara_idle.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_move.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_attack.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_skill.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_deploy.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_hit.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_death.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_victory.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_base.png"
+    ],
+    "sha256": "b9a97822ad7e981662b3381711945bd4c51366a44b2fc1e10c897a034971760d",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "shiraishi_chinatsu",
+    "source": "tools\\source_art\\chapter_tail\\shiraishi_chinatsu_sheet.png",
+    "targets": [
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_idle.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_move.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_attack.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_skill.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_deploy.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_hit.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_death.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_victory.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_base.png"
+    ],
+    "sha256": "a7f3f888892b2a304a17341fb2afe5fe44cf7915f6a0717ed2f5fdb0f87ce300",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "ogawa_yui",
+    "source": "tools\\source_art\\chapter_tail\\ogawa_yui_sheet.png",
+    "targets": [
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_idle.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_move.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_attack.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_skill.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_deploy.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_hit.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_death.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_victory.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_base.png"
+    ],
+    "sha256": "531093a5416a54f38ccb8461755f78595883c0de6825cf5a373ba44c3c45a299",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "boss_model_student",
+    "source": "tools\\source_art\\chapter_tail\\boss_model_student_sheet.png",
+    "targets": [
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_idle.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_move.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_attack.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_skill.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_deploy.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_hit.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_death.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_victory.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_base.png"
+    ],
+    "sha256": "dc67a3951bda96ddd7a0cbffd7860edafb636985a90e26fd32f1cdd6b55e6fd5",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "minase_sara_portrait",
+    "source": "tools\\source_art\\chapter_tail\\minase_sara_portrait.png",
+    "targets": [
+      "assets\\art\\characters\\minase_sara\\minase_sara_portrait_polished.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_portrait_256.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_portrait_64.png"
+    ],
+    "sha256": "9224bd18230698a70061bd9e20b44d6fee3a94b7febd9a7aad5369a951734a9d",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "shiraishi_chinatsu_portrait",
+    "source": "tools\\source_art\\chapter_tail\\shiraishi_chinatsu_portrait.png",
+    "targets": [
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_portrait_polished.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_portrait_256.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_portrait_64.png"
+    ],
+    "sha256": "70dcb549c984cdcbf314cf2098a64bb6971b9e45f64abcffa1a230be40fd4de4",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "ogawa_yui_portrait",
+    "source": "tools\\source_art\\chapter_tail\\ogawa_yui_portrait.png",
+    "targets": [
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_portrait_polished.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_portrait_256.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_portrait_64.png"
+    ],
+    "sha256": "40c5677fd5bfe5845693e0ecc78a79c73b63ecf48995adca5b31ed51cf5eeb73",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "echo_anxiety",
+    "source": "tools\\source_art\\chapter_tail\\echo_anxiety_sheet.png",
+    "targets": [
+      "assets\\art\\enemies\\echo_anxiety\\echo_anxiety_idle.png",
+      "assets\\art\\enemies\\echo_anxiety\\echo_anxiety_move.png",
+      "assets\\art\\enemies\\echo_anxiety\\echo_anxiety_attack.png",
+      "assets\\art\\enemies\\echo_anxiety\\echo_anxiety_skill.png",
+      "assets\\art\\enemies\\echo_anxiety\\echo_anxiety_deploy.png",
+      "assets\\art\\enemies\\echo_anxiety\\echo_anxiety_hit.png",
+      "assets\\art\\enemies\\echo_anxiety\\echo_anxiety_death.png",
+      "assets\\art\\enemies\\echo_anxiety\\echo_anxiety_victory.png",
+      "assets\\art\\enemies\\echo_anxiety\\echo_anxiety_base.png"
+    ],
+    "sha256": "30e999169b10383514c18057d108f107828685088e52d8ea30913e1273ae7e15",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "echo_rank",
+    "source": "tools\\source_art\\chapter_tail\\echo_rank_sheet.png",
+    "targets": [
+      "assets\\art\\enemies\\echo_rank\\echo_rank_idle.png",
+      "assets\\art\\enemies\\echo_rank\\echo_rank_move.png",
+      "assets\\art\\enemies\\echo_rank\\echo_rank_attack.png",
+      "assets\\art\\enemies\\echo_rank\\echo_rank_skill.png",
+      "assets\\art\\enemies\\echo_rank\\echo_rank_deploy.png",
+      "assets\\art\\enemies\\echo_rank\\echo_rank_hit.png",
+      "assets\\art\\enemies\\echo_rank\\echo_rank_death.png",
+      "assets\\art\\enemies\\echo_rank\\echo_rank_victory.png",
+      "assets\\art\\enemies\\echo_rank\\echo_rank_base.png"
+    ],
+    "sha256": "d6fc00762f7e946477a4724fe00107437b6cdff417117959bb903824a8abfa27",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "bg_env_chapter_one_coda",
+    "source": "tools\\source_art\\chapter_tail\\bg_env_chapter_one_coda.png",
+    "targets": [
+      "assets\\art\\environments\\bg_env_chapter_one_coda.png"
+    ],
+    "sha256": "f63f9e5ce4a484284a3a1bead866fa75d72348505055dc61bc53b056d76d7e36",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "sara_device",
+    "source": "tools\\source_art\\chapter_tail\\sara_device_sheet.png",
+    "targets": [
+      "assets\\art\\ui\\sara_device_idle.png"
+    ],
+    "sha256": "a540ecf64ced20114ca55d8380fe41503b7f53e855ef34329779c43415afd69c",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  }
+]

@@ -1,6 +1,24 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-v3-tail",
   "domain": "mementos",
-  "_phase0": "Phase 0 占位。校园纪念物。",
-  "mementos": []
+  "mementos": [
+    {
+      "id": "memento_ch1_boss_cleared",
+      "name": "被划掉的满分试卷",
+      "slot": "MEMENTO",
+      "quality": "EPIC",
+      "description": "第一章首通纪念。每个人的名字，都值得被留下。技能冷却恢复速度+5%。",
+      "primaryStat": {
+        "key": "cdRecovery",
+        "value": 0.05,
+        "_candidate": true,
+        "isPercent": true
+      },
+      "affixes": [],
+      "enhanceMax": 0,
+      "dismantleParts": 0,
+      "unique": true,
+      "_decision": "Original chapter reward effect, uses existing cooldown recovery contract; never randomly dropped."
+    }
+  ]
 }

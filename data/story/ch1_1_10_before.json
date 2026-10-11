@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_10_before",
+  "chapterId": "ch1",
+  "title": "1-10 · 无名优等生 · 调查前",
+  "background": "bg_env_boss_exam",
+  "music": "corridor_pressure",
+  "authorship": "Project original dialogue adapted from V2.1.4 locked chapter events.",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "体育馆里的课桌排到了看不见的地方。成绩环在舞台上空旋转，每一次批改，都抹去一个名字。"
+    },
+    {
+      "id": "1",
+      "speaker": "无名优等生",
+      "character": "",
+      "text": "再好一点。第一。满分。不能失败。"
+    },
+    {
+      "id": "2",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "它说话的时候……为什么听起来这么累。"
+    },
+    {
+      "id": "3",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "这些声音没有唯一来源。是所有人的期待，挤成了一个轮廓。"
+    },
+    {
+      "id": "4",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "别被它的节奏带走。三秒红色预警，先看站位，再决定治疗或撤退。"
+    },
+    {
+      "id": "5",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "如果撑不住，就告诉我。"
+    },
+    {
+      "id": "6",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "后方交给我。"
+    },
+    {
+      "id": "7",
+      "speaker": "白石千夏",
+      "character": "shiraishi_chinatsu",
+      "text": "出口的灯还亮着。我在这里等你们。"
+    },
+    {
+      "id": "8",
+      "speaker": "{player}",
+      "character": "",
+      "text": "我们不是来交一张满分答卷。我们来把大家带回去。"
+    }
+  ]
+}

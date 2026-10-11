@@ -48,9 +48,7 @@ const MAX_SIM_SECONDS := 900.0
 ## 因此它们从「未实现」名单中移除；但**关卡回填由主线负责**，
 ## 1-2～1-5 在这些敌人被正式回填之前仍不得引用它们。
 ## echo_anxiety / echo_rank 仍属未实现（A0.2 范围外），保持在名单内。
-const UNIMPLEMENTED_ENEMIES: Array[String] = [
-	"echo_anxiety", "echo_rank",
-]
+const UNIMPLEMENTED_ENEMIES: Array[String] = []
 
 ## A0.2 已实现但**尚未回填到 1-2～1-5** 的敌人 id。
 ##

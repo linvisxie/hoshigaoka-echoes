@@ -82,6 +82,8 @@ static func template_of(equipment_id: String) -> Dictionary:
 	for t: Dictionary in DataRegistry.get_domain("equipment").get("equipment", []):
 		if str(t.get("id", "")) == equipment_id:
 			return t
+	for t: Dictionary in DataRegistry.get_domain("mementos").get("mementos", []):
+		if str(t.get("id", "")) == equipment_id: return t
 	return {}
 
 
@@ -278,7 +280,7 @@ static func stat_bonus_of(instance: Dictionary) -> Dictionary:
 		var key := str(primary.get("key", ""))
 		var base := float(primary.get("value", 0.0))
 		if not key.is_empty():
-			out[key] = _round_stat(base * (1.0 + 0.1 * float(level)))
+			out[key] = base if bool(primary.get("isPercent",false)) else _round_stat(base * (1.0 + 0.1 * float(level)))
 
 	# 副属性：V2.1.4 L1602「词条数值在同品质内部保持窄区间」——固定值，不随强化变化。
 	for affix_id: Variant in t.get("affixes", []):
@@ -323,7 +325,7 @@ static func fulfill(entitlement_id_value: String, commit_now: bool = true) -> Op
 		return OpResult.new(false, "权益不在待领取列表中（可能已兑现）")
 
 	var kind := str(ent.get("kind", ""))
-	if kind != "EQUIPMENT":
+	if kind not in ["EQUIPMENT","MEMENTO"]:
 		return OpResult.new(false, "该权益类型（%s）不由装备系统兑现" % kind)
 
 	var equipment_id := str(ent.get("itemId", ""))
@@ -367,7 +369,7 @@ static func fulfill_all_equipment(commit_now: bool = true) -> Dictionary:
 	var out := {"fulfilled": [], "skipped": [], "ok": true}
 	var pendings := StageRewardService.pending_entitlements()
 	for ent: Dictionary in pendings:
-		if str(ent.get("kind", "")) != "EQUIPMENT":
+		if str(ent.get("kind", "")) not in ["EQUIPMENT","MEMENTO"]:
 			continue
 		var eid := str(ent.get("entitlementId", ""))
 		var r := fulfill(eid, false)   # 逐个改内存，最后一次落盘
@@ -608,6 +610,8 @@ static func dismantle(instance_id: String, acknowledge_forfeit: bool = false) ->
 
 	var equipment_id := str(inst.get("equipmentId", ""))
 	var parts := int(template_of(equipment_id).get("dismantleParts", 0))
+	if bool(template_of(equipment_id).get("unique",false)):
+		return OpResult.new(false,"章节纪念物不可分解")
 
 	# 若已装配，先解绑
 	var holder := str(inst.get("boundCharacterId", ""))
@@ -700,6 +704,6 @@ static func instance_count() -> int:
 static func pending_equipment_entitlements() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for ent: Dictionary in StageRewardService.pending_entitlements():
-		if str(ent.get("kind", "")) == "EQUIPMENT":
+		if str(ent.get("kind", "")) in ["EQUIPMENT","MEMENTO"]:
 			out.append(ent)
 	return out

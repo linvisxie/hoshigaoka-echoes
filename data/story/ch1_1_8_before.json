@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_8_before",
+  "chapterId": "ch1",
+  "title": "1-8 · 说不出口 · 调查前",
+  "background": "bg_env_science_battle",
+  "music": "corridor_pressure",
+  "authorship": "Project original dialogue adapted from V2.1.4 locked chapter events.",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "实验楼的走廊异常安静。门后的玻璃器皿明明在震动，却没有发出声音。"
+    },
+    {
+      "id": "1",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "我尝试把频率转成文字。结果全是省略号。"
+    },
+    {
+      "id": "2",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "你刚才说向左，我听成了留在这里。"
+    },
+    {
+      "id": "3",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "所以那道门……是我们一起错过的。"
+    },
+    {
+      "id": "4",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "别急着决定是谁的错。现在，我们再说一遍。"
+    },
+    {
+      "id": "5",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "我会加入战斗。这台装置可以撑住一小会儿，但不能代替雨宫前辈。"
+    },
+    {
+      "id": "6",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "沉默封锁技能时，普通攻击仍然有效。留意装置的剩余时间。"
+    },
+    {
+      "id": "7",
+      "speaker": "{player}",
+      "character": "",
+      "text": "这次，我会确认每一个人都听见。"
+    }
+  ]
+}

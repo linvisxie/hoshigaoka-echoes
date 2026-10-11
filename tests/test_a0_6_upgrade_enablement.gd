@@ -79,8 +79,8 @@ func test_stage_1_5_stays_disabled_without_injection() -> void:
 
 func test_unknown_stage_never_enables() -> void:
 	# 未在 openByStage 显式列出的关卡一律不启用（不拿 default 当开放依据）
-	var rt := _rt("1-6", true)
-	assert_null(rt.upgrades, "1-6 未在 openByStage 中列出，不得启用")
+	var rt := _rt("1-11", true)
+	assert_null(rt.upgrades, "Unknown stages must not enable upgrades")
 
 
 func test_bad_upgrade_data_disables_and_reports() -> void:

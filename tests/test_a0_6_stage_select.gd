@@ -24,9 +24,9 @@ const TITLE_SCENE := "res://scenes/title/title.tscn"
 const TITLE_SCRIPT := "res://scenes/title/title.gd"
 
 ## Alpha A0.3 已填充内容的五关（enemySpawnTimeline 非空）
-const IMPLEMENTED: Array[String] = ["1-1", "1-2", "1-3", "1-4", "1-5"]
+const IMPLEMENTED: Array[String] = ["1-1", "1-2", "1-3", "1-4", "1-5", "1-6", "1-7", "1-8", "1-9", "1-10"]
 ## Phase 0 空占位关卡（enemySpawnTimeline 为空）——**不得**出现在可进列表里
-const PLACEHOLDERS: Array[String] = ["1-6", "1-7", "1-8", "1-9", "1-10"]
+const PLACEHOLDERS: Array[String] = []
 
 ## 与 stage_select.gd 对齐的常量（避免在测试里对实例做常量动态取用）
 const BACK_ID := "__back__"
@@ -176,8 +176,9 @@ func test_03_implemented_list_excludes_empty_placeholders() -> void:
 
 	# 非法 id / 取不到配置的 id 不得被列出
 	var none: Array = script.implemented_stage_ids(["", "1-x", "battle"], lookup)
+	assert_false(script.is_implemented({"stageId":"1-11","enemySpawnTimeline":[]}),"Empty future stages remain unavailable")
 	assert_eq(none.size(), 0, "非法 id 与取不到配置的 id 都不得被列出（实际 %s）" % str(none))
-	assert_eq(got.size(), 5, "应恰好列出 5 关（实际 %d）" % got.size())
+	assert_eq(got.size(), 10, "All ten implemented stages are listed")
 
 
 # ============================================================

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_6_before",
+  "chapterId": "ch1",
+  "title": "1-6 · 保健室的灯 · 调查前",
+  "background": "bg_env_infirmary_battle",
+  "music": "corridor_pressure",
+  "authorship": "Project original dialogue adapted from V2.1.4 locked chapter events.",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "保健室的灯没有熄。窗外已经入夜，白色床帘却映着不属于月亮的紫光。"
+    },
+    {
+      "id": "1",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "请先坐下。雨宫同学，你握刀的手在发抖。"
+    },
+    {
+      "id": "2",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "外面还有人。等调查结束再——"
+    },
+    {
+      "id": "3",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "我也总这样说。等所有人都没事了，再想自己。"
+    },
+    {
+      "id": "4",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "床下的影子在往门口聚。这里恐怕也不是安全的地方。"
+    },
+    {
+      "id": "5",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "那就让我和你们一起。至少这一次，不要有人独自撑着。"
+    },
+    {
+      "id": "6",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "调整记录。结衣负责治疗，澪建立防线，悠真观察旁路。"
+    },
+    {
+      "id": "7",
+      "speaker": "{player}",
+      "character": "",
+      "text": "门外还有声音。我们把灯留着。"
+    }
+  ]
+}

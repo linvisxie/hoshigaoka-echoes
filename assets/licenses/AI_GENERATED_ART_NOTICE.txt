@@ -20,3 +20,12 @@ that AI output is unique or independently copyrightable in every jurisdiction.
 Battle glass UI and resonance sound effects in this revision are project-original
 vector design and sample-free synthesis, respectively. Existing third-party notices
 for fonts, icons, UI sounds and music samples remain supplied separately.
+
+Chapter-one continuation, version 0.5.0:
+The same built-in generation tool and the owner's visual bible were used for
+six chapter-tail environments (including the ending), Yui/Sara/Chinatsu sprites
+and portraits, anxiety/ranking enemies, the model-student Boss and Sara's device.
+Original generated files are preserved in tools/source_art/chapter_tail.
+Per-source hashes, targets and origin are in docs/chapter_tail_assets.json.
+No additional paid external model or third-party game assets were acquired.
+The ownership and non-uniqueness qualifications above also apply to these assets.

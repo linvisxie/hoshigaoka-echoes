@@ -1,20 +1,228 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-v3-tail",
   "domain": "stage",
   "stageId": "1-8",
-  "_phase0": "Phase 0 占位。关卡自身规则、availableCharacters、enemySpawnTimeline、storyBefore/storyAfter ID 和 stage_rewards.json 的奖励 ID 引用；禁止内联第二份奖励正文。Alpha A0.3 起填充。",
   "chapter": 1,
-  "mapId": "",
-  "coreHp": 0,
-  "startingAp": 0,
-  "apRegen": 0,
-  "availableCharacters": [],
-  "enemySpawnTimeline": [],
-  "tutorialTriggers": [],
+  "stageName": "说不出口",
+  "mapId": "bg_env_science_battle",
+  "coreHp": 3,
+  "startingAp": 10,
+  "apRegen": 1,
+  "availableCharacters": [
+    "amamiya_mio",
+    "kamiya_yuma",
+    "ogawa_yui",
+    "fujiwara_rin",
+    "minase_sara"
+  ],
+  "enemySpawnTimeline": [
+    {
+      "time": 6.0,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 1
+    },
+    {
+      "time": 9.4,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 1
+    },
+    {
+      "time": 12.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 16.2,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 1
+    },
+    {
+      "time": 19.6,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 1
+    },
+    {
+      "time": 44.0,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 47.4,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 50.8,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 2
+    },
+    {
+      "time": 54.2,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 2
+    },
+    {
+      "time": 57.6,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 82.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 85.4,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 3
+    },
+    {
+      "time": 88.8,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 3
+    },
+    {
+      "time": 92.2,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 3
+    },
+    {
+      "time": 95.6,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 120.0,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 4
+    },
+    {
+      "time": 123.4,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 4
+    },
+    {
+      "time": 126.8,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 4
+    },
+    {
+      "time": 130.2,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 133.6,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 158.0,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 5
+    },
+    {
+      "time": 161.4,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 5
+    },
+    {
+      "time": 164.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 168.2,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 5
+    },
+    {
+      "time": 171.6,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 5
+    },
+    {
+      "time": 175.0,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 5
+    },
+    {
+      "time": 178.4,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 5
+    }
+  ],
+  "tutorialTriggers": [
+    {
+      "at": 0,
+      "id": "TUT_TAIL_8",
+      "text": "沉默只封锁主动技能。纱良用特殊伤害处理装甲，并用实验装置短暂补住旁路。"
+    }
+  ],
   "specialRules": [],
-  "firstClearRewardId": "",
-  "repeatRewardId": "",
-  "storyBefore": "",
-  "storyAfter": "",
-  "bossConfig": {}
+  "firstClearRewardId": "reward_1_8_first",
+  "repeatRewardId": "reward_repeat_standard",
+  "storyBefore": "ch1_1_8_before",
+  "storyAfter": "ch1_1_8_after",
+  "bossConfig": {},
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  },
+  "briefing": "沉默只封锁主动技能。纱良用特殊伤害处理装甲，并用实验装置短暂补住旁路。",
+  "waves": [
+    {
+      "number": 1,
+      "label": "观测",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 2,
+      "label": "异常加深",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 3,
+      "label": "短暂喘息",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 4,
+      "label": "核心残响",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 5,
+      "label": "最终波",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    }
+  ]
 }

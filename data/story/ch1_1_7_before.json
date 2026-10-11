@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_7_before",
+  "chapterId": "ch1",
+  "title": "1-7 · 谁在第几名 · 调查前",
+  "background": "bg_env_ranking_battle",
+  "music": "corridor_pressure",
+  "authorship": "Project original dialogue adapted from V2.1.4 locked chapter events.",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "成绩榜前没有学生，却有一排排影子在交换位置。每个名字上方，都压着另一个名字。"
+    },
+    {
+      "id": "1",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "匿名比较帖已经传遍全年级。最初只有一张截图，现在连不参加测验的人也在转发。"
+    },
+    {
+      "id": "2",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "把人放在一列里，看起来就像只有一个方向可以走。"
+    },
+    {
+      "id": "3",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "异常频率和转发次数并不成正比。被反复删掉的留言，波形反而更高。"
+    },
+    {
+      "id": "4",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "你是科学部的？"
+    },
+    {
+      "id": "5",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "水濑纱良。我在找一个无法被平均值解释的东西。"
+    },
+    {
+      "id": "6",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "先把榜前的残响清掉。我负责调度，别让那些名次替我们决定站位。"
+    }
+  ]
+}

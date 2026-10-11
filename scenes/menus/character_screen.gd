@@ -140,6 +140,9 @@ var _svc: CharacterGrowthService = null
 ## 角色卡矩形（与角色 id 同序）
 var _card_rects: Array[Rect2] = []
 var _card_ids: Array[String] = []
+var _list_page := 0
+var _page_previous: Button
+var _page_next: Button
 var _selected_id: String = ""
 
 ## 按钮矩形
@@ -235,6 +238,16 @@ func _ready() -> void:
 		GameSkin.style_button(button)
 		button.pressed.connect(func() -> void: AudioService.play_sfx("select"))
 	_layout_navigation()
+	_page_previous = Button.new()
+	_page_next = Button.new()
+	_page_previous.text = "‹ 上一页"
+	_page_next.text = "下一页 ›"
+	for button: Button in [_page_previous,_page_next]:
+		add_child(button)
+		GameSkin.style_button(button)
+	_page_previous.pressed.connect(func() -> void: _list_page=maxi(0,_list_page-1); _layout(); queue_redraw())
+	_page_next.pressed.connect(func() -> void: _list_page=mini(int((_card_ids.size()-1)/3),_list_page+1); _layout(); queue_redraw())
+	_layout()
 	_resource_tip = Panel.new()
 	_resource_tip.name = "ResourceDescription"
 	_resource_tip.z_index = 50
@@ -392,6 +405,8 @@ func _input(event: InputEvent) -> void:
 		elif k >= KEY_1 and k <= KEY_6:
 			var idx := k - KEY_1
 			if idx < _card_ids.size():
+				_list_page = int(idx / 3)
+				_layout()
 				_select_character(_card_ids[idx])
 
 
@@ -773,11 +788,24 @@ func _layout() -> void:
 	_list_rect = Rect2(Vector2(m, list_top),
 		Vector2(list_w, maxf(0.0, _info_rect.position.y - _px(100) - list_top)))
 
-	var n := maxi(1, _card_ids.size())
-	var card_h := clampf((_list_rect.size.y - float(n - 1) * gap) / float(n), _px(110.0), _px(200.0))
+	var paged := _card_ids.size()>3
+	var n := mini(3,maxi(1, _card_ids.size()))
+	var card_h := clampf((_list_rect.size.y - (_px(50) if paged else 0.0) - float(n - 1) * gap) / float(n), _px(110.0), _px(200.0))
 	for i: int in range(_card_ids.size()):
+		if paged and int(i/3)!=_list_page:
+			_card_rects.append(Rect2())
+			continue
 		_card_rects.append(Rect2(
-			Vector2(m, list_top + float(i) * (card_h + gap)), Vector2(list_w, card_h)))
+			Vector2(m, list_top + float(i%3) * (card_h + gap)), Vector2(list_w, card_h)))
+	if _page_previous != null:
+		for button: Button in [_page_previous,_page_next]: button.visible=paged
+		_page_previous.position=Vector2(m,_list_rect.end.y-_px(44))
+		_page_next.position=Vector2(m+list_w*.52,_list_rect.end.y-_px(44))
+		_page_previous.size=Vector2(list_w*.48,_px(40))
+		_page_next.size=_page_previous.size
+		_page_previous.disabled=_list_page==0
+		_page_next.disabled=(_list_page+1)*3>=_card_ids.size()
+		for button: Button in [_page_previous,_page_next]: button.add_theme_font_size_override("font_size",int(_px(21)))
 
 	# ---- 右：培养面板 ----
 	var panel_x := m + list_w + _px(32.0)
@@ -1018,6 +1046,7 @@ func _display_currency_count(cid: String) -> int:
 
 
 func _draw_character_card(character_id: String, rect: Rect2, index: int) -> void:
+	if not rect.has_area(): return
 	var font := GameSkin.body_font()
 	var p := _svc.get_progress(character_id)
 	var selected := character_id == _selected_id

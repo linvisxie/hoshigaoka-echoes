@@ -27,7 +27,7 @@ extends RefCounted
 const TAG := "ArtRegistry"
 
 const ART_ROOT := "res://assets/art"
-const CHARACTER_FRAME_SIZE := {"amamiya_mio": 96, "kamiya_yuma": 96, "fujiwara_rin": 96}
+const CHARACTER_FRAME_SIZE := {"amamiya_mio": 96, "kamiya_yuma": 96, "fujiwara_rin": 96,"ogawa_yui":128,"minase_sara":128,"shiraishi_chinatsu":128}
 
 ## 特效根目录（与 art_src/tools/build_vfx.py 的输出一致）。
 ## 注意：特效刻意放在 assets/vfx/ 而不是 assets/art/ 下 —— 它是"战斗反馈"
@@ -62,7 +62,11 @@ const STAGE_ENV := {
 	"1-3": "bg_env_classroom_exam",
 	"1-4": "bg_env_corridor_battle",
 	"1-5": "bg_env_gym_battle",
-	"1-10": "bg_env_rooftop_rift",
+	"1-6": "bg_env_infirmary_battle",
+	"1-7": "bg_env_ranking_battle",
+	"1-8": "bg_env_science_battle",
+	"1-9": "bg_env_archive_battle",
+	"1-10": "bg_env_boss_exam",
 	"p1_0_demo": "bg_env_classroom_dusk",
 }
 
@@ -162,7 +166,7 @@ static func character_base(char_id: String) -> Texture2D:
 
 ## 角色头像（size 取 64 / 256）。
 static func character_portrait(char_id: String, size: int = 64) -> Texture2D:
-	var polished := load_texture("%s/characters/%s/%s_portrait_polished.png" % [ART_ROOT, char_id, char_id]) if char_id in ["amamiya_mio", "kamiya_yuma"] else null
+	var polished := load_texture("%s/characters/%s/%s_portrait_polished.png" % [ART_ROOT, char_id, char_id])
 	if polished != null:
 		return polished
 	return load_texture("%s/characters/%s/%s_portrait_%d.png" % [

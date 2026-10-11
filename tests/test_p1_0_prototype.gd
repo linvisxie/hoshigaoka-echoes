@@ -62,7 +62,7 @@ const ENEMY_SPEC := {
 }
 
 ## weightClass → 精灵帧边长（像素）映射：轻/中 = 64，重 = 96。
-const SPRITE_PX_BY_WEIGHT := {"LIGHT": 64, "MEDIUM": 64, "HEAVY": 96}
+const SPRITE_PX_BY_WEIGHT := {"LIGHT": 64, "MEDIUM": 64, "HEAVY": 96,"BOSS":160}
 
 ## 演示关敌人构成（data/stages/prototype/p1_0_demo.json）
 const DEMO_COMPOSITION := {"echo_normal": 12, "echo_runner": 3, "echo_armored": 5}

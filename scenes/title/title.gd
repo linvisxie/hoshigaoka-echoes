@@ -666,7 +666,7 @@ func _draw_epigraph(font: Font) -> void:
 
 ## 左下角版本行：版本号取自 App.APP_VERSION（不硬编码）
 func _draw_version(font: Font) -> void:
-	var text := "Ver %s · Windows · 前五关试玩" % App.APP_VERSION
+	var text := "Ver %s · Windows · 第一章" % App.APP_VERSION
 	_draw_text_outlined(font, Vector2(_px(96.0), _viewport.y - _px(48.0)), text,
 		int(_px(20.0)), DIM)
 

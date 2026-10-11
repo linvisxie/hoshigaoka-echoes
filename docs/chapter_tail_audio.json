@@ -1,0 +1,61 @@
+{
+  "origin": "Original score; existing legally recorded CC0 VSCO2 bank, original synthesis",
+  "tracks": [
+    {
+      "track": "infirmary_light",
+      "seconds": 57.59996875,
+      "bpm": 100,
+      "peak": 0.1839087703598912,
+      "rms": 0.0346451558622661
+    },
+    {
+      "track": "ranking_pressure",
+      "seconds": 45.0,
+      "bpm": 128,
+      "peak": 0.17355854592071154,
+      "rms": 0.03542401566839957
+    },
+    {
+      "track": "science_resonance",
+      "seconds": 43.63634375,
+      "bpm": 132,
+      "peak": 0.1724375911473058,
+      "rms": 0.03719529016034173
+    },
+    {
+      "track": "archive_convergence",
+      "seconds": 42.3529375,
+      "bpm": 136,
+      "peak": 0.17376341054013997,
+      "rms": 0.03560922138901951
+    },
+    {
+      "track": "boss_exam_1",
+      "seconds": 43.63634375,
+      "bpm": 132,
+      "peak": 0.18211452233657013,
+      "rms": 0.03620545014307078
+    },
+    {
+      "track": "boss_exam_2",
+      "seconds": 40.0,
+      "bpm": 144,
+      "peak": 0.1862082002944458,
+      "rms": 0.03603271957453838
+    },
+    {
+      "track": "boss_exam_3",
+      "seconds": 36.9230625,
+      "bpm": 156,
+      "peak": 0.20395456071953177,
+      "rms": 0.03756047749308265
+    },
+    {
+      "track": "chapter_one_coda",
+      "seconds": 64.0,
+      "bpm": 90,
+      "peak": 0.1842586492697074,
+      "rms": 0.03429358782322161
+    }
+  ]
+}

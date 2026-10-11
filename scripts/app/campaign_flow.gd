@@ -45,7 +45,7 @@ static func done(story_id: String) -> bool:
 	return bool(SaveService.get_current().get("story", {}).get("flags", {}).get("done:" + story_id, false))
 
 static func next_stage() -> String:
-	for i: int in range(1, 6):
+	for i: int in range(1, 11):
 		var sid := "1-%d" % i
 		if not StageRewardService.is_first_cleared(sid):
 			return sid
@@ -131,7 +131,11 @@ static func character_unlocked(cid: String) -> bool:
 	if cid == "kamiya_yuma":
 		return done("ch1_1_3_before") or StageRewardService.is_first_cleared("1-3")
 	if cid == "ogawa_yui":
-		return StageRewardService.is_first_cleared("1-6")
+		return done("ch1_1_6_before") or StageRewardService.is_first_cleared("1-6")
+	if cid == "minase_sara":
+		return done("ch1_1_8_before") or StageRewardService.is_first_cleared("1-8")
+	if cid == "shiraishi_chinatsu":
+		return StageRewardService.is_first_cleared("1-10") and done("ch1_1_10_after")
 	if cid == "fujiwara_rin":
 		return StageRewardService.is_first_cleared("1-5") and done("ch1_1_5_after")
 	return false
@@ -144,5 +148,9 @@ static func effective_stage_config(config: Dictionary) -> Dictionary:
 		var roster: Array = result.get("availableCharacters", []).duplicate()
 		if not roster.has("fujiwara_rin"):
 			roster.append("fujiwara_rin")
+		result["availableCharacters"] = roster
+	if str(result.get("stageId", "")).begins_with("1-") and int(str(result.get("stageId", "1-0")).get_slice("-",1)) >= 6 and character_unlocked("shiraishi_chinatsu"):
+		var roster: Array = result.get("availableCharacters", []).duplicate()
+		if not roster.has("shiraishi_chinatsu"): roster.append("shiraishi_chinatsu")
 		result["availableCharacters"] = roster
 	return result

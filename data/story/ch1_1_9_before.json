@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_9_before",
+  "chapterId": "ch1",
+  "title": "1-9 · 满分的复制品 · 调查前",
+  "background": "bg_env_archive_battle",
+  "music": "corridor_pressure",
+  "authorship": "Project original dialogue adapted from V2.1.4 locked chapter events.",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "旧档案室的抽屉全部打开。同一张满分答卷从不同年份里不断涌出，姓名栏却一片空白。"
+    },
+    {
+      "id": "1",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "笔迹来自不同的人，异常却只有一个中心。所有路径最后都指向体育馆。"
+    },
+    {
+      "id": "2",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "历年的成绩档案都曾在那里公示。我们不是在追一个学生。"
+    },
+    {
+      "id": "3",
+      "speaker": "白石千夏",
+      "character": "shiraishi_chinatsu",
+      "text": "我从轻音部搬来一个小音箱。要是广播又把你们的声音盖住，就用这个。"
+    },
+    {
+      "id": "4",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "千夏，你留在安全的出口等我们。不要一个人进异常里。"
+    },
+    {
+      "id": "5",
+      "speaker": "白石千夏",
+      "character": "shiraishi_chinatsu",
+      "text": "嗯。可是回来的时候，要记得叫我的名字。"
+    },
+    {
+      "id": "6",
+      "speaker": "{player}",
+      "character": "",
+      "text": "我们会一起回来。先把通往体育馆的路清出来。"
+    }
+  ]
+}

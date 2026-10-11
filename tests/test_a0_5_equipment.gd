@@ -273,8 +273,10 @@ func test_05b_non_equipment_entitlement_is_rejected() -> void:
 
 	var r := EquipmentService.fulfill(
 		"1-10:reward_1_10_first:MEMENTO:memento_ch1_boss_cleared", false)
-	assert_false(r.ok, "纪念物类权益不应由装备系统兑现")
-	assert_eq(EquipmentService.instance_count(), 0, "不得产出任何实例")
+	assert_true(r.ok, "Chapter memento is now implemented")
+	assert_eq(EquipmentService.instance_count(), 1)
+	assert_false(EquipmentService.fulfill("1-10:reward_1_10_first:MEMENTO:memento_ch1_boss_cleared",false).ok,"No duplicate memento")
+	assert_false(EquipmentService.dismantle(r.instance_id,true).ok,"Unique chapter keepsake cannot be destroyed")
 
 
 ## 覆盖项 3b：一键兑现应处理全部装备类权益，且跳过非装备类。
@@ -294,8 +296,8 @@ func test_03b_fulfill_all_handles_only_equipment() -> void:
 	# 纪念物权益必须仍留在 pending（不得被装备系统消费，也不得丢失）
 	var still_pending := EquipmentService.pending_equipment_entitlements()
 	assert_eq(still_pending.size(), 0, "装备类权益应已全部兑现")
-	assert_eq((SaveService.get_current()["entitlements"]["pending"] as Array).size(), 1,
-		"纪念物权益应仍留在 pending（等待 A0.8 接入）")
+	assert_eq((SaveService.get_current()["entitlements"]["pending"] as Array).size(), 0,"All implemented rewards claimed")
+	assert_eq(EquipmentService.instance_count(),2,"Bow and chapter memento are both real instances")
 
 
 # ============================================================

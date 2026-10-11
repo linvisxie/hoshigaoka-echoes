@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_9_after",
+  "chapterId": "ch1",
+  "title": "1-9 · 满分的复制品 · 调查后",
+  "background": "bg_env_archive_battle",
+  "music": "observation_club",
+  "authorship": "Project original dialogue adapted from V2.1.4 locked chapter events.",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "最后一个纸偶折成了普通的试卷。姓名栏里浮出一道橡皮擦过的痕迹。"
+    },
+    {
+      "id": "1",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "不是复制满分的人，是把不满分的部分一遍遍删掉。"
+    },
+    {
+      "id": "2",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "最后连名字也不要了吗。"
+    },
+    {
+      "id": "3",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "体育馆的通行记录已经恢复。下一次调查，由我们全员一起去。"
+    },
+    {
+      "id": "4",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "别追着那个“第一”走。看着彼此就好。"
+    },
+    {
+      "id": "5",
+      "speaker": "",
+      "character": "",
+      "text": "档案室门外，远处的考试铃响了。一次，接着一次，始终没有结束。"
+    }
+  ]
+}

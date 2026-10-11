@@ -317,6 +317,9 @@ var _selected_card_id: String = ""
 var _roster: Array[String] = []
 ## 每张角色卡的屏幕矩形（与 _roster 同序）
 var _card_rects: Array[Rect2] = []
+var _device_select_owner: int = 0
+var _boss_seen_events: int = 0
+var _boss_cast_at: float = -10.0
 ## 治疗反馈：{targetId, until, amount} —— 纯表现层，用于播放治疗提示
 var _heal_flashes: Array[Dictionary] = []
 
@@ -615,7 +618,7 @@ func _build_battle() -> void:
 	session.character_deployed.connect(func(character: CharacterRuntime) -> void:
 		_special_animations[character.instance_id] = {"anim": "deploy", "born": _now(), "life": 0.65})
 	session.character_withdrawn.connect(func(_c: CharacterRuntime, _refund: int) -> void: AudioService.play_sfx("retreat"))
-	AudioService.play_music("corridor_pressure" if stage_id in ["1-4", "1-5"] else "echo_frontline")
+	AudioService.play_music({"1-6":"infirmary_light","1-7":"ranking_pressure","1-8":"science_resonance","1-9":"archive_convergence","1-10":"archive_convergence"}.get(stage_id,"corridor_pressure" if stage_id in ["1-4", "1-5"] else "echo_frontline"))
 	_last_wave_number = session.stage.current_wave_number()
 
 	# Alpha A0.6（L2132）：1-5 的**首次**三选一是固定教学项，不是随机。
@@ -1334,6 +1337,14 @@ func _draw_gained_upgrades(font: Font) -> void:
 
 
 func _process(delta: float) -> void:
+	if session != null and session.stage.boss_events.size() > _boss_seen_events:
+		var event: Dictionary = session.stage.boss_events.back()
+		_boss_seen_events = session.stage.boss_events.size()
+		if str(event.kind) in ["skill", "phase", "entrance"]:
+			_boss_cast_at = session.stage.elapsed_seconds
+		AudioService.play_sfx("wave" if str(event.kind)=="skill" else "elite_arrival",-4)
+		if str(event.kind) == "entrance": AudioService.play_music("boss_exam_1")
+		elif str(event.kind) == "phase": AudioService.play_music("boss_exam_%d" % int(event.phase))
 	if session == null:
 		return
 	if session.is_decided():
@@ -1374,7 +1385,7 @@ func _update_feedback(delta: float) -> void:
 	if session == null or session.stage == null:
 		return
 	var s := session.stage
-	var now := s.elapsed_seconds
+	var now := _now()
 
 	_consume_damage_events()
 	_consume_kills()
@@ -1423,7 +1434,12 @@ func _consume_damage_events() -> void:
 		var lethal := bool(ev.get("lethal", false))
 		if str(ev.get("sourceKind", "")) == "character":
 			var source := session.stage.get_character(int(ev.get("sourceId", 0)))
-			AudioService.play_sfx("arrow" if source != null and source.behavior == CharacterRuntime.Behavior.RANGED else "slash", -3.0)
+			var attack_sound := "slash"
+			if source != null:
+				if source.character_id == "minase_sara": attack_sound = "sara_skill"
+				elif source.character_id == "shiraishi_chinatsu": attack_sound = "chinatsu_skill"
+				elif source.behavior == CharacterRuntime.Behavior.RANGED: attack_sound = "arrow"
+			AudioService.play_sfx(attack_sound, -8.0 if attack_sound.ends_with("_skill") else -3.0)
 		var impact := "hurt" if kind == "character" else "hit"
 		var target_enemy: EnemyRuntime = s.get_enemy(tid) if kind == "enemy" else null
 		if target_enemy != null and (s._enemy_configs.get(target_enemy.enemy_id,{}) as Dictionary).get("tags",[]).has("ARMORED"):
@@ -1555,6 +1571,8 @@ func _spawn_attacker_vfx(ev: Dictionary, now: float) -> void:
 	_vfx[-1]["to"] = target
 	_vfx[-1]["scale"] = 1.12 if name == "vfx_slash" else 0.9
 	_vfx[-1]["charged"] = bool(ev.get("skillAttack", false))
+	if attacker.character_id in ["minase_sara", "shiraishi_chinatsu"]:
+		_vfx[-1]["resonator"] = attacker.character_id
 
 
 func _spawn_vfx_at(name: String, screen_pos: Vector2, now: float, life: float) -> void:
@@ -1579,6 +1597,26 @@ func _draw_vfx(ground_only: bool = false) -> void:
 		var life := float(v["life"])
 		var k := clampf((now - float(v["born"])) / life, 0.0, 1.0)
 		if k >= 1.0:
+			continue
+		if v.has("resonator"):
+			var source: Vector2 = v["from"]
+			var target: Vector2 = v["to"]
+			var center := source.lerp(target, minf(1.0, k * 2.5))
+			var scientific := str(v.resonator) == "minase_sara"
+			var color := Color("8ef1eb") if scientific else Color("f1db91")
+			color.a = 1.0 - k
+			var direction := (target - source).normalized()
+			draw_line(center-direction*_px(38),center,Color(color,color.a*.35),_px(4),true)
+			if scientific:
+				draw_circle(center,_px(4),color)
+				for orbit: int in range(2):
+					var radius := _px(10+orbit*6)
+					draw_arc(center,radius,k*TAU+orbit*PI,k*TAU+orbit*PI+PI*1.4,16,color,_px(1.3),true)
+			else:
+				for ring: int in range(3):
+					var radius := _px(6+ring*8+k*12)
+					draw_arc(center,radius,-.8,.8,14,Color(color,color.a*(1-ring*.2)),_px(1.6),true)
+			_mark_drawn("resonance_projectile:"+str(v.resonator))
 			continue
 		var tex := ArtRegistry.vfx_frame(str(v["name"]), k)
 		if tex == null:
@@ -1889,6 +1927,7 @@ func _toggle_card_selection(character_id: String = "") -> void:
 
 
 func _cancel_selection() -> void:
+	_device_select_owner = 0
 	# Alpha A0.6：强化面板里的 Esc 不当"取消选择"用——面板必须被明确选择或跳过。
 	# （_unhandled_input 已在面板激活时把按键交给 _handle_upgrade_key，这里是第二道防线。）
 	if _upgrade_panel_active():
@@ -1969,6 +2008,15 @@ func _handle_left_click(pos: Vector2) -> void:
 	# 暂停中只允许继续
 	if session.is_paused():
 		_show_feedback("暂停中：点击右上角「继续」或按 Space", Color(0.95, 0.85, 0.45))
+		return
+	if _device_select_owner != 0:
+		var cell := _screen_to_cell(pos)
+		var placed := session.stage.place_experiment(_device_select_owner,int(cell.get("column",-1)),int(cell.get("lane",-1)))
+		_show_feedback(str(placed.get("name","实验装置已放置")) if bool(placed.get("ok",false)) else str(placed.get("reason","请选择空格")),Color("a4e7ef"))
+		if bool(placed.get("ok",false)):
+			_spawn_vfx_at("vfx_deploy",_cell_screen_pos(int(cell.column),int(cell.lane)),_now(),.7)
+			AudioService.play_sfx("deploy")
+			_device_select_owner = 0
 		return
 
 	# 操作面板上的撤退按钮
@@ -2086,7 +2134,7 @@ func _update_hover(pos: Vector2) -> void:
 
 func _layout_buttons() -> void:
 	# 角色卡条：横向排列，数量 = 本关可用角色数（P0.4 起可能多于 1）
-	var card_w := _px(CARD_WIDTH)
+	var card_w := _px(minf(CARD_WIDTH,(1300.0-float(_roster.size()-1)*CARD_GAP)/maxf(1,_roster.size())))
 	var card_h := _px(CARD_HEIGHT)
 	var card_gap := _px(CARD_GAP)
 	var start_x := _px(24.0)
@@ -2329,6 +2377,48 @@ func run_headless_until_decided(max_seconds: float = 600.0) -> int:
 #  绘制
 # ============================================================
 
+func _draw_chapter_warnings() -> void:
+	var stage: StageRuntime = session.stage
+	for warning: Dictionary in stage.boss_warnings:
+		var lane := int(warning.lane)
+		var color := Color("ff768e") if warning.kind=="mistake" else Color("d8a8ff")
+		var progress := clampf((stage.elapsed_seconds-float(warning.born))/maxf(.01,float(warning.due)-float(warning.born)),0,1)
+		if warning.kind == "mistake":
+			var center := _cell_screen_pos(int(warning.column),lane)
+			draw_circle(center,_px(80),Color(color,.12+.1*sin(_now()*12)))
+			draw_arc(center,_px(72),-PI/2,-PI/2+TAU*progress,48,color,_px(4),true)
+			draw_line(center-Vector2(_px(40),_px(40)),center+Vector2(_px(40),_px(40)),color,_px(2),true)
+			draw_line(center+Vector2(_px(40),-_px(40)),center+Vector2(-_px(40),_px(40)),color,_px(2),true)
+			if ThemeDB.fallback_font != null: draw_string(ThemeDB.fallback_font,center+Vector2(-_px(70),-_px(82)),"错题 · %.1fs" % maxf(0,float(warning.due)-_now()),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(24)),color)
+		else:
+			var start := _logical_to_screen(Vector2(-.1,lane))
+			var end := _logical_to_screen(Vector2(5,lane))
+			draw_line(start,end,Color(color,.25+progress*.3),_px(3),true)
+			if ThemeDB.fallback_font != null: draw_string(ThemeDB.fallback_font,end+Vector2(-_px(220),-_px(42)),"标准答案 · %.1fs" % maxf(0,float(warning.due)-_now()),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(23)),color)
+	for c: CharacterRuntime in stage.characters:
+		if c.character_id == "sara_device":
+			var center := _cell_screen_pos(c.column,c.lane)
+			var tex := ArtRegistry.frame_at("res://assets/art/ui/sara_device_idle.png",int(_now()*6),4)
+			if tex!=null: _draw_sprite_anchored(tex,center,_px(116),Color.WHITE,.25)
+			var radius := _px(45)
+			draw_arc(center,radius,0,TAU,48,Color("8eedf4"),_px(3),true)
+			for i: int in range(3):
+				var p := center+Vector2.from_angle(_now()*1.8+float(i)*TAU/3)*radius
+				draw_line(center,p,Color("71b6d9"),_px(2),true)
+			if ThemeDB.fallback_font != null: draw_string(ThemeDB.fallback_font,center+Vector2(-_px(55),_px(30)),"装置 %.1fs" % maxf(0,float(stage.device_expiry.get(c.instance_id,0))-_now()),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color("bcf3ff"))
+	var boss := stage.chapter_boss()
+	if boss != null:
+		var phase := int(stage.boss_state.get("phase",1))
+		var center := _logical_to_screen(Vector2(boss.logical_x,boss.lane))+Vector2(0,-_px(95))
+		var radius := _px(92+phase*12)
+		var color := Color("c49cff") if phase==1 else Color("ff728f")
+		for ring: int in range(phase):
+			draw_arc(center,radius+_px(ring*11),_now()*.5+ring,_now()*.5+ring+TAU*.84,64,Color(color,.35),_px(2),true)
+		for i: int in range(8+phase*2):
+			var angle := float(i)*TAU/(8+phase*2)+_now()*.22
+			var p := center+Vector2.from_angle(angle)*radius
+			draw_line(p,p+Vector2.from_angle(angle)*_px(12),Color(color,.6),_px(2),true)
+
 func _draw() -> void:
 	if grid == null or session == null:
 		return
@@ -2338,6 +2428,7 @@ func _draw() -> void:
 	_draw_board()
 	_draw_elite_ground()
 	_draw_lane_warnings()
+	_draw_chapter_warnings()
 	_draw_core()
 	_draw_deploy_feedback()
 	_draw_deploy_pops()
@@ -2603,7 +2694,7 @@ func _stage_id_for_art() -> String:
 
 ## 三条路线 + 18 个部署格
 func _draw_board() -> void:
-	var choosing := not _selected_card_id.is_empty()
+	var choosing := not _selected_card_id.is_empty() or _device_select_owner != 0
 	for lane: int in range(grid.lanes):
 		var col: Color = LANE_COLORS[lane]
 		var start := _logical_to_screen(Vector2(-0.55,lane))
@@ -2705,6 +2796,7 @@ func _draw_characters(lane_filter: int = -1) -> void:
 	for c: CharacterRuntime in session.stage.characters:
 		if lane_filter >= 0 and c.lane != lane_filter:
 			continue
+		if c.character_id == "sara_device": continue
 		var anchor := _cell_screen_pos(c.column,c.lane)
 		var px_x := anchor.x
 		var px_y := anchor.y
@@ -2761,7 +2853,7 @@ func _draw_characters(lane_filter: int = -1) -> void:
 						sprite = special_tex
 						pose_anim = str(special["anim"])
 						_mark_drawn("char_special:" + str(special["anim"]))
-			var redrawn := c.character_id in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin"]
+			var redrawn := c.character_id in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin","ogawa_yui","minase_sara","shiraishi_chinatsu"]
 			_draw_sprite_anchored(sprite, Vector2(px_x, px_y), tile * (1.28 if redrawn else 0.96), mod, 0.25 if redrawn else 0.33)
 			if c.skill_active_remaining > 0 or c.skill_charged:
 				var aura := Color("a9cfff") if c.character_id == "amamiya_mio" else Color("ffd58c")
@@ -3132,6 +3224,10 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 	var esprite := ArtRegistry.enemy_base(e.enemy_id)
 	if esprite != null:
 		var emod := Color(1, 1, 1, 1)
+		if e.enemy_id == "boss_model_student":
+			var phase := int(session.stage.boss_state.get("phase",1))
+			if phase == 2: emod = Color(1.12,0.91,1.15)
+			elif phase == 3: emod = Color(1.28,0.78,0.90)
 		if hit_k > 0.0:
 			emod = emod.lerp(Color(2.8, 2.8, 2.8, 1.0), 0.75 * hit_k)
 		if not e.is_active():
@@ -3143,11 +3239,15 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 			ef = ArtRegistry.enemy_frame_progress(e.enemy_id, est.anim, est.progress(_now()))
 		else:
 			ef = ArtRegistry.enemy_frame(e.enemy_id, est.anim, _now())
+		if e.enemy_id == "boss_model_student" and e.is_active() and _now()-_boss_cast_at < .75:
+			ef = ArtRegistry.enemy_frame_progress(e.enemy_id,"skill",clampf((_now()-_boss_cast_at)/.75,0,1))
+			_mark_drawn("enemy_anim:boss_skill")
 		if ef != null:
 			esprite = ef
 		# 敌人目标高度随 spriteFramePx 放大（96 的重装单位视觉更大）
 		var eh := tile * 0.72 * scale
-		_draw_sprite_anchored(esprite, Vector2(px_x, px_y), eh, emod, 0.42)
+		if e.enemy_id == "boss_model_student": eh = tile * 1.85
+		_draw_sprite_anchored(esprite, Vector2(px_x, px_y), eh, emod, 0.16 if e.enemy_id == "boss_model_student" else 0.42)
 		if ef != null:
 			_mark_drawn("enemy_anim:%s" % est.anim)
 			_mark_drawn(ArtRegistry.enemy_strip_path(e.enemy_id, est.anim))
@@ -3897,6 +3997,10 @@ func _request_skill_selected() -> void:
 	if session == null or _selected_character_id == 0:
 		return
 	var result := session.cast_skill(_selected_character_id)
+	if bool(result.get("needsCell",false)):
+		_device_select_owner = _selected_character_id
+		_show_feedback("临时实验装置 · 点击空部署格，右键取消",Color("9feef5"))
+		return
 	if not bool(result.get("ok", false)):
 		AudioService.play_sfx("ui_error", -5.0)
 		_show_feedback(str(result.get("reason", "当前无法释放技能")), Color(1.0, 0.7, 0.55))
@@ -3908,7 +4012,7 @@ func _request_skill_selected() -> void:
 	_vfx[-1]["scale"] = 1.3
 	_vfx[-1]["ground"] = true
 	_vfx[-1]["tint"] = Color("b7c8ff") if character.character_id == "amamiya_mio" else Color("b8f5df")
-	AudioService.play_sfx({"amamiya_mio":"mio_skill", "kamiya_yuma":"yuma_skill", "fujiwara_rin":"rin_skill"}.get(character.character_id, "status"))
+	AudioService.play_sfx({"amamiya_mio":"mio_skill", "kamiya_yuma":"yuma_skill", "fujiwara_rin":"rin_skill","ogawa_yui":"yui_skill","minase_sara":"sara_skill","shiraishi_chinatsu":"chinatsu_skill"}.get(character.character_id, "status"))
 	if character.character_id == "fujiwara_rin":
 		_show_feedback("紧急调度 · AP 已补充至 %d / %d" % [session.stage.ap, session.stage.ap_max], Color("bdf3e5"))
 		return
@@ -4387,7 +4491,9 @@ func _on_wave_changed(wave_number: int, total: int) -> void:
 func _now() -> float:
 	if session == null or session.stage == null:
 		return 0.0
-	return session.stage.elapsed_seconds
+	# The combat clock remains frozen after a result; presentation finishes the
+	# final enemy's disappearance during the existing one-second victory lead-in.
+	return session.stage.elapsed_seconds + (_result_animation_time if session.is_decided() else 0.0)
 
 
 ## Resolve logical tiles/lane at render time; no battle geometry is changed.
@@ -4503,11 +4609,12 @@ func _draw_departures() -> void:
 			texture = ArtRegistry.enemy_frame_progress(code, "death", progress)
 		if texture == null:
 			continue
-		var redrawn := kind == "character" and code in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin"]
+		var redrawn := kind == "character" and code in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin","ogawa_yui","minase_sara","shiraishi_chinatsu"]
 		var height := _px(grid.tile_size_px) * (1.28 if redrawn else (0.96 if kind == "character" else 0.72))
+		if code == "boss_model_student": height = _px(grid.tile_size_px)*1.85
 		var offset: Vector2 = ghost.get("offset", Vector2.ZERO)
 		_draw_sprite_anchored(texture, _logical_to_screen(ghost["logical"]) + Vector2(_px(offset.x), _px(offset.y)), height,
-			Color(1, 1, 1, 1.0 - progress), 0.25 if redrawn else (0.33 if kind == "character" else 0.42))
+			Color(1, 1, 1, 1.0 - progress), 0.16 if code == "boss_model_student" else (0.25 if redrawn else (0.33 if kind == "character" else 0.42)))
 		if progress < 1.0:
 			_mark_drawn("%s_anim:death" % ("char" if kind == "character" else "enemy"))
 			var path := ArtRegistry.character_strip_path(code, "death") if kind == "character" else ArtRegistry.enemy_strip_path(code, "death")

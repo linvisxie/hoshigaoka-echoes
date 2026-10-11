@@ -1,20 +1,513 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-v3-tail",
   "domain": "stage",
   "stageId": "1-10",
-  "_phase0": "Phase 0 占位。关卡自身规则、availableCharacters、enemySpawnTimeline、storyBefore/storyAfter ID 和 stage_rewards.json 的奖励 ID 引用；禁止内联第二份奖励正文。Alpha A0.3 起填充。",
   "chapter": 1,
-  "mapId": "",
-  "coreHp": 0,
-  "startingAp": 0,
-  "apRegen": 0,
-  "availableCharacters": [],
-  "enemySpawnTimeline": [],
-  "tutorialTriggers": [],
+  "stageName": "无名优等生",
+  "mapId": "bg_env_boss_exam",
+  "coreHp": 3,
+  "startingAp": 10,
+  "apRegen": 1,
+  "availableCharacters": [
+    "amamiya_mio",
+    "kamiya_yuma",
+    "ogawa_yui",
+    "fujiwara_rin",
+    "minase_sara"
+  ],
+  "enemySpawnTimeline": [
+    {
+      "time": 6,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 10,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 1
+    },
+    {
+      "time": 40.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 43.5,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 1
+    },
+    {
+      "time": 47.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 50.5,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 1
+    },
+    {
+      "time": 54.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 57.5,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 61.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 64.5,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 1
+    },
+    {
+      "time": 68.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 71.5,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 1
+    },
+    {
+      "time": 75.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 78.5,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 1
+    },
+    {
+      "time": 82.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 85.5,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 89.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 92.5,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 1
+    },
+    {
+      "time": 96.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 99.5,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 1
+    },
+    {
+      "time": 110,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 114,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 118,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 122,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 2
+    },
+    {
+      "time": 126,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 130,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 134,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 138,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 142,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 146,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 150,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 154,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 2
+    },
+    {
+      "time": 158,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 162,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 166,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 170,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 174,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 178,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 182,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 186,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 2
+    },
+    {
+      "time": 190,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 194,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 198,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 202,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 220,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 224,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 3
+    },
+    {
+      "time": 228,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 232,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 3
+    },
+    {
+      "time": 236,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 240,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 3
+    },
+    {
+      "time": 244,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 248,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 252,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 256,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 3
+    },
+    {
+      "time": 260,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 264,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 3
+    },
+    {
+      "time": 268,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 272,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 3
+    },
+    {
+      "time": 276,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 280,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 284,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 288,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 3
+    },
+    {
+      "time": 292,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 296,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 3
+    },
+    {
+      "time": 300,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 304,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 3
+    },
+    {
+      "time": 308,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 312,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 316,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 320,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 3
+    },
+    {
+      "time": 330,
+      "lane": 1,
+      "enemy": "boss_model_student",
+      "wave": 4
+    }
+  ],
+  "tutorialTriggers": [
+    {
+      "at": 0,
+      "id": "TUT_TAIL_10",
+      "text": "无名优等生有三个阶段。红色错题预警持续3秒，可撤退或用治疗应对；核心被Boss触及即失败。"
+    }
+  ],
   "specialRules": [],
-  "firstClearRewardId": "",
-  "repeatRewardId": "",
-  "storyBefore": "",
-  "storyAfter": "",
-  "bossConfig": {}
+  "firstClearRewardId": "reward_1_10_first",
+  "repeatRewardId": "reward_repeat_standard",
+  "storyBefore": "ch1_1_10_before",
+  "storyAfter": "ch1_1_10_after",
+  "bossConfig": {
+    "enemyId": "boss_model_student",
+    "phaseThresholds": [
+      0.6,
+      0.3
+    ],
+    "standardInterval": 12,
+    "warningSeconds": 3,
+    "comparisonInterval": 15,
+    "comparisonDuration": 5,
+    "comparisonPct": -0.15,
+    "anxietyInterval": 12,
+    "anxietyDuration": 6,
+    "anxietySpeedPct": 0.3,
+    "mistakeInterval": 18,
+    "mistakeDamage": 220,
+    "mistakeRadius": 1,
+    "rankingInterval": 15,
+    "rankingDuration": 6,
+    "rankingPct": -0.25,
+    "finalMovePct": 0.4,
+    "finalAttackSpeedPct": 0.2,
+    "enrageSeconds": 480,
+    "skillInherit": "replace",
+    "phaseFirstCastSeconds": 3,
+    "finalSummonInterval": 12
+  },
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  },
+  "briefing": "无名优等生有三个阶段。红色错题预警持续3秒，可撤退或用治疗应对；核心被Boss触及即失败。",
+  "waves": [
+    {
+      "number": 1,
+      "label": "观测",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 2,
+      "label": "异常加深",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 3,
+      "label": "短暂喘息",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 4,
+      "label": "核心残响",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    }
+  ]
 }

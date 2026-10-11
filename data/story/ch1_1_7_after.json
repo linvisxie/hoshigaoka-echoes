@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_7_after",
+  "chapterId": "ch1",
+  "title": "1-7 · 谁在第几名 · 调查后",
+  "background": "bg_env_ranking_battle",
+  "music": "observation_club",
+  "authorship": "Project original dialogue adapted from V2.1.4 locked chapter events.",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "排名幽灵消散后，榜单上露出被胶带遮住的一行小字：缺考。"
+    },
+    {
+      "id": "1",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "我一直以为，只要安排得够好，就不会有人掉队。"
+    },
+    {
+      "id": "2",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "可有时候，大家需要的只是停下来等一等。"
+    },
+    {
+      "id": "3",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "有一段频率没有消失。它来自旧实验楼，不像在求一个答案。"
+    },
+    {
+      "id": "4",
+      "speaker": "{player}",
+      "character": "",
+      "text": "像在等有人把问题听完。"
+    },
+    {
+      "id": "5",
+      "speaker": "",
+      "character": "",
+      "text": "凛合上时间表，在下一栏写下了一个没有截止时间的任务。"
+    }
+  ]
+}

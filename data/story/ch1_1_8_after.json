@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "ch1_1_8_after",
+  "chapterId": "ch1",
+  "title": "1-8 · 说不出口 · 调查后",
+  "background": "bg_env_science_battle",
+  "music": "observation_club",
+  "authorship": "Project original dialogue adapted from V2.1.4 locked chapter events.",
+  "completionFlags": [],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "封住门缝的黑色胶带一寸寸裂开。空教室里，终于传来椅子轻轻挪动的声音。"
+    },
+    {
+      "id": "1",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "我以为说得足够准确，就一定会被理解。"
+    },
+    {
+      "id": "2",
+      "speaker": "神谷悠真",
+      "character": "kamiya_yuma",
+      "text": "有时候需要再问一句。"
+    },
+    {
+      "id": "3",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "那……刚才你们害怕吗？"
+    },
+    {
+      "id": "4",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "害怕。所以才需要告诉彼此。"
+    },
+    {
+      "id": "5",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "这一项，我不能用仪器代测。下次会直接问。"
+    },
+    {
+      "id": "6",
+      "speaker": "",
+      "character": "",
+      "text": "纱良收好实验装置，把“情绪噪声”四个字划掉，改成了“尚未听懂的声音”。"
+    }
+  ]
+}

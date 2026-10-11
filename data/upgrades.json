@@ -78,6 +78,42 @@
       "opens": 0,
       "triggerWaves": [],
       "note": "未列入 A0.6 开放表的关卡一律不开放，避免提前扩散"
+    },
+    "1-6": {
+      "opens": 2,
+      "triggerWaves": [
+        1,
+        3
+      ]
+    },
+    "1-7": {
+      "opens": 2,
+      "triggerWaves": [
+        1,
+        3
+      ]
+    },
+    "1-8": {
+      "opens": 2,
+      "triggerWaves": [
+        1,
+        3
+      ]
+    },
+    "1-9": {
+      "opens": 2,
+      "triggerWaves": [
+        1,
+        3
+      ]
+    },
+    "1-10": {
+      "opens": 3,
+      "triggerWaves": [
+        1,
+        2,
+        3
+      ]
     }
   },
   "tutorialFixedChoices_1_5": {

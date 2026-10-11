@@ -1,20 +1,228 @@
 {
-  "schemaVersion": "1.0.0-phase0",
+  "schemaVersion": "1.0.0-v3-tail",
   "domain": "stage",
   "stageId": "1-9",
-  "_phase0": "Phase 0 占位。关卡自身规则、availableCharacters、enemySpawnTimeline、storyBefore/storyAfter ID 和 stage_rewards.json 的奖励 ID 引用；禁止内联第二份奖励正文。Alpha A0.3 起填充。",
   "chapter": 1,
-  "mapId": "",
-  "coreHp": 0,
-  "startingAp": 0,
-  "apRegen": 0,
-  "availableCharacters": [],
-  "enemySpawnTimeline": [],
-  "tutorialTriggers": [],
+  "stageName": "满分的复制品",
+  "mapId": "bg_env_archive_battle",
+  "coreHp": 3,
+  "startingAp": 10,
+  "apRegen": 1,
+  "availableCharacters": [
+    "amamiya_mio",
+    "kamiya_yuma",
+    "ogawa_yui",
+    "fujiwara_rin",
+    "minase_sara"
+  ],
+  "enemySpawnTimeline": [
+    {
+      "time": 6.0,
+      "lane": 1,
+      "enemy": "echo_copy",
+      "wave": 1
+    },
+    {
+      "time": 9.4,
+      "lane": 1,
+      "enemy": "echo_rank",
+      "wave": 1
+    },
+    {
+      "time": 12.8,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 1
+    },
+    {
+      "time": 16.2,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 1
+    },
+    {
+      "time": 19.6,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 1
+    },
+    {
+      "time": 44.0,
+      "lane": 1,
+      "enemy": "echo_rank",
+      "wave": 2
+    },
+    {
+      "time": 47.4,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 2
+    },
+    {
+      "time": 50.8,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 2
+    },
+    {
+      "time": 54.2,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 2
+    },
+    {
+      "time": 57.6,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 82.0,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 3
+    },
+    {
+      "time": 85.4,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 3
+    },
+    {
+      "time": 88.8,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 3
+    },
+    {
+      "time": 92.2,
+      "lane": 1,
+      "enemy": "echo_copy",
+      "wave": 3
+    },
+    {
+      "time": 95.6,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 120.0,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 4
+    },
+    {
+      "time": 123.4,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 4
+    },
+    {
+      "time": 126.8,
+      "lane": 1,
+      "enemy": "echo_copy",
+      "wave": 4
+    },
+    {
+      "time": 130.2,
+      "lane": 1,
+      "enemy": "echo_rank",
+      "wave": 4
+    },
+    {
+      "time": 133.6,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 158.0,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 5
+    },
+    {
+      "time": 161.4,
+      "lane": 1,
+      "enemy": "echo_copy",
+      "wave": 5
+    },
+    {
+      "time": 164.8,
+      "lane": 1,
+      "enemy": "echo_rank",
+      "wave": 5
+    },
+    {
+      "time": 168.2,
+      "lane": 1,
+      "enemy": "echo_silent",
+      "wave": 5
+    },
+    {
+      "time": 171.6,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 5
+    },
+    {
+      "time": 175.0,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 5
+    },
+    {
+      "time": 178.4,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 5
+    }
+  ],
+  "tutorialTriggers": [
+    {
+      "at": 0,
+      "id": "TUT_TAIL_9",
+      "text": "作弊纸偶低生命时分裂一次。先处理远程与排名幽灵，为体育馆调查做好准备。"
+    }
+  ],
   "specialRules": [],
-  "firstClearRewardId": "",
-  "repeatRewardId": "",
-  "storyBefore": "",
-  "storyAfter": "",
-  "bossConfig": {}
+  "firstClearRewardId": "reward_1_9_first",
+  "repeatRewardId": "reward_repeat_standard",
+  "storyBefore": "ch1_1_9_before",
+  "storyAfter": "ch1_1_9_after",
+  "bossConfig": {},
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  },
+  "briefing": "作弊纸偶低生命时分裂一次。先处理远程与排名幽灵，为体育馆调查做好准备。",
+  "waves": [
+    {
+      "number": 1,
+      "label": "观测",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 2,
+      "label": "异常加深",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 3,
+      "label": "短暂喘息",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 4,
+      "label": "核心残响",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    },
+    {
+      "number": 5,
+      "label": "最终波",
+      "clearCondition": "ALL_ENEMIES_DEFEATED"
+    }
+  ]
 }

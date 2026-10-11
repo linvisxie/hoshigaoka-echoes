@@ -7,7 +7,10 @@
       "id": "echo_normal",
       "name": "普通残响体",
       "tier": 1,
-      "tags": ["NORMAL", "MELEE"],
+      "tags": [
+        "NORMAL",
+        "MELEE"
+      ],
       "weightClass": "MEDIUM",
       "spriteFramePx": 64,
       "hp": 420,
@@ -24,7 +27,10 @@
       "id": "echo_runner",
       "name": "疾走残响体",
       "tier": 1,
-      "tags": ["FAST", "MELEE"],
+      "tags": [
+        "FAST",
+        "MELEE"
+      ],
       "weightClass": "LIGHT",
       "spriteFramePx": 64,
       "hp": 260,
@@ -41,7 +47,10 @@
       "id": "echo_armored",
       "name": "装甲残响体",
       "tier": 2,
-      "tags": ["ARMORED", "MELEE"],
+      "tags": [
+        "ARMORED",
+        "MELEE"
+      ],
       "weightClass": "HEAVY",
       "spriteFramePx": 96,
       "hp": 800,
@@ -58,7 +67,9 @@
       "id": "echo_exam_sheet",
       "name": "试卷飞灵",
       "tier": 2,
-      "tags": ["RANGED"],
+      "tags": [
+        "RANGED"
+      ],
       "weightClass": "LIGHT",
       "spriteFramePx": 64,
       "hp": 330,
@@ -68,7 +79,9 @@
       "attackInterval": 1.6,
       "attackRange": "RANGED",
       "coreDamage": 1,
-      "abilityIds": ["enemy_exam_sheet_ranged_attack"],
+      "abilityIds": [
+        "enemy_exam_sheet_ranged_attack"
+      ],
       "_spec": "V2.1.4 F-十 试卷飞灵：HP330(L1094)/攻75(L1095)/防15(L1096)/移速0.45(L1097)/攻击距离3格(L1098)/间隔1.6(L1099)/重量轻(L1100)/达到攻击距离后停下并远程攻击(L1102)。以上全部为规格原文 LOCKED 值。",
       "_candidate": "tags/spriteFramePx/coreDamage/attackRange 形态/abilityIds/mechanic 结构为工程侧 CANDIDATE（规格未给），见 docs/A0.2_敌人候选数值设计稿.md §2.1.3。",
       "mechanic": {
@@ -78,7 +91,10 @@
         "stopWhenNearestTargetInRange": true,
         "resumeMoveWhenNoTargetInRange": true,
         "targeting": "NEAREST_LEGAL_TARGET",
-        "targetTieBreak": ["CLOSER_TO_CORE", "LOWER_INSTANCE_ID"],
+        "targetTieBreak": [
+          "CLOSER_TO_CORE",
+          "LOWER_INSTANCE_ID"
+        ],
         "usesGenericBlocking": true,
         "requiresLineOfSight": false,
         "_candidate": true,
@@ -89,7 +105,9 @@
       "id": "echo_silent",
       "name": "沉默学生",
       "tier": 2,
-      "tags": ["CONTROL"],
+      "tags": [
+        "CONTROL"
+      ],
       "weightClass": "MEDIUM",
       "spriteFramePx": 64,
       "hp": 400,
@@ -99,14 +117,19 @@
       "attackInterval": 1.2,
       "attackRange": "MELEE",
       "coreDamage": 1,
-      "abilityIds": ["enemy_silent_mute_on_first_contact"],
+      "abilityIds": [
+        "enemy_silent_mute_on_first_contact"
+      ],
       "_spec": "V2.1.4 F-十三 沉默学生：规格仅给内部 ID/等级 II 级/定位「技能封锁」与能力「首次接触玩家防线后，使最近一名角色 3 秒内无法主动释放技能；技能冷却 12 秒」(L1129)。",
       "_candidate": "⚠️ 基础属性（hp 400 / attack 60 / defense 30 / moveSpeed 0.5 / attackInterval 1.2 / weightClass MEDIUM）**规格完全未给**，全部为第一轮候选，需真人试玩后调表（设计稿 §2.2.3，可调范围 hp 320~520）。",
       "mechanic": {
         "kind": "SILENCE_ON_FIRST_CONTACT",
         "trigger": "FIRST_CONTACT_WITH_DEFENSE_LINE",
         "targetSelection": "NEAREST_CHARACTER",
-        "targetTieBreak": ["CLOSER_TO_CORE", "LOWER_INSTANCE_ID"],
+        "targetTieBreak": [
+          "CLOSER_TO_CORE",
+          "LOWER_INSTANCE_ID"
+        ],
         "effectId": "silent_student_mute",
         "category": "SILENCE",
         "durationSeconds": 3.0,
@@ -122,7 +145,9 @@
       "id": "echo_copy",
       "name": "作弊纸偶",
       "tier": 2,
-      "tags": ["SUPPORT"],
+      "tags": [
+        "SUPPORT"
+      ],
       "weightClass": "MEDIUM",
       "spriteFramePx": 64,
       "hp": 450,
@@ -132,7 +157,9 @@
       "attackInterval": 1.3,
       "attackRange": "MELEE",
       "coreDamage": 1,
-      "abilityIds": ["enemy_copy_split_at_half_hp"],
+      "abilityIds": [
+        "enemy_copy_split_at_half_hp"
+      ],
       "_spec": "V2.1.4 F-十四 作弊纸偶：规格仅给内部 ID/等级 II 级/定位「复制增援」与能力「生命首次低于 50% 时生成 1 个低生命复制体。复制体拥有原敌人 35% HP，并且不能再次复制」(L1135)。",
       "_candidate": "⚠️ 基础属性（hp 450 / attack 70 / defense 25 / moveSpeed 0.45 / attackInterval 1.3 / weightClass MEDIUM）**规格完全未给**，全部为第一轮候选，需真人试玩后调表（设计稿 §2.3.3，可调范围 hp 380~520）。",
       "mechanic": {
@@ -144,7 +171,17 @@
         "copyHpRatio": 0.35,
         "copyHpRounding": "FLOOR",
         "copyCanCopy": false,
-        "copyInherits": ["attack", "defense", "moveSpeed", "attackInterval", "coreDamage", "tags", "weightClass", "spriteFramePx", "attackRange"],
+        "copyInherits": [
+          "attack",
+          "defense",
+          "moveSpeed",
+          "attackInterval",
+          "coreDamage",
+          "tags",
+          "weightClass",
+          "spriteFramePx",
+          "attackRange"
+        ],
         "copySpawnOffsetTiles": 0.1,
         "copyCountsTowardWave": true,
         "_candidate": true,
@@ -155,7 +192,10 @@
       "id": "echo_invigilator",
       "name": "监考者",
       "tier": 3,
-      "tags": ["ELITE", "CONTROL"],
+      "tags": [
+        "ELITE",
+        "CONTROL"
+      ],
       "weightClass": "HEAVY",
       "spriteFramePx": 96,
       "hp": 1600,
@@ -165,7 +205,10 @@
       "attackInterval": 1.8,
       "attackRange": "MELEE",
       "coreDamage": 1,
-      "abilityIds": ["enemy_invigilator_gaze", "enemy_invigilator_time_up"],
+      "abilityIds": [
+        "enemy_invigilator_gaze",
+        "enemy_invigilator_time_up"
+      ],
       "_spec": "V2.1.4 F-十五 监考者：HP1600(L1141)/攻120(L1142)/防65(L1143)/移速0.3(L1144)/间隔1.8(L1145)/重量重(L1146)；能力一「注视」每隔 10 秒标记最近一个玩家角色、持续 5 秒、被标记角色攻击速度 -25%(L1148)；能力二「时间到」生命低于 40% 后移动速度提高 30%(L1150)。以上全部为规格原文 LOCKED 值。",
       "_candidate": "tags/spriteFramePx/coreDamage/attackRange/abilityIds/mechanic 结构与 firstTriggerAtSeconds 为工程侧 CANDIDATE（规格未给），见 docs/A0.2_敌人候选数值设计稿.md §2.4.3。",
       "mechanic": {
@@ -174,7 +217,10 @@
           "intervalSeconds": 10.0,
           "durationSeconds": 5.0,
           "targetSelection": "NEAREST_CHARACTER",
-          "targetTieBreak": ["CLOSER_TO_CORE", "LOWER_INSTANCE_ID"],
+          "targetTieBreak": [
+            "CLOSER_TO_CORE",
+            "LOWER_INSTANCE_ID"
+          ],
           "effectId": "invigilator_gaze",
           "category": "ATTACK_SPEED",
           "attackSpeedPct": -0.25,
@@ -193,6 +239,76 @@
         },
         "_candidate": true,
         "_note": "intervalSeconds=10.0 / durationSeconds=5.0 / attackSpeedPct=-0.25 / triggerHpRatio=0.4 / moveSpeedPct=0.3 为规格值；firstTriggerAtSeconds=0.0（入场即首次标记）为第一轮候选，需真人试玩在 0.0 与 10.0 之间裁决（设计稿 §2.4.5 M1）。"
+      }
+    },
+    {
+      "id": "echo_anxiety",
+      "name": "焦虑团块",
+      "tier": 2,
+      "tags": [
+        "MECHANISM"
+      ],
+      "weightClass": "MEDIUM",
+      "spriteFramePx": 64,
+      "hp": 520,
+      "attack": 55,
+      "defense": 30,
+      "moveSpeed": 0.4,
+      "attackInterval": 1.4,
+      "attackRange": "MELEE",
+      "coreDamage": 1,
+      "abilityIds": [],
+      "mechanic": {
+        "kind": "ANXIETY_AURA",
+        "radiusTiles": 2,
+        "attackSpeedPct": -0.15,
+        "cdRecoveryPct": -0.1
+      }
+    },
+    {
+      "id": "echo_rank",
+      "name": "排名幽灵",
+      "tier": 2,
+      "tags": [
+        "MECHANISM"
+      ],
+      "weightClass": "LIGHT",
+      "spriteFramePx": 64,
+      "hp": 380,
+      "attack": 45,
+      "defense": 20,
+      "moveSpeed": 0.5,
+      "attackInterval": 1.6,
+      "attackRange": "MELEE",
+      "coreDamage": 1,
+      "abilityIds": [],
+      "mechanic": {
+        "kind": "RANK_COMPARE",
+        "rangeTiles": 3.5,
+        "intervalSeconds": 8,
+        "durationSeconds": 5,
+        "attackPct": -0.15
+      }
+    },
+    {
+      "id": "boss_model_student",
+      "name": "无名优等生",
+      "tier": 2,
+      "tags": [
+        "MECHANISM"
+      ],
+      "weightClass": "BOSS",
+      "spriteFramePx": 160,
+      "hp": 8000,
+      "attack": 150,
+      "defense": 70,
+      "moveSpeed": 0.18,
+      "attackInterval": 2,
+      "attackRange": "MELEE",
+      "coreDamage": 3,
+      "abilityIds": [],
+      "mechanic": {
+        "kind": "CHAPTER_BOSS"
       }
     }
   ]

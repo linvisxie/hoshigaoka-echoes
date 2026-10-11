@@ -58,19 +58,22 @@ func _ready() -> void:
 			var cid := str(cfg.get("id", ""))
 			if not CampaignFlow.character_unlocked(cid) or not EquipmentService.can_equip(str(inst.get("equipmentId", "")), cid):
 				continue
-			var equip_button := button_at("装备给" + str(DataRegistry.get_entry("characters", cid).get("name", cid)), Rect2(870 + (offset % 3) * 300, 610 + (offset / 3) * 74, 280, 65), func() -> void: _result(EquipmentService.equip(cid, selected_id)))
+			var equip_button := button_at("装备给" + str(DataRegistry.get_entry("characters", cid).get("name", cid)), Rect2(870 + (offset % 3) * 300, 585 + int(offset / 3) * 74, 280, 65), func() -> void: _result(EquipmentService.equip(cid, selected_id)))
 			equip_button.disabled = bound == cid
 			equip_button.tooltip_text = "已装备给这名角色" if bound == cid else "替换同槽位装备；旧装备保留在背包，强化等级不变。"
 			offset += 1
 		var cost := EquipmentService.enhancement_cost_at(int(inst.get("enhanceLevel", 0)))
-		label_at("下次强化：学园币 %d · 零件 %d" % [int(cost.get("school_coin", 0)), int(cost.get("equipment_part", 0))], Rect2(870, 710, 880, 45), 25, MUTED)
+		var permanent := not EquipmentService.can_enhance_template(str(inst.get("equipmentId", "")))
+		label_at("章节纪念 · 不可强化或分解" if permanent else "下次强化：学园币 %d · 零件 %d" % [int(cost.get("school_coin", 0)), int(cost.get("equipment_part", 0))], Rect2(870, 735, 880, 40), 25, MUTED)
 		var enhance := button_at("强化 +1", Rect2(870, 780, 260, 65), func() -> void: _result(EquipmentService.enhance(selected_id)), true)
-		enhance.disabled = cost.is_empty() or int(currency.get("school_coin",0)) < int(cost.get("school_coin",0)) or int(currency.get("equipment_part",0)) < int(cost.get("equipment_part",0))
+		enhance.disabled = permanent or cost.is_empty() or int(currency.get("school_coin",0)) < int(cost.get("school_coin",0)) or int(currency.get("equipment_part",0)) < int(cost.get("equipment_part",0))
 		enhance.tooltip_text = "已达到强化上限" if cost.is_empty() else ("学园币或装备零件不足，可通过关卡奖励获取。" if enhance.disabled else "消耗上方显示的资源，提升装备属性。")
 		var unequip := button_at("卸下", Rect2(1160, 780, 260, 65), func() -> void:
 			_result(EquipmentService.unequip(bound, str(template.get("slot", "")))))
 		unequip.disabled = bound.is_empty()
-		button_at("重置 / 分解", Rect2(1450, 780, 330, 65), _confirm)
+		var reset := button_at("重置 / 分解", Rect2(1450, 780, 330, 65), _confirm)
+		reset.disabled = bool(template.get("unique",false))
+		reset.tooltip_text = "章节纪念物永久保留" if reset.disabled else "查看重置强化与分解选项"
 	label_at(feedback, Rect2(100, 928, 1700, 40), 24, BLUE)
 	button_at("返回角色", Rect2(90, 980, 360, 70), func() -> void: SceneRouter.go_to("character"))
 	button_at("返回校园", Rect2(1430, 980, 410, 70), func() -> void: SceneRouter.go_to("home"))

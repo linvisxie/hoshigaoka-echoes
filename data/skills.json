@@ -43,6 +43,45 @@
       "cooldownSeconds": 24,
       "apGain": 6,
       "description": "立即获得6 AP，不超过上限。凛在场时全队自然AP回复+15%，不进行普通攻击。"
+    },
+    {
+      "id": "yui_small_light",
+      "name": "不熄的灯",
+      "type": "ACTIVE",
+      "effect": "AREA_HEAL",
+      "cooldownSeconds": 20,
+      "initialCooldownSeconds": 20,
+      "healMultiplier": 2.5,
+      "rangeTiles": 3,
+      "maxLaneDelta": 1,
+      "description": "为治疗范围内所有友军恢复250%治疗力的生命。"
+    },
+    {
+      "id": "sara_experiment",
+      "name": "临时实验装置",
+      "type": "ACTIVE",
+      "effect": "DEVICE",
+      "cooldownSeconds": 24,
+      "initialCooldownSeconds": 24,
+      "durationSeconds": 12,
+      "deviceHp": 480,
+      "deviceDefense": 60,
+      "deviceBlock": 1,
+      "description": "选择一个空部署格放置12秒实验装置；阻挡1，不能治疗，不占角色名额。"
+    },
+    {
+      "id": "chinatsu_beat",
+      "name": "放课后节拍",
+      "type": "ACTIVE",
+      "effect": "AREA_BUFF",
+      "cooldownSeconds": 22,
+      "initialCooldownSeconds": 22,
+      "durationSeconds": 10,
+      "rangeTiles": 2,
+      "maxLaneDelta": 1,
+      "attackSpeedPct": 0.2,
+      "cdRecoveryPct": 0.1,
+      "description": "附近友军10秒内攻速+20%、技能冷却恢复+10%。"
     }
   ],
   "talents": [
@@ -70,6 +109,25 @@
       "durationSeconds": 10,
       "apDiscount": 2,
       "description": "每次部署后10秒内，下一名友军部署费用−2 AP，最低1 AP；成功部署后消耗。"
+    },
+    {
+      "id": "sara_analysis",
+      "name": "分析完成",
+      "effect": "ARMORED_SPECIAL",
+      "defenseThreshold": 80,
+      "damageBonusPct": 0.15,
+      "splashRange": 0.75,
+      "splashMultiplier": 0.7,
+      "description": "对防御≥80敌人特殊伤害+15%；普攻对同路0.75格内其他敌人溅射70%。"
+    },
+    {
+      "id": "chinatsu_presence",
+      "name": "不冷场",
+      "effect": "AREA_SPEED",
+      "rangeTiles": 2,
+      "maxLaneDelta": 1,
+      "attackSpeedPct": 0.08,
+      "description": "附近友军常驻攻速+8%，不包含自身。"
     }
   ]
 }

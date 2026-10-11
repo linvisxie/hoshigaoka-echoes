@@ -35,15 +35,20 @@ func _ready() -> void:
 	for i: int in range(party.size()):
 		var cid := str(party[i])
 		var char_cfg := DataRegistry.get_entry("characters", cid)
-		texture_at(ArtRegistry.character_portrait(cid, 256), Rect2(1040 + i * 240, 365, 210, 250))
-		label_at(str(char_cfg.get("name", cid)), Rect2(1040 + i * 240, 645, 230, 60), 30)
+		var dense := party.size()>3
+		var x := 1040+(i%3)*250 if dense else 1040+i*240
+		var y := 335+int(i/3)*270 if dense else 365
+		texture_at(ArtRegistry.character_portrait(cid, 256), Rect2(x,y,190 if dense else 210,150 if dense else 250))
+		label_at(str(char_cfg.get("name", cid)), Rect2(x,y+(155 if dense else 280),230,48),27 if dense else 30)
 		var role := "前线 · 阻挡" if str(char_cfg.get("behavior","")) == "FRONTLINE" else "远程 · 支援"
 		if cid == "fujiwara_rin":
 			role = "资源 · 调度"
-		label_at("%s  /  %d AP" % [role,int(char_cfg.get("deployCost",0))],Rect2(1040+i*240,705,235,40),22,BLUE)
-	label_at("出战顺序  ·  点击名字调整角色卡位置", Rect2(1030, 745, 760, 50), 25, MUTED)
+		if cid == "ogawa_yui": role = "治疗 · 支援"
+		label_at("%s  /  %d AP" % [role,int(char_cfg.get("deployCost",0))],Rect2(x,y+(200 if dense else 340),235,40),22,BLUE)
+	label_at("出战顺序  ·  点击名字轮换", Rect2(1030, 875 if party.size()>3 else 745, 760, 40), 23, MUTED)
 	for i: int in range(party.size()):
-		button_at(str(DataRegistry.get_entry("characters", str(party[i])).get("name", party[i])), Rect2(1040 + i * 240, 815, 210, 65), _rotate_party, false)
+		if party.size()<=3: button_at(str(DataRegistry.get_entry("characters", str(party[i])).get("name", party[i])), Rect2(1040 + i * 240, 815, 210, 65), _rotate_party, false)
+	if party.size()>3: button_at("轮换角色卡顺序  ↻",Rect2(1030,945,315,70),_rotate_party)
 	button_at("返回校园", Rect2(90, 970, 380, 75), func() -> void: SceneRouter.go_to("home"))
 	button_at("开始战斗   →", Rect2(1390, 970, 450, 75), func() -> void: CampaignFlow.launch_battle(), true).grab_focus()
 
