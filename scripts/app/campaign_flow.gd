@@ -132,4 +132,17 @@ static func character_unlocked(cid: String) -> bool:
 		return done("ch1_1_3_before") or StageRewardService.is_first_cleared("1-3")
 	if cid == "ogawa_yui":
 		return StageRewardService.is_first_cleared("1-6")
+	if cid == "fujiwara_rin":
+		return StageRewardService.is_first_cleared("1-5") and done("ch1_1_5_after")
 	return false
+
+## Replays may use the club member who joined after the fifth-stage ending.
+## The immutable stage table and the first-clear two-person tutorial stay intact.
+static func effective_stage_config(config: Dictionary) -> Dictionary:
+	var result := config.duplicate(true)
+	if str(result.get("stageId", "")) in ["1-3", "1-4", "1-5"] and character_unlocked("fujiwara_rin"):
+		var roster: Array = result.get("availableCharacters", []).duplicate()
+		if not roster.has("fujiwara_rin"):
+			roster.append("fujiwara_rin")
+		result["availableCharacters"] = roster
+	return result

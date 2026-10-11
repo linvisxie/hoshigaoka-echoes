@@ -558,7 +558,7 @@ func _build_battle() -> void:
 	# P0.4 开发专用入口：仅显式开关才在**内存副本**上覆盖可用角色；
 	# 正式流程（不带 --dev-roster）完全走关卡自身的解锁规则。
 	# P1.0：Retail 构建下 PrototypeRoster.requested_triple() 恒为 false（见 build_mode.gd）。
-	stage_config = PrototypeRoster.apply_if_requested(stage_config)
+	stage_config = PrototypeRoster.apply_if_requested(CampaignFlow.effective_stage_config(stage_config))
 	if stage_config.has("_devRoster"):
 		GameLog.warn(TAG, "已启用开发专用编队覆盖：%s（仅内存生效，未修改任何数据文件）"
 			% stage_config.get("_devRoster", ""))
@@ -582,8 +582,11 @@ func _build_battle() -> void:
 	add_child(session)
 	# Alpha A0.6：局内强化数据同样由表现层注入（域层不读 DataRegistry）。
 	# 未在 upgrades.json 的 openByStage 中声明的关卡拿到 null，倍率恒为 1.0。
+	var upgrade_data := DataRegistry.get_domain("upgrades").duplicate(true)
+	if stage_id == "1-5" and CampaignFlow.character_unlocked("fujiwara_rin"):
+		upgrade_data["openByStage"]["1-5"] = {"opens": 2, "triggerWaves": [1, 3]}
 	var errs := session.setup(stage_config, enemy_table, grid, _build_character_table(),
-		_combat_config(), DataRegistry.get_domain("upgrades"))
+		_combat_config(), upgrade_data)
 	if not errs.is_empty():
 		for e: String in errs:
 			GameLog.error(TAG, "会话构建失败：%s" % e)
@@ -675,39 +678,11 @@ func _build_tutorial_queue(stage_config: Dictionary) -> void:
 func _update_layout() -> void:
 	if grid == null:
 		return
-	# 每次布局都从基准缩放重新推导，避免收缩系数被重复累乘
+	# One reference-space composition for every stage; HUD and world share only
+	# viewport scaling, never a stage-dependent board shrink.
 	_render_scale = _base_scale
-	var tile := _px(grid.tile_size_px)
-	var grid_w := tile * float(grid.columns - 1)
-	var core_margin := tile * CORE_MARGIN_TILES
-	var total_w := core_margin + grid_w + tile * 0.5
-	var board_h := _render_lane_spacing() * float(grid.lanes - 1) + tile
-	var hud_h := _px(HUD_BAND_HEIGHT)
-	var card_band := _px(CARD_BAND_HEIGHT)
-
-	var left := (_viewport_size.x - total_w) * 0.5
-	var avail_top := hud_h
-	var avail_h := _viewport_size.y - card_band - avail_top
-	# 区间不足时按比例收缩整个战场（仅渲染，逻辑仍以 tile 计）
-	if board_h > avail_h and board_h > 0.0:
-		var shrink := avail_h / board_h
-		shrink = clampf(shrink, 0.5, 1.0)
-		_render_scale *= shrink
-		tile = _px(grid.tile_size_px)
-		grid_w = tile * float(grid.columns - 1)
-		core_margin = tile * CORE_MARGIN_TILES
-		total_w = core_margin + grid_w + tile * 0.5
-		board_h = _render_lane_spacing() * float(grid.lanes - 1) + tile
-		hud_h = _px(HUD_BAND_HEIGHT)
-		card_band = _px(CARD_BAND_HEIGHT)
-		left = (_viewport_size.x - total_w) * 0.5
-		avail_top = hud_h
-		avail_h = _viewport_size.y - card_band - avail_top
-
-	var top := avail_top + maxf(0.0, (avail_h - board_h) * 0.5)
-	_origin = Vector2(left + core_margin, top + tile * 0.5)
-	if session != null and session.stage.stage_id in ["1-1", "1-2", "1-3"]:
-		_origin.y += _px(125.0)
+	var extra_x := maxf(0.0, _viewport_size.x - _px(1920.0)) * 0.5
+	_origin = Vector2(_px(640.0) + extra_x, _px(430.0))
 
 
 ## 从 DataRegistry 组装 { characterId -> CharacterConfig } 表
@@ -1407,6 +1382,7 @@ func _update_feedback(delta: float) -> void:
 	_check_enemy_kind_intro()
 	_consume_tutorial_triggers()
 	_update_danger_warnings(now)
+	_update_elite_feedback(now)
 
 	# 寿命推进：伤害数字 / 受击闪白 / 死亡粒子 / 部署落位
 	for i: int in range(_damage_pops.size() - 1, -1, -1):
@@ -1527,8 +1503,7 @@ func _consume_kills() -> void:
 		var lane_i := int(r.get("lane", 0))
 		var lx := float(r.get("x", BattleGrid.CORE_X))
 		var spacing_px := _render_lane_spacing()
-		var anchor := Vector2(_origin.x + _px(grid.logical_to_px_x(lx, 0.0)),
-			_origin.y + float(lane_i) * spacing_px)
+		var anchor := _logical_to_screen(Vector2(lx,lane_i))
 		var offset: Vector2 = _enemy_display_offsets.get(int(r.get("entityId", 0)), Vector2.ZERO)
 		anchor += Vector2(_px(offset.x), _px(offset.y))
 		_spawn_vfx_at("vfx_death", anchor, s.elapsed_seconds, VFX_DEATH_LIFETIME)
@@ -1690,6 +1665,8 @@ func _enemy_intro_text(enemy_id: String, cfg: Dictionary) -> String:
 	var speed := float(cfg.get("moveSpeed", 0.0))
 	var defense := int(cfg.get("defense", 0))
 	match enemy_id:
+		"echo_invigilator":
+			return "注视会降低附近角色的攻速；生命危急时加速推进，留好技能应对。"
 		"echo_runner":
 			return "移动速度很快，请尽早处理。"
 		"echo_armored":
@@ -1931,6 +1908,8 @@ func _role_label(behavior: String) -> String:
 			return "远程"
 		"HEALER":
 			return "治疗"
+		"AP_SUPPORT":
+			return "调度"
 		_:
 			return "未知"
 
@@ -2068,8 +2047,7 @@ func _character_at_screen(pos: Vector2) -> CharacterRuntime:
 	for c: CharacterRuntime in session.stage.characters:
 		if c.is_incapacitated():
 			continue
-		var center := Vector2(_origin.x + tile * float(c.column),
-			_origin.y + float(c.lane) * spacing)
+		var center := _cell_screen_pos(c.column, c.lane)
 		if center.distance_to(pos) <= hit_r:
 			return c
 	return null
@@ -2083,24 +2061,14 @@ func _update_hover(pos: Vector2) -> void:
 	if session == null or grid == null:
 		return
 
-	var tile := _px(grid.tile_size_px)
-	var spacing := _render_lane_spacing()
-
-	for lane: int in range(grid.lanes):
-		var lane_y := _origin.y + float(lane) * spacing
-		if absf(pos.y - lane_y) > tile * 0.5:
-			continue
-		for column: int in range(grid.columns):
-			var cell_x := _origin.x + tile * float(column)
-			if absf(pos.x - cell_x) > tile * 0.5:
-				continue
-			_hover_column = column
-			_hover_lane = lane
-			if not _selected_card_id.is_empty() and session.is_running() and not session.is_paused():
-				var r := session.query_deploy(_selected_card_id, column, lane)
-				_hover_deploy_ok = r.ok
-				_hover_reject_reason = r.reason_text()
-			return
+	var cell := _screen_to_cell(pos)
+	if cell.is_empty(): return
+	_hover_column = int(cell.column)
+	_hover_lane = int(cell.lane)
+	if not _selected_card_id.is_empty() and session.is_running() and not session.is_paused():
+		var result := session.query_deploy(_selected_card_id, _hover_column, _hover_lane)
+		_hover_deploy_ok = result.ok
+		_hover_reject_reason = result.reason_text()
 
 
 # ============================================================
@@ -2324,23 +2292,15 @@ func _do_capture(shot_name: String) -> void:
 
 ## 格坐标 -> 屏幕像素（autoplay 注入/点击使用；与 _draw_board 同一换算）
 func _cell_screen_pos(column: int, lane: int) -> Vector2:
-	var tile := _px(grid.tile_size_px)
-	var spacing := _render_lane_spacing()
-	return Vector2(_origin.x + tile * float(column), _origin.y + float(lane) * spacing)
+	return _logical_to_screen(Vector2(column, lane))
 
 
 func _screen_to_cell(pos: Vector2) -> Dictionary:
-	var tile := _px(grid.tile_size_px)
-	var spacing := _render_lane_spacing()
-	for lane: int in range(grid.lanes):
-		var lane_y := _origin.y + float(lane) * spacing
-		if absf(pos.y - lane_y) > tile * 0.5:
-			continue
-		for column: int in range(grid.columns):
-			var cell_x := _origin.x + tile * float(column)
-			if absf(pos.x - cell_x) > tile * 0.5:
-				continue
-			return {"column": column, "lane": lane}
+	var uv := _screen_to_logical(pos)
+	var column := roundi(uv.x)
+	var lane := roundi(uv.y)
+	if grid.is_valid_cell(column, lane) and absf(uv.x-column) <= 0.46 and absf(uv.y-lane) <= 0.40:
+		return {"column":column,"lane":lane}
 	return {}
 
 
@@ -2367,6 +2327,7 @@ func _draw() -> void:
 	if _native_hud == null:
 		_draw_hud_backdrop()
 	_draw_board()
+	_draw_elite_ground()
 	_draw_lane_warnings()
 	_draw_core()
 	_draw_deploy_feedback()
@@ -2379,6 +2340,7 @@ func _draw() -> void:
 	_draw_vfx()
 	_draw_death_particles()
 	_draw_damage_pops()
+	_draw_elite_cue()
 	if _native_hud == null:
 		_draw_hud_text()
 		_draw_wave_banner()
@@ -2507,6 +2469,85 @@ func _draw_corner_marks(rect: Rect2, arm: float, col: Color, width: float) -> vo
 ##   - 整条纯色矩形 → 左右内缩、底角斜切的浮起面板（露出战场背景，读作 UI 而非调试条）；
 ##   - 面板之外仍压一层很淡的暗色，保证顶部信息在明亮背景上也可读；
 ##   - 不同信息区之间用竖向细分隔线分区（关卡/核心 ｜ Wave ｜ 暂停）。
+## All cues follow real runtime flags and clocks; these methods never stop time.
+func _update_elite_feedback(now: float) -> void:
+	for enemy: EnemyRuntime in session.stage.enemies:
+		if enemy.enemy_id != "echo_invigilator" or not enemy.is_active():
+			continue
+		if not _elite_seen.has(enemy.instance_id):
+			_elite_seen[enemy.instance_id] = true
+			_elite_intro_until = now + 2.4
+			AudioService.play_sfx("elite_arrival", -4.0)
+			AudioService.play_music("invigilator_exam")
+			_mark_drawn("elite_event:arrival")
+		if enemy.time_up_triggered and not _elite_phase_seen.has(enemy.instance_id):
+			_elite_phase_seen[enemy.instance_id] = true
+			_elite_phase_until = now + 2.0
+			AudioService.play_sfx("elite_time_up", -3.0)
+			_mark_drawn("elite_event:time_up")
+	for character: CharacterRuntime in session.stage.characters:
+		for effect: StatusEffect in character.status_effects:
+			if effect.effect_id != "invigilator_gaze" or effect.expires_at <= now:
+				continue
+			var key := "%d:%.3f" % [character.instance_id, effect.applied_at]
+			if not _gaze_seen.has(key):
+				_gaze_seen[key] = true
+				AudioService.play_sfx("elite_gaze", -6.0)
+				_mark_drawn("elite_event:gaze")
+
+func _draw_elite_ground() -> void:
+	var now := _now()
+	for enemy: EnemyRuntime in session.stage.enemies:
+		if enemy.enemy_id != "echo_invigilator" or not enemy.is_active(): continue
+		var center := _logical_to_screen(Vector2(enemy.logical_x, enemy.lane))
+		var offset: Vector2 = _enemy_display_offsets.get(enemy.instance_id, Vector2.ZERO)
+		center += offset * _render_scale
+		var color := Color("ffabc0") if enemy.time_up_triggered else Color("c7b9ff")
+		var radius := _px(41.0 + 3.0*sin(now*3.0))
+		draw_arc(center+Vector2(0,_px(22)),radius,now*.35,PI+now*.35,24,Color(color,.48),_px(1.5),true)
+		# Countdown telegraph is drawn only when a valid real target exists.
+		if enemy.gaze_cooldown > 0 and enemy.gaze_cooldown < 1.5:
+			var target := session.stage._select_nearest_character_for_enemy(enemy)
+			if target != null:
+				var destination := _cell_screen_pos(target.column,target.lane)
+				var k := 1.0-enemy.gaze_cooldown/1.5
+				draw_dashed_line(center,destination,Color(color,.18+k*.35),_px(1.5),_px(10),true)
+				draw_arc(destination,_px(38-12*k),0,TAU,32,Color(color,.35+k*.4),_px(1.5),true)
+	for character: CharacterRuntime in session.stage.characters:
+		for effect: StatusEffect in character.status_effects:
+			if effect.effect_id == "invigilator_gaze" and effect.expires_at > now:
+				var p := _cell_screen_pos(character.column,character.lane)+Vector2(0,_px(28))
+				draw_arc(p,_px(27),0,TAU,32,Color("e8a4d2",.6),_px(1.4),true)
+				draw_string(GameSkin.body_font(),p+Vector2(-_px(44),_px(45)),"注视 %.1f秒" % (effect.expires_at-now),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(16)),Color("ffbfd9"))
+
+func _draw_elite_cue() -> void:
+	var now := _now()
+	var remaining := maxf(_elite_intro_until-now,_elite_phase_until-now)
+	if remaining <= 0: return
+	var phase := _elite_phase_until > now
+	var color := Color("ffb1c6") if phase else Color("d6caff")
+	var alpha := minf(1.0,remaining/.4)
+	# A slim in-world announcement beneath the established HUD, never a modal.
+	var center := Vector2(_viewport_size.x*.58,_px(171))
+	var box := Rect2(center-Vector2(_px(210),_px(26)),Vector2(_px(420),_px(52)))
+	_draw_cut_panel(box,_px(10),Color(.05,.075,.14,.86*alpha),Color(color,alpha*.65),_px(1))
+	draw_string(GameSkin.body_font(),box.position+Vector2(_px(24),_px(34)),"时间到 · 监考者加速" if phase else "精英残响 · 监考者入场",HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(23)),Color(color,alpha))
+
+func _draw_enemy_threat_mark(enemy: EnemyRuntime, feet: Vector2) -> void:
+	var cfg: Dictionary = session.stage._enemy_configs.get(enemy.enemy_id,{})
+	var tags: Array = cfg.get("tags",[])
+	var tint := Color("ffcc99") if tags.has("ARMORED") else Color("cfbdff")
+	var p := feet+Vector2(-_px(24),-_px(5))
+	if tags.has("ARMORED"):
+		var shield := PackedVector2Array([p+Vector2(-7,-8)*_render_scale,p+Vector2(7,-8)*_render_scale,p+Vector2(6,3)*_render_scale,p+Vector2(0,8)*_render_scale,p+Vector2(-6,3)*_render_scale,p+Vector2(-7,-8)*_render_scale])
+		draw_polyline(shield,Color(tint,.85),_px(1.5),true)
+	elif tags.has("FAST"):
+		for i: int in range(2):
+			var x := p.x+_px(i*8)
+			draw_polyline(PackedVector2Array([Vector2(x+_px(5),p.y-_px(5)),Vector2(x,p.y),Vector2(x+_px(5),p.y+_px(5))]),Color(tint,.8),_px(1.5),true)
+	if enemy.logical_x < 0.9 and enemy.is_active():
+		draw_arc(feet,_px(24),PI*.1,PI*.9,16,Color("ffa2b5",.45+.2*sin(_now()*7)),_px(2),true)
+
 func _draw_hud_backdrop() -> void:
 	var left := Rect2(_px(24), _px(20), _px(440), _px(112))
 	var middle := Rect2(_viewport_size.x * 0.5 - _px(260), _px(20), _px(520), _px(100))
@@ -2553,29 +2594,27 @@ func _stage_id_for_art() -> String:
 
 ## 三条路线 + 18 个部署格
 func _draw_board() -> void:
-	var tile := _px(grid.tile_size_px)
-	var spacing := _render_lane_spacing()
 	var choosing := not _selected_card_id.is_empty()
 	for lane: int in range(grid.lanes):
-		var y := _origin.y + float(lane) * spacing
-		# Route identity lives at the edges, leaving the world unobstructed.
 		var col: Color = LANE_COLORS[lane]
-		var label_rect := Rect2(_px(28.0), y - _px(17.0), _px(96.0), _px(34.0))
-		_draw_round_rect(label_rect, _px(6.0), Color(0.035, 0.045, 0.09, 0.78), Color(col, 0.35), 1.0)
-		draw_string(ThemeDB.fallback_font, label_rect.position + Vector2(_px(17.0), _px(24.0)),
-			BattleTypes.lane_name(lane), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), col.lightened(0.25))
-		var entry := Vector2(_origin.x + tile * 5.58, y)
+		var start := _logical_to_screen(Vector2(-0.55,lane))
+		var end := _logical_to_screen(Vector2(5.58,lane))
+		var label_rect := Rect2(start-Vector2(_px(126),_px(17)),Vector2(_px(96),_px(34)))
+		_draw_round_rect(label_rect,_px(6),Color(0.035,0.055,0.09,0.82),Color(col,0.45),1.0)
+		draw_string(GameSkin.body_font(),label_rect.position+Vector2(_px(17),_px(24)),BattleTypes.lane_name(lane),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),col.lightened(0.25))
+		# Quiet slanted ground ribbons make all three routes legible without blue cells.
+		var band := PackedVector2Array([_logical_to_screen(Vector2(-0.46,lane-0.34)),_logical_to_screen(Vector2(5.58,lane-0.34)),_logical_to_screen(Vector2(5.58,lane+0.34)),_logical_to_screen(Vector2(-0.46,lane+0.34))])
+		draw_colored_polygon(band,Color(col,0.025))
+		draw_line(band[3],band[2],Color(col,0.17),_px(1),true)
 		for i: int in range(2):
-			var tip := entry - Vector2(_px(float(i) * 13.0), 0)
-			draw_polyline(PackedVector2Array([tip + Vector2(_px(8), -_px(7)), tip, tip + Vector2(_px(8), _px(7))]), Color(0.79, 0.69, 0.96, 0.65), _px(2.0), true)
-		# A hover reveals one footprint; selecting a card reveals all positions below.
+			var tip := end-Vector2(_px(i*13),0)
+			draw_polyline(PackedVector2Array([tip+Vector2(_px(8),-_px(7)),tip,tip+Vector2(_px(8),_px(7))]),Color(0.79,0.85,0.96,0.65),_px(2),true)
 		if not choosing and _hover_lane == lane and _hover_column >= 0:
-			var pos := _cell_screen_pos(_hover_column, lane)
-			var r := Rect2(pos - Vector2(tile * 0.36, tile * 0.25), Vector2(tile * 0.72, tile * 0.50))
-			_draw_corner_marks(r, _px(15.0), Color(0.80, 0.85, 1.0, 0.50), _px(2.0))
+			var points := _cell_polygon(_hover_column,lane)
+			points.append(points[0])
+			draw_polyline(points,Color(0.80,0.92,1.0,0.5),_px(1.5),true)
 
 
-## 残响锚点（三条路线共用一个核心，V2.1.4 D-5 / 3A）
 func _draw_core() -> void:
 	var tile := _px(grid.tile_size_px)
 	var spacing := _render_lane_spacing()
@@ -2586,9 +2625,9 @@ func _draw_core() -> void:
 	var energy := Color(0.62, 0.74, 1.0) if not danger else Color(1.0, 0.40, 0.57)
 	energy = energy.lerp(Color(1, 0.94, 0.85), flash)
 	var tower := ArtRegistry.load_texture("res://assets/art/ui/core_tower_six.png")
-	var core_center := Vector2(_origin.x - tile * 0.92, _origin.y + spacing)
+	var core_center := Vector2(_origin.x - _px(480.0), _px(580.0))
 	if tower != null:
-		var tower_h := spacing * 2.0 + tile * 0.34
+		var tower_h := _px(350.0)
 		var tower_w := tower_h * 0.625
 		var tower_rect := Rect2(core_center.x - tower_w * 0.5, core_center.y - tower_h * 0.5, tower_w, tower_h)
 		var modulate_color := Color(1, 1, 1).lerp(energy, 0.65 if danger else flash * 0.7)
@@ -2607,7 +2646,7 @@ func _draw_core() -> void:
 			draw_texture_rect(tower, tower_rect, false, modulate_color)
 	var tex := ArtRegistry.load_texture("res://assets/art/ui/core_anchor.svg")
 	for lane: int in range(grid.lanes):
-		var center := Vector2(_origin.x - tile * 0.46, _origin.y + float(lane) * spacing)
+		var center := _logical_to_screen(Vector2(-1.48,lane))
 		var pulse := 0.55 + 0.15 * sin(now * (5.0 if danger else 1.8) + float(lane))
 		if hp <= 0:
 			pulse = 0.12
@@ -2621,7 +2660,7 @@ func _draw_core() -> void:
 			_draw_corner_marks(Rect2(center - Vector2.ONE * r * 1.3, Vector2.ONE * r * 2.6), r * 0.35, Color(energy, pulse), _px(2.0))
 	# Three seals defend three routes, all read the same authoritative HP.
 	var label := "防线崩解" if hp <= 0 else ("最后防线" if danger else "残响锚点")
-	draw_string(ThemeDB.fallback_font, Vector2(_origin.x - tile * 1.05, _origin.y - spacing * 0.58), label,
+	draw_string(ThemeDB.fallback_font, Vector2(core_center.x - _px(58.0), core_center.y + _px(198.0)), label,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), energy)
 
 
@@ -2646,8 +2685,9 @@ func _draw_characters(lane_filter: int = -1) -> void:
 	for c: CharacterRuntime in session.stage.characters:
 		if lane_filter >= 0 and c.lane != lane_filter:
 			continue
-		var px_x := _origin.x + tile * float(c.column)
-		var px_y := _origin.y + float(c.lane) * spacing
+		var anchor := _cell_screen_pos(c.column,c.lane)
+		var px_x := anchor.x
+		var px_y := anchor.y
 		var size := tile * 0.44
 		var half := size * 0.5
 		var selected := c.instance_id == _selected_character_id
@@ -2701,7 +2741,7 @@ func _draw_characters(lane_filter: int = -1) -> void:
 						sprite = special_tex
 						pose_anim = str(special["anim"])
 						_mark_drawn("char_special:" + str(special["anim"]))
-			var redrawn := c.character_id in ["amamiya_mio", "kamiya_yuma"]
+			var redrawn := c.character_id in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin"]
 			_draw_sprite_anchored(sprite, Vector2(px_x, px_y), tile * (1.28 if redrawn else 0.96), mod, 0.25 if redrawn else 0.33)
 			if c.skill_active_remaining > 0 or c.skill_charged:
 				var aura := Color("a9cfff") if c.character_id == "amamiya_mio" else Color("ffd58c")
@@ -2772,14 +2812,14 @@ func _draw_characters(lane_filter: int = -1) -> void:
 		draw_string(ThemeDB.fallback_font,
 			Vector2(px_x - _px(26.0), px_y + half + _px(18.0)),
 			_role_label(_behavior_text_of(c)),
-			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), role_color)
+			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)), role_color)
 
 		# 阻挡指示：正在阻挡几个敌人（仅前线会显示）
 		if c.blocking_enemy_ids.size() > 0:
 			draw_string(ThemeDB.fallback_font,
 				Vector2(px_x - _px(18.0), px_y + half + _px(34.0)),
 				"阻挡 %d/%d" % [c.blocking_enemy_ids.size(), c.block_count_max],
-				HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(13.0)), Color(0.95, 0.9, 0.4))
+				HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.95, 0.9, 0.4))
 
 		# 治疗反馈：刚被治疗过的角色头顶升起绿色十字与 +HP（纯表现层）
 		for f: Dictionary in _heal_flashes:
@@ -2813,6 +2853,7 @@ func _role_color(c: CharacterRuntime) -> Color:
 
 ## 运行时行为 -> 配置里的字符串（用于显示标签）
 func _behavior_text_of(c: CharacterRuntime) -> String:
+	if c.character_id == "fujiwara_rin": return "AP_SUPPORT"
 	return c.behavior_text if not c.behavior_text.is_empty() else CharacterRuntime.behavior_name(c.behavior)
 
 
@@ -2864,6 +2905,11 @@ func _enemy_anim_state(e: EnemyRuntime, now: float) -> AnimState:
 
 ## 已实际绘制过的资源键集合
 var _art_drawn: Dictionary = {}
+var _elite_seen: Dictionary = {}
+var _elite_phase_seen: Dictionary = {}
+var _elite_intro_until: float = -1.0
+var _elite_phase_until: float = -1.0
+var _gaze_seen: Dictionary = {}
 ## 启动时校验过的缺失资源（应存在但加载不到）
 var _art_missing: Array[String] = []
 ## 是否已做过启动校验
@@ -3030,9 +3076,9 @@ func _draw_enemies(lane_filter: int = -1) -> void:
 		return ay < by if not is_equal_approx(ay, by) else a.logical_x > b.logical_x)
 	for e: EnemyRuntime in visible:
 		# 逻辑 x 先按 V2.1.4 公式换算为参考画布像素，再同比缩放到当前屏幕
-		var ref_px_x := grid.logical_to_px_x(e.logical_x, 0.0)
-		var px_x := _origin.x + _px(ref_px_x)
-		var px_y := _origin.y + float(e.lane) * spacing
+		var anchor := _logical_to_screen(Vector2(e.logical_x,e.lane))
+		var px_x := anchor.x
+		var px_y := anchor.y
 		var size := tile * 0.42
 
 		var offset: Vector2 = _enemy_display_offsets.get(e.instance_id, Vector2.ZERO)
@@ -3095,6 +3141,7 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 			_:
 				_draw_enemy_normal(px_x, px_y, s, fill)
 
+	_draw_enemy_threat_mark(e, Vector2(px_x, px_y + half * 0.92))
 	# 类别标签（常驻，保证不看颜色也能分辨敌种）
 	# 本轮精修：字号 14→15 并加**深色描边**，解决"背景偏亮时标签糊掉"的问题。
 	var label := _enemy_kind_label(e.enemy_id)
@@ -3104,7 +3151,7 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 	elif group_count == 0 and e.enemy_id in ["echo_normal", "echo_runner"]:
 		label = ""
 	var font := ThemeDB.fallback_font
-	var lf := int(_px(15.0))
+	var lf := int(_px(18.0))
 	var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, lf).x
 	var lpos := Vector2(px_x - lw * 0.5, px_y + half + _px(16.0))
 	draw_string_outline(font, lpos, label, HORIZONTAL_ALIGNMENT_LEFT, -1, lf, 2,
@@ -3215,6 +3262,10 @@ func _enemy_fill_color(enemy_id: String) -> Color:
 func _enemy_kind_label(enemy_id: String) -> String:
 	var cfg: Dictionary = session.stage._enemy_configs.get(enemy_id, {})
 	var tags: Array = cfg.get("tags", [])
+	if tags.has("ELITE"):
+		return "精英 · 监考者"
+	if tags.has("RANGED"):
+		return "远程 · 试卷飞灵"
 	if tags.has("FAST"):
 		return "疾走"
 	if tags.has("ARMORED"):
@@ -3246,8 +3297,9 @@ func _draw_death_particles() -> void:
 		var k := clampf((now - float(p["at"])) / DEATH_PARTICLE_LIFETIME, 0.0, 1.0)
 		if k >= 1.0:
 			continue
-		var base_x := _origin.x + _px(grid.logical_to_px_x(float(p["x"]), 0.0))
-		var base_y := _origin.y + float(p["lane"]) * spacing
+		var base := _logical_to_screen(Vector2(float(p["x"]),float(p["lane"])))
+		var base_x := base.x
+		var base_y := base.y
 		var fade := 1.0 - k
 		var spread := _px(54.0) * k
 		var lane_seed := float(int(p["lane"])) * 1.7
@@ -3370,14 +3422,12 @@ func _damage_pop_anchor(kind: String, target_id: int) -> Vector2:
 		if e == null or not e.is_active():
 			return Vector2(-1, -1)
 		var offset: Vector2 = _enemy_display_offsets.get(e.instance_id, Vector2.ZERO)
-		return Vector2(_origin.x + _px(grid.logical_to_px_x(e.logical_x, 0.0) + offset.x),
-			_origin.y + float(e.lane) * spacing + _px(offset.y))
+		return _logical_to_screen(Vector2(e.logical_x,e.lane)) + Vector2(_px(offset.x),_px(offset.y))
 	var c := session.stage.get_character(target_id)
 	if c == null or c.is_incapacitated():
 		return Vector2(-1, -1)
 	var tile := _px(grid.tile_size_px)
-	return Vector2(_origin.x + tile * float(c.column),
-		_origin.y + float(c.lane) * spacing)
+	return _cell_screen_pos(c.column,c.lane)
 
 
 ## 部署落位动画（V2.1.4 三十四：格子高亮 → 落位动画 → AP 扣除）
@@ -3390,8 +3440,7 @@ func _draw_deploy_pops() -> void:
 		var k := clampf((now - float(p["at"])) / DEPLOY_POP_LIFETIME, 0.0, 1.0)
 		if k >= 1.0:
 			continue
-		var center := Vector2(_origin.x + tile * float(p["column"]),
-			_origin.y + float(p["lane"]) * spacing)
+		var center := _cell_screen_pos(int(p["column"]),int(p["lane"]))
 		var fade := 1.0 - k
 		# 扩散光环：外层职责绿（部署成功语义）+ 内层暖白
 		var r := tile * (0.28 + 0.48 * k)
@@ -3459,7 +3508,7 @@ func _draw_lane_warnings() -> void:
 		return
 	var tile := _px(grid.tile_size_px)
 	var spacing := _render_lane_spacing()
-	var entry_x := _origin.x + tile * float(grid.columns - 1) + tile * 0.62
+
 	var now := _now()
 	var font := ThemeDB.fallback_font
 	for w: Dictionary in _lane_warnings:
@@ -3467,7 +3516,9 @@ func _draw_lane_warnings() -> void:
 		if remain <= 0.0:
 			continue
 		var k := clampf(remain / LANE_WARNING_SECONDS, 0.0, 1.0)
-		var ly := _origin.y + float(w["lane"]) * spacing
+		var entry := _logical_to_screen(Vector2(5.62,int(w["lane"])))
+		var ly := entry.y
+		var entry_x := entry.x
 		# 入口三角警示（颜色 + 形状双通道；V2.1.4：关键机制不能只靠颜色提示）
 		var pulse := 0.55 + 0.45 * absf(sin(now * 8.0))
 		var col := Color(DANGER_COLOR.r, DANGER_COLOR.g, DANGER_COLOR.b, k * pulse)
@@ -3551,112 +3602,53 @@ func _draw_tutorial_cards() -> void:
 ##   覆盖范围**完全来自领域层**的 session.query_attack_coverage()，
 ##   因此 UI 不可能显示出一个实际打不到的范围（该一致性有 GUT 用例保证）。
 func _draw_deploy_feedback() -> void:
-	if _selected_card_id.is_empty() or session == null or grid == null:
-		return
-	if not session.is_running() or session.is_paused():
-		return
-	var tile := _px(grid.tile_size_px)
-	var spacing := _render_lane_spacing()
-
+	if _selected_card_id.is_empty() or session == null or grid == null: return
+	if not session.is_running() or session.is_paused(): return
 	for lane: int in range(grid.lanes):
 		for column: int in range(grid.columns):
-			var r := session.query_deploy(_selected_card_id, column, lane)
-			var center := Vector2(_origin.x + tile * float(column),
-				_origin.y + float(lane) * spacing)
-			var rect := Rect2(center - Vector2(tile, tile) * 0.43,
-				Vector2(tile, tile) * 0.86)
-			var tint := CELL_DEPLOYABLE if r.ok else CELL_INVALID
-			tint.a = 0.78 if r.ok else 0.42
-			var foot := Rect2(center - Vector2(tile * 0.37, tile * 0.24), Vector2(tile * 0.74, tile * 0.48))
-			_draw_corner_marks(foot, _px(18.0), tint, _px(2.0))
-			if not r.ok:
-				draw_line(center - Vector2(_px(5), _px(5)), center + Vector2(_px(5), _px(5)), tint, _px(2))
-				draw_line(center + Vector2(-_px(5), _px(5)), center + Vector2(_px(5), -_px(5)), tint, _px(2))
-
-	# ---- 射程覆盖预览（悬停格为锚点）----
+			var result := session.query_deploy(_selected_card_id,column,lane)
+			var center := _cell_screen_pos(column,lane)
+			var tint := CELL_DEPLOYABLE if result.ok else CELL_INVALID
+			tint.a = 0.65 if result.ok else 0.35
+			var points := _cell_polygon(column,lane)
+			for i: int in range(4):
+				draw_line(points[i],points[i].lerp(points[(i+1)%4],0.22),tint,_px(2),true)
+				draw_line(points[i],points[i].lerp(points[(i+3)%4],0.22),tint,_px(2),true)
+			if not result.ok:
+				draw_line(center-Vector2(_px(5),_px(5)),center+Vector2(_px(5),_px(5)),tint,_px(2))
 	if _hover_column >= 0 and _hover_lane >= 0:
-		_draw_range_coverage_preview(_hover_column, _hover_lane, tile, spacing)
-
-	# 悬停格：黄色描边 + 判定结果
-	if _hover_column >= 0 and _hover_lane >= 0:
-		var center := Vector2(_origin.x + tile * float(_hover_column),
-			_origin.y + float(_hover_lane) * spacing)
-		var rect := Rect2(center - Vector2(tile, tile) * 0.43,
-			Vector2(tile, tile) * 0.86)
-		var c := CELL_DEPLOYABLE if _hover_deploy_ok else CELL_INVALID
-		draw_rect(rect, Color(c, 0.065), true)
-		_draw_corner_marks(rect, _px(26.0), c, _px(3.0))
+		_draw_range_coverage_preview(_hover_column,_hover_lane,_px(grid.tile_size_px),_render_lane_spacing())
+		var points := _cell_polygon(_hover_column,_hover_lane)
+		var color := CELL_DEPLOYABLE if _hover_deploy_ok else CELL_INVALID
+		draw_colored_polygon(points,Color(color,0.08))
+		points.append(points[0])
+		draw_polyline(points,color,_px(2.5),true)
 		if not _hover_deploy_ok:
-			draw_string(ThemeDB.fallback_font,
-				Vector2(center.x - _px(40.0), center.y - tile * 0.55),
-				_hover_reject_reason, HORIZONTAL_ALIGNMENT_LEFT, -1,
-				int(_px(15.0)), CELL_INVALID)
+			draw_string(GameSkin.body_font(),_cell_screen_pos(_hover_column,_hover_lane)+Vector2(-_px(60),-_px(65)),_hover_reject_reason,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(18)),CELL_INVALID)
 
 
-## 绘制射程覆盖预览：本路与相邻路的有效射程区域。
-##
-## 视觉纪律（指令要求「清晰、不刺眼」）：
-##   - 本路线用较饱和的色调 + 实线边框（玩家最关心的范围）；
-##   - 相邻路线用低饱和度色调 + 虚线边框（提示「可支援」而非等价）；
-##   - 覆盖区域按**连续区间**绘制（敌人不占格，真实射程是连续区间，
-##     而不是离散的格子集合），区间端点直接来自领域层的 rangeTiles。
-##   - 覆盖区域只画在合法部署格所在行上，不遮挡角色与敌人的主体。
-func _draw_range_coverage_preview(
-	column: int, lane: int, tile: float, spacing: float
-) -> void:
-	var coverage := session.query_attack_coverage(_selected_card_id, column, lane)
-	if coverage.is_empty():
-		return
-	var cell := Vector2(tile * 0.86, tile * 0.86)
-	var anchor_x := _origin.x + tile * float(column)
-	var core_margin := tile * CORE_MARGIN_TILES
-
+func _draw_range_coverage_preview(column: int, lane: int, _tile: float, _spacing: float) -> void:
+	var coverage := session.query_attack_coverage(_selected_card_id,column,lane)
 	for entry: Dictionary in coverage:
 		var target_lane := int(entry["lane"])
-		var eff_range := float(entry["rangeTiles"])
-		var is_adjacent := bool(entry.get("isAdjacent", false))
-		var lane_y := _origin.y + float(target_lane) * spacing
-
-		# 覆盖区间：角色格中心起，向前（右侧）延伸 eff_range 格
-		var from_x := anchor_x
-		var to_x := anchor_x + tile * eff_range
-		var band := Rect2(
-			Vector2(from_x, lane_y - cell.y * 0.44),
-			Vector2(maxf(to_x - from_x, 1.0), cell.y * 0.88))
-
-		var tint := RANGE_TINT_ADJACENT if is_adjacent else RANGE_TINT_OWN
-		draw_rect(band, tint, true)
-		# 边框：本路实线、相邻路虚线（用短线段模拟，避免依赖自定义 shader）
-		var edge := RANGE_EDGE_ADJACENT if is_adjacent else RANGE_EDGE_OWN
-		if is_adjacent:
-			_draw_dashed_rect(band, edge, 2.0, _px(8.0))
-		else:
-			draw_rect(band, edge, false, 2.0)
-
-		# 端点标记：让「射程到哪结束」一眼可见
-		draw_line(Vector2(to_x, lane_y - cell.y * 0.5),
-			Vector2(to_x, lane_y + cell.y * 0.5), edge, 2.0)
-
-		# 相邻路标注（只在相邻路显示，避免刷屏）
-		if is_adjacent:
-			draw_string(ThemeDB.fallback_font,
-				Vector2(maxf(from_x, _px(4.0)), lane_y - cell.y * 0.56),
-				"相邻路 %.1f 格" % eff_range, HORIZONTAL_ALIGNMENT_LEFT, -1,
-				int(_px(13.0)), edge)
-
-	# 本路射程标签
-	var own_range := 0.0
-	for entry: Dictionary in coverage:
-		if int(entry["lane"]) == lane:
-			own_range = float(entry["rangeTiles"])
-	if own_range > 0.0:
-		draw_string(ThemeDB.fallback_font,
-			Vector2(anchor_x + _px(6.0), lane_y_label(lane, spacing) - cell.y * 0.56),
-			"本路 %.1f 格" % own_range, HORIZONTAL_ALIGNMENT_LEFT, -1,
-			int(_px(13.0)), RANGE_EDGE_OWN)
+		var reach := float(entry["rangeTiles"])
+		var adjacent := bool(entry.get("isAdjacent",false))
+		var far_x := minf(float(column)+reach,5.65)
+		var points := PackedVector2Array([_logical_to_screen(Vector2(column,target_lane-0.32)),_logical_to_screen(Vector2(far_x,target_lane-0.32)),_logical_to_screen(Vector2(far_x,target_lane+0.32)),_logical_to_screen(Vector2(column,target_lane+0.32))])
+		var tint := RANGE_TINT_ADJACENT if adjacent else RANGE_TINT_OWN
+		var edge := RANGE_EDGE_ADJACENT if adjacent else RANGE_EDGE_OWN
+		draw_colored_polygon(points,tint)
+		points.append(points[0])
+		for i: int in range(4):
+			if adjacent:
+				var length := points[i].distance_to(points[i+1])
+				var count := maxi(1,int(length/_px(14)))
+				for n: int in range(count):
+					draw_line(points[i].lerp(points[i+1],float(n)/count),points[i].lerp(points[i+1],(float(n)+0.55)/count),edge,_px(1.5),true)
+			else: draw_line(points[i],points[i+1],edge,_px(1.5),true)
+		draw_string(GameSkin.body_font(),points[0]+Vector2(_px(8),-_px(8)),("支援 " if adjacent else "本路 ")+"%.1f 格"%reach,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(17)),edge)
 
 
-## 某条路线的像素 y（供标签定位复用）
 func lane_y_label(lane: int, spacing: float) -> float:
 	return _origin.y + float(lane) * spacing
 
@@ -3896,7 +3888,10 @@ func _request_skill_selected() -> void:
 	_vfx[-1]["scale"] = 1.3
 	_vfx[-1]["ground"] = true
 	_vfx[-1]["tint"] = Color("b7c8ff") if character.character_id == "amamiya_mio" else Color("b8f5df")
-	AudioService.play_sfx("mio_skill" if character.character_id == "amamiya_mio" else "yuma_skill")
+	AudioService.play_sfx({"amamiya_mio":"mio_skill", "kamiya_yuma":"yuma_skill", "fujiwara_rin":"rin_skill"}.get(character.character_id, "status"))
+	if character.character_id == "fujiwara_rin":
+		_show_feedback("紧急调度 · AP 已补充至 %d / %d" % [session.stage.ap, session.stage.ap_max], Color("bdf3e5"))
+		return
 	_show_feedback("技能发动 · " + str(result.get("name", "残响共鸣")), Color(0.8, 0.95, 0.93))
 
 
@@ -4377,8 +4372,23 @@ func _now() -> float:
 
 ## Resolve logical tiles/lane at render time; no battle geometry is changed.
 func _logical_to_screen(pos: Vector2) -> Vector2:
-	return Vector2(_origin.x + _px(grid.tile_size_px) * pos.x,
-		_origin.y + _render_lane_spacing() * pos.y)
+	return _origin + Vector2(_px(grid.tile_size_px) * pos.x - _px(54.0) * pos.y,
+		_render_lane_spacing() * pos.y - _px(14.0) * pos.x)
+
+
+func _screen_to_logical(pos: Vector2) -> Vector2:
+	var local := (pos-_origin)/_render_scale
+	var spacing := grid.lane_spacing_px * (5.0/6.0)
+	var det := grid.tile_size_px*spacing-756.0
+	return Vector2((spacing*local.x+54.0*local.y)/det,
+		(14.0*local.x+grid.tile_size_px*local.y)/det)
+
+
+func _cell_polygon(column: int, lane: int) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for corner: Vector2 in [Vector2(-0.43,-0.34),Vector2(0.43,-0.34),Vector2(0.43,0.34),Vector2(-0.43,0.34)]:
+		points.append(_logical_to_screen(Vector2(column,lane)+corner))
+	return points
 
 
 func _damage_event_display_anchor(event: Dictionary) -> Vector2:
@@ -4474,7 +4484,7 @@ func _draw_departures() -> void:
 			texture = ArtRegistry.enemy_frame_progress(code, "death", progress)
 		if texture == null:
 			continue
-		var redrawn := kind == "character" and code in ["amamiya_mio", "kamiya_yuma"]
+		var redrawn := kind == "character" and code in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin"]
 		var height := _px(grid.tile_size_px) * (1.28 if redrawn else (0.96 if kind == "character" else 0.72))
 		var offset: Vector2 = ghost.get("offset", Vector2.ZERO)
 		_draw_sprite_anchored(texture, _logical_to_screen(ghost["logical"]) + Vector2(_px(offset.x), _px(offset.y)), height,
@@ -4528,6 +4538,7 @@ func _write_art_probe() -> void:
 			"characters": characters, "activeVfx": active_vfx, "actualDrawLedger": _art_drawn,
 			"missedDamageEvents": _damage_events.missed_events,
 			"cardRects": card_rects,
+			"layout": visual_layout_snapshot(),
 			"canvas": [get_viewport_rect().size.x, get_viewport_rect().size.y],
 			"renderFrame": Engine.get_frames_drawn(),
 			"upgradeOffer": {
@@ -4549,5 +4560,22 @@ func _report_after_last_draw() -> void:
 
 
 func _render_lane_spacing() -> float:
-	var factor := 0.75 if session != null and session.stage.stage_id in ["1-1", "1-2", "1-3"] else 1.0
-	return _px(grid.lane_spacing_px) * factor
+	return _px(grid.lane_spacing_px) * (5.0/6.0)
+
+## Diagnostic snapshot of the geometry actually used by this scene.
+func visual_layout_snapshot() -> Dictionary:
+	var cells: Array = []
+	for lane: int in range(grid.lanes):
+		for col: int in range(grid.columns):
+			var points: Array = []
+			for point: Vector2 in _cell_polygon(col,lane): points.append([point.x,point.y])
+			cells.append({"column":col,"lane":lane,"polygon":points})
+	var hud := {}
+	if _native_hud != null:
+		for key: String in ["stage_label","waves","ap_label","pause_button"]:
+			var control: Control = _native_hud.get(key)
+			var rect := control.get_global_rect()
+			hud[key] = [rect.position.x,rect.position.y,rect.size.x,rect.size.y]
+	return {"scale":_render_scale,"origin":[_origin.x,_origin.y],"laneSpacing":_render_lane_spacing(),
+		"coreCenter":[_origin.x-_px(480),_px(580)],"coreHeight":_px(350),"coreWidth":_px(350*.625),
+		"cells":cells,"hud":hud}

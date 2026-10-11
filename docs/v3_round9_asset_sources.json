@@ -1,0 +1,75 @@
+{
+  "provider": "Built-in OpenAI image generation; model ID not exposed",
+  "referenceRights": "User confirmed GPT-generated project concepts and authorized adaptation; Rin existing project figure and Yuma existing pixel poses used as references",
+  "terms": "https://openai.com/policies/terms-of-use/",
+  "termsChecked": "2026-10-11",
+  "ownershipNote": "OpenAI terms assign output rights as between user and provider, subject to applicable law; no guarantee of uniqueness or final artistic quality",
+  "finalUserArtAcceptance": false,
+  "importRecords": [
+    "docs/v3_rin_motion_import.json",
+    "docs/v3_kamiya_yuma_recovery_import.json"
+  ],
+  "portraitNote": "Rin 64px portrait is a resize of the existing project 256px portrait; not derived from the new pose sheet",
+  "assets": [
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_attack.png",
+      "sha256": "f51c6134df96a5d1bab5659541ccb9b5646d4d5b3b9a2e5c7beb123bdbfdbc04",
+      "source": "tools/source_art/rin_full_motion_v3.png",
+      "sourceSha256": "b2667e44997388fdd16d108cf5ac13f610e2f4090f143ea03daca20db0207238"
+    },
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_base.png",
+      "sha256": "ac7c1e97f81fd878500eeb661f1c98c7d964aa26e3c03d2b1fdc071096e725d6",
+      "source": "tools/source_art/rin_full_motion_v3.png",
+      "sourceSha256": "b2667e44997388fdd16d108cf5ac13f610e2f4090f143ea03daca20db0207238"
+    },
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_death.png",
+      "sha256": "ab3e9c74f88706a77ef4524ca1a193ecf328be014fbf48dad59d5593d59bbac6",
+      "source": "tools/source_art/rin_full_motion_v3.png",
+      "sourceSha256": "b2667e44997388fdd16d108cf5ac13f610e2f4090f143ea03daca20db0207238"
+    },
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_deploy.png",
+      "sha256": "36d86d7ea494b31c791f009cfc9e52c4ad8ff6b0f8177ae52cb5e06d58b72737",
+      "source": "tools/source_art/rin_full_motion_v3.png",
+      "sourceSha256": "b2667e44997388fdd16d108cf5ac13f610e2f4090f143ea03daca20db0207238"
+    },
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_hit.png",
+      "sha256": "10de3d3c49089a9117e8bd22c7161f9a80dd56e5b37b0ae1dc1ef44b4f4cdce8",
+      "source": "tools/source_art/rin_full_motion_v3.png",
+      "sourceSha256": "b2667e44997388fdd16d108cf5ac13f610e2f4090f143ea03daca20db0207238"
+    },
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_idle.png",
+      "sha256": "f2595ea1ebc063559277476e59e384364ed114c20fe08874b69e2f0bf5cf3f47",
+      "source": "tools/source_art/rin_full_motion_v3.png",
+      "sourceSha256": "b2667e44997388fdd16d108cf5ac13f610e2f4090f143ea03daca20db0207238"
+    },
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_move.png",
+      "sha256": "0d3be7d01cb2f133b8175db2be43b4d12d7cbc7723af6c4540af5704955245c7",
+      "source": "tools/source_art/rin_full_motion_v3.png",
+      "sourceSha256": "b2667e44997388fdd16d108cf5ac13f610e2f4090f143ea03daca20db0207238"
+    },
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_portrait_64.png",
+      "sha256": "4564335a58e6f51036e0d6b9e81571e9b6d93fc802393b7b2a1a5876e774939e",
+      "source": "assets/art/characters/fujiwara_rin/fujiwara_rin_portrait_256.png",
+      "sourceSha256": "ff9eac38174041bd05971dd91d21b56def962ac6a093e17966eba4c3ec5702ad"
+    },
+    {
+      "asset": "assets/art/characters/fujiwara_rin/fujiwara_rin_skill.png",
+      "sha256": "36d86d7ea494b31c791f009cfc9e52c4ad8ff6b0f8177ae52cb5e06d58b72737",
+      "source": "tools/source_art/rin_full_motion_v3.png",
+      "sourceSha256": "b2667e44997388fdd16d108cf5ac13f610e2f4090f143ea03daca20db0207238"
+    },
+    {
+      "asset": "assets/art/characters/kamiya_yuma/kamiya_yuma_recovery.png",
+      "sha256": "31c4a60c5728127e2dad578108cee28b9e73d96e316f472c407601eb61afdd61",
+      "source": "tools/source_art/yuma_recovery_v3.png",
+      "sourceSha256": "427259067aa0431d7c2d9b77caaf4da8586ce00efdbd86a426f35aad12aa25df"
+    }
+  ]
+}

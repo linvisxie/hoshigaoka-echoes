@@ -165,7 +165,7 @@
     },
     {
       "time": 117,
-      "lane": 1,
+      "lane": 2,
       "enemy": "echo_normal",
       "wave": 4
     },
@@ -254,5 +254,6 @@
   },
   "stageName": "被批改的空气",
   "briefing": "试卷飞灵不能被近战阻挡。神谷悠真从后方攻击自己的路线与相邻路线。",
-  "_encounterRevision": "2026-10-11 用户要求增加成组出怪、战斗紧张感。保留首遇顺序、解锁、精英机制与无治疗条件；旧数量和静态通关说明是历史基线，以本时间线和本轮实测为准。"
+  "_encounterRevision": "2026-10-11 用户要求增加成组出怪、战斗紧张感。保留首遇顺序、解锁、精英机制与无治疗条件；旧数量和静态通关说明是历史基线，以本时间线和本轮实测为准。",
+  "_round9Tactics": "2026-10-11: redistribute existing normal echoes into alternating side-lane pressure; total counts and heavy-unit lanes unchanged. Normal two-person clear must be revalidated."
 }

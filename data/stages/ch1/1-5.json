@@ -101,7 +101,7 @@
     },
     {
       "time": 94.8,
-      "lane": 0,
+      "lane": 2,
       "enemy": "echo_normal",
       "wave": 3
     },
@@ -263,5 +263,6 @@
   },
   "stageName": "监考者",
   "briefing": "监考者的注视会拖慢角色攻击，低生命时会加速。处理杂兵并在首次三选一中选择适合阵容的强化。",
-  "_encounterRevision": "2026-10-11 用户要求增加成组出怪、战斗紧张感。保留首遇顺序、解锁、精英机制与无治疗条件；旧数量和静态通关说明是历史基线，以本时间线和本轮实测为准。"
+  "_encounterRevision": "2026-10-11 用户要求增加成组出怪、战斗紧张感。保留首遇顺序、解锁、精英机制与无治疗条件；旧数量和静态通关说明是历史基线，以本时间线和本轮实测为准。",
+  "_round9Tactics": "2026-10-11: redistribute existing normal echoes into alternating side-lane pressure; total counts and heavy-unit lanes unchanged. Normal two-person clear must be revalidated."
 }

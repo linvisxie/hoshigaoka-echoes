@@ -357,7 +357,10 @@ func _hint_style() -> StyleBoxTexture:
 	return style
 
 func _sync_tutorials() -> void:
-	var source: Array = battle._tutorial_cards
+	# Present the newest observation only: simultaneous cards must not cover the lanes.
+	var source: Array = []
+	if not battle._tutorial_cards.is_empty():
+		source.append(battle._tutorial_cards.back())
 	while tutorial_views.size() < source.size():
 		var box := PanelContainer.new()
 		box.custom_minimum_size = Vector2(500, 0)
@@ -421,7 +424,9 @@ func _update_card(card: Dictionary, index: int, factor: float) -> void:
 	var cfg: Dictionary = s._character_configs.get(cid,{})
 	var unit := s.get_character_by_id(cid)
 	var cooldown: float = battle.session.get_redeploy_remaining(cid)
-	var cost := int(cfg.get("deployCost",0))
+	var cost := s.deployment_cost(cid)
+	if unit != null and unit.paid_deploy_cost >= 0: cost = unit.paid_deploy_cost
+	var role_name: String = "资源辅助" if cid == "fujiwara_rin" else battle._role_label(str(cfg.get("behavior","")))
 	(card.cost as Label).text = str(cost)
 	var active: bool = battle._selected_card_id == cid or (unit != null and battle._selected_character_id == unit.instance_id)
 	var edge: Color = GameSkin.BLUE if active else (GameSkin.GOLD if unit != null and unit.skill_ready() else Color("52678e"))
@@ -437,9 +442,11 @@ func _update_card(card: Dictionary, index: int, factor: float) -> void:
 		(card.hp as ProgressBar).add_theme_stylebox_override("fill",GameSkin.bar(GameSkin.RED if low_hp else GameSkin.GREEN))
 	if unit != null:
 		var range_text := "普攻同路前方 %.2f 格 · 阻挡 %d" % [unit.attack_range_tiles,unit.block_count_max]
+		if cid == "fujiwara_rin":
+			range_text = "全队AP回复 +15% · 无普通攻击、无阻挡"
 		if unit.allow_cross_lane and unit.max_lane_delta > 0:
 			range_text = "普攻同路 %.1f 格 / 邻路 %.1f 格 · 阻挡 %d" % [unit.attack_range_tiles,unit.adjacent_lane_range_tiles,unit.block_count_max]
-		b.tooltip_text = "%s · %s\n生命 %d / %d · 点击选中\n%s\nQ 释放技能 · R 撤退换位" % [unit.display_name,battle._role_label(str(cfg.get("behavior",""))),unit.hp,unit.max_hp,range_text]
+		b.tooltip_text = "%s · %s\n生命 %d / %d · 点击选中\n%s\nQ 释放技能 · R 撤退换位" % [unit.display_name,role_name,unit.hp,unit.max_hp,range_text]
 		status.text = ("Q 技能就绪" if active else "技能就绪 · 点击") if unit.skill_ready() else ("技能生效中" if unit.skill_active_remaining>0 or unit.skill_charged else "技能 %.0f 秒" % ceilf(unit.skill_cooldown_remaining))
 		status.add_theme_color_override("font_color",GameSkin.GOLD if unit.skill_ready() else card.role)
 		(card.hp as ProgressBar).value = unit.hp_ratio()
@@ -459,8 +466,8 @@ func _update_card(card: Dictionary, index: int, factor: float) -> void:
 		(card.hp as ProgressBar).value = 1
 		(card.cd as ProgressBar).value = 0
 	else:
-		b.tooltip_text = "%s · %s\n部署消耗 %d AP\n点击后选择地面发光站位。" % [str(cfg.get("name",cid)),battle._role_label(str(cfg.get("behavior",""))),cost]
-		status.text = "选择站位" if battle._selected_card_id == cid else "可部署 · " + battle._role_label(str(cfg.get("behavior","")))
+		b.tooltip_text = "%s · %s\n部署消耗 %d AP\n点击后选择地面发光站位。" % [str(cfg.get("name",cid)),role_name,cost]
+		status.text = "选择站位" if battle._selected_card_id == cid else "可部署 · " + role_name
 		status.add_theme_color_override("font_color",card.role)
 		(card.hp as ProgressBar).value = 1
 		(card.cd as ProgressBar).value = 0

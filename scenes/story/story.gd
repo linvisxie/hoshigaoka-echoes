@@ -20,6 +20,7 @@ var text_speed := 42.0
 var auto_button: Button
 var next_button: Button
 var save_failed := false
+var reading_pause := 0.0
 
 func _ready() -> void:
 	super._ready()
@@ -71,7 +72,16 @@ func _process(delta: float) -> void:
 		return
 	if dialogue.visible_ratio < 1.0:
 		next_button.text = "显示全文  ▸"
+		if reading_pause > 0:
+			reading_pause = maxf(0,reading_pause-delta)
+			return
+		var previous := dialogue.visible_characters
 		dialogue.visible_ratio = minf(1.0, dialogue.visible_ratio + delta * text_speed / maxf(1, dialogue.get_total_character_count()))
+		var text := dialogue.get_parsed_text()
+		for at: int in range(maxi(0,previous),mini(dialogue.visible_characters,text.length())):
+			var letter := text.substr(at,1)
+			if "。！？…".contains(letter): reading_pause = maxf(reading_pause,.22)
+			elif "，、；：".contains(letter): reading_pause = maxf(reading_pause,.10)
 		auto_timer = 0
 	else:
 		next_button.text = "下一句  ▸"
@@ -89,6 +99,7 @@ func _show_node() -> void:
 	speaker.text = str(node.get("speaker", "")).replace("{player}", str(SaveService.get_current().get("profile", {}).get("playerName", "转校生")))
 	dialogue.text = str(node.get("text", "")).replace("{player}", str(SaveService.get_current().get("profile", {}).get("playerName", "转校生")))
 	dialogue.visible_ratio = 0.0
+	reading_pause = 0.0
 	portrait.texture = ArtRegistry.character_portrait(cid, 256) if not cid.is_empty() else null
 	portrait.visible = portrait.texture != null
 	portrait_frame.visible = portrait.visible

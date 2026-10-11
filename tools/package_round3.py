@@ -21,6 +21,9 @@ if (ROOT/'docs/v3_resonance_sfx_record.json').exists():
  shutil.copy2(ROOT/'docs/v3_resonance_sfx_record.json',notice/'残响音效制作记录.json')
 if args.version>='0.4.5' and (ROOT/'docs/v3_round8_asset_sources.json').exists():
  shutil.copy2(ROOT/'docs/v3_round8_asset_sources.json',notice/'像素精修来源.json')
+if args.version>='0.4.6':
+ for source,name in [('v3_round9_asset_sources.json','本轮角色素材来源.json'),('v3_round9_audio_record.json','监考者与调度音频来源.json')]:
+  shutil.copy2(ROOT/'docs'/source,notice/name)
 readme='''《星丘残响》前五关画面与交互改进候选版 · 0.4.0 · 2026-10-11
 
 解压后双击“启动前五关.cmd”。请保留 exe 与 pck 在同一目录。
@@ -48,6 +51,9 @@ if args.version>='0.4.5':
  readme=readme.replace('第二关采用楼梯平台，','悠真蓄力等待本路贯穿目标时仍会普通攻击旁路。第三至第五关分别为26、25、24名敌人，成组进场；请使用主动技能清群。\n第二关采用楼梯平台，')
 elif args.version!='0.4.0':
  readme=readme.replace('界面使用 Kenney CC0 音效。','界面与剑击、普通命中、护甲命中、残响消散使用 Kenney CC0 音效，多段素材轮换。')
+if args.version>='0.4.6':
+ readme=readme.replace('操作：1/2 选角色','本轮：五关统一核心、格子与HUD的尺寸；战场改为倾斜平行四边形投影，核心移至最左，路线标识居中衔接战场。标题门牌文字已收进牌框。\n悠真增加真实收弓帧；监考者增加登场、注视预告与加速演出，以及钢琴主题变奏。\n观测会成立后，凛加入1-3～1-5重玩阵容：AP回复+15%、紧急调度+6 AP、下一友军部署减费；无普通攻击。第五关重玩有第二次强化选择。\n\n操作：1/2/3 选角色')
+ readme=readme.replace('实际验证与未完成项见工程 docs/V3_20261011_概念画面与交互改进记录.md。','599项回归通过；新游戏正常计时五关连续通关，重玩与导出Windows输入另行实测。\n实际证据、规格裁决及未完成项见工程 docs/V3_20261011_透视与演出改进记录.md。')
 (OUT/'试玩说明.txt').write_text(readme,encoding='utf-8-sig')
 files=[p for p in sorted(OUT.rglob('*')) if p.is_file() and '_testenv' not in p.parts and p.name!='build_manifest.json']
 manifest={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),

@@ -6,7 +6,7 @@ var party_labels: Array[Label] = []
 func _ready() -> void:
 	super._ready()
 	var sid := str(CampaignFlow.state().get("pending_stage_id", "1-1"))
-	var cfg := DataRegistry.get_entry("stages", sid)
+	var cfg := CampaignFlow.effective_stage_config(DataRegistry.get_entry("stages", sid))
 	set_background(ArtRegistry.STAGE_ENV.get(sid, ArtRegistry.DEFAULT_ENV))
 	page_heading("%s  ·  %s" % [sid, cfg.get("stageName", "关卡情报")], "残响时刻即将开始  /  部署确认")
 	panel(Rect2(80, 210, 850, 720))
@@ -38,6 +38,8 @@ func _ready() -> void:
 		texture_at(ArtRegistry.character_portrait(cid, 256), Rect2(1040 + i * 240, 365, 210, 250))
 		label_at(str(char_cfg.get("name", cid)), Rect2(1040 + i * 240, 645, 230, 60), 30)
 		var role := "前线 · 阻挡" if str(char_cfg.get("behavior","")) == "FRONTLINE" else "远程 · 支援"
+		if cid == "fujiwara_rin":
+			role = "资源 · 调度"
 		label_at("%s  /  %d AP" % [role,int(char_cfg.get("deployCost",0))],Rect2(1040+i*240,705,235,40),22,BLUE)
 	label_at("出战顺序  ·  点击名字调整角色卡位置", Rect2(1030, 745, 760, 50), 25, MUTED)
 	for i: int in range(party.size()):

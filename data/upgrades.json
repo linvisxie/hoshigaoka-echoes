@@ -10,7 +10,8 @@
     "L2067～2079 首批最小集合共 10 项。本文件只收录**当前构建可真实生效**的 6 项；",
     "  其余 4 项登记在 _deferred，不假装实现（避免『数据存在=功能完成』）。",
     "确定性纪律：抽取使用带种子的 RandomNumberGenerator（见 UpgradeCandidateRoller），",
-    "  不依赖引擎全局随机，保证同一种子得到同一候选集（战斗确定性 LOCKED 不受破坏）。"
+    "  不依赖引擎全局随机，保证同一种子得到同一候选集（战斗确定性 LOCKED 不受破坏）。",
+    "2026-10-11: CD_RECOVERY now consumed by real skill clocks. First-clear 1-5 remains fixed one offer; club replays receive an additional wave-3 offer."
   ],
   "_deferred": {
     "_note": "规格 L2075～2079 列出、但当前构建无落地机制，故不进首发池；实现其依赖系统后再启用。",
@@ -26,10 +27,6 @@
       {
         "id": "FOCUS_SHOT",
         "reason": "『连续单体增伤』需要攻击历史追踪与递增结算，未实现。"
-      },
-      {
-        "id": "CD_REDUCE",
-        "reason": "技能 CD 缩减依赖主动技能系统：data/skills.json 现为 {\"skills\": []}，无消费者，施加后无任何可感知效果。"
       }
     ]
   },
@@ -220,6 +217,26 @@
         "value": 0.15
       },
       "_specRef": "L2078 撤退返还增加；只提高返还比例，不改再部署冷却（L2033 下限与本项无关）"
+    },
+    {
+      "id": "upgrade_cd_recovery",
+      "specId": "CD_REDUCE",
+      "name": "共鸣协奏",
+      "description": "全队技能冷却恢复速度 +15%",
+      "tier": "ADVANCED",
+      "category": "技能型",
+      "icon": "icon_skillbook",
+      "tags": [
+        "SKILL"
+      ],
+      "appliesTo": "ALL",
+      "maxStacks": 2,
+      "effect": {
+        "type": "STAT_MOD",
+        "stat": "CD_RECOVERY",
+        "value": 0.15
+      },
+      "guidance": "缩短技能等待\n适合依靠一闪与破空箭解围"
     }
   ]
 }

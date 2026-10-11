@@ -1,0 +1,1382 @@
+{
+  "started": "2026-10-11T12:31:43.633328",
+  "appdata": "D:\\星丘残响\\_testenv\\v3-round9\\regression_final\\appdata",
+  "realSaveSnapshotBefore": {
+    "save\\savegame.json": "1a315e862fd2ab6af6a4be5558c399893ba41ec89c1b574b572e10a6abc374e9",
+    "save\\savegame_backup.json": "ada7d01be9a01e2f0bb301fc8ef66c14f729809d3d7ecd8ed1c0138d0d1c394e"
+  },
+  "errors": [],
+  "evidenceType": "automated",
+  "pngs": [
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_attack.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "7c04f320b10501c235b697c3622b73c7593de508223c253bf3e2283f88f861f4"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_base.png",
+      "size": [
+        96,
+        96
+      ],
+      "sha256": "70cd488338eb416f14f9ef350648f7530365c7c107281811bf683045b61a33fc"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_death.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "b05ffb90dfeac6f772e81807bda3d598523989024167c36aa8a4d4fd0c4e555d"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_deploy.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "70552b2d96654aab45a844aa943f7cebcb405af84af5f799bcfd81a3da6c5230"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_hit.png",
+      "size": [
+        192,
+        96
+      ],
+      "sha256": "ac73865c61234b0207fa0e71a4f1643c606a3089e9f0c898d3b33e98afb7386c"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_idle.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "2af9845fce0131fa3cc0707d7100269004327072609dcbfab54f64fa60bc8ab8"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_move.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "a5d144ae6b5217b0c79a00165b007ba6725eb007926d1ef141ee6511fa467ec0"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_256.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "a813a6dd9c6bedc72d8be6231eaebae488185bf05671fa6c681b435aec955fe5"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "b1a204a990231496251529d89bdab731488cb60d0ecd5154b176dc6a4181dbbc"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_angry.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "948443537a4de435e38031496e17e6a409612e275793f51aa915814ffeeb81e6"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_default.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "36227d2f8284a7332a0d5c0d40033b982fd78c8b095a9bbea2bf6bd6eaadd3de"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_determined.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "1b49cbc37684640f11bd1ff75ab9e0ae03bcbdf7091d856f3ea34b478ad070f6"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_happy.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "616c91dde6134c158a39d4743a9ba6b1eed7d2a53cb395c7fcfbc91c5cd0806e"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_hurt.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "bfda9ce41781a9ec24364d1162c6a67e4e2e8fe40ec31a455794a36ce20ce9e9"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_sad.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "4524c418df3201ee36433d6a9d55aac1345bfcc1a440a5187465715e50d633b3"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_serious.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "5cbf4754a4d2c13752adaee629b56d3173c08c43a923e7d55b789b05382a4a9b"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_smile.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "52fd549540db7224f7f7aa9513fe5a7df614988b69ddfabe0e7ed73e864c9cd9"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_surprised.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "0c559f62a8d797a48514ab05c9fb18fafde21e638144e56341014e3913d38629"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_recovery.png",
+      "size": [
+        192,
+        96
+      ],
+      "sha256": "7e6b9d2512041c9c9c7c026a9f08b2723b08101bd7226d3637cf5537742e00df"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_skill.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "5e407303a9618f92d69d252dd54d6cceded7d01f4f987914f6a73377996297bc"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_story.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "sha256": "81d451ecfe38ab890defbc4058060fce31b6e9a50a58f8aef99ec4a6cf6cfa01"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/amamiya_mio_victory.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "f54998712fbb0bf3832af1b148c2b16e4621db1a82e1f1b56e0db2cf7e1cfb6b"
+    },
+    {
+      "path": "assets/art/characters/amamiya_mio/char_amamiya_mio_portrait_01.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "a813a6dd9c6bedc72d8be6231eaebae488185bf05671fa6c681b435aec955fe5"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_attack.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "f51c6134df96a5d1bab5659541ccb9b5646d4d5b3b9a2e5c7beb123bdbfdbc04"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_base.png",
+      "size": [
+        96,
+        96
+      ],
+      "sha256": "ac7c1e97f81fd878500eeb661f1c98c7d964aa26e3c03d2b1fdc071096e725d6"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_death.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "ab3e9c74f88706a77ef4524ca1a193ecf328be014fbf48dad59d5593d59bbac6"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_deploy.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "36d86d7ea494b31c791f009cfc9e52c4ad8ff6b0f8177ae52cb5e06d58b72737"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_hit.png",
+      "size": [
+        192,
+        96
+      ],
+      "sha256": "10de3d3c49089a9117e8bd22c7161f9a80dd56e5b37b0ae1dc1ef44b4f4cdce8"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_idle.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "f2595ea1ebc063559277476e59e384364ed114c20fe08874b69e2f0bf5cf3f47"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_move.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "0d3be7d01cb2f133b8175db2be43b4d12d7cbc7723af6c4540af5704955245c7"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_portrait_256.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "ff9eac38174041bd05971dd91d21b56def962ac6a093e17966eba4c3ec5702ad"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_portrait_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "4564335a58e6f51036e0d6b9e81571e9b6d93fc802393b7b2a1a5876e774939e"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_skill.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "36d86d7ea494b31c791f009cfc9e52c4ad8ff6b0f8177ae52cb5e06d58b72737"
+    },
+    {
+      "path": "assets/art/characters/fujiwara_rin/fujiwara_rin_story.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "sha256": "83a239e21950b299e9ec02ee93af83f5ccdfefcc1261f0b7bf204ed7e54c0833"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/char_kamiya_yuma_portrait_01.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "8e3283eeb350194976f5118afca569c64b8696fcb70e34876431620449c3c1d0"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_attack.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "88a2367bdb601002252db58859598d01817aa6bbbcb4646b7b82c43f72cc90ba"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_base.png",
+      "size": [
+        96,
+        96
+      ],
+      "sha256": "d188324e2406121e42f1cabe78acdb13f2408dbb3a9f8cea5d3114022b90d754"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_death.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "b18986d8093785da33f6f4280abc78298077392d1d3b9d73fac9a31f4739cea3"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_deploy.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "0d394365ab5824bcc080849a8af5a01ea70c6929f2ea4b510425455e988025b9"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_hit.png",
+      "size": [
+        192,
+        96
+      ],
+      "sha256": "eff1cac4e42a632de59e75bf86693be817d666f863e2690c85a6e6452b043d27"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_idle.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "5fc8c67dcb7787f65478e5f88dda526a1aee3c5110989e296d402f2f09ea8504"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_move.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "5728bc141dd0996d5450eb962206a67d4748698416929929b540643a8b651fec"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_portrait_256.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "8e3283eeb350194976f5118afca569c64b8696fcb70e34876431620449c3c1d0"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_portrait_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "11299b450c7e7a33894d3aa62c8c5bd11fe5a640597ecaee4cffdd5d84f78659"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_recovery.png",
+      "size": [
+        192,
+        96
+      ],
+      "sha256": "31c4a60c5728127e2dad578108cee28b9e73d96e316f472c407601eb61afdd61"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_skill.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "1efef78d06fbd3a3de493081db40fef1a3864b869cfa34bd0ea1937ca2bb1f7f"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_story.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "sha256": "c76914a794579a9b13272e0909263ce8b73734324bccfad80385681f62fcb65b"
+    },
+    {
+      "path": "assets/art/characters/kamiya_yuma/kamiya_yuma_victory.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "9f0716a0edeb02a83123d424618d197ff048d5d52ceb54286a2cd2dab26f52f8"
+    },
+    {
+      "path": "assets/art/characters/ogawa_yui/char_ogawa_yui_portrait_01.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "624cef04efec4587fc08291a27ed7093ef8f3c3eb836b3ffc1ea255884fa51ef"
+    },
+    {
+      "path": "assets/art/characters/ogawa_yui/ogawa_yui_attack.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "83fb24a45e0dfdc3c161d988a1ca3c723b1180bed790bc97fe5e0cf75f3fccc7"
+    },
+    {
+      "path": "assets/art/characters/ogawa_yui/ogawa_yui_base.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "2f61733ac8d8aefdc9e50b9c5644ac5bb7a03cb36bedde54f51dbd897c83e152"
+    },
+    {
+      "path": "assets/art/characters/ogawa_yui/ogawa_yui_death.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "cbf1d2035b51cbbb5921150104ebf9465cf2d6f20cbff28be81c751ef9e5802f"
+    },
+    {
+      "path": "assets/art/characters/ogawa_yui/ogawa_yui_hit.png",
+      "size": [
+        128,
+        64
+      ],
+      "sha256": "cad8fce0d746c90f89ab4d392befae9c8cade0b95ffd55701183a0560dcc9846"
+    },
+    {
+      "path": "assets/art/characters/ogawa_yui/ogawa_yui_idle.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "223d9cc579f7ec5e72370e9b7e0067fa27cae77b691798f208f8ecbff2cc7f26"
+    },
+    {
+      "path": "assets/art/characters/ogawa_yui/ogawa_yui_move.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "825812a6364bd8551471a5cc2ef22c1cf996b6b17f58fcf1b3fbe1f0892ee95f"
+    },
+    {
+      "path": "assets/art/characters/ogawa_yui/ogawa_yui_portrait_256.png",
+      "size": [
+        256,
+        256
+      ],
+      "sha256": "624cef04efec4587fc08291a27ed7093ef8f3c3eb836b3ffc1ea255884fa51ef"
+    },
+    {
+      "path": "assets/art/characters/ogawa_yui/ogawa_yui_portrait_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "70bd7e0d32a68f1eee0cf60ec335cba92b5e2fe77fe03bc155a20a4b1c66e919"
+    },
+    {
+      "path": "assets/art/enemies/echo_armored/echo_armored_attack.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "2c03b934951ac88c534811aefafb9a4d94122bfcd80007796201976aac99253d"
+    },
+    {
+      "path": "assets/art/enemies/echo_armored/echo_armored_base.png",
+      "size": [
+        96,
+        96
+      ],
+      "sha256": "2479b93c3e254ead58ac6aef0645799d025cd9631706bc3c99a33ee16df9f9e6"
+    },
+    {
+      "path": "assets/art/enemies/echo_armored/echo_armored_death.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "1bede0fdb849243a9929486746aa7dd7ba08c5763905a6ec5015fca38687b1f3"
+    },
+    {
+      "path": "assets/art/enemies/echo_armored/echo_armored_hit.png",
+      "size": [
+        192,
+        96
+      ],
+      "sha256": "b28e741ad99495cd1e07a9639e3c1829b9961e9e6a32cfb34870046617d00d59"
+    },
+    {
+      "path": "assets/art/enemies/echo_armored/echo_armored_idle.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "f214148dc365d3d425659ea78eb8e74214ce8e000d05471ff89a85105b68f18d"
+    },
+    {
+      "path": "assets/art/enemies/echo_armored/echo_armored_move.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "13f7b845f950ed0462c24bf0ca809f634e4e559649745f5c99cd244d63b92fee"
+    },
+    {
+      "path": "assets/art/enemies/echo_copy/echo_copy_attack.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "aac81a2b4596f04332b0fa6cd360cdcca413beb56e4521ad9166ba734c961ff2"
+    },
+    {
+      "path": "assets/art/enemies/echo_copy/echo_copy_base.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "61de548e17c30edc087e9f668567e762024134c7c312a22ba667bf26b1e273b9"
+    },
+    {
+      "path": "assets/art/enemies/echo_copy/echo_copy_death.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "4639fe88206950c984e0a208e51a4dc00aa865c0414b4b2e7b1502a1a65e687e"
+    },
+    {
+      "path": "assets/art/enemies/echo_copy/echo_copy_hit.png",
+      "size": [
+        128,
+        64
+      ],
+      "sha256": "2488c8fa52724e7c0ed70124159a6e1729e377017e0e54cf60f4b4e1aad9c297"
+    },
+    {
+      "path": "assets/art/enemies/echo_copy/echo_copy_idle.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "280932b36fc964bd0c23bf46baaee9ee2fa2af2b373757f41c133b41efd5f1cc"
+    },
+    {
+      "path": "assets/art/enemies/echo_copy/echo_copy_move.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "393ab74de0827b693ad66cd67ca3626ae5e12ff6547f21b40f73eaa0df5dd07c"
+    },
+    {
+      "path": "assets/art/enemies/echo_exam_sheet/echo_exam_sheet_attack.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "9bb34ded390e703894dcd27ac9114493702008e8c3db0316f58852987cbf4bf1"
+    },
+    {
+      "path": "assets/art/enemies/echo_exam_sheet/echo_exam_sheet_base.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "02393d9e9f15715249a6b55f12c43ac05d0732b62e8b5c12bff2f62b104f12c1"
+    },
+    {
+      "path": "assets/art/enemies/echo_exam_sheet/echo_exam_sheet_death.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "8a13dae942743e2a3ffcd84c1d0766ba7869a9f313d681cb4274166a1bbef931"
+    },
+    {
+      "path": "assets/art/enemies/echo_exam_sheet/echo_exam_sheet_hit.png",
+      "size": [
+        128,
+        64
+      ],
+      "sha256": "bbcbdcce908196d46991bf4fdc41b9976b67e2332bf26dc269da0b5db17573ce"
+    },
+    {
+      "path": "assets/art/enemies/echo_exam_sheet/echo_exam_sheet_idle.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "acfc05c8cfb439c5861adbb6594d242cddb4ece8d6b6a606613fff3fe6d10b8b"
+    },
+    {
+      "path": "assets/art/enemies/echo_exam_sheet/echo_exam_sheet_move.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "bb7d9faa4944a83a96061d8fd08ecb34110ce4dd082f1b265df2d6ce20729c3d"
+    },
+    {
+      "path": "assets/art/enemies/echo_invigilator/echo_invigilator_attack.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "ec424f518169f1638a7f6a88082b6137e34d37577aed14536336ef8c1b61b0c3"
+    },
+    {
+      "path": "assets/art/enemies/echo_invigilator/echo_invigilator_base.png",
+      "size": [
+        96,
+        96
+      ],
+      "sha256": "13d0b89f97deb4a6680a214f9256d6cf0b826f690bf9ca013737a5dfb63788be"
+    },
+    {
+      "path": "assets/art/enemies/echo_invigilator/echo_invigilator_death.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "c4adf3d7f2f7cb85a3ce5fd55ea2928ed7f479df9f793c368243492880e8cc5b"
+    },
+    {
+      "path": "assets/art/enemies/echo_invigilator/echo_invigilator_hit.png",
+      "size": [
+        192,
+        96
+      ],
+      "sha256": "f2bf15924949c4c4ed46c7a1e30704d684a7451796aa7e9a53d71289d824d0bd"
+    },
+    {
+      "path": "assets/art/enemies/echo_invigilator/echo_invigilator_idle.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "9715d7274e0acef2b696541af2ee2c72400990ad1c7f7478da1023d747915b23"
+    },
+    {
+      "path": "assets/art/enemies/echo_invigilator/echo_invigilator_move.png",
+      "size": [
+        384,
+        96
+      ],
+      "sha256": "9c2c3774921848ff04ae22d3374d9cd7241ebf19866432ae7ea66e3b05ab2099"
+    },
+    {
+      "path": "assets/art/enemies/echo_normal/echo_normal_attack.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "482ba55651b5dd8335096f34184f794cd5afec952e83bd0bfc769337a6ca1af5"
+    },
+    {
+      "path": "assets/art/enemies/echo_normal/echo_normal_base.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "ecc25aa7d40d90e9c3f82afd91853f4ab8d2545218c8db0fd56b35d043ab6ab1"
+    },
+    {
+      "path": "assets/art/enemies/echo_normal/echo_normal_death.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "b5cb39aa3288a6b0861e90790ac0c09549305bf024834e6b779de5238a1801a6"
+    },
+    {
+      "path": "assets/art/enemies/echo_normal/echo_normal_hit.png",
+      "size": [
+        128,
+        64
+      ],
+      "sha256": "47d5250e488d38149a62934e42983b748598937c7bedc431ff9a8158504c0e4d"
+    },
+    {
+      "path": "assets/art/enemies/echo_normal/echo_normal_idle.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "89cbcaa987c5e38a3be525011ee0194d463fcea58bf3b22bfb2d589aa01c2750"
+    },
+    {
+      "path": "assets/art/enemies/echo_normal/echo_normal_move.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "75b9a5786c6d035247b94b48b1a9345822292c8909c5c5c8c039a0284572f119"
+    },
+    {
+      "path": "assets/art/enemies/echo_runner/echo_runner_attack.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "334cf0096258036b7368f0440b14efb48be9481b2460c213c82543a132120bae"
+    },
+    {
+      "path": "assets/art/enemies/echo_runner/echo_runner_base.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "f3a987a7281f26df03312dd1d49bce89aa8a90ce3fc4b45f6cbe4ad2a6e74f09"
+    },
+    {
+      "path": "assets/art/enemies/echo_runner/echo_runner_death.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "5bc9285d7495ef463ab369eda82a6ddbd86bd0779c2f076bfe7ce04ba39aeb5d"
+    },
+    {
+      "path": "assets/art/enemies/echo_runner/echo_runner_hit.png",
+      "size": [
+        128,
+        64
+      ],
+      "sha256": "ad62f5880cffb4f75411d0581b1d5a6b5a149bf4c7fd4624f7e303e5ac0e725f"
+    },
+    {
+      "path": "assets/art/enemies/echo_runner/echo_runner_idle.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "0af3ccb6768c12ddc1680dff9d323c3f952c4ca1230daade165960983d74f7f1"
+    },
+    {
+      "path": "assets/art/enemies/echo_runner/echo_runner_move.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "db9f10562f9c8921fc508488eea4c04893860fcf1ad10850988a7e093180466e"
+    },
+    {
+      "path": "assets/art/enemies/echo_silent/echo_silent_attack.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "945014e18c019850b48f4f5c24279c1b9aa70d10ebd240f5ab24e37da19db111"
+    },
+    {
+      "path": "assets/art/enemies/echo_silent/echo_silent_base.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "0636d51a9210d0feea1e26ac2ae66f5ace2f0c70ec70fe71763c9d8f439069bc"
+    },
+    {
+      "path": "assets/art/enemies/echo_silent/echo_silent_death.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "a5752203fe356ecac251f5964917f54eb452d1d067320604d66c2c4bd03314b5"
+    },
+    {
+      "path": "assets/art/enemies/echo_silent/echo_silent_hit.png",
+      "size": [
+        128,
+        64
+      ],
+      "sha256": "f7ae87233d67c2c1bfc5068e240c50d537c04eccb2b3271f03182a5dbde1ab45"
+    },
+    {
+      "path": "assets/art/enemies/echo_silent/echo_silent_idle.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "e08e5fcf7823169f5ee3b7c8f8974761fa05a8ed2e582953b8519887181a7fb8"
+    },
+    {
+      "path": "assets/art/enemies/echo_silent/echo_silent_move.png",
+      "size": [
+        256,
+        64
+      ],
+      "sha256": "914c72b757714857c6bf65ad7cf1714fa9a8cbaae3f5dc70885fef227f321609"
+    },
+    {
+      "path": "assets/art/environments/bg_env_classroom_battle.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "0b2eed8b951fe9689d84b7d84ce4f27b4e46c2bbb3d229d16195a6748dd2bce0"
+    },
+    {
+      "path": "assets/art/environments/bg_env_classroom_dusk.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "59f0b26fcde92de9874e34c8ae057d849b13c46b9579d24c4076c3bbe9925179"
+    },
+    {
+      "path": "assets/art/environments/bg_env_classroom_exam.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "c45380a252b2ae614cbc5c47217f54e1ea49c47bab7113ab68cad264dae7af15"
+    },
+    {
+      "path": "assets/art/environments/bg_env_corridor_battle.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "6807050601d8720a69d205f41ad07d403c24d79aad79cd0b7e8a138f103a14d5"
+    },
+    {
+      "path": "assets/art/environments/bg_env_corridor_convergence.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "7a4afc1088ffcce4d2be2a8835ef153930c095e33f61cb5e5413a3756739fcf8"
+    },
+    {
+      "path": "assets/art/environments/bg_env_corridor_dusk.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "38bda996a75503e5de64ac060b12d5c7635e68fdb63cbfa228546c541fbd6689"
+    },
+    {
+      "path": "assets/art/environments/bg_env_gym_battle.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "684808a712535f1451b3360cfbd66eae3337b9d963302ef40df01876e02c0bdb"
+    },
+    {
+      "path": "assets/art/environments/bg_env_gym_night.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "560b2460c427480afcf045c00454a22074de39886531934881c16ba2f9067455"
+    },
+    {
+      "path": "assets/art/environments/bg_env_landing_battle.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "f800addcd27d45afbd47362a42846ab969d6855c251648426afdd3b18e607533"
+    },
+    {
+      "path": "assets/art/environments/bg_env_rooftop_rift.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "3514ebf1744966bd5fb68bd607f78c3a9721b38ece175ddcfb490d9ae35f9d04"
+    },
+    {
+      "path": "assets/art/environments/bg_title_gate.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sha256": "dfe9dbc7e087ac7efa02afeb46c12d88b084492c8445db7fb2c6899e193ead14"
+    },
+    {
+      "path": "assets/art/ui/core_tower.png",
+      "size": [
+        192,
+        336
+      ],
+      "sha256": "75afa87ad9804b62da13eafb05db4509ffd1ce9529c49bca65377465c68d2283"
+    },
+    {
+      "path": "assets/art/ui/core_tower_six.png",
+      "size": [
+        192,
+        336
+      ],
+      "sha256": "84140a21e49bea2360428122107be5c9223c68d4fae645ad32bd215b228d605f"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_accessory_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "622fc51a12a5f97006b2529a79407a3ae54aed032eb88301132c8db4c0eb414a"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_accessory_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "cfb5fe0a438812cc8997a53ea11d73f8f04e1de8c985eedf2584d4cb4d123a64"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_ap_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "bb139722b2534feb9a36886ff293108e12001de40e9eb44e945cb770bf226a6f"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_ap_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "92acbd889a797223411d2d3438a915387344cc256590ce2ab3beef6e676379a0"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_armor_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "2bd27a8e2142877eb2df1bd13aa6c97f76dee5fb7671cdb09f21d8e2bbeae7e6"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_armor_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "e4c858d3f31582b5cf5cf561d9dd639ed070d55e4b9662e1f9afa46d57c0dc99"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_attack_up_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "c59515b32e6dd68ea167f215616117abad62ab3c387419099f2aa246f329e860"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_attack_up_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "d068dc090ab43c5803eef074475749e72e86873c6e0002cec439dcf44294eda7"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_awareness_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "706493a0b2be6ee5fde005127f36240d05715792da6631c4e87b9872c5e2baea"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_awareness_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "39af63139c9a1ca3bcc4830c01275f12b49b7ea5e3a433a59650c6a894de1c53"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_cancel_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "016af4ed3064635531d0280968bb426b7e201bad9a934549c6f1efc2ec22a36e"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_cancel_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "47ded34186fbd661b109ef365b4bc0ba1f25549332a8232c1cd19f44c3ad875d"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_confirm_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "18166312290eb1b251f2e24cfbd8b2873e69b8aaeb3d6722096183f6367c9388"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_confirm_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "ef3dad0e3063b23fea76ce3c8c65f476c0d168ef4e88595a7793fdb7aa886a7b"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_consumable_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "9a0b23e425d79ecf6d1e251c2cff33c0ed61c519981c1a25f446f717f5e01fda"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_consumable_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "fc9afb56d3135bcb065e0a87d415b7c9af71f8027a988abec45c0c7fcf13d886"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_debuff_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "4ce201a7773729ba779a0744b307820bf772c04b5d5616bc0de0f3f8a2510274"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_debuff_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "4d7fb682d58089a246257de5b7b0b57868f5c46e210d0ac5dab364e22afc1c67"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_defense_up_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "b9a067d351e990d9cc415ce72a84c763d33d20dc4e2c651f75c0f1e69f89c9fb"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_defense_up_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "bc5b9d894e5e497c4e84ee402141498ce4620a9d231eec1d0708f04e1c1446da"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_ff_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "f207748266257e28d4be8a857ef4ea4e47639ae60c7e03e6555d2c410812240d"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_ff_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "e11ba3c13f327a7f5ac2f813ee62415e4c1184c24f91271464cbb2c631f72962"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_heal_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "ba19ce9b4619829d67389bbe78b576cfdb67a2586dfc9df248502bfd0cd8670a"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_heal_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "0eb5163cd59eb3c5291b9f86a0e73062cde0a24921de4ae93c0859ad89db8a1f"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_home_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "5b516b734627300ba36a80765dcf1e72f924c4109608cd64fa10687a6d65394e"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_home_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "b86ef7af6033901d2592fe3475725d8042b5d923aa2be48b7b9e7be1ab06f181"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_material_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "5c7507887b695f797819c17c79c6532a6d8d65fcbae4eb464c3d72d2a93e9e4f"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_material_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "bc6441acf3d9f3192ba821c456a26438152a9a0cb51312028dfccaba22c1f7b8"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_memento_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "7b1d14dbc32b8eb5d2d8632ea407ea2dff501f9f39c23c68e39df66188425211"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_memento_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "3cc86221049f3f622e8022f9f7373bc497353944b41d8b5a6f9b245744e71045"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_pause_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "2a5b559aa1b7173f0038f8547d3dc178622d72ca4bcc5cb963a39d518f66bf9a"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_pause_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "f60c13c12b63dee5e9c698520be7c2cd9f835f497fc90b0f56b0c0d854056568"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_play_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "c9f2caa4ddfe963bc8468bde5ef042ba345e70a629abbd3e836ea52bef02c955"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_play_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "8cdec05381b6061837cf8654e0ca798ca24aeddaab69480602ccf5d6b824fa48"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_refresh_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "aab6f89226192108a1a51cc8d68063b51b46e062c3bc4fa2fbe9f8f96007d4ac"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_refresh_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "c63aaf68c27524b2b6acafbb3c4a21d6fb81e4b05019a69b4136bba28c1fdd9c"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_rewind_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "34945f8f3aebed4194f91cbd801003957e573bb1ae91f4006c5409edce9a442c"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_rewind_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "f004e504e741524d205435d8f043f6aac62ec9b437cad738ddee93ed6435facd"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_rift_shard_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "6c9b37f104a80a356ca7408d4411f717874af29c7c5b60f7ed09eb7ad20a736e"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_rift_shard_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "43145775728cfa73dbef8cf2d9693d3c5ecf564fa45933469f6a355a87b984d3"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_school_coin_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "a334a1d9f3e44f5b912652cb7e074c279e617d5384b23495babb616098471c9c"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_school_coin_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "7631e877a9b4ee460beff4b488e4fa488fa18f0b39f9d475dc06ec5779d813db"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_settings_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "50ec1595035a82bc31e33aa957da4d48ad21a9be70023fb356667c8e3af40156"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_settings_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "fa879ff67ad8b02ae430c5386705f10bb5ba8b215102e2d84555a6a23a76411a"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_skillbook_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "c974a428a2c11087e472f0d4d994037a4ffa8129eadab2a3663555b662c9860b"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_skillbook_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "9cc567cf55b997eb0063946a950763c451c1f79aa7a7ca941dfff2ffc80af932"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_study_record_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "359e7e944dc72821e0396071619d57f06232151f123499aef1a9ac046dd11cc6"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_study_record_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "90a8dc098ac1cf130dda87af1d68b1050da6b950fbb586aeb1e59cc05d6282e0"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_weapon_32.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "167354a4498d759a11752e38c31798200fb58dd14affaae896ff798c73d76ec4"
+    },
+    {
+      "path": "assets/art/ui/icons/icon_weapon_64.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "d0a97abac056b75224f3262e069bbb15b0b31c650205b2f7249ab628b7054a50"
+    },
+    {
+      "path": "assets/art/ui/title_logo.png",
+      "size": [
+        2172,
+        724
+      ],
+      "sha256": "834b80552652de3a94f7dcb1b516e5f6fa06dd81c0993c1476f85c31d29fb820"
+    },
+    {
+      "path": "assets/vfx/vfx_arrow.png",
+      "size": [
+        1024,
+        128
+      ],
+      "sha256": "3b33e47b772e168dc177aa8f8cadb91948e625e6f9ba74f350aea2eb49673c63"
+    },
+    {
+      "path": "assets/vfx/vfx_death.png",
+      "size": [
+        768,
+        96
+      ],
+      "sha256": "d29f4fa9d3f6265ba0b939a1b21230644002fb6868236520db996d9906f3f7f1"
+    },
+    {
+      "path": "assets/vfx/vfx_deploy.png",
+      "size": [
+        768,
+        96
+      ],
+      "sha256": "8eeca1c6977d9fdd89c56fbb4dfa65ca7eb14a89daa444b7fb30b28ecfc61304"
+    },
+    {
+      "path": "assets/vfx/vfx_heal.png",
+      "size": [
+        768,
+        96
+      ],
+      "sha256": "af359a6e4b1e9c4c6958a07d042bb0a8cd70ad3ddc55d1addc2eab8fae85036d"
+    },
+    {
+      "path": "assets/vfx/vfx_impact.png",
+      "size": [
+        768,
+        96
+      ],
+      "sha256": "bc4271c56eae514715d340f7f27d44ab91d6692fcf8c62ba86f351557bec0840"
+    },
+    {
+      "path": "assets/vfx/vfx_slash.png",
+      "size": [
+        768,
+        96
+      ],
+      "sha256": "ef2a9027c63f7fdfe2837e5678f841957364d74ee443649de17fe0791ec5fba4"
+    }
+  ],
+  "expectedScripts": 31,
+  "declaredTestFunctions": 599,
+  "gut": {
+    "Scripts": 31,
+    "Tests": 599,
+    "Passing Tests": 599,
+    "Failing Tests": 0,
+    "Risky/Pending": 0,
+    "Asserts": 10102,
+    "exitCode": 0
+  },
+  "realSaveSnapshotAfter": {
+    "save\\savegame.json": "1a315e862fd2ab6af6a4be5558c399893ba41ec89c1b574b572e10a6abc374e9",
+    "save\\savegame_backup.json": "ada7d01be9a01e2f0bb301fc8ef66c14f729809d3d7ecd8ed1c0138d0d1c394e"
+  },
+  "realSavesUnchanged": true,
+  "tagsUnchanged": true,
+  "finished": "2026-10-11T12:32:31.488250"
+}

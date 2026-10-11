@@ -10,6 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser()
 parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--exe',type=Path)
+parser.add_argument('--start-delay',type=int,default=0,choices=range(91),help='Discard normal-clock startup audio before measuring, e.g. 44 seconds for elite arrival')
 args=parser.parse_args(); out=args.output.resolve()
 if '_testenv' not in out.parts: raise SystemExit('Refuse non-isolated output')
 out.mkdir(parents=True,exist_ok=True)
@@ -26,6 +27,7 @@ with loop.recorder(samplerate=sr,channels=2) as rec:
     with (out/'game.log').open('w',encoding='utf-8') as log:
         proc=subprocess.Popen(command,env=env,stdout=log,stderr=subprocess.STDOUT)
         try:
+            for _ in range(args.start_delay): rec.record(numframes=sr)
             chunks=[]
             for i in range(16): chunks.append(rec.record(numframes=sr))
             data=np.concatenate(chunks)
@@ -39,6 +41,7 @@ with wave.open(str(out/'windows_loopback.wav'),'wb') as wav:
 rms=lambda a:float(np.sqrt(np.mean(a.astype(float)**2)))
 report={'evidenceType':'Windows WASAPI default speaker loopback; automated, not human listening',
         'requestedScene':'Retail title (no developer scene entry)' if args.exe else 'Development fifth-stage battle',
+        'normalClockDelaySeconds':args.start_delay,
         'speaker':speaker.name,'physicalMicrophoneUsed':False,'sampleRate':sr,
         'baselineRms':rms(silence),'gameRms':rms(data),'peak':float(np.max(np.abs(data))),
         'clippedSamples':int(np.sum(np.abs(data)>=.999)),

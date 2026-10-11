@@ -1,0 +1,42 @@
+{
+  "author": "Hoshigaoka Echoes project original melodies and synthesized event cues",
+  "externalSamples": [
+    {
+      "library": "VSCO 2 Community Edition Upright Piano",
+      "license": "CC0-1.0",
+      "rawSamplesDistributed": false,
+      "appliesTo": "elite music piano only",
+      "localLicense": "assets/licenses/VSCO2-CE-CC0.txt"
+    }
+  ],
+  "generator": "tools/render_round9_audio.py",
+  "cues": [
+    {
+      "asset": "assets/audio/sfx/rin_skill.wav",
+      "peak": 0.25996,
+      "rms": 0.03629,
+      "duration": 0.95
+    },
+    {
+      "asset": "assets/audio/sfx/elite_arrival.wav",
+      "peak": 0.29616,
+      "rms": 0.03633,
+      "duration": 1.35
+    },
+    {
+      "asset": "assets/audio/sfx/elite_gaze.wav",
+      "peak": 0.22422,
+      "rms": 0.03455,
+      "duration": 0.62
+    },
+    {
+      "asset": "assets/audio/sfx/elite_time_up.wav",
+      "peak": 0.2645,
+      "rms": 0.03559,
+      "duration": 0.95
+    }
+  ],
+  "music": "assets/audio/bgm/invigilator_exam.wav",
+  "design": "Existing corridor theme, 140 BPM and a restrained pulse; event-bound elite entrance, gaze, time-up and dispatch cues.",
+  "status": "Rendered; Windows playback verification tracked separately"
+}

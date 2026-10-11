@@ -1,0 +1,38 @@
+{
+  "source": "tools\\source_art\\yuma_recovery_v3.png",
+  "method": "Four distinct imagegen poses, connected-component extraction and nearest-neighbour registration to pre-existing 96px production cells.",
+  "output": "assets/art/characters/kamiya_yuma/kamiya_yuma_recovery.png",
+  "frames": [
+    {
+      "frame": 0,
+      "generatedBox": [
+        556,
+        113,
+        987,
+        643
+      ],
+      "productionBox": [
+        20,
+        22,
+        82,
+        90
+      ]
+    },
+    {
+      "frame": 1,
+      "generatedBox": [
+        1217,
+        113,
+        1612,
+        643
+      ],
+      "productionBox": [
+        29,
+        22,
+        82,
+        90
+      ]
+    }
+  ],
+  "status": "Imported; dynamic identity, weapon and transition inspection required."
+}

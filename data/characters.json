@@ -146,6 +146,48 @@
         "portrait": "char_ogawa_yui_portrait_01.png"
       },
       "_spec": "V2.1.4 表 30 小川结衣 / 表 47 第 3 行"
+    },
+    {
+      "id": "fujiwara_rin",
+      "name": "藤原凛",
+      "nameShort": "凛",
+      "grade": "高三",
+      "club": "学生会副会长",
+      "classType": "STUDENT_COUNCIL",
+      "behavior": "RANGED",
+      "roleTags": [
+        "SUPPORT",
+        "AP"
+      ],
+      "baseStats": {
+        "hp": 680,
+        "attack": 0,
+        "defense": 40
+      },
+      "growthProfileId": "growth_standard",
+      "attackInterval": 1.0,
+      "attackRange": {
+        "shape": "lane_band",
+        "direction": "forward",
+        "rangeTiles": 0,
+        "maxLaneDelta": 0
+      },
+      "blockCount": 0,
+      "deployCost": 16,
+      "redeployTime": 25.0,
+      "damageType": "PHYSICAL",
+      "normalAttackEnabled": false,
+      "apRegenBonusPct": 0.15,
+      "skillIds": [
+        "rin_emergency_dispatch"
+      ],
+      "talentIds": [
+        "rin_process_optimization"
+      ],
+      "unlockStage": "1-7",
+      "spriteFramePx": 96,
+      "_spec": "V2.1.4 table 47: no normal attack, global AP support. RANGED is the legacy non-blocking runtime category, not an offensive role.",
+      "_replayDecision": "2026-10-11: after first-clearing 1-5 and reading its ending, Rin can join replays of 1-3 to 1-5. First-clear teaching sequence remains unchanged."
     }
   ],
   "_growth_note": "Alpha A0.1：growthProfileId 指向 character_growth.json 的 growthProfiles[].id。等级只提升 hp/attack/defense/healPower 四项（V2.1.4 H 章三），攻击范围/阻挡数/部署费用不随等级变化。"

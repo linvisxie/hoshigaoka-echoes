@@ -633,8 +633,8 @@ func test_16b_stage_1_4_has_multiple_winning_placements_with_different_costs() -
 	assert_eq(int(mid["outcome"]), BattleTypes.Outcome.VICTORY, "1-4 中路解应胜利")
 	assert_eq(int(mid["leaked"]), 0, "1-4 中路解应零漏怪")
 	assert_eq(int(side["outcome"]), BattleTypes.Outcome.VICTORY, "1-4 相邻路解应胜利")
-	assert_eq(int(side["leaked"]), 1, "密集群下相邻路单体支援会漏一只")
-	assert_eq(int(side["coreHp"]), 2, "相邻路仍保留两点防线，不是不可通关")
+	assert_gt(int(side["leaked"]), 0, "密集群与交替旁路下，固定边路摆法应弱于中路覆盖")
+	assert_gt(int(side["coreHp"]), 0, "相邻路支援应仍有可通关余量，不能成为必败摆法")
 	assert_gt(int(mid["coreHp"]), int(side["coreHp"]), "本路贯穿应体现密集清群的站位优势")
 
 

@@ -11,6 +11,8 @@ parser.add_argument('--exe',type=Path,default=ROOT/'dist/v3_ui_polish_20261010/H
 parser.add_argument('--output',type=Path,default=ROOT.parent/'_testenv/v3-round2/retail_battle')
 parser.add_argument('--seed-save',type=Path,default=ROOT.parent/'_testenv/v3-round2/campaign_final/appdata/HoshigaokaEchoes/save/savegame.json')
 parser.add_argument('--campus-left',action='store_true',help='Verify the primary replay button instead of handbook navigation')
+parser.add_argument('--party-size',type=int,default=2,choices=[2,3])
+parser.add_argument('--projected',action='store_true',help='0.4.6 slanted battlefield coordinates')
 args=parser.parse_args()
 OUT=args.output.resolve()
 if '_testenv' not in OUT.parts:raise SystemExit('Refuse non-isolated output')
@@ -61,9 +63,9 @@ with (OUT/'game.log').open('w',encoding='utf8') as log:
         click(960,720) # Fifth stage card
         reached('res://scenes/menus/briefing.tscn')
         shot('briefing')
-        click(1145,845) # Rotate two-person deployment order through real UI
+        click(1145,845) # Rotate deployment order through real UI
         shot('briefing_reordered')
-        click(1145,845) # Restore seed order before the deployment check
+        for _ in range(args.party_size-1): click(1145,845) # Restore original order
         click(1600,1005) # Start battle
         time.sleep(2)
         reached('stage=1-5')
@@ -71,7 +73,7 @@ with (OUT/'game.log').open('w',encoding='utf8') as log:
         win.U.keybd_event(0x31,0,0,0);win.U.keybd_event(0x31,0,2,0)
         time.sleep(.2)
         shot('deployment_preview')
-        click(926,506) # Mio at middle lane, column 2
+        click(970,562) if args.projected else click(926,506)
         time.sleep(.5)
         shot('battle_deployed')
         time.sleep(3)

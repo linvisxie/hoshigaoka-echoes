@@ -24,6 +24,10 @@ var empowered_next := 0.0
 var peak_enemies := 0
 var crowd_settle_at := -1.0
 var crowd_settle_count := 0
+var yuma_frames := 0
+var yuma_recording := false
+var yuma_next := 0.0
+var elite_clips: Dictionary = {}
 
 func _ready() -> void:
 	_begin.call_deferred()
@@ -44,6 +48,28 @@ func _process(_delta: float) -> void:
 		return
 	var session: BattleSession = battle.session
 	var now := session.stage.elapsed_seconds
+	var yuma := session.stage.get_character_by_id("kamiya_yuma")
+	if yuma != null and yuma_frames == 0 and not yuma_recording:
+		var animation: AnimState = battle._char_anim.get(yuma.instance_id)
+		var special: Dictionary = battle._special_animations.get(yuma.instance_id,{})
+		var playing := not special.is_empty() and now < float(special["born"])+float(special["life"])
+		if animation != null and animation.anim == AnimState.ATTACK and not playing:
+			yuma_recording = true
+			yuma_next = now
+	if yuma_recording and now >= yuma_next:
+		shot("yuma_attack_%02d" % yuma_frames)
+		yuma_frames += 1
+		yuma_next = now+.05
+		if yuma_frames == 10: yuma_recording = false
+	for label: String in ["arrival","gaze","time_up"]:
+		if battle._art_drawn.has("elite_event:"+label) and not elite_clips.has(label):
+			elite_clips[label] = {"next":now,"frame":0}
+		if elite_clips.has(label):
+			var clip: Dictionary = elite_clips[label]
+			if int(clip.frame)<6 and now>=float(clip.next):
+				shot("elite_%s_%02d" % [label,int(clip.frame)])
+				clip.frame = int(clip.frame)+1
+				clip.next = now+.12
 	if session.stage.enemies.size() > peak_enemies:
 		peak_enemies = session.stage.enemies.size()
 		if peak_enemies >= 4:

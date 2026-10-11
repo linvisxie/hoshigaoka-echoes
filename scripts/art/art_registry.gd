@@ -27,7 +27,7 @@ extends RefCounted
 const TAG := "ArtRegistry"
 
 const ART_ROOT := "res://assets/art"
-const CHARACTER_FRAME_SIZE := {"amamiya_mio": 96, "kamiya_yuma": 96}
+const CHARACTER_FRAME_SIZE := {"amamiya_mio": 96, "kamiya_yuma": 96, "fujiwara_rin": 96}
 
 ## 特效根目录（与 art_src/tools/build_vfx.py 的输出一致）。
 ## 注意：特效刻意放在 assets/vfx/ 而不是 assets/art/ 下 —— 它是"战斗反馈"
@@ -148,7 +148,7 @@ static func character_frame(char_id: String, anim: String, t: float) -> AtlasTex
 
 ## 角色一次性动画帧（攻击/受击，按进度取帧不循环）。
 static func character_frame_progress(char_id: String, anim: String, progress: float) -> AtlasTexture:
-	if char_id == "amamiya_mio" and anim == "attack":
+	if char_id in ["amamiya_mio", "kamiya_yuma"] and anim == "attack":
 		var recovery := "%s/characters/%s/%s_recovery.png" % [ART_ROOT,char_id,char_id]
 		if progress >= 0.72 and load_texture(recovery) != null:
 			return frame_at(recovery,mini(1,int((progress-0.72)/0.28*2.0)),2)

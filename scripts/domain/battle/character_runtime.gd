@@ -129,6 +129,7 @@ var redeploy_cooldown_remaining: float = 0.0
 
 ## 累计造成的伤害与受到的伤害（调试与测试用）
 var total_damage_dealt: int = 0
+var paid_deploy_cost: int = -1
 var total_damage_taken: int = 0
 
 # ============================================================
@@ -514,8 +515,8 @@ func effective_attack() -> int:
 
 ## 有效技能冷却恢复速度系数：clamp(1 + ΣCD 百分数, debuffFloor, +∞)。
 ## 当前构建尚无技能系统，本接口为 A0.6 技能系统接入预留（与 L556 的属性清单一一对应）。
-func effective_cd_recovery_factor() -> float:
-	return maxf(debuff_floor_pct, 1.0 + equipment_cd_recovery_pct + sum_effect_pct(StatusEffect.CATEGORY_CD_RECOVERY))
+func effective_cd_recovery_factor(upgrade_bonus: float = 0.0) -> float:
+	return maxf(debuff_floor_pct, 1.0 + equipment_cd_recovery_pct + sum_effect_pct(StatusEffect.CATEGORY_CD_RECOVERY) + minf(0.4, upgrade_bonus))
 
 
 ## 当前能否主动释放技能（V2.1.4 L557：控制类沉默仅禁止主动技能）。

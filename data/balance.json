@@ -50,7 +50,11 @@
     },
     "targeting": {
       "_note": "V2.1.4 D-11：角色自动寻找攻击范围内目标，基础优先级为 ① 最接近防守核心的敌人 ② 当前正在阻挡的敌人 ③ 更早进入攻击范围的敌人。",
-      "priority": ["CLOSEST_TO_CORE", "CURRENTLY_BLOCKED", "EARLIEST_IN_RANGE"]
+      "priority": [
+        "CLOSEST_TO_CORE",
+        "CURRENTLY_BLOCKED",
+        "EARLIEST_IN_RANGE"
+      ]
     },
     "debuffFloor": {
       "_note": "V2.1.4 L556~557 LOCKED：有效攻击力、有效攻击频率、有效技能冷却恢复速度均不得低于各自基础值的 40%（首轮可配置下限）；上述减益下限首章统一存于 balance.json。持续时间、来源 ID、stackPolicy、属性系数归属于技能/敌人配置（见 enemies.json 的 mechanic 段），不在此处另存。",
@@ -68,6 +72,7 @@
       "enforced": false,
       "_enforced_note": "false = 上限已实现且可测试，但当前无任何生产路径能触达它（无增益来源）。A0.6 落地局内强化后应改为 true 并补实机验证。"
     },
-    "_pending": "攻速/CD 软上限等依 V2.1.4 由 balance.json 承载，Alpha 阶段补齐。（减益下限已于 A0.2 落地为 combat.debuffFloor。）"
+    "_pending": "攻速/CD 软上限等依 V2.1.4 由 balance.json 承载，Alpha 阶段补齐。（减益下限已于 A0.2 落地为 combat.debuffFloor。）",
+    "apRegenBonusCap": 0.5
   }
 }

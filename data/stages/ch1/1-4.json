@@ -128,7 +128,7 @@
     },
     {
       "time": 90.0,
-      "lane": 1,
+      "lane": 2,
       "enemy": "echo_normal",
       "wave": 3
     },
@@ -241,5 +241,6 @@
   "stageName": "背得太多",
   "briefing": "装甲残响防御较高。前线承压时保持后方输出，留意澪的生命与再部署冷却。",
   "_encounterRevision": "2026-10-11 用户要求增加成组出怪、战斗紧张感。保留首遇顺序、解锁、精英机制与无治疗条件；旧数量和静态通关说明是历史基线，以本时间线和本轮实测为准。",
-  "_stableClearPath": "2026-10-11 成组进场版：澪中路col3、悠真中路col1；按正常AP部署，技能就绪且有敌人时释放。回归验证包含无治疗、正常Lv.1基础数值与零漏怪目标。旧无技能静态打法不再是当前密集版本的验收条件，实际Windows新游戏连续流程另行记录。"
+  "_stableClearPath": "2026-10-11 成组进场版：澪中路col3、悠真中路col1；按正常AP部署，技能就绪且有敌人时释放。回归验证包含无治疗、正常Lv.1基础数值与零漏怪目标。旧无技能静态打法不再是当前密集版本的验收条件，实际Windows新游戏连续流程另行记录。",
+  "_round9Tactics": "2026-10-11: redistribute existing normal echoes into alternating side-lane pressure; total counts and heavy-unit lanes unchanged. Normal two-person clear must be revalidated."
 }

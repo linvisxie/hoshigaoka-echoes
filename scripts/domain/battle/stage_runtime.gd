@@ -25,6 +25,8 @@ const MAX_STEPS_PER_ADVANCE: int = 240
 var _skill_configs: Dictionary = {}
 var _talent_configs: Dictionary = {}
 var skill_events: Array[Dictionary] = []
+var _deploy_discount: Dictionary = {}
+var ap_regen_bonus_cap: float = 0.5
 
 func configure_skills(domain: Dictionary) -> void:
 	_skill_configs.clear()
@@ -63,6 +65,8 @@ func cast_skill(instance_id: int) -> Dictionary:
 			"durationSeconds": character.skill_active_remaining}, elapsed_seconds)
 	elif kind == "NEXT_ATTACK":
 		character.skill_charged = true
+	elif kind == "AP_GAIN":
+		add_ap(int(cfg.get("apGain", 0)))
 	else:
 		return {"ok": false, "reason": "技能效果尚未实现"}
 	character.skill_cooldown_remaining = float(cfg.get("cooldownSeconds", 0))
@@ -73,7 +77,8 @@ func cast_skill(instance_id: int) -> Dictionary:
 
 func _tick_character_skills(step: float) -> void:
 	for character: CharacterRuntime in characters:
-		character.skill_cooldown_remaining = maxf(0.0, character.skill_cooldown_remaining - step * character.effective_cd_recovery_factor())
+		var upgrade_rate := upgrades.bonus_pct("CD_RECOVERY", CharacterRuntime.behavior_name(character.behavior)) if upgrades != null else 0.0
+		character.skill_cooldown_remaining = maxf(0.0, character.skill_cooldown_remaining - step * character.effective_cd_recovery_factor(upgrade_rate))
 		character.skill_active_remaining = maxf(0.0, character.skill_active_remaining - step)
 
 func _active_skill_targets(character: CharacterRuntime) -> Array[EnemyRuntime]:
@@ -259,6 +264,7 @@ static func from_config(
 	rt.grid = grid
 	rt._enemy_configs = enemy_table
 	rt._character_configs = character_table
+	rt.ap_regen_bonus_cap = float(balance_combat.get("apRegenBonusCap", 0.5))
 
 	if grid == null or not grid.is_valid():
 		rt._errors.append("BattleGrid 无效，无法构建 StageRuntime")
@@ -913,7 +919,7 @@ func query_deploy(character_id: String, column: int, lane: int) -> DeployResult:
 		return r
 
 	var cfg: Dictionary = _character_configs[character_id]
-	var cost := int(cfg.get("deployCost", 0))
+	var cost := deployment_cost(character_id)
 	r.cost = cost
 	if not can_afford(cost):
 		r.reason = DeployReject.INSUFFICIENT_AP
@@ -949,6 +955,9 @@ func deploy_character(character_id: String, column: int, lane: int) -> DeployRes
 	var growth_stats: Dictionary = _character_level_stats.get(character_id, {})
 	var inst := CharacterRuntime.from_config(
 		cfg, column, lane, _next_character_instance_id, growth_stats)
+	inst.paid_deploy_cost = r.cost
+	if not _deploy_discount.is_empty() and elapsed_seconds <= float(_deploy_discount.get("until", -1)) and character_id != str(_deploy_discount.get("source", "")):
+		_deploy_discount.clear()
 	_next_character_instance_id += 1
 	inst.redeploy_time = _redeploy_seconds(character_id)
 	# A0.2：注入减益下限（权威值来自 balance.json 的 combat.debuffFloor）。
@@ -957,6 +966,8 @@ func deploy_character(character_id: String, column: int, lane: int) -> DeployRes
 	# DEC-C-0004：注入增益上限（权威值来自 balance.json 的 combat.buffCeiling）。
 	inst.buff_ceiling_pct = buff_ceiling_pct
 	_assign_skill(inst)
+	if inst.talent_config.get("effect", "") == "NEXT_DEPLOY_DISCOUNT":
+		_deploy_discount = {"source": character_id, "until": elapsed_seconds + float(inst.talent_config.get("durationSeconds", 0)), "amount": int(inst.talent_config.get("apDiscount", 0))}
 	characters.append(inst)
 	character_instances.append(inst)
 	r.character = inst
@@ -1079,6 +1090,13 @@ func _deploy_cost(character_id: String) -> int:
 		return 0
 	return int((_character_configs[character_id] as Dictionary).get("deployCost", 0))
 
+## Display and admission share the actual cost; hover never consumes the voucher.
+func deployment_cost(character_id: String) -> int:
+	var cost := _deploy_cost(character_id)
+	if elapsed_seconds <= float(_deploy_discount.get("until", -1)) and character_id != str(_deploy_discount.get("source", "")):
+		cost = maxi(1, cost - int(_deploy_discount.get("amount", 0)))
+	return cost
+
 
 ## 角色级再部署时长（characters.json 的 redeployTime）；缺省回落到 balance 默认值。
 func _redeploy_seconds(character_id: String) -> float:
@@ -1171,7 +1189,7 @@ func withdraw_character(instance_id: int) -> RetreatResult:
 		r.reason = RetreatReject.CHARACTER_INCAPACITATED
 		return r
 
-	var cost := _deploy_cost(char.character_id)
+	var cost := char.paid_deploy_cost if char.paid_deploy_cost >= 0 else _deploy_cost(char.character_id)
 	r.refund = compute_retreat_refund(cost)
 	r.refund_granted = add_ap(r.refund)
 
@@ -2094,6 +2112,8 @@ func _resolve_character_actions(step: float) -> void:
 ## 输出型（前线 / 远程）的单次行动结算。
 ## 射程、阻挡能力、伤害类型全部来自配置，行为本身不携带任何数值。
 func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
+	if c.effective_attack() <= 0 or not bool((_character_configs.get(c.character_id, {}) as Dictionary).get("normalAttackEnabled", true)):
+		return
 	c.attack_cooldown = maxf(0.0, c.attack_cooldown - step)
 	if c.attack_cooldown > 0.0:
 		return
@@ -2491,9 +2511,11 @@ func _apply_upgrades_to_instance(_c: CharacterRuntime) -> void:
 
 ## AP 自然回复倍率（阶段级；无强化系统时恒为 1.0）。
 func _ap_regen_mult() -> float:
-	if upgrades == null:
-		return 1.0
-	return upgrades.ap_regen_multiplier()
+	var bonus := upgrades.ap_regen_bonus_pct() if upgrades != null else 0.0
+	for character: CharacterRuntime in characters:
+		if not character.is_incapacitated():
+			bonus += float((_character_configs.get(character.character_id, {}) as Dictionary).get("apRegenBonusPct", 0.0))
+	return 1.0 + minf(ap_regen_bonus_cap, bonus)
 
 
 # ============================================================

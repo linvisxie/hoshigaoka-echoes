@@ -458,7 +458,7 @@ func _draw_background() -> void:
 		var plaque_font := GameSkin.serif()
 		var plaque := "私立星丘高等学校"
 		for i: int in range(plaque.length()):
-			draw_string(plaque_font,offset+Vector2(728,586+float(i)*26)*s,plaque.substr(i,1),HORIZONTAL_ALIGNMENT_LEFT,-1,int(22*s),Color("c5a06b"))
+			draw_string(plaque_font,offset+Vector2(728,580+float(i)*23)*s,plaque.substr(i,1),HORIZONTAL_ALIGNMENT_LEFT,-1,int(20*s),Color("c5a06b"))
 	else:
 		_draw_gradient_fallback()
 	_draw_atmosphere()

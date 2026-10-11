@@ -33,6 +33,16 @@
       "maxLaneDelta": 0,
       "targetLimit": 3,
       "description": "下次本路攻击造成300%伤害，贯穿最多3名敌人；等待目标时仍以普攻支援相邻路线，保留蓄力。"
+    },
+    {
+      "id": "rin_emergency_dispatch",
+      "name": "紧急调度",
+      "type": "ACTIVE",
+      "effect": "AP_GAIN",
+      "initialCooldownSeconds": 24,
+      "cooldownSeconds": 24,
+      "apGain": 6,
+      "description": "立即获得6 AP，不超过上限。凛在场时全队自然AP回复+15%，不进行普通攻击。"
     }
   ],
   "talents": [
@@ -52,6 +62,14 @@
       "maxBonusPct": 0.25,
       "description": "连续攻击同一目标时，每次后续攻击伤害+5%，最多+25%；切换目标重置。",
       "multiTargetPrimary": "Piercing arrow tracks the closest-to-core primary target for one attack action."
+    },
+    {
+      "id": "rin_process_optimization",
+      "name": "流程优化",
+      "effect": "NEXT_DEPLOY_DISCOUNT",
+      "durationSeconds": 10,
+      "apDiscount": 2,
+      "description": "每次部署后10秒内，下一名友军部署费用−2 AP，最低1 AP；成功部署后消耗。"
     }
   ]
 }

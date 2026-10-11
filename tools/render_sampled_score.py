@@ -53,43 +53,47 @@ def piano(midi, length, kind='piano'):
     result[-fade:] *= np.linspace(1,0,fade)
     return result
 
-base.tone = chapter.tone = piano
-for name,bpm,battle in [('after_school',86,False),('echo_frontline',116,True)]:
-    base.score(name,bpm,battle)
-    print('Rendered',name,flush=True)
-for name,bpm,dark in [('unheard_memory',72,True),('observation_club',94,False),('corridor_pressure',132,True)]:
-    chapter.cue(name,bpm,dark)
-    print('Rendered',name,flush=True)
+def main():
+    base.tone = chapter.tone = piano
 
-def resolution(name, notes):
-    out = np.zeros((SR*8,2))
-    for i,chord in enumerate(notes):
-        start=int((.12+i*.85)*SR)
-        for n in chord:
-            a=piano(n,4.5)*.48
-            stop=min(start+len(a),len(out))
-            out[start:stop,0]+=a[:stop-start]*.68
-            out[start:stop,1]+=a[:stop-start]*.72
-    dry=out.copy()
-    for delay,gain in [(.14,.19),(.31,.11),(.53,.06)]:
-        shift=int(delay*SR);out[shift:]+=dry[:-shift,::-1]*gain
-    out[-SR:]*=np.linspace(1,0,SR)[:,None]
-    base.save('bgm/'+name,np.tanh(out*2.7)*.8)
+    for name,bpm,battle in [('after_school',86,False),('echo_frontline',116,True)]:
+        base.score(name,bpm,battle)
+        print('Rendered',name,flush=True)
+    for name,bpm,dark in [('unheard_memory',72,True),('observation_club',94,False),('corridor_pressure',132,True)]:
+        chapter.cue(name,bpm,dark)
+        print('Rendered',name,flush=True)
 
-resolution('battle_victory',[(60,64,67),(62,65,69),(64,67,72),(60,67,76)])
-resolution('battle_defeat',[(57,60,64),(55,59,62),(52,55,59)])
-licenses=base.ROOT/'assets/licenses';licenses.mkdir(exist_ok=True)
-shutil.copy2(SAMPLES/'LICENSE',licenses/'VSCO2-CE-CC0.txt')
-shutil.copy2(SAMPLES/'Readme.txt',licenses/'VSCO2-CE-Readme.txt')
-record=base.ROOT/'assets/audio/source_record.json'
-data=json.loads(record.read_text(encoding='utf8'))
-data.update({'renderSource':'tools/render_sampled_score.py',
- 'externalSamples':[{'library':'VSCO 2 Community Edition Upright Piano',
- 'authors':'Versilian Studios / Sam Gossner; Ivy Audio / Simon Dalzell',
- 'url':'https://github.com/sgossner/VSCO-2-CE','license':'CC0-1.0',
- 'rawSamplesDistributed':False,
- 'samples':[{'name':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(SAMPLES.glob('*.wav'))]}],
- 'commercialUse':'Original melodies rendered with CC0-1.0 piano samples; project synthesized accompaniment/SFX; Kenney CC0 UI and combat cues separately recorded',
- 'status':'Sampled piano mix; Windows runtime and loopback checked separately; user listening approval pending'})
-data['files']=[p.relative_to(base.ROOT).as_posix() for p in sorted((base.ROOT/'assets/audio').rglob('*.wav'))]
-record.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf8')
+    def resolution(name, notes):
+        out = np.zeros((SR*8,2))
+        for i,chord in enumerate(notes):
+            start=int((.12+i*.85)*SR)
+            for n in chord:
+                a=piano(n,4.5)*.48
+                stop=min(start+len(a),len(out))
+                out[start:stop,0]+=a[:stop-start]*.68
+                out[start:stop,1]+=a[:stop-start]*.72
+        dry=out.copy()
+        for delay,gain in [(.14,.19),(.31,.11),(.53,.06)]:
+            shift=int(delay*SR);out[shift:]+=dry[:-shift,::-1]*gain
+        out[-SR:]*=np.linspace(1,0,SR)[:,None]
+        base.save('bgm/'+name,np.tanh(out*2.7)*.8)
+
+    resolution('battle_victory',[(60,64,67),(62,65,69),(64,67,72),(60,67,76)])
+    resolution('battle_defeat',[(57,60,64),(55,59,62),(52,55,59)])
+    licenses=base.ROOT/'assets/licenses';licenses.mkdir(exist_ok=True)
+    shutil.copy2(SAMPLES/'LICENSE',licenses/'VSCO2-CE-CC0.txt')
+    shutil.copy2(SAMPLES/'Readme.txt',licenses/'VSCO2-CE-Readme.txt')
+    record=base.ROOT/'assets/audio/source_record.json'
+    data=json.loads(record.read_text(encoding='utf8'))
+    data.update({'renderSource':'tools/render_sampled_score.py',
+     'externalSamples':[{'library':'VSCO 2 Community Edition Upright Piano',
+     'authors':'Versilian Studios / Sam Gossner; Ivy Audio / Simon Dalzell',
+     'url':'https://github.com/sgossner/VSCO-2-CE','license':'CC0-1.0',
+     'rawSamplesDistributed':False,
+     'samples':[{'name':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(SAMPLES.glob('*.wav'))]}],
+     'commercialUse':'Original melodies rendered with CC0-1.0 piano samples; project synthesized accompaniment/SFX; Kenney CC0 UI and combat cues separately recorded',
+     'status':'Sampled piano mix; Windows runtime and loopback checked separately; user listening approval pending'})
+    data['files']=[p.relative_to(base.ROOT).as_posix() for p in sorted((base.ROOT/'assets/audio').rglob('*.wav'))]
+    record.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf8')
+
+if __name__ == '__main__': main()

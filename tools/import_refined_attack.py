@@ -45,7 +45,9 @@ def main():
         xs,ys=zip(*component); box=(min(xs),min(ys),max(xs)+1,max(ys)+1)
         isolated=Image.new('RGBA',(box[2]-box[0],box[3]-box[1])); target=isolated.load()
         for x,y in component:target[x-box[0],y-box[1]]=pix[x,y]
-        oldbox=([(8,35,85,91),(10,28,90,91)][index] if args.recovery else
+        recovery_boxes = ([(20,22,82,90),(29,22,82,90)] if args.character == 'kamiya_yuma'
+                          else [(8,35,85,91),(10,28,90,91)])
+        oldbox=(recovery_boxes[index] if args.recovery else
                 original.crop((index*96,0,(index+1)*96,96)).getchannel('A').getbbox())
         scaled=isolated.resize((oldbox[2]-oldbox[0],oldbox[3]-oldbox[1]),Image.Resampling.NEAREST)
         output.paste(scaled,(index*96+oldbox[0],oldbox[1]))

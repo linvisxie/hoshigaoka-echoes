@@ -1,0 +1,74 @@
+{
+  "source": "tools/source_art/rin_full_motion_v3.png",
+  "sourceSHA256": "b2667e44997388fdd16d108cf5ac13f610e2f4090f143ea03daca20db0207238",
+  "provenance": "OpenAI image generation; existing project Rin identity and Yuma pixel style references",
+  "method": "Uniform nearest-neighbour 256 to 86; fixed 5px origin in 96px cells; alpha <16 export residue removed",
+  "deployment": "Reuses four casting poses, with runtime ground ring; not a separately generated motion",
+  "frames": [
+    {
+      "animation": "idle",
+      "sourceRow": 0,
+      "sourceColumns": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "output": "assets/art/characters/fujiwara_rin/fujiwara_rin_idle.png"
+    },
+    {
+      "animation": "move",
+      "sourceRow": 1,
+      "sourceColumns": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "output": "assets/art/characters/fujiwara_rin/fujiwara_rin_move.png"
+    },
+    {
+      "animation": "attack",
+      "sourceRow": 2,
+      "sourceColumns": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "output": "assets/art/characters/fujiwara_rin/fujiwara_rin_attack.png"
+    },
+    {
+      "animation": "hit",
+      "sourceRow": 3,
+      "sourceColumns": [
+        0,
+        2
+      ],
+      "output": "assets/art/characters/fujiwara_rin/fujiwara_rin_hit.png"
+    },
+    {
+      "animation": "death",
+      "sourceRow": 4,
+      "sourceColumns": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "output": "assets/art/characters/fujiwara_rin/fujiwara_rin_death.png"
+    },
+    {
+      "animation": "skill",
+      "sourceRow": 5,
+      "sourceColumns": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "output": "assets/art/characters/fujiwara_rin/fujiwara_rin_skill.png"
+    }
+  ],
+  "status": "Imported; real runtime inspection tracked separately"
+}

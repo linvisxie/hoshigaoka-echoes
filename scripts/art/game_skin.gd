@@ -77,8 +77,8 @@ static func make_theme() -> Theme:
 
 static func style_button(button: Button, primary: bool = false) -> void:
 	button.add_theme_stylebox_override("normal", panel(Color("253652") if primary else Color("14213a"), GOLD if primary else Color("51688e"), primary))
-	button.add_theme_stylebox_override("hover", panel(Color("304a70"), BLUE, true))
-	button.add_theme_stylebox_override("pressed", panel(Color("122b43"), GOLD, true))
+	button.add_theme_stylebox_override("hover", panel(Color("294a61"), Color("b3eee8"), true))
+	button.add_theme_stylebox_override("pressed", panel(Color("19384b"), GREEN, true))
 	button.add_theme_stylebox_override("disabled", panel(Color("111a2b"), Color("35415b")))
 	button.add_theme_stylebox_override("focus", panel(Color(0,0,0,0), GOLD, true))
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -91,7 +91,18 @@ static func style_button(button: Button, primary: bool = false) -> void:
 		button.set_meta("skin_hover_audio",true)
 		button.mouse_entered.connect(func() -> void:
 			if not button.disabled:
-				AudioService.play_sfx("ui_hover",-14.0))
+				AudioService.play_sfx("ui_hover",-14.0)
+				var hover := button.get_theme_stylebox("hover") as StyleBoxFlat
+				var normal := button.get_theme_stylebox("normal") as StyleBoxFlat
+				if hover != null and normal != null:
+					var previous: Tween = button.get_meta("skin_hover_tween") if button.has_meta("skin_hover_tween") else null
+					if previous != null: previous.kill()
+					hover.bg_color = normal.bg_color
+					hover.border_color = normal.border_color
+					var motion := button.create_tween().set_parallel(true)
+					motion.tween_property(hover,"bg_color",Color("294a61"),.14)
+					motion.tween_property(hover,"border_color",Color("b3eee8"),.14)
+					button.set_meta("skin_hover_tween",motion))
 
 static func crest() -> Texture2D:
 	return ArtRegistry.load_texture("res://assets/art/ui/school_crest_six.svg")
