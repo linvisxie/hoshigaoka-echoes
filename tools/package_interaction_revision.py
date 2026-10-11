@@ -45,7 +45,7 @@ with zipfile.ZipFile(archive) as z:
     assert z.testzip() is None
     assert all(digest_value==hashlib.sha256(z.read(name)).hexdigest() for name,digest_value in manifest['sha256'].items())
 # Preserve genuine player bytes; test saves remain outside the shipping package.
-checkpoint=json.loads((BASE/'player-checkpoint/save_checkpoint.json').read_text(encoding='utf8-sig'))
+checkpoint=json.loads((BASE/'player-checkpoint/save_checkpoint.json').read_text(encoding='utf-8-sig'))
 for label,entries in checkpoint.items():
     for entry in entries:
         source=Path(entry['source']);assert digest(source)==entry['sha256'],'Player save changed during work; preserve current data before switching'
@@ -54,7 +54,7 @@ for label,entries in checkpoint.items():
             destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,destination)
             assert digest(destination)==entry['sha256']
 launcher=ROOT.parent/'启动星丘残响.cmd'
-old=launcher.read_text(encoding='utf8-sig')
+old=launcher.read_text(encoding='utf-8-sig')
 assert 'chapter_one_0.5.1_20261012' in old
 launcher.write_text(old.replace('chapter_one_0.5.1_20261012','chapter_one_0.5.2_20261012'),encoding='ascii')
 subprocess.run(['powershell','-NoProfile','-Command',"& '"+str(ROOT/'tools/retain_release_versions.ps1')+"' -Keep @('chapter_one_0.5.2_20261012','chapter_one_0.5.1_20261012')"],check=True)
