@@ -55,7 +55,7 @@ for label,entries in checkpoint.items():
             assert digest(destination)==entry['sha256']
 launcher=ROOT.parent/'启动星丘残响.cmd'
 old=launcher.read_text(encoding='utf-8-sig')
-assert 'chapter_one_0.5.1_20261012' in old
+assert 'chapter_one_0.5.1_20261012' in old or 'chapter_one_0.5.2_20261012' in old
 launcher.write_text(old.replace('chapter_one_0.5.1_20261012','chapter_one_0.5.2_20261012'),encoding='ascii')
-subprocess.run(['powershell','-NoProfile','-Command',"& '"+str(ROOT/'tools/retain_release_versions.ps1')+"' -Keep @('chapter_one_0.5.2_20261012','chapter_one_0.5.1_20261012')"],check=True)
+subprocess.run([shutil.which('pwsh') or 'pwsh','-NoProfile','-Command',"& '"+str(ROOT/'tools/retain_release_versions.ps1')+"' -Keep @('chapter_one_0.5.2_20261012','chapter_one_0.5.1_20261012')"],check=True)
 print(json.dumps({'archive':str(archive),'bytes':archive.stat().st_size,'files':len(files),'playerSavePreserved':True},ensure_ascii=False))
