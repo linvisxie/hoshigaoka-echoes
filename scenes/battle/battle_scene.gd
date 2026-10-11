@@ -320,6 +320,7 @@ var _card_rects: Array[Rect2] = []
 var _device_select_owner: int = 0
 var _boss_seen_events: int = 0
 var _boss_cast_at: float = -10.0
+var _boss_transition_at: float = -10.0
 ## 治疗反馈：{targetId, until, amount} —— 纯表现层，用于播放治疗提示
 var _heal_flashes: Array[Dictionary] = []
 
@@ -1342,7 +1343,9 @@ func _process(delta: float) -> void:
 		_boss_seen_events = session.stage.boss_events.size()
 		if str(event.kind) in ["skill", "phase", "entrance"]:
 			_boss_cast_at = session.stage.elapsed_seconds
-		AudioService.play_sfx("wave" if str(event.kind)=="skill" else "elite_arrival",-4)
+		if str(event.kind) in ["phase", "entrance"]:
+			_boss_transition_at = session.stage.elapsed_seconds
+		AudioService.play_sfx("boss_cast" if str(event.kind)=="skill" else "boss_phase",-5)
 		if str(event.kind) == "entrance": AudioService.play_music("boss_exam_1")
 		elif str(event.kind) == "phase": AudioService.play_music("boss_exam_%d" % int(event.phase))
 	if session == null:
@@ -2385,16 +2388,23 @@ func _draw_chapter_warnings() -> void:
 		var progress := clampf((stage.elapsed_seconds-float(warning.born))/maxf(.01,float(warning.due)-float(warning.born)),0,1)
 		if warning.kind == "mistake":
 			var center := _cell_screen_pos(int(warning.column),lane)
-			draw_circle(center,_px(80),Color(color,.12+.1*sin(_now()*12)))
+			# Exactly the same Manhattan radius as the damage event, including
+			# adjacent lanes. A small circle incorrectly suggested one safe cell.
+			var radius := float(stage.boss_config.get("mistakeRadius",1))
+			for row: int in range(grid.lanes):
+				for column: int in range(grid.columns):
+					if absf(column-float(warning.column))+absf(row-lane)>radius: continue
+					var points := _cell_polygon(column,row)
+					draw_colored_polygon(points,Color(color,.07+progress*.08))
+					points.append(points[0])
+					draw_polyline(points,Color(color,.55+progress*.35),_px(2),true)
 			draw_arc(center,_px(72),-PI/2,-PI/2+TAU*progress,48,color,_px(4),true)
-			draw_line(center-Vector2(_px(40),_px(40)),center+Vector2(_px(40),_px(40)),color,_px(2),true)
-			draw_line(center+Vector2(_px(40),-_px(40)),center+Vector2(-_px(40),_px(40)),color,_px(2),true)
-			if ThemeDB.fallback_font != null: draw_string(ThemeDB.fallback_font,center+Vector2(-_px(70),-_px(82)),"错题 · %.1fs" % maxf(0,float(warning.due)-_now()),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(24)),color)
+			_draw_warning_caption("错题范围 · %.1f 秒" % maxf(0,float(warning.due)-_now()),center+Vector2(0,-_px(112)),color)
 		else:
 			var start := _logical_to_screen(Vector2(-.1,lane))
 			var end := _logical_to_screen(Vector2(5,lane))
 			draw_line(start,end,Color(color,.25+progress*.3),_px(3),true)
-			if ThemeDB.fallback_font != null: draw_string(ThemeDB.fallback_font,end+Vector2(-_px(220),-_px(42)),"标准答案 · %.1fs" % maxf(0,float(warning.due)-_now()),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(23)),color)
+			_draw_warning_caption("增援将至 · %.1f 秒" % maxf(0,float(warning.due)-_now()),end+Vector2(-_px(110),-_px(42)),color)
 	for c: CharacterRuntime in stage.characters:
 		if c.character_id == "sara_device":
 			var center := _cell_screen_pos(c.column,c.lane)
@@ -2406,18 +2416,21 @@ func _draw_chapter_warnings() -> void:
 				var p := center+Vector2.from_angle(_now()*1.8+float(i)*TAU/3)*radius
 				draw_line(center,p,Color("71b6d9"),_px(2),true)
 			if ThemeDB.fallback_font != null: draw_string(ThemeDB.fallback_font,center+Vector2(-_px(55),_px(30)),"装置 %.1fs" % maxf(0,float(stage.device_expiry.get(c.instance_id,0))-_now()),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color("bcf3ff"))
-	var boss := stage.chapter_boss()
-	if boss != null:
-		var phase := int(stage.boss_state.get("phase",1))
-		var center := _logical_to_screen(Vector2(boss.logical_x,boss.lane))+Vector2(0,-_px(95))
-		var radius := _px(92+phase*12)
-		var color := Color("c49cff") if phase==1 else Color("ff728f")
-		for ring: int in range(phase):
-			draw_arc(center,radius+_px(ring*11),_now()*.5+ring,_now()*.5+ring+TAU*.84,64,Color(color,.35),_px(2),true)
-		for i: int in range(8+phase*2):
-			var angle := float(i)*TAU/(8+phase*2)+_now()*.22
-			var p := center+Vector2.from_angle(angle)*radius
-			draw_line(p,p+Vector2.from_angle(angle)*_px(12),Color(color,.6),_px(2),true)
+
+func _draw_warning_caption(text: String, center: Vector2, color: Color) -> void:
+	var font := GameSkin.body_font()
+	var size := int(_px(21))
+	var width := font.get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,size).x
+	var rect := Rect2(center-Vector2(width*.5+_px(12),_px(19)),Vector2(width+_px(24),_px(38)))
+	_draw_round_rect(rect,_px(5),Color(.035,.025,.065,.92),Color(color,.7),_px(1))
+	draw_string(font,center+Vector2(-width*.5,_px(7)),text,HORIZONTAL_ALIGNMENT_LEFT,-1,size,color.lightened(.2))
+
+func _draw_boss_echo_layer(front: bool) -> void:
+	var boss := session.stage.chapter_boss()
+	if boss == null: return
+	BossEchoVisuals.draw_layer(self,session.stage,_logical_to_screen(Vector2(boss.logical_x,boss.lane)),
+		_now(),_px(1),front,_now()-_boss_transition_at)
+	_mark_drawn("boss_echo:front" if front else "boss_echo:back")
 
 func _draw() -> void:
 	if grid == null or session == null:
@@ -2433,9 +2446,11 @@ func _draw() -> void:
 	_draw_deploy_feedback()
 	_draw_deploy_pops()
 	_draw_vfx(true)
+	_draw_boss_echo_layer(false)
 	for lane: int in range(grid.lanes):
 		_draw_characters(lane)
 		_draw_enemies(lane)
+	_draw_boss_echo_layer(true)
 	_draw_departures()
 	_draw_vfx()
 	_draw_death_particles()
@@ -3252,7 +3267,7 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 			esprite = ef
 		# 敌人目标高度随 spriteFramePx 放大（96 的重装单位视觉更大）
 		var eh := tile * 0.72 * scale
-		if e.enemy_id == "boss_model_student": eh = tile * 1.85
+		if e.enemy_id == "boss_model_student": eh = tile * 1.65
 		_draw_sprite_anchored(esprite, Vector2(px_x, px_y), eh, emod, 0.16 if e.enemy_id == "boss_model_student" else 0.42)
 		if ef != null:
 			_mark_drawn("enemy_anim:%s" % est.anim)
@@ -3288,7 +3303,7 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 	var hp_ratio := 1.0
 	if e.hp_max > 0:
 		hp_ratio = clampf(float(e.hp) / float(e.hp_max), 0.0, 1.0)
-	if hp_ratio < 1.0:
+	if hp_ratio < 1.0 and e.enemy_id != "boss_model_student":
 		var bar_w := maxf(s, _px(34.0))
 		var bar_pos := Vector2(px_x - bar_w * 0.5, px_y - half - _px(11.0))
 		draw_rect(Rect2(bar_pos, Vector2(bar_w, _px(5.0))), Color(0.10, 0.10, 0.14), true)
@@ -4617,7 +4632,7 @@ func _draw_departures() -> void:
 			continue
 		var redrawn := kind == "character" and code in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin","ogawa_yui","minase_sara","shiraishi_chinatsu"]
 		var height := _px(grid.tile_size_px) * (1.28 if redrawn else (0.96 if kind == "character" else 0.72))
-		if code == "boss_model_student": height = _px(grid.tile_size_px)*1.85
+		if code == "boss_model_student": height = _px(grid.tile_size_px)*1.65
 		var offset: Vector2 = ghost.get("offset", Vector2.ZERO)
 		_draw_sprite_anchored(texture, _logical_to_screen(ghost["logical"]) + Vector2(_px(offset.x), _px(offset.y)), height,
 			Color(1, 1, 1, 1.0 - progress), 0.16 if code == "boss_model_student" else (0.25 if redrawn else (0.33 if kind == "character" else 0.42)))

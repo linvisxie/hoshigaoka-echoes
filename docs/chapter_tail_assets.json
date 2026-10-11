@@ -44,44 +44,6 @@
     "finalUserArtAcceptance": false
   },
   {
-    "name": "minase_sara",
-    "source": "tools\\source_art\\chapter_tail\\minase_sara_sheet.png",
-    "targets": [
-      "assets\\art\\characters\\minase_sara\\minase_sara_idle.png",
-      "assets\\art\\characters\\minase_sara\\minase_sara_move.png",
-      "assets\\art\\characters\\minase_sara\\minase_sara_attack.png",
-      "assets\\art\\characters\\minase_sara\\minase_sara_skill.png",
-      "assets\\art\\characters\\minase_sara\\minase_sara_deploy.png",
-      "assets\\art\\characters\\minase_sara\\minase_sara_hit.png",
-      "assets\\art\\characters\\minase_sara\\minase_sara_death.png",
-      "assets\\art\\characters\\minase_sara\\minase_sara_victory.png",
-      "assets\\art\\characters\\minase_sara\\minase_sara_base.png"
-    ],
-    "sha256": "b9a97822ad7e981662b3381711945bd4c51366a44b2fc1e10c897a034971760d",
-    "origin": "OpenAI built-in imagegen with user-owned visual bible",
-    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
-    "finalUserArtAcceptance": false
-  },
-  {
-    "name": "shiraishi_chinatsu",
-    "source": "tools\\source_art\\chapter_tail\\shiraishi_chinatsu_sheet.png",
-    "targets": [
-      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_idle.png",
-      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_move.png",
-      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_attack.png",
-      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_skill.png",
-      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_deploy.png",
-      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_hit.png",
-      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_death.png",
-      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_victory.png",
-      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_base.png"
-    ],
-    "sha256": "a7f3f888892b2a304a17341fb2afe5fe44cf7915f6a0717ed2f5fdb0f87ce300",
-    "origin": "OpenAI built-in imagegen with user-owned visual bible",
-    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
-    "finalUserArtAcceptance": false
-  },
-  {
     "name": "ogawa_yui",
     "source": "tools\\source_art\\chapter_tail\\ogawa_yui_sheet.png",
     "targets": [
@@ -96,25 +58,6 @@
       "assets\\art\\characters\\ogawa_yui\\ogawa_yui_base.png"
     ],
     "sha256": "531093a5416a54f38ccb8461755f78595883c0de6825cf5a373ba44c3c45a299",
-    "origin": "OpenAI built-in imagegen with user-owned visual bible",
-    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
-    "finalUserArtAcceptance": false
-  },
-  {
-    "name": "boss_model_student",
-    "source": "tools\\source_art\\chapter_tail\\boss_model_student_sheet.png",
-    "targets": [
-      "assets\\art\\enemies\\boss_model_student\\boss_model_student_idle.png",
-      "assets\\art\\enemies\\boss_model_student\\boss_model_student_move.png",
-      "assets\\art\\enemies\\boss_model_student\\boss_model_student_attack.png",
-      "assets\\art\\enemies\\boss_model_student\\boss_model_student_skill.png",
-      "assets\\art\\enemies\\boss_model_student\\boss_model_student_deploy.png",
-      "assets\\art\\enemies\\boss_model_student\\boss_model_student_hit.png",
-      "assets\\art\\enemies\\boss_model_student\\boss_model_student_death.png",
-      "assets\\art\\enemies\\boss_model_student\\boss_model_student_victory.png",
-      "assets\\art\\enemies\\boss_model_student\\boss_model_student_base.png"
-    ],
-    "sha256": "dc67a3951bda96ddd7a0cbffd7860edafb636985a90e26fd32f1cdd6b55e6fd5",
     "origin": "OpenAI built-in imagegen with user-owned visual bible",
     "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
     "finalUserArtAcceptance": false
@@ -225,6 +168,63 @@
       "assets\\art\\environments\\bg_env_ranking_battle.png"
     ],
     "sha256": "46a4324f14f8298417f9ba24d6b191e2f81a9d9ffc9a78f34b14a12049feb129",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "boss_model_student",
+    "source": "tools\\source_art\\chapter_tail\\boss_model_student_sheet.png",
+    "targets": [
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_idle.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_move.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_attack.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_skill.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_deploy.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_hit.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_death.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_victory.png",
+      "assets\\art\\enemies\\boss_model_student\\boss_model_student_base.png"
+    ],
+    "sha256": "b923403e6e5cf3d3a8adc2dd4b4b5e26f252a859fbcd27853ba99196bd56e0b6",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "minase_sara",
+    "source": "tools\\source_art\\chapter_tail\\minase_sara_sheet.png",
+    "targets": [
+      "assets\\art\\characters\\minase_sara\\minase_sara_idle.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_move.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_attack.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_skill.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_deploy.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_hit.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_death.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_victory.png",
+      "assets\\art\\characters\\minase_sara\\minase_sara_base.png"
+    ],
+    "sha256": "b9a97822ad7e981662b3381711945bd4c51366a44b2fc1e10c897a034971760d",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "shiraishi_chinatsu",
+    "source": "tools\\source_art\\chapter_tail\\shiraishi_chinatsu_sheet.png",
+    "targets": [
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_idle.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_move.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_attack.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_skill.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_deploy.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_hit.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_death.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_victory.png",
+      "assets\\art\\characters\\shiraishi_chinatsu\\shiraishi_chinatsu_base.png"
+    ],
+    "sha256": "a7f3f888892b2a304a17341fb2afe5fe44cf7915f6a0717ed2f5fdb0f87ce300",
     "origin": "OpenAI built-in imagegen with user-owned visual bible",
     "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
     "finalUserArtAcceptance": false

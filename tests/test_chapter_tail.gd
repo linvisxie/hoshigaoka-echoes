@@ -148,17 +148,29 @@ func test_chinatsu_support_excludes_self_and_distant_lane_and_stacks_with_active
 	assert_gt(near.effective_cd_recovery_factor(),1.0)
 
 func test_tail_normal_ap_clear_paths() -> void:
+	var before_boss_exp := 0
+	var reward_data := DataRegistry.get_domain("stage_rewards")
+	for n: int in range(1,10):
+		var cfg := DataRegistry.get_entry("stages","1-%d" % n)
+		var earned: Dictionary = cfg.get("battleRewards",{}).duplicate()
+		for reward: Dictionary in reward_data.get("rewards",[]):
+			if reward.id != cfg.firstClearRewardId: continue
+			for key: String in reward.get("currencies",{}):
+				earned[key]=int(earned.get(key,0))+int(reward.currencies[key])
+		before_boss_exp += int(earned.get("study_record_short",0))*100+int(earned.get("study_record_note",0))*500+int(earned.get("study_record_archive",0))*2000
+	assert_eq(before_boss_exp,7800,"First challenge excludes stage 10 rewards")
+	assert_gte(before_boss_exp,7600,"Normal-AP fixture training is actually affordable before first Boss")
 	for n: int in range(6,11):
 		var rt := runtime("1-%d" % n)
 		if n==10:
-			# V2.1.4 recommends Lv.9-12 for the Boss. Four Lv.9 members
-			# cost 8,000 EXP, within the actual chapter reward budget.
+			# First challenge only has 7,800 EXP from stages 1-9, excluding
+			# the Boss reward itself. Three Lv.9 + Sara Lv.8 cost 7,600.
 			var stats: Dictionary={}
 			for cid: String in ["amamiya_mio","kamiya_yuma","ogawa_yui","minase_sara"]:
 				var cfg: Dictionary=rt._character_configs[cid]
 				var progress:=CharacterProgress.from_growth_config(cid,DataRegistry.get_domain("character_growth"),cfg.baseStats,str(cfg.growthProfileId))
-				progress.add_exp(2000)
-				assert_eq(progress.level,9)
+				progress.add_exp(1600 if cid=="minase_sara" else 2000)
+				assert_eq(progress.level,8 if cid=="minase_sara" else 9)
 				stats[cid]=progress.compute_stats()
 			rt.set_character_level_stats(stats)
 		var order: Array[String]=["amamiya_mio","kamiya_yuma","ogawa_yui","fujiwara_rin"]

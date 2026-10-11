@@ -89,6 +89,42 @@ func _run() -> void:
 		await wait_ui()
 		check(battle.session.stage.skill_events.any(func(item: Dictionary) -> bool:return item.skillId=="chinatsu_beat"),"Chinatsu active skill triggered")
 		await shot("chinatsu_active")
+	# Start a separate ordinary encounter to inspect the temporary device UI.
+	CampaignFlow.open_stage("1-10")
+	await wait_ui()
+	CampaignFlow.launch_battle()
+	await wait_ui()
+	battle=get_tree().current_scene
+	await click(battle._card_rects[battle._roster.find("amamiya_mio")].get_center())
+	await click(battle._cell_screen_pos(3,1))
+	var device_deadline:=Time.get_ticks_msec()+60000
+	while battle.session.stage.ap<14 and Time.get_ticks_msec()<device_deadline:
+		await get_tree().create_timer(.2).timeout
+	await get_tree().process_frame
+	var yui_card: Dictionary=battle._native_hud.cards[battle._roster.find("ogawa_yui")]
+	check("治疗" in str(yui_card.status.text),"Yui ready card identifies healing role")
+	while battle.session.stage.ap<18 and Time.get_ticks_msec()<device_deadline:
+		await get_tree().create_timer(.2).timeout
+	await click(battle._card_rects[battle._roster.find("minase_sara")].get_center())
+	await click(battle._cell_screen_pos(1,1))
+	var sara: CharacterRuntime=battle.session.stage.get_character_by_id("minase_sara")
+	check(sara!=null,"Sara deploys normally for device UI check")
+	if sara!=null:
+		while not sara.skill_ready() and Time.get_ticks_msec()<device_deadline:
+			await get_tree().create_timer(.2).timeout
+		await click(battle._card_rects[battle._roster.find("minase_sara")].get_center())
+		await click(battle._native_hud.skill_button.get_global_rect().get_center())
+		await click(battle._cell_screen_pos(3,0))
+		await click(battle._cell_screen_pos(3,0))
+		await wait_ui()
+		check(battle._native_hud.selected_name.text=="实验装置","device selected as device")
+		check(battle._native_hud.selected_portrait.texture!=null,"device has actual device portrait")
+		check(battle._native_hud.skill_button.disabled and battle._native_hud.skill_button.text=="自动运行","device does not advertise a usable character skill")
+		check("剩余" in battle._native_hud.selected_skill.text,"device lifetime visible")
+		await shot("device_selected_interface")
+		await click(battle._native_hud.retreat_button.get_global_rect().get_center())
+		await wait_ui()
+		check(battle.session.stage.get_character_at(3,0)==null,"return-device button actually releases its cell")
 	var file:=FileAccess.open("user://chapter_ui_report.json",FileAccess.WRITE)
 	file.store_string(JSON.stringify({"type":"Real Windows viewport automated UI events; copied earned chapter save", "checks":checks,"art":battle._art_drawn,"audio":AudioService.playback_status()},"\t"))
 	get_tree().quit(0 if checks.all(func(item: Dictionary) -> bool:return item.ok) else 2)

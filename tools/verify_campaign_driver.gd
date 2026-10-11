@@ -11,6 +11,7 @@ var summaries: Dictionary = {}
 var actions: Array[Dictionary] = []
 var visited_character := false
 var success := false
+var wall_timeout_ms := 1500000
 var capture_hold_until := 0
 
 func _ready() -> void:
@@ -35,7 +36,7 @@ func _process(_delta: float) -> void:
 		entered = now
 		last_action = now
 	var dwell := now - entered
-	if now - started > 1500000:
+	if now - started > wall_timeout_ms:
 		finish(false, "Wall-clock timeout")
 		return
 	var key := SceneRouter.get_current_key()

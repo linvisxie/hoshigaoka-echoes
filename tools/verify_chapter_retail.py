@@ -7,11 +7,11 @@ import windows_art_capture as win
 win.U.SetThreadDpiAwarenessContext.argtypes=[ctypes.c_void_p]
 win.U.SetThreadDpiAwarenessContext(ctypes.c_void_p(-4))
 ROOT=Path(__file__).resolve().parents[1]
-p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--seed-save',type=Path,required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--seed-save',type=Path,required=True);p.add_argument('--exe',type=Path,default=ROOT/'dist/chapter_one_0.5.0_20261011/HoshigaokaEchoes.exe');a=p.parse_args()
 out=a.output.resolve();assert '_testenv' in out.parts
 save=out/'appdata/HoshigaokaEchoes/save';save.mkdir(parents=True,exist_ok=True)
 shutil.copy2(a.seed_save,save/'savegame.json')
-exe=ROOT/'dist/chapter_one_0.5.0_20261011/HoshigaokaEchoes.exe'
+exe=a.exe.resolve()
 probe_path=save.parent/'art_probe/latest.json'
 actions=[];captured=set();boss_frames=0;last_boss_sample=0
 with (out/'game.log').open('w',encoding='utf8') as log:

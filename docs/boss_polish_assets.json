@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-11",
+  "tool": "OpenAI built-in imagegen, transparent output",
+  "editTarget": "Previous boss_model_student_sheet.png (recoverable in Git ca3fe67)",
+  "reference": "User-provided 02_visual_bible_overview.png",
+  "output": "tools/source_art/chapter_tail/boss_model_student_sheet.png",
+  "prompt": "Rebuild a production transparent 4x4 pixel animation sheet for the SAME lavender-haired unnamed honor-student girl, black ribbons, navy uniform, white blouse, dark skirt and thigh stockings. Preserve identity and body proportions. Isolate body and clothing from chairs, orbiting papers, huge smoke and explosions. Row 1 floating movement with hair/skirt and feet pose changes; row 2 hand-to-chest, extend arm left, release small violet point, return; row 3 distinct hand/shoulder cast poses; row 4 recoil, slump, kneel, exhausted kneel. Full body, no captions, no text, no crops. Clear pixel clusters and genuine RGBA transparency. Engine draws orbiting papers and rings separately.",
+  "registration": "Extract reviewed transparent row gutters rather than assuming equal quarters. Uniform scale over the full sheet, nearest-neighbor resize and shared foot baseline. Corrected Sara/Chinatsu gutters preserve their existing raw art; removed neighboring-row boot fragments through correct atlas extraction.",
+  "hashes": "See chapter_tail_assets.json",
+  "license": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+  "finalUserArtAcceptance": false
+}

@@ -16,13 +16,21 @@ def background(name,filename):
     Image.open(raw).convert('RGB').resize((1920,1080),Image.Resampling.LANCZOS).save(target)
     record(name,raw,[target])
 def sheet(cid,filename,kind='characters',frame=128):
-    raw=RAW/(cid+'_sheet.png');shutil.copy2(GEN/filename,raw)
+    raw=RAW/(cid+'_sheet.png')
+    if filename != '@registered':shutil.copy2(GEN/filename,raw)
     im=Image.open(raw).convert('RGBA');folder=ROOT/'assets/art'/kind/cid;folder.mkdir(parents=True,exist_ok=True)
     cells=[]
     # One uniform scale across the sheet. Preserve body proportions and effects.
     cellw=im.width/4;cellh=im.height/4
+    # Generated sheets can have uneven row spacing. Reviewed boundaries fall in
+    # transparent gutters; equal quarters had imported the previous row's boots.
+    reviewed_rows={'minase_sara':(0,338,627,922,1216),
+                   'shiraishi_chinatsu':(0,261,504,763,1024),
+                   'boss_model_student':(0,334,638,951,1254)}
+    rows=reviewed_rows.get(cid)
+    if rows is None or rows[-1]!=im.height:rows=tuple(round(i*cellh) for i in range(5))
     for i in range(16):
-        cell=im.crop((round(i%4*cellw),round(i//4*cellh),round((i%4+1)*cellw),round((i//4+1)*cellh)))
+        cell=im.crop((round(i%4*cellw),rows[i//4],round((i%4+1)*cellw),rows[i//4+1]))
         bbox=cell.getbbox()
         cells.append(cell.crop(bbox) if bbox else Image.new('RGBA',(1,1)))
     scale=(frame-12)/max(max(c.width,c.height) for c in cells)

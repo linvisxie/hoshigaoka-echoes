@@ -1,0 +1,20 @@
+{
+  "origin": "Original deterministic synthesis; no external samples",
+  "generator": "tools/render_boss_cues.py",
+  "design": "Rounded low resonance and soft paper-like air; distinct from wave notification",
+  "files": [
+    {
+      "asset": "assets/audio/sfx/boss_cast.wav",
+      "peak": 0.23318,
+      "rms": 0.03383,
+      "duration": 0.9
+    },
+    {
+      "asset": "assets/audio/sfx/boss_phase.wav",
+      "peak": 0.25935,
+      "rms": 0.03641,
+      "duration": 1.45
+    }
+  ],
+  "userListeningAcceptance": false
+}

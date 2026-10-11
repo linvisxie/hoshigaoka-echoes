@@ -416,6 +416,8 @@ func _sync_tutorials() -> void:
 		(view.box as Control).modulate.a = minf(clampf(age / 0.18,0,1),clampf((battle.TUTORIAL_CARD_LIFETIME-age)/0.65,0,1))
 
 func _context_hint(s: StageRuntime) -> String:
+	if battle._device_select_owner != 0:
+		return "选择空站位放置实验装置 · 右键取消"
 	if not battle._selected_card_id.is_empty():
 		return "点击发光站位部署 · 右键取消"
 	var deployed := false
@@ -446,7 +448,7 @@ func _update_card(card: Dictionary, index: int, factor: float) -> void:
 	var cooldown: float = battle.session.get_redeploy_remaining(cid)
 	var cost := s.deployment_cost(cid)
 	if unit != null and unit.paid_deploy_cost >= 0: cost = unit.paid_deploy_cost
-	var role_name: String = "资源辅助" if cid == "fujiwara_rin" else battle._role_label(str(cfg.get("behavior","")))
+	var role_name: String = {"amamiya_mio":"前线","kamiya_yuma":"远程","ogawa_yui":"治疗","fujiwara_rin":"资源辅助","minase_sara":"科研","shiraishi_chinatsu":"节奏支援"}.get(cid,battle._role_label(str(cfg.get("behavior",""))))
 	(card.cost as Label).text = str(cost)
 	var active: bool = battle._selected_card_id == cid or (unit != null and battle._selected_character_id == unit.instance_id)
 	var edge: Color = GameSkin.BLUE if active else (GameSkin.GOLD if unit != null and unit.skill_ready() else Color("52678e"))
@@ -499,6 +501,25 @@ func _update_selected(factor: float, vp: Vector2) -> void:
 	retreat_button.visible = unit != null
 	if unit == null: return
 	selected.position = Vector2(vp.x-574,vp.y-334)
+	if unit.character_id == "sara_device":
+		selected_portrait.texture = ArtRegistry.frame_at("res://assets/art/ui/sara_device_idle.png",0,4)
+		selected_name.text = "实验装置"
+		selected_stats.text = "耐久  %d / %d" % [unit.hp,unit.max_hp]
+		selected_hp.value = unit.hp_ratio()
+		var remaining := maxf(0,float(battle.session.stage.device_expiry.get(unit.instance_id,0))-battle._now())
+		selected_skill.text = "临时诱导信标\n剩余 %.1f 秒 · 吸引并阻挡残响" % remaining
+		skill_button.text = "自动运行"
+		skill_button.tooltip_text = "装置不占角色人数；耐久耗尽、收回或到期后释放站位。"
+		skill_button.disabled = true
+	else:
+		_update_actor_details(unit)
+	retreat_button.text = "收回装置  R" if unit.character_id == "sara_device" else "撤退  R"
+	skill_button.position = battle._skill_rect.position/factor
+	skill_button.size = battle._skill_rect.size/factor
+	retreat_button.position = battle._retreat_rect.position/factor
+	retreat_button.size = battle._retreat_rect.size/factor
+
+func _update_actor_details(unit: CharacterRuntime) -> void:
 	selected_portrait.texture = ArtRegistry.character_portrait(unit.character_id,256)
 	selected_name.text = unit.display_name
 	selected_stats.text = "生命  %d / %d" % [unit.hp,unit.max_hp]
@@ -511,7 +532,3 @@ func _update_selected(factor: float, vp: Vector2) -> void:
 	skill_button.tooltip_text = str(unit.skill_config.get("description",""))
 	skill_button.text = "释放技能  Q" if unit.skill_ready() else ("贯穿待发" if unit.skill_charged else skill_state)
 	skill_button.disabled = not unit.skill_ready()
-	skill_button.position = battle._skill_rect.position/factor
-	skill_button.size = battle._skill_rect.size/factor
-	retreat_button.position = battle._retreat_rect.position/factor
-	retreat_button.size = battle._retreat_rect.size/factor
