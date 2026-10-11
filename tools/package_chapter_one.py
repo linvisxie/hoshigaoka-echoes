@@ -34,6 +34,21 @@ shutil.copy2(ROOT/'assets/audio/source_record.json',notice/'原始音乐制作�
 ''',encoding='utf-8-sig')
 report=ROOT/'docs/CHAPTER_ONE_20261011.md'
 if report.exists():shutil.copy2(report,OUT/'开发与验证记录.md')
+evidence=OUT/'实机验证';evidence.mkdir(exist_ok=True)
+testroot=ROOT.parent/'_testenv/chapter-tail'
+for group,relative in [('retail_final','retail_report.json'),('windows_final','appdata/HoshigaokaEchoes/campaign_report.json'),('ui','appdata/HoshigaokaEchoes/chapter_ui_report.json'),('trained','appdata/HoshigaokaEchoes/training_report.json'),('audio_boss','audio_report.json'),('release_smoke_7','smoke_report.json'),('release_smoke_9','smoke_report.json')]:
+    source=testroot/group/relative
+    assert source.is_file(),source
+    shutil.copy2(source,evidence/(group+'_report.json'))
+shutil.copy2(testroot/'unit_release.log',evidence/'unit_release.log')
+for group,folder,patterns in [('retail_final','',['boss_phase_*.png','boss_continuous_*.png','victory.png','ten_stages.png']),('windows_final','appdata/HoshigaokaEchoes/campaign_shots',['battle_1-*.png','boss_warning*.png','boss_motion_*.png']),('ui','appdata/HoshigaokaEchoes/frontend_shots',['*.png']),('release_smoke_7','',['battle_final_7.png']),('release_smoke_9','',['battle_final_9.png'])]:
+    target=evidence/group;target.mkdir(exist_ok=True)
+    for pattern in patterns:
+        for source in (testroot/group/folder).glob(pattern):shutil.copy2(source,target/source.name)
+from PIL import Image
+frames=[Image.open(p).convert('RGB') for p in sorted((evidence/'retail_final').glob('boss_continuous_*.png'))]
+if frames:
+    frames[0].save(evidence/'Boss连续截图预览.gif',save_all=True,append_images=frames[1:],duration=1000,loop=0)
 files=[p for p in sorted(OUT.rglob('*')) if p.is_file() and '_testenv' not in p.parts and p.name!='build_manifest.json']
 manifest={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'version':'0.5.0','type':'Windows Retail ten-stage chapter candidate; final user art/audio acceptance pending','sha256':{p.relative_to(OUT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
 (OUT/'build_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf8')
