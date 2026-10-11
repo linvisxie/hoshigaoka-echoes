@@ -63,10 +63,10 @@ for n in range(6,11):
                 lane=1
                 if j>=4 and j%8==7:eid='echo_normal';lane=0 if (j//8+wave)%2 else 2
                 timeline.append(dict(time=time,lane=lane,enemy=eid,wave=wave))
-        timeline.append(dict(time=330,lane=1,enemy='boss_model_student',wave=4))
+        timeline.append(dict(time=360,lane=1,enemy='boss_model_student',wave=4))
     cfg=dict(schemaVersion='1.0.0-v3-tail',domain='stage',stageId=f'1-{n}',chapter=1,stageName=names[n],mapId=env[n],coreHp=3,startingAp=10,apRegen=1,availableCharacters=roster,enemySpawnTimeline=timeline,tutorialTriggers=[dict(at=0,id=f'TUT_TAIL_{n}',text=brief[n])],specialRules=[],firstClearRewardId=f'reward_1_{n}_first',repeatRewardId='reward_repeat_standard',storyBefore=f'ch1_1_{n}_before',storyAfter=f'ch1_1_{n}_after',bossConfig={},battleRewards=dict(school_coin=160,study_record_short=2,equipment_part=2),briefing=brief[n],waves=[dict(number=i,label=['观测','异常加深','短暂喘息','核心残响','最终波'][i-1],clearCondition='ALL_ENEMIES_DEFEATED') for i in range(1,5 if n==10 else 6)])
     if n==10: cfg['bossConfig']=dict(enemyId='boss_model_student',phaseThresholds=[.6,.3],standardInterval=12,warningSeconds=3,comparisonInterval=15,comparisonDuration=5,comparisonPct=-.15,anxietyInterval=12,anxietyDuration=6,anxietySpeedPct=.3,mistakeInterval=18,mistakeDamage=220,mistakeRadius=1,rankingInterval=15,rankingDuration=6,rankingPct=-.25,finalMovePct=.4,finalAttackSpeedPct=.2,enrageSeconds=480)
-    if n==10: cfg['bossConfig'].update(skillInherit='replace',phaseFirstCastSeconds=3,finalSummonInterval=12)
+    if n==10: cfg['bossConfig'].update(skillInherit='replace',phaseFirstCastSeconds=3,firstStandardSeconds=3,firstComparisonSeconds=5,finalSummonInterval=12)
     write(f'data/stages/ch1/1-{n}.json',cfg)
 up=read('data/upgrades.json')
 for n in range(6,11): up['openByStage'][f'1-{n}']=dict(opens=3 if n==10 else 2,triggerWaves=[1,2,3] if n==10 else [1,3])

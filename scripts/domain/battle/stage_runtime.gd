@@ -141,6 +141,8 @@ func _tick_chapter_mechanics(step: float) -> void:
 		return
 	if boss_state.is_empty():
 		boss_state={"born":elapsed_seconds,"phase":1,"standard":elapsed_seconds+float(boss_config.get("standardInterval",12)),"compare":elapsed_seconds+float(boss_config.get("comparisonInterval",15)),"anxiety":elapsed_seconds+float(boss_config.get("anxietyInterval",12)),"mistake":elapsed_seconds+float(boss_config.get("mistakeInterval",18)),"ranking":elapsed_seconds+float(boss_config.get("rankingInterval",15))}
+		boss_state.standard=elapsed_seconds+float(boss_config.get("firstStandardSeconds",3))
+		boss_state.compare=elapsed_seconds+float(boss_config.get("firstComparisonSeconds",5))
 		_boss_event("无名优等生 · 正常考试","entrance")
 	var thresholds: Array = boss_config.get("phaseThresholds",[.6,.3])
 	var ratio := float(boss.hp)/maxf(1,boss.hp_max)

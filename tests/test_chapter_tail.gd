@@ -65,6 +65,10 @@ func test_boss_thresholds_warning_damage_and_pause_clock() -> void:
 	rt.enemies.append(boss)
 	rt._tick_chapter_mechanics(.1)
 	assert_eq(int(rt.boss_state.phase),1)
+	rt.elapsed_seconds=5.1
+	rt._tick_chapter_mechanics(.1)
+	assert_true(mio.has_status_effect("boss_compare"),"phase 1 comparison can happen before a strong team changes phase")
+	assert_false(rt.boss_warnings.is_empty(),"phase 1 summon telegraphed")
 	boss.hp=4799
 	rt.elapsed_seconds=20
 	rt._tick_chapter_mechanics(.1)
@@ -146,6 +150,17 @@ func test_chinatsu_support_excludes_self_and_distant_lane_and_stacks_with_active
 func test_tail_normal_ap_clear_paths() -> void:
 	for n: int in range(6,11):
 		var rt := runtime("1-%d" % n)
+		if n==10:
+			# V2.1.4 recommends Lv.9-12 for the Boss. Four Lv.9 members
+			# cost 8,000 EXP, within the actual chapter reward budget.
+			var stats: Dictionary={}
+			for cid: String in ["amamiya_mio","kamiya_yuma","ogawa_yui","minase_sara"]:
+				var cfg: Dictionary=rt._character_configs[cid]
+				var progress:=CharacterProgress.from_growth_config(cid,DataRegistry.get_domain("character_growth"),cfg.baseStats,str(cfg.growthProfileId))
+				progress.add_exp(2000)
+				assert_eq(progress.level,9)
+				stats[cid]=progress.compute_stats()
+			rt.set_character_level_stats(stats)
 		var order: Array[String]=["amamiya_mio","kamiya_yuma","ogawa_yui","fujiwara_rin"]
 		if n>=8: order.append("minase_sara")
 		var slots: Array[Vector2i]=[Vector2i(3,1),Vector2i(2,1),Vector2i(2,0),Vector2i(0,0),Vector2i(1,1)]
@@ -155,9 +170,17 @@ func test_tail_normal_ap_clear_paths() -> void:
 				rt.deploy_character(order[index],slots[index].x,slots[index].y)
 				index+=1
 			for c: CharacterRuntime in rt.characters.duplicate():
-				if c.skill_ready() and c.skill_config.get("effect","")!="DEVICE": rt.cast_skill(c.instance_id)
+				if not c.skill_ready(): continue
+				if c.skill_config.get("effect","")=="DEVICE":
+					var threat: EnemyRuntime=null
+					for e: EnemyRuntime in rt.enemies:
+						if e.lane!=1 and e.is_active() and (threat==null or e.logical_x<threat.logical_x): threat=e
+					if threat!=null:
+						var column:=clampi(int(floor(threat.logical_x)),0,3)
+						rt.place_experiment(c.instance_id,column,threat.lane)
+				else: rt.cast_skill(c.instance_id)
 			if rt.pending_offer_active_guard(): rt.resolve_offer(str(rt.pending_offer.candidates[0]))
 			rt.advance(1.0/60)
 			if rt.core_hp<=0 or rt.all_waves_cleared(): break
-		assert_gt(rt.core_hp,0,"1-%d must have a legal normal-AP Lv.1 solution; t=%.1f kills=%d" % [n,rt.elapsed_seconds,rt.enemies_killed])
+		assert_gt(rt.core_hp,0,"1-%d legal normal-AP solution at the specified challenge level; t=%.1f kills=%d" % [n,rt.elapsed_seconds,rt.enemies_killed])
 		assert_true(rt.all_waves_cleared(),"1-%d clears all waves" % n)

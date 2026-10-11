@@ -437,7 +437,7 @@
       "wave": 3
     },
     {
-      "time": 330,
+      "time": 360,
       "lane": 1,
       "enemy": "boss_model_student",
       "wave": 4
@@ -480,6 +480,8 @@
     "enrageSeconds": 480,
     "skillInherit": "replace",
     "phaseFirstCastSeconds": 3,
+    "firstStandardSeconds": 3,
+    "firstComparisonSeconds": 5,
     "finalSummonInterval": 12
   },
   "battleRewards": {
