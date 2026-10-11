@@ -148,6 +148,11 @@ static func character_frame(char_id: String, anim: String, t: float) -> AtlasTex
 
 ## 角色一次性动画帧（攻击/受击，按进度取帧不循环）。
 static func character_frame_progress(char_id: String, anim: String, progress: float) -> AtlasTexture:
+	if char_id == "amamiya_mio" and anim == "attack":
+		var recovery := "%s/characters/%s/%s_recovery.png" % [ART_ROOT,char_id,char_id]
+		if progress >= 0.72 and load_texture(recovery) != null:
+			return frame_at(recovery,mini(1,int((progress-0.72)/0.28*2.0)),2)
+		progress = minf(progress/0.72,0.9999)
 	return frame_progress(character_strip_path(char_id, anim), anim, progress)
 
 

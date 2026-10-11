@@ -1,0 +1,68 @@
+{
+  "source": "tools\\source_art\\mio_attack_refined_v3.png",
+  "method": "Four distinct imagegen poses, connected-component extraction and nearest-neighbour registration to pre-existing 96px production cells.",
+  "output": "assets/art/characters/amamiya_mio/amamiya_mio_attack.png",
+  "frames": [
+    {
+      "frame": 0,
+      "generatedBox": [
+        24,
+        196,
+        420,
+        619
+      ],
+      "productionBox": [
+        6,
+        19,
+        70,
+        90
+      ]
+    },
+    {
+      "frame": 1,
+      "generatedBox": [
+        547,
+        261,
+        1089,
+        619
+      ],
+      "productionBox": [
+        6,
+        30,
+        90,
+        90
+      ]
+    },
+    {
+      "frame": 2,
+      "generatedBox": [
+        1065,
+        273,
+        1663,
+        619
+      ],
+      "productionBox": [
+        0,
+        32,
+        95,
+        90
+      ]
+    },
+    {
+      "frame": 3,
+      "generatedBox": [
+        1714,
+        302,
+        2124,
+        619
+      ],
+      "productionBox": [
+        10,
+        37,
+        74,
+        90
+      ]
+    }
+  ],
+  "status": "Imported; dynamic identity, weapon and transition inspection required."
+}

@@ -2101,7 +2101,10 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 	var skill_attack := c.skill_charged or c.skill_active_remaining > 0.0
 	if skill_attack:
 		targets = _active_skill_targets(c)
-	else:
+	# A charged piercing arrow waits for its own-lane geometry without silencing
+	# ordinary adjacent-lane support. Only a real skill hit consumes the charge.
+	if targets.is_empty():
+		skill_attack = false
 		var target := _select_target_for(c)
 		if target != null:
 			targets.append(target)
@@ -2109,7 +2112,7 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 		return
 	# Active-skill geometry is separate from normal attack geometry. No changes
 	# to ordinary target choice, interval, damage formula or cross-lane rules.
-	var multiplier := float(c.skill_config.get("damageMultiplier", 1.0)) if c.skill_charged else 1.0
+	var multiplier := float(c.skill_config.get("damageMultiplier", 1.0)) if c.skill_charged and skill_attack else 1.0
 	if c.talent_config.get("effect", "") == "SAME_TARGET_DAMAGE":
 		var primary := targets[0].instance_id
 		c.talent_same_target_hits = c.talent_same_target_hits + 1 if primary == c.talent_last_target else 0
@@ -2125,7 +2128,8 @@ func _resolve_attacker_action(c: CharacterRuntime, step: float) -> void:
 			Vector2(target.logical_x, target.lane), c.damage_type, skill_attack)
 		GameLog.debug("StageRuntime", "%s 攻击 %s 造成 %d 伤害（剩余 HP %d）"
 			% [c.display_name, target.enemy_id, applied, target.hp])
-	c.skill_charged = false
+	if skill_attack:
+		c.skill_charged = false
 	c.attack_cooldown = c.effective_attack_interval()
 
 

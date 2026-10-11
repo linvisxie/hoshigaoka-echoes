@@ -95,7 +95,6 @@ const HEAL_BEAM_COLOR := Color(0.55, 1.0, 0.70, 0.85)
 ## 同格多敌的**纯表现层**横向偏移（参考画布像素）。
 ## V2.1.4 允许一个阻挡者挂接多个敌人；两个敌人会停在同一接触线上而完全重叠。
 ## 这里只改变**绘制位置**，绝不改动逻辑坐标、射程、接触线或阻挡判定。
-const OVERLAP_OFFSET_PX := 26.0
 
 # ============================================================
 #  P1.0 基础反馈参数（全部为表现层可调参数，不参与战斗判定）
@@ -387,6 +386,8 @@ var _vfx: Array[Dictionary] = []
 ## 纯表现层；只读领域层计数器，不写回任何战斗状态。
 var _char_anim: Dictionary = {}
 var _enemy_anim: Dictionary = {}
+var _enemy_display_offsets: Dictionary = {}
+var _enemy_group_sizes: Dictionary = {}
 
 ## 本帧「刚受击」的单位集合（由 _consume_damage_events 填充，绘制端读取后清空）
 var _hit_this_frame: Dictionary = {}
@@ -474,6 +475,13 @@ func _ready() -> void:
 		ProjectSettings.get_setting("display/window/size/viewport_width", 1920),
 		ProjectSettings.get_setting("display/window/size/viewport_height", 1080)
 	)
+	# A battle can be entered after the window has already been resized.
+	# Node2D receives no Control RESIZED event on entry; use the current expanded
+	# canvas immediately, and follow Viewport changes instead of stale settings.
+	var actual_canvas := get_viewport_rect().size
+	if actual_canvas.x > 0.0 and actual_canvas.y > 0.0:
+		_viewport_size = actual_canvas
+	get_viewport().size_changed.connect(_on_viewport_changed)
 	_update_render_scale()
 	_build_battle()
 	if session != null:
@@ -1445,7 +1453,7 @@ func _consume_damage_events() -> void:
 		if target_enemy != null and (s._enemy_configs.get(target_enemy.enemy_id,{}) as Dictionary).get("tags",[]).has("ARMORED"):
 			impact = "hit_armor"
 		AudioService.play_sfx(impact, -4.0)
-		var event_anchor := _logical_to_screen(ev["targetPos"]) if bool(ev.get("hasPosition", false)) else _damage_pop_anchor(kind, tid)
+		var event_anchor := _damage_event_display_anchor(ev)
 		# 受击闪白（命中反馈的视觉通道之一）
 		_hit_flashes.append({"kind": kind, "targetId": tid, "until": now + HIT_FLASH_SECONDS})
 		# 标记本帧受击（供动画状态机读取）——键为 "kind:id"
@@ -1454,9 +1462,18 @@ func _consume_damage_events() -> void:
 		# 纪律：只在**领域层已结算的伤害事件**上播放，不预测、不伪造；
 		# 素材缺失时 vfx_frame 返回 null，绘制端自动跳过（美术非硬依赖）。
 		if bool(ev.get("hasPosition", false)):
-			_spawn_vfx_at("vfx_impact", _logical_to_screen(ev["targetPos"]), now, VFX_IMPACT_LIFETIME)
+			_spawn_vfx_at("vfx_impact", event_anchor, now, VFX_IMPACT_LIFETIME)
 		else:
 			_spawn_vfx("vfx_impact", kind, tid, now, VFX_IMPACT_LIFETIME)
+		if bool(ev.get("hasPosition", false)):
+			_vfx[-1]["scale"] = 0.62
+			_vfx[-1]["charged"] = bool(ev.get("skillAttack", false))
+		if bool(ev.get("hasPosition", false)) and str(ev.get("sourceKind", "")) == "character":
+			var shooter := s.get_character(int(ev.get("sourceId", 0)))
+			if shooter != null and shooter.behavior == CharacterRuntime.Behavior.RANGED:
+				# The visual arrow reaches the committed target after 1/3 of its
+				# lifetime. Avoid showing the impact before the arrow arrives.
+				_vfx[-1]["born"] = now + VFX_ATTACK_LIFETIME / 3.0
 		var source_key := "%s:%d" % [str(ev.get("sourceKind", "")), int(ev.get("sourceId", 0))]
 		_attack_this_frame[source_key] = true
 		# 攻击者出手特效：按攻击者职业选择斩击（近战）/ 箭矢（远程）。
@@ -1512,6 +1529,8 @@ func _consume_kills() -> void:
 		var spacing_px := _render_lane_spacing()
 		var anchor := Vector2(_origin.x + _px(grid.logical_to_px_x(lx, 0.0)),
 			_origin.y + float(lane_i) * spacing_px)
+		var offset: Vector2 = _enemy_display_offsets.get(int(r.get("entityId", 0)), Vector2.ZERO)
+		anchor += Vector2(_px(offset.x), _px(offset.y))
 		_spawn_vfx_at("vfx_death", anchor, s.elapsed_seconds, VFX_DEATH_LIFETIME)
 	while _death_particles.size() > DEATH_PARTICLE_LIMIT:
 		_death_particles.remove_at(0)
@@ -1555,11 +1574,11 @@ func _spawn_attacker_vfx(ev: Dictionary, now: float) -> void:
 		return
 	var name := "vfx_arrow" if attacker.behavior == CharacterRuntime.Behavior.RANGED else "vfx_slash"
 	var source := _logical_to_screen(ev["sourcePos"])
-	var target := _logical_to_screen(ev["targetPos"])
+	var target := _damage_event_display_anchor(ev)
 	_spawn_vfx_at(name, target if name == "vfx_slash" else source, now, VFX_ATTACK_LIFETIME)
 	_vfx[-1]["from"] = source
 	_vfx[-1]["to"] = target
-	_vfx[-1]["scale"] = 1.45 if name == "vfx_slash" else 1.0
+	_vfx[-1]["scale"] = 1.12 if name == "vfx_slash" else 0.9
 	_vfx[-1]["charged"] = bool(ev.get("skillAttack", false))
 
 
@@ -1569,14 +1588,19 @@ func _spawn_vfx_at(name: String, screen_pos: Vector2, now: float, life: float) -
 	_vfx.append({
 		"name": name, "pos": screen_pos,
 		"born": now, "life": maxf(0.05, life),
+		"ground": name == "vfx_deploy",
 	})
 
 
 ## 绘制全部在场特效（按进度取帧，一次性播放）。
-func _draw_vfx() -> void:
+func _draw_vfx(ground_only: bool = false) -> void:
 	var now := _now()
 	var s := _px(VFX_SIZE_PX)
 	for v: Dictionary in _vfx:
+		if bool(v.get("ground", false)) != ground_only:
+			continue
+		if now < float(v["born"]):
+			continue
 		var life := float(v["life"])
 		var k := clampf((now - float(v["born"])) / life, 0.0, 1.0)
 		if k >= 1.0:
@@ -1599,6 +1623,8 @@ func _draw_vfx() -> void:
 			draw_line(trail,center,arrow_color,_px(4 if empowered else 2),true)
 		# 尾段淡出（避免突然消失）
 		var fade := 1.0 - k * k
+		var tint: Color = v.get("tint", Color.WHITE)
+		tint.a *= fade
 		var effect_size := s * float(v.get("scale", 1.0))
 		if bool(v.get("charged", false)):
 			effect_size *= 1.2
@@ -1607,10 +1633,18 @@ func _draw_vfx() -> void:
 			# Atlas arrows point right. Cross-lane shots must face their actual
 			# committed target, with the same angle as the moving trail.
 			draw_set_transform(center, arrow_angle)
-			draw_texture_rect(tex, Rect2(-Vector2.ONE * effect_size * 0.5, Vector2.ONE * effect_size), false, Color(1.0, 1.0, 1.0, fade))
+			draw_texture_rect(tex, Rect2(-Vector2.ONE * effect_size * 0.5, Vector2.ONE * effect_size), false, tint)
 			draw_set_transform(Vector2.ZERO)
 		else:
-			draw_texture_rect(tex, dst, false, Color(1.0, 1.0, 1.0, fade))
+			draw_texture_rect(tex, dst, false, tint)
+		if str(v["name"]) == "vfx_impact" and k < 0.72:
+			var radius := _px(7.0 + k * 24.0)
+			var resonance := Color("bdf6f0") if bool(v.get("charged",false)) else Color("c7ddf5")
+			resonance.a = (1.0-k/0.72)*0.65
+			draw_arc(center, radius, -0.4, PI*1.2, 16, resonance, _px(1.4), true)
+			for ray: int in range(4):
+				var direction := Vector2.from_angle(float(ray)*PI/2.0+0.35)
+				draw_line(center+direction*radius,center+direction*(radius+_px(6)*(1.0-k)),resonance,_px(1.5),true)
 		_mark_drawn("vfx:%s" % str(v["name"]))
 		_mark_drawn(ArtRegistry.vfx_strip_path(str(v["name"])))
 
@@ -2337,6 +2371,7 @@ func _draw() -> void:
 	_draw_core()
 	_draw_deploy_feedback()
 	_draw_deploy_pops()
+	_draw_vfx(true)
 	for lane: int in range(grid.lanes):
 		_draw_characters(lane)
 		_draw_enemies(lane)
@@ -2349,7 +2384,8 @@ func _draw() -> void:
 		_draw_wave_banner()
 		_draw_character_card()
 		_draw_character_panel()
-	_draw_tutorial_cards()
+	if _native_hud == null:
+		_draw_tutorial_cards()
 	if _native_hud == null:
 		_draw_feedback()
 	# Alpha A0.6：强化面板画在暂停遮罩**之前**，因此面板优先于暂停遮罩。
@@ -2645,6 +2681,7 @@ func _draw_characters(lane_filter: int = -1) -> void:
 			# 受击 > 攻击/治疗 > 待机；失能为不可逆终态。
 			# 一次性动画按 progress 取帧，循环动画按绝对时间取帧。
 			var st := _char_anim_state(c, now)
+			var pose_anim := st.anim
 			var frame_tex: Texture2D = null
 			if st.is_one_shot():
 				frame_tex = ArtRegistry.character_frame_progress(
@@ -2662,6 +2699,7 @@ func _draw_characters(lane_filter: int = -1) -> void:
 					var special_tex := ArtRegistry.character_frame_progress(c.character_id, str(special["anim"]), progress)
 					if special_tex != null:
 						sprite = special_tex
+						pose_anim = str(special["anim"])
 						_mark_drawn("char_special:" + str(special["anim"]))
 			var redrawn := c.character_id in ["amamiya_mio", "kamiya_yuma"]
 			_draw_sprite_anchored(sprite, Vector2(px_x, px_y), tile * (1.28 if redrawn else 0.96), mod, 0.25 if redrawn else 0.33)
@@ -2674,8 +2712,11 @@ func _draw_characters(lane_filter: int = -1) -> void:
 					var offset := Vector2(sin(float(spark)*2.4+now)*tile*0.30,-phase*tile*0.82)
 					draw_rect(Rect2(foot+offset,Vector2.ONE*_px(3)),Color(aura,(1.0-phase)*0.65))
 			if frame_tex != null:
-				_mark_drawn("char_anim:%s" % st.anim)
-				_mark_drawn(ArtRegistry.character_strip_path(c.character_id, st.anim))
+				var drawn_source: String = sprite.atlas.resource_path if sprite is AtlasTexture else sprite.resource_path
+				_mark_drawn("char_anim:%s" % pose_anim)
+				_mark_drawn(drawn_source)
+				if drawn_source.ends_with("_recovery.png"):
+					_mark_drawn("char_anim:recovery")
 			if selected:
 				_draw_selection_ring(Vector2(px_x, px_y + tile * (0.32 if redrawn else 0.3168)), tile * 0.40)
 		else:
@@ -2971,45 +3012,38 @@ func _draw_selection_ring(center: Vector2, radius: float) -> void:
 	draw_colored_polygon(points, Color(0.64, 0.85, 1.0, 0.10))
 	draw_polyline(points, Color(0.72, 0.9, 1.0, 0.8), _px(2), true)
 
-## 敌人（占位方块，按类型着色）。
-## P0.3 表现层修复：同一接触线上的多个敌人不再完全重叠——
-## 按"同一 (lane, logicalX) 分组内的序号"给一个**纯绘制用**的横向偏移。
-## 逻辑坐标、射程、接触线与阻挡判定完全不受影响。
+## Pixel actors sorted by the eased depth offset of nearby packs.
+## Logical coordinates, range, contact lines and blocking remain authoritative.
 func _draw_enemies(lane_filter: int = -1) -> void:
 	var tile := _px(grid.tile_size_px)
 	var spacing := _render_lane_spacing()
-	var seen := {}
+	var visible: Array[EnemyRuntime] = []
 	for e: EnemyRuntime in session.stage.enemies:
 		if lane_filter >= 0 and e.lane != lane_filter:
 			continue
 		if not e.is_active():
 			continue
+		visible.append(e)
+	visible.sort_custom(func(a: EnemyRuntime, b: EnemyRuntime) -> bool:
+		var ay := float((_enemy_display_offsets.get(a.instance_id, Vector2.ZERO) as Vector2).y)
+		var by := float((_enemy_display_offsets.get(b.instance_id, Vector2.ZERO) as Vector2).y)
+		return ay < by if not is_equal_approx(ay, by) else a.logical_x > b.logical_x)
+	for e: EnemyRuntime in visible:
 		# 逻辑 x 先按 V2.1.4 公式换算为参考画布像素，再同比缩放到当前屏幕
 		var ref_px_x := grid.logical_to_px_x(e.logical_x, 0.0)
 		var px_x := _origin.x + _px(ref_px_x)
 		var px_y := _origin.y + float(e.lane) * spacing
 		var size := tile * 0.42
 
-		# 纯表现层的重叠偏移：同一路线 + 同一逻辑 x（判定阈值 0.01 格）视为同栈
-		var key := "%d:%.2f" % [e.lane, e.logical_x]
-		var stack_index := int(seen.get(key, 0))
-		seen[key] = stack_index + 1
-		if stack_index > 0:
-			var direction := 1.0 if stack_index % 2 == 1 else -1.0
-			var magnitude := float((stack_index + 1) / 2)
-			px_y += direction * magnitude * _px(OVERLAP_OFFSET_PX)
+		var offset: Vector2 = _enemy_display_offsets.get(e.instance_id, Vector2.ZERO)
+		px_x += _px(offset.x)
+		px_y += _px(offset.y)
 
 		_draw_one_enemy(e, px_x, px_y, size, tile)
 
 
-## 绘制单个敌人的**占位图形**。
-## V2.1.4 F 章要求三种基础敌人「容易区分」；本轮指令 二·1 进一步要求
-## 「容易区分的占位图形、血条、类别提示及不同移动视觉表现」。
-## 因此这里用**形状 + 配色 + 类别标签**三重通道区分，而不是只换颜色：
-##   echo_normal  方形（模糊学生轮廓）+ 深紫 + 标签「普通」+ 边缘碎片
-##   echo_runner  前倾平行四边形（身体前倾、腿部拉长）+ 橙 + 标签「疾走」+ 速度线
-##   echo_armored 外扩六边形（被课桌/书本层层包裹）+ 冷灰 + 标签「装甲」+ 双层护甲边
-## 帧尺寸按 V2.1.4 表（weightClass→spriteFramePx）等比映射，因此重装单位视觉更大。
+## Draw the registered pixel animation, shadow, readable type and damaged health.
+## Missing assets retain the original geometry fallback rather than crashing combat.
 func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, tile: float) -> void:
 	var cfg: Dictionary = session.stage._enemy_configs.get(e.enemy_id, {})
 	var fill := _enemy_fill_color(e.enemy_id)
@@ -3064,6 +3098,11 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 	# 类别标签（常驻，保证不看颜色也能分辨敌种）
 	# 本轮精修：字号 14→15 并加**深色描边**，解决"背景偏亮时标签糊掉"的问题。
 	var label := _enemy_kind_label(e.enemy_id)
+	var group_count := int(_enemy_group_sizes.get(e.instance_id, 1))
+	if group_count > 1:
+		label = "残响群 ×%d" % group_count
+	elif group_count == 0 and e.enemy_id in ["echo_normal", "echo_runner"]:
+		label = ""
 	var font := ThemeDB.fallback_font
 	var lf := int(_px(15.0))
 	var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, lf).x
@@ -3330,8 +3369,9 @@ func _damage_pop_anchor(kind: String, target_id: int) -> Vector2:
 		var e := session.stage.get_enemy(target_id)
 		if e == null or not e.is_active():
 			return Vector2(-1, -1)
-		return Vector2(_origin.x + _px(grid.logical_to_px_x(e.logical_x, 0.0)),
-			_origin.y + float(e.lane) * spacing)
+		var offset: Vector2 = _enemy_display_offsets.get(e.instance_id, Vector2.ZERO)
+		return Vector2(_origin.x + _px(grid.logical_to_px_x(e.logical_x, 0.0) + offset.x),
+			_origin.y + float(e.lane) * spacing + _px(offset.y))
 	var c := session.stage.get_character(target_id)
 	if c == null or c.is_incapacitated():
 		return Vector2(-1, -1)
@@ -3852,10 +3892,12 @@ func _request_skill_selected() -> void:
 	var character := session.stage.get_character(_selected_character_id)
 	_special_animations[character.instance_id] = {"anim": "skill", "born": _now(), "life": 0.7}
 	var anchor := _logical_to_screen(Vector2(character.column, character.lane))
-	_spawn_vfx_at("vfx_slash" if character.character_id == "amamiya_mio" else "vfx_arrow", anchor, _now(), 0.8)
-	_vfx[-1]["scale"] = 2.0
+	_spawn_vfx_at("vfx_deploy", anchor+Vector2(0,_px(grid.tile_size_px)*0.22), _now(), 0.65)
+	_vfx[-1]["scale"] = 1.3
+	_vfx[-1]["ground"] = true
+	_vfx[-1]["tint"] = Color("b7c8ff") if character.character_id == "amamiya_mio" else Color("b8f5df")
 	AudioService.play_sfx("mio_skill" if character.character_id == "amamiya_mio" else "yuma_skill")
-	_show_feedback(str(result.get("name", "技能释放")), Color(0.8, 0.9, 1.0))
+	_show_feedback("技能发动 · " + str(result.get("name", "残响共鸣")), Color(0.8, 0.95, 0.93))
 
 
 ## 顶部中央：Wave 进度 + 下一波预告（独立底板，与左右两区视觉分层）。
@@ -4338,6 +4380,18 @@ func _logical_to_screen(pos: Vector2) -> Vector2:
 	return Vector2(_origin.x + _px(grid.tile_size_px) * pos.x,
 		_origin.y + _render_lane_spacing() * pos.y)
 
+
+func _damage_event_display_anchor(event: Dictionary) -> Vector2:
+	var kind := str(event.get("targetKind", ""))
+	var id := int(event.get("targetId", 0))
+	if not bool(event.get("hasPosition", false)):
+		return _damage_pop_anchor(kind, id)
+	var point := _logical_to_screen(event["targetPos"])
+	if kind == "enemy":
+		var offset: Vector2 = _enemy_display_offsets.get(id, Vector2.ZERO)
+		point += Vector2(_px(offset.x), _px(offset.y))
+	return point
+
 func _update_animation_states(now: float) -> void:
 	if not _art_checked:
 		_verify_art_available()
@@ -4367,7 +4421,8 @@ func _update_animation_states(now: float) -> void:
 		var code := str(removal.get("characterId", "")) if kind == "character" else str(removal.get("enemyId", ""))
 		var x := float(removal.get("column", 0)) if kind == "character" else float(removal.get("x", 0))
 		_departures.append({"kind": kind, "id": id, "code": code, "state": state,
-			"logical": Vector2(x, float(removal.get("lane", 0))), "born": now})
+			"logical": Vector2(x, float(removal.get("lane", 0))), "born": now,
+			"offset": _enemy_display_offsets.get(id, Vector2.ZERO) if kind == "enemy" else Vector2.ZERO})
 		if kind == "character": _char_anim.erase(id)
 		else: _enemy_anim.erase(id)
 	for i: int in range(_departures.size() - 1, -1, -1):
@@ -4376,6 +4431,35 @@ func _update_animation_states(now: float) -> void:
 			_departures.remove_at(i)
 	while _departures.size() > 64:
 		_departures.remove_at(0)
+	_update_enemy_display_offsets()
+
+
+## Fan nearby enemies inside their lane; logical targeting and collision stay unchanged.
+## Stable instance order and eased offsets prevent newly spawned/dead enemies snapping the pack.
+func _update_enemy_display_offsets() -> void:
+	var active: Array[EnemyRuntime] = []
+	for e: EnemyRuntime in session.stage.enemies:
+		if e.is_active(): active.append(e)
+	active.sort_custom(func(a: EnemyRuntime, b: EnemyRuntime) -> bool: return a.instance_id < b.instance_id)
+	var assigned := {}
+	_enemy_group_sizes.clear()
+	var slots := [Vector2.ZERO, Vector2(28, -32), Vector2(28, 32),
+		Vector2(64, -32), Vector2(64, 32), Vector2(94, -16), Vector2(94, 16)]
+	for seed: EnemyRuntime in active:
+		if assigned.has(seed.instance_id): continue
+		var pack: Array[EnemyRuntime] = []
+		for e: EnemyRuntime in active:
+			if not assigned.has(e.instance_id) and e.lane == seed.lane and absf(e.logical_x - seed.logical_x) <= 0.75:
+				pack.append(e)
+		for i: int in range(pack.size()):
+			var e := pack[i]
+			assigned[e.instance_id] = true
+			var target: Vector2 = slots[mini(i, slots.size() - 1)] if pack.size() > 1 else Vector2.ZERO
+			var previous: Vector2 = _enemy_display_offsets.get(e.instance_id, Vector2.ZERO)
+			_enemy_display_offsets[e.instance_id] = previous.lerp(target, 1.0 - exp(-get_process_delta_time() * 10.0))
+			_enemy_group_sizes[e.instance_id] = pack.size() if i == 0 else (0 if pack.size() > 1 else 1)
+	for id: int in _enemy_display_offsets.keys():
+		if not assigned.has(id): _enemy_display_offsets.erase(id)
 
 func _draw_departures() -> void:
 	for ghost: Dictionary in _departures:
@@ -4392,7 +4476,8 @@ func _draw_departures() -> void:
 			continue
 		var redrawn := kind == "character" and code in ["amamiya_mio", "kamiya_yuma"]
 		var height := _px(grid.tile_size_px) * (1.28 if redrawn else (0.96 if kind == "character" else 0.72))
-		_draw_sprite_anchored(texture, _logical_to_screen(ghost["logical"]), height,
+		var offset: Vector2 = ghost.get("offset", Vector2.ZERO)
+		_draw_sprite_anchored(texture, _logical_to_screen(ghost["logical"]) + Vector2(_px(offset.x), _px(offset.y)), height,
 			Color(1, 1, 1, 1.0 - progress), 0.25 if redrawn else (0.33 if kind == "character" else 0.42))
 		if progress < 1.0:
 			_mark_drawn("%s_anim:death" % ("char" if kind == "character" else "enemy"))

@@ -85,6 +85,15 @@
     "assets/audio/sfx/hurt.wav",
     "assets/audio/sfx/mio_skill.wav",
     "assets/audio/sfx/pause.wav",
+    "assets/audio/sfx/resonance_armor_01.wav",
+    "assets/audio/sfx/resonance_armor_02.wav",
+    "assets/audio/sfx/resonance_blade_01.wav",
+    "assets/audio/sfx/resonance_blade_02.wav",
+    "assets/audio/sfx/resonance_dissolve_01.wav",
+    "assets/audio/sfx/resonance_dissolve_02.wav",
+    "assets/audio/sfx/resonance_hit_01.wav",
+    "assets/audio/sfx/resonance_hit_02.wav",
+    "assets/audio/sfx/resonance_hit_03.wav",
     "assets/audio/sfx/retreat.wav",
     "assets/audio/sfx/select.wav",
     "assets/audio/sfx/slash.wav",
@@ -96,5 +105,6 @@
   ],
   "additionalSource": "tools/build_ch1_audio.py",
   "renderSource": "tools/render_sampled_score.py",
-  "combatFoleyRecord": "docs/v3_combat_foley_sources.json"
+  "combatFoleyRecord": "docs/v3_combat_foley_sources.json",
+  "combatPaletteRevision": "2026-10-11: original soft resonance palette replaces raw Kenney combat foley routing; UI retains licensed Kenney sounds. tools/render_resonance_sfx.py and docs/v3_resonance_sfx_record.json."
 }

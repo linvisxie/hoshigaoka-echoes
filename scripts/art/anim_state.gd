@@ -8,7 +8,7 @@ const MOVE := "move"
 const ATTACK := "attack"
 const HIT := "hit"
 const DEATH := "death"
-const ATTACK_SECONDS := 0.36
+const ATTACK_SECONDS := 0.46
 const HIT_SECONDS := 0.18
 const DEATH_SECONDS := 0.5
 
@@ -64,7 +64,10 @@ func _advance(now: float, terminal: bool, hit: bool, attacked: bool, rest: Strin
 		return
 	_pending_attack = _pending_attack or attacked
 	if hit:
-		_switch_to(HIT, now)
+		# Several hits in one flinch must not rewind the pose indefinitely.
+		# Keep its original clock so the queued attack can reach recovery.
+		if anim != HIT or now - started_at >= HIT_SECONDS:
+			_switch_to(HIT, now)
 		return
 	if anim == HIT and now - started_at < HIT_SECONDS:
 		return

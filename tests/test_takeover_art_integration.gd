@@ -106,7 +106,7 @@ func test_hit_queues_attack_once_then_returns_idle() -> void:
 	assert_eq(state.anim, "hit")
 	state.tick_character(c, 0.3, false)
 	assert_eq(state.anim, "attack", "Attack no longer swallowed by concurrent hit")
-	state.tick_character(c, 0.7, false)
+	state.tick_character(c, 0.3 + AnimState.ATTACK_SECONDS + 0.01, false)
 	assert_eq(state.anim, "idle")
 
 func test_first_hit_and_exact_attack_event_not_discarded() -> void:

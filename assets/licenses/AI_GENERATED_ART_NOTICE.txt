@@ -1,0 +1,22 @@
+Hoshigaoka Echoes — AI-assisted character refinement, 2026-10-11
+
+The project owner confirmed that the three original concept images were GPT-generated
+and authorized their use as the game's visual references. This revision uses the built-in
+OpenAI image generation tool with the project's Mio and Yuma designs as references.
+No third-party game character, sprite sheet or artist's work was downloaded for these poses.
+
+New source images: tools/source_art/mio_attack_refined_v3.png,
+tools/source_art/yuma_attack_refined_v3.png, tools/source_art/mio_recovery_v3.png.
+Production sprites: Mio attack/recovery and Yuma attack strips.
+Extraction and registration: tools/import_refined_attack.py.
+Frame coordinates are recorded in docs/v3_*_import.json.
+
+OpenAI Terms of Use, checked 2026-10-11:
+https://openai.com/policies/terms-of-use/
+The Ownership of content provision assigns OpenAI's rights, if any, in output to
+the user, subject to applicable law and the terms. This record is not a promise
+that AI output is unique or independently copyrightable in every jurisdiction.
+
+Battle glass UI and resonance sound effects in this revision are project-original
+vector design and sample-free synthesis, respectively. Existing third-party notices
+for fonts, icons, UI sounds and music samples remain supplied separately.

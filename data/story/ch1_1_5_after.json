@@ -6,7 +6,7 @@
   "title": "1-5 · 放课后观测会",
   "background": "bg_env_gym_battle",
   "music": "observation_club",
-  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "authorship": "Project original dialogue; 2026-10-11 revision, preserves existing chapter events and character unlocks.",
   "completionFlags": [
     "observation_club_founded"
   ],
@@ -15,7 +15,7 @@
       "id": "0",
       "speaker": "",
       "character": "",
-      "text": "监考者散去后，广播终于说完了那句早已过时的结束通知。"
+      "text": "“测验结束，请按顺序离场。”广播终于接上了断掉的后半句。舞台灯逐盏熄灭，空椅下只剩普通的灰尘。"
     },
     {
       "id": "1",
@@ -34,7 +34,7 @@
       "id": "3",
       "speaker": "藤原凛",
       "character": "fujiwara_rin",
-      "text": "我在记录。包括前几次的走廊重复、无来源脚步声，以及这次的试卷。"
+      "text": "走廊每次重复的长度、脚步声停下的位置，还有今天的广播。我记了几页。"
     },
     {
       "id": "4",
@@ -46,13 +46,13 @@
       "id": "5",
       "speaker": "藤原凛",
       "character": "fujiwara_rin",
-      "text": "看见之后就有责任确认。但确认，不等于把所有危险都交给雨宫。"
+      "text": "刚才雨宫的左手一直在抖。下次调查，要把谁还能撑多久也算进记录。"
     },
     {
       "id": "6",
       "speaker": "",
       "character": "",
-      "text": "她合上笔记本，封面夹着普通的学生会工作表。异常之外的事务也一页没有少。"
+      "text": "凛翻过笔记本，露出夹在后面的学生会工作表。借用场地、安全联络、活动申请——每一栏都已经画好了空格。"
     },
     {
       "id": "7",
@@ -77,7 +77,7 @@
       "id": "10",
       "speaker": "藤原凛",
       "character": "fujiwara_rin",
-      "text": "放课后观测会。先从记录、联络和安全开始，不擅自把别人卷进来。"
+      "text": "放课后观测会。名字先写这个。明天申请活动室，把记录放在大家都找得到的地方。"
     },
     {
       "id": "11",
@@ -96,13 +96,13 @@
       "id": "13",
       "speaker": "藤原凛",
       "character": "fujiwara_rin",
-      "text": "包括我。那就这么定了。"
+      "text": "包括我。联络表第一行，我写自己的号码。"
     },
     {
       "id": "14",
       "speaker": "",
       "character": "",
-      "text": "窗外的社团铃声照常响起。你们把散落的纸捡好，一起走出终于恢复寂静的旧体育馆。"
+      "text": "澪从悠真手里接过剑袋，却没有立刻背上。你们沿着恢复正常的地板线走向门口，社团铃声从远处传来。这次，没有人先走。"
     }
   ]
 }

@@ -82,6 +82,14 @@ func _process(_delta: float) -> void:
 				return
 			var session: BattleSession = scene.session
 			var sid := session.stage.stage_id
+			if not summaries.has("metrics_"+sid):
+				summaries["metrics_"+sid] = {"peakLivingEnemies":0,"attackLanes":[],"plannedEnemies":session.stage.planned_enemy_count()}
+			var metrics: Dictionary = summaries["metrics_"+sid]
+			metrics["peakLivingEnemies"] = maxi(int(metrics["peakLivingEnemies"]),session.stage.enemies.size())
+			for ev: Dictionary in session.stage.damage_events:
+				if str(ev.get("sourceKind","")) == "character" and bool(ev.get("hasPosition",false)):
+					var lane := int((ev["targetPos"] as Vector2).y)
+					if not (metrics["attackLanes"] as Array).has(lane): metrics["attackLanes"].append(lane)
 			if not session.is_decided() and not session.is_paused() and not scene._upgrade_panel_active():
 				for character: CharacterRuntime in session.stage.characters:
 					if character.skill_ready():
@@ -119,7 +127,10 @@ func _process(_delta: float) -> void:
 		"home":
 			if dwell < 1200:
 				return
-			var label := "campus_after_%d" % summaries.size()
+			var completed := 0
+			for sid: String in summaries.keys():
+				if not sid.begins_with("metrics_"): completed += 1
+			var label := "campus_after_%d" % completed
 			if not captured.has(label):
 				capture(label)
 				return

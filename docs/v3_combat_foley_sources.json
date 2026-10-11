@@ -6,7 +6,7 @@
     "https://kenney.nl/assets/rpg-audio",
     "https://kenney.nl/assets/impact-sounds"
   ],
-  "usage": "Blade swishes, normal impacts, armored impacts, crystal dissipation; rotating takes with bounded existing voice pool",
+  "usage": "Historical 0.4.4 raw foley sources retained for attribution; 0.4.5 combat routes use original resonance WAV palette instead. UI remains Kenney CC0.",
   "assets": [
     {
       "asset": "assets/audio/sfx/foley_blade_01.ogg",

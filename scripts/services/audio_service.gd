@@ -29,10 +29,10 @@ var _variant_cursor: Dictionary = {}
 var _played_assets: Dictionary = {}
 
 const FOLEY := {
-	"slash": ["foley_blade_01","foley_blade_02"],
-	"hit": ["foley_hit_01","foley_hit_02","foley_hit_03"],
-	"hit_armor": ["foley_metal_01","foley_metal_02"],
-	"enemy_death": ["foley_crystal_01","foley_crystal_02"],
+	"slash": ["resonance_blade_01","resonance_blade_02"],
+	"hit": ["resonance_hit_01","resonance_hit_02","resonance_hit_03"],
+	"hit_armor": ["resonance_armor_01","resonance_armor_02"],
+	"enemy_death": ["resonance_dissolve_01","resonance_dissolve_02"],
 }
 
 
@@ -41,6 +41,16 @@ func _ready() -> void:
 		if AudioServer.get_bus_index(bus_name) < 0:
 			AudioServer.add_bus()
 			AudioServer.set_bus_name(AudioServer.bus_count - 1, bus_name)
+	# Gentle group compression catches simultaneous impacts without flattening
+	# the piano music or changing the player's saved volume controls.
+	var sfx_bus := AudioServer.get_bus_index(BUS_SFX)
+	if AudioServer.get_bus_effect_count(sfx_bus) == 0:
+		var compressor := AudioEffectCompressor.new()
+		compressor.threshold = -16.0
+		compressor.ratio = 2.5
+		compressor.attack_us = 1800.0
+		compressor.release_ms = 130.0
+		AudioServer.add_bus_effect(sfx_bus, compressor)
 	_music = AudioStreamPlayer.new()
 	_music.bus = BUS_BGM
 	add_child(_music)
@@ -100,7 +110,7 @@ func play_sfx(sound: String, gain_db: float = 0.0) -> void:
 	var turn := int(_variant_cursor.get(sound,0))
 	if FOLEY.has(sound):
 		cue = str(FOLEY[sound][turn % FOLEY[sound].size()])
-	var path := "res://assets/audio/sfx/%s.%s" % [cue,"ogg" if cue.begins_with("ui_") or FOLEY.has(sound) else "wav"]
+	var path := "res://assets/audio/sfx/%s.%s" % [cue,"ogg" if cue.begins_with("ui_") else "wav"]
 	if not _streams.has(path):
 		if not ResourceLoader.exists(path):
 			return

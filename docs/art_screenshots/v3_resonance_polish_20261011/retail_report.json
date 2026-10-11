@@ -1,0 +1,11 @@
+{
+  "binary": "D:\\星丘残响\\hoshigaoka_echoes\\dist\\v3_resonance_polish_20261011\\HoshigaokaEchoes.exe",
+  "realWindowsInput": true,
+  "stage": "1-5",
+  "deployment": true,
+  "pause": true,
+  "saveIsolated": true,
+  "normalExit": true,
+  "binarySha256": "e96c198831f3a3e3bcc5260a7cd65fccf1e8d90ce21601c4d7a3dca82badb077",
+  "pckSha256": "77a52b1c96e1bf39a35b7847802162b1bc3e43fe145c5cb1d6c2ffb8fb067290"
+}

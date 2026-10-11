@@ -84,6 +84,17 @@ func test_hit_event_plays_hit_anim() -> void:
 	st.tick_character(c, 0.1, true)    # 本帧有受击事件
 	assert_eq(st.anim, AnimState.HIT, "受击应播受击动画")
 
+func test_clustered_hits_do_not_rewind_flinch_and_lose_attack() -> void:
+	var st := AnimState.new()
+	var c := _make_char()
+	st.tick_character(c, 0.0, false)
+	st.tick_character(c, 0.1, true, true)
+	st.tick_character(c, 0.16, true)
+	assert_almost_eq(st.started_at, 0.1, 0.001)
+	assert_gt(st.progress(0.16), 0.0)
+	st.tick_character(c, 0.29, false)
+	assert_eq(st.anim, AnimState.ATTACK, "coalesced attack resumes after the original flinch ends")
+
 
 func test_hit_takes_priority_over_attack() -> void:
 	# 同时挨打又出手时，受击优先（被打当然先演受击）

@@ -32,7 +32,7 @@
       "rangeTiles": 4,
       "maxLaneDelta": 0,
       "targetLimit": 3,
-      "description": "下一次攻击造成300%攻击伤害，贯穿同路线最多3名敌人。"
+      "description": "下次本路攻击造成300%伤害，贯穿最多3名敌人；等待目标时仍以普攻支援相邻路线，保留蓄力。"
     }
   ],
   "talents": [

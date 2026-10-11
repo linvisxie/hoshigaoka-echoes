@@ -15,7 +15,7 @@
 ##    9. 引用完整性（1-1～1-10 + p1_0_demo 的敌人/角色引用 + 加载期无错）
 ##   10. 1-1 未被改动（3 波 / 6 只 / 核心 5 / 只有澪 / 全为普通残响体）
 ##   11. 1-2～1-5 不引入未实现的敌人（六个数据中不存在的敌人 id）
-##   12. 1-5 设计约束（非中段出怪条目 ≤ 1，表 54「同屏不得要求两个永久前线」）
+##   12. 1-5 设计约束（非中段普通出怪条目 ≤ 2，表 54「同屏不得要求两个永久前线」）
 ##   13. 帧率独立性（1-5 在 1/60、1/30、1/144 三种 tick 粒度下结果完全一致）
 ##
 ## 纪律：
@@ -82,23 +82,23 @@ const STAGE_SPEC := {
 		"composition": {"echo_normal": 7, "echo_runner": 3},
 	},
 	"1-3": {
-		"timeline": 14, "waves": 4, "coreHp": 3,
+		"timeline": 26, "waves": 4, "coreHp": 3,
 		"mapId": "ch1_classroom_sunset",
 		"chars": [CHAR_MIO, CHAR_YUMA],
-		"composition": {"echo_normal": 7, "echo_exam_sheet": 4, "echo_runner": 3},
+		"composition": {"echo_normal": 17, "echo_exam_sheet": 4, "echo_runner": 5},
 	},
 	"1-4": {
-		"timeline": 11, "waves": 4, "coreHp": 3,
+		"timeline": 25, "waves": 4, "coreHp": 3,
 		"mapId": "ch1_corridor_echo",
 		"chars": [CHAR_MIO, CHAR_YUMA],
-		"composition": {"echo_normal": 6, "echo_runner": 3, "echo_armored": 2},
+		"composition": {"echo_normal": 18, "echo_runner": 5, "echo_armored": 2},
 	},
 	"1-5": {
-		"timeline": 8, "waves": 5, "coreHp": 3,
+		"timeline": 24, "waves": 5, "coreHp": 3,
 		"mapId": "ch1_old_gym_echo", # 用户 V3 补充裁决：第五关为旧体育馆。
 		"chars": [CHAR_MIO, CHAR_YUMA],
 		"composition": {
-			"echo_normal": 3, "echo_runner": 2,
+			"echo_normal": 15, "echo_runner": 6,
 			"echo_invigilator": 2, "echo_armored": 1,
 		},
 	},
@@ -226,6 +226,7 @@ func _session(cfg: Dictionary) -> BattleSession:
 	add_child_autofree(s)
 	var errs := s.setup(cfg, _enemy_table_from_file(), _grid(), _char_table_from_file(), _combat())
 	assert_eq(errs.size(), 0, "会话构建应无错误：%s" % str(errs))
+	s.stage.configure_skills(_read_json("res://data/skills.json"))
 	return s
 
 
@@ -257,6 +258,10 @@ func _run(cfg: Dictionary, actions: Array, tick: float = -1.0) -> Dictionary:
 				var rr := s.withdraw_character_by_id(str(a["c"]))
 				if not rr.ok:
 					rejects.append("t=%.2f 撤退 %s 被拒：%s" % [now, str(a["c"]), rr.reason_text()])
+		# Real active skills are part of the current first-five combat contract.
+		for unit: CharacterRuntime in s.stage.characters:
+			if unit.skill_ready() and s.stage.has_living_enemies():
+				s.cast_skill(unit.instance_id)
 		s.tick(step)
 		guard += 1
 
@@ -772,7 +777,7 @@ func test_08_1_4_mio_only_fails() -> void:
 ## 新的设计意图（更符合「站位差异应产生战术价值」这一目标）：
 ##   分兵上段**仍然可行**，但代价明确——中段火力减弱、核心多掉 1 点、且前线失能。
 ##   这比「换条线就直接输」更符合玩家直觉，也保留了站位的策略深度。
-func test_08_1_5_split_ranged_to_lane0_is_worse_but_viable() -> void:
+func test_08_1_5_dense_finale_punishes_losing_main_lane_piercing() -> void:
 	var cfg := _stage_from_file("1-5")
 	if cfg.is_empty():
 		fail_test("应能从磁盘读到 1-5")
@@ -781,9 +786,10 @@ func test_08_1_5_split_ranged_to_lane0_is_worse_but_viable() -> void:
 	assert_eq((res["rejects"] as Array).size(), 0,
 		"该对照战术的动作应被接受：%s" % str(res["rejects"]))
 	var s: BattleSession = res["session"]
-	# DEC-C-0003：跨线支援使分兵上段仍可通关（不再必败）
-	assert_eq(s.outcome, BattleTypes.Outcome.VICTORY,
-		"1-5 分兵上段在跨线规则下仍可通关（核心 %d/%d，击杀 %d，漏怪 %d）"
+	# 2026-10-11 dense finale: adjacent ordinary support is retained, but
+	# piercing remains own-lane. Side deployment loses its main-lane crowd clear.
+	assert_eq(s.outcome, BattleTypes.Outcome.DEFEAT,
+		"1-5 密集最终波需要本路贯穿清群；悠真偏离主战线的固定摆法应失败（核心 %d/%d，击杀 %d，漏怪 %d）"
 		% [s.stage.core_hp, s.stage.core_hp_max, s.stage.enemies_killed, s.stage.reached_core_count])
 	# 但必须比稳定解差——这是「站位有战术差异」的可验证证据
 	var stable := _run_stable("1-5")
@@ -984,8 +990,8 @@ func test_11_new_stages_do_not_reference_unimplemented_enemies() -> void:
 #  验收点 12：1-5 设计约束（表 54「同屏不得要求两个永久前线」）
 # ============================================================
 
-## 验收点 12：1-5 的出怪中，非中段（lane != 1）的条目数 ≤ 1。
-## 只有 1 名前线（澪，blockCount=2），若两条线同时需要阻挡，无治疗条件下必然崩盘。
+## 验收点 12：1-5 的出怪中，非中段（lane != 1）的普通条目数 ≤ 2。
+## 只有 1 名前线；两只旁路普通敌人需拉开间隔，由悠真跨线处理，不要求第二名前线。
 func test_12_1_5_never_requires_two_permanent_frontlines() -> void:
 	var cfg := _stage_from_file("1-5")
 	assert_false(cfg.is_empty(), "应能从磁盘读到 1-5")
@@ -998,8 +1004,8 @@ func test_12_1_5_never_requires_two_permanent_frontlines() -> void:
 		if lane != 1:
 			off_lane.append("t=%.0fs lane%d %s"
 				% [float(entry.get("time", -1.0)), lane, str(entry.get("enemy", ""))])
-	assert_lte(off_lane.size(), 1,
-		"1-5 非中段出怪条目应 ≤ 1（表 54：同屏不得要求两个永久前线），实际 %d 条：%s"
+	assert_lte(off_lane.size(), 2,
+		"1-5 非中段出怪条目应 ≤ 2（普通敌人由旁路射击处理；表 54：同屏不得要求两个永久前线），实际 %d 条：%s"
 		% [off_lane.size(), str(off_lane)])
 
 	# 同时校验：中段确实是主压力路线（否则上面那条约束会被「全关无中段」轻易满足）
@@ -1009,7 +1015,7 @@ func test_12_1_5_never_requires_two_permanent_frontlines() -> void:
 		if int(entry.get("lane", -1)) == 1:
 			mid += 1
 	assert_eq(mid, total.size() - off_lane.size(), "中段条目数应与总数减去非中段条目数一致")
-	assert_gte(mid, total.size() - 1, "1-5 的敌人应几乎全部集中在中段（实际中段 %d / 共 %d）"
+	assert_gte(mid, total.size() - 2, "1-5 的敌人应几乎全部集中在中段（实际中段 %d / 共 %d）"
 		% [mid, total.size()])
 
 	# 运行时层同样成立：可用角色只有 1 名具备阻挡能力
@@ -1066,10 +1072,10 @@ func test_13_1_5_result_is_independent_of_tick_granularity() -> void:
 	# 保证比较的是真实战果，而不是三方都在空转
 	assert_eq(int((results[0] as Dictionary)["outcome"]), BattleTypes.Outcome.VICTORY,
 		"60fps 粒度下 1-5 应为胜利")
-	# 裁决 DEC-C-0003 后的实测：1-5 共 8 只全部击杀、**零漏怪**（核心 3/3）。
+	# 裁决 DEC-C-0003 后的实测：1-5 共 24 只全部击杀（正常使用主动技能）、**零漏怪**（核心 3/3）。
 	# 这是本轮战斗体验重构的核心成果之一——跨线支援让「合理站位守住三路」成为可实现目标。
-	assert_eq(int((results[0] as Dictionary)["kills"]), 8,
-		"60fps 粒度下 1-5 应击杀全部 8 名敌人（跨线规则下零漏怪可达）")
+	assert_eq(int((results[0] as Dictionary)["kills"]), 24,
+		"60fps 粒度下 1-5 应击杀全部 24 名敌人（跨线规则下零漏怪可达）")
 	assert_eq(int((results[0] as Dictionary)["leaked"]), 0,
 		"60fps 粒度下 1-5 应零漏怪（合理站位即可守住，而非被迫放怪）")
 	assert_eq(int((results[0] as Dictionary)["coreHp"]), 3,

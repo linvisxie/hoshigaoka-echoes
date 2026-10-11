@@ -6,7 +6,7 @@
   "title": "1-5 · 监考者",
   "background": "bg_env_gym_battle",
   "music": "unheard_memory",
-  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "authorship": "Project original dialogue; 2026-10-11 revision, preserves existing chapter events and character unlocks.",
   "completionFlags": [],
   "nodes": [
     {
@@ -19,7 +19,7 @@
       "id": "1",
       "speaker": "",
       "character": "",
-      "text": "广播的杂音把你们引向旧体育馆。推开沉重的门，舞台旁的测验安排已被红笔改了又改。"
+      "text": "广播声穿过空无一人的旧体育馆。舞台上的测验座位表亮着，一排排空椅之间，纸影随着报时声同时抬起头。"
     },
     {
       "id": "2",
@@ -32,7 +32,7 @@
       "id": "3",
       "speaker": "神谷悠真",
       "character": "kamiya_yuma",
-      "text": "不是等。它在检查每一条路线。"
+      "text": "看舞台。每次那盏灯扫过来，纸影都会往前一步。"
     },
     {
       "id": "4",
@@ -44,32 +44,32 @@
       "id": "5",
       "speaker": "{player}",
       "character": "",
-      "text": "被盯着的时候，连动作都变慢了。"
+      "text": "明明没有人在看……我还是想把手藏起来。"
     },
     {
       "id": "6",
       "speaker": "雨宫澪",
       "character": "amamiya_mio",
-      "text": "别被它的节奏带走。守住坐标。",
+      "text": "看我这边。呼吸慢一点，不用跟着广播数。",
       "emotion": "determined"
     },
     {
       "id": "7",
       "speaker": "神谷悠真",
       "character": "kamiya_yuma",
-      "text": "支援在后面。先处理旁边的残响，再集中应对它。"
+      "text": "我来盯住两侧。等它和纸影靠近，再一起打散。"
     },
     {
       "id": "8",
       "speaker": "",
       "character": "",
-      "text": "地面亮起一圈比以往更清晰的光。你能从残响中选择一种暂时稳定的力量。"
+      "text": "你握住发热的校徽。六瓣星花的光沿着地板接缝铺开，几段错乱的回声第一次有了可以辨认的节奏。"
     },
     {
       "id": "9",
       "speaker": "{player}",
       "character": "",
-      "text": "这次，我们自己决定该怎样前进。"
+      "text": "听到了。澪，往前半步——悠真，后面交给你。"
     }
   ]
 }

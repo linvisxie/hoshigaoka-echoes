@@ -6,14 +6,14 @@
   "title": "1-4 · 可以放下一会儿",
   "background": "bg_env_corridor_battle",
   "music": "unheard_memory",
-  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "authorship": "Project original dialogue; 2026-10-11 revision, preserves existing chapter events and character unlocks.",
   "completionFlags": [],
   "nodes": [
     {
       "id": "0",
       "speaker": "",
       "character": "",
-      "text": "厚重的壳裂开，只剩几张写满待办事项的纸。澪低头看着它们，没有立刻说话。"
+      "text": "书壳从中间松开，散成一地写满排名的便笺。澪把剑尖放低，另一只手仍按着肩上的带子。"
     },
     {
       "id": "1",
@@ -38,14 +38,14 @@
       "id": "4",
       "speaker": "雨宫澪",
       "character": "amamiya_mio",
-      "text": "我习惯了。能做的事，总该先做完。",
+      "text": "我站在前面，就能少一个人被卷进来。以前一直是这样。",
       "emotion": "serious"
     },
     {
       "id": "5",
       "speaker": "神谷悠真",
       "character": "kamiya_yuma",
-      "text": "习惯了，也会累。"
+      "text": "今天前面有人，后面也有人。你不用再按以前的办法算。"
     },
     {
       "id": "6",
@@ -57,14 +57,14 @@
       "id": "7",
       "speaker": "雨宫澪",
       "character": "amamiya_mio",
-      "text": "……五分钟。之后我们一起走。",
+      "text": "……那帮我拿一下。就到校门口。",
       "emotion": "smile"
     },
     {
       "id": "8",
       "speaker": "{player}",
       "character": "",
-      "text": "好。五分钟不需要拿来完成任何任务。"
+      "text": "好。面包也带上，调查还没有包晚饭。"
     }
   ]
 }

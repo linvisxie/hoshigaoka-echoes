@@ -1,0 +1,136 @@
+{
+  "author": "Hoshigaoka Echoes project original synthesis",
+  "externalSamples": [],
+  "generator": "tools/render_resonance_sfx.py",
+  "seed": 20261011,
+  "design": "Soft air, pentatonic resonance, rounded impact, short stereo room; no raw metal or glass in combat routes.",
+  "status": "Rendered; actual Windows playback and listening assessment tracked separately.",
+  "files": [
+    {
+      "asset": "assets/audio/sfx/resonance_hit_01.wav",
+      "peak": 0.22948,
+      "rms": 0.03504,
+      "duration": 0.28
+    },
+    {
+      "asset": "assets/audio/sfx/resonance_hit_02.wav",
+      "peak": 0.23979,
+      "rms": 0.03419,
+      "duration": 0.28
+    },
+    {
+      "asset": "assets/audio/sfx/resonance_hit_03.wav",
+      "peak": 0.2087,
+      "rms": 0.03669,
+      "duration": 0.28
+    },
+    {
+      "asset": "assets/audio/sfx/resonance_blade_01.wav",
+      "peak": 0.34636,
+      "rms": 0.04337,
+      "duration": 0.36
+    },
+    {
+      "asset": "assets/audio/sfx/resonance_armor_01.wav",
+      "peak": 0.21735,
+      "rms": 0.03415,
+      "duration": 0.38
+    },
+    {
+      "asset": "assets/audio/sfx/resonance_dissolve_01.wav",
+      "peak": 0.2462,
+      "rms": 0.0344,
+      "duration": 0.65
+    },
+    {
+      "asset": "assets/audio/sfx/resonance_blade_02.wav",
+      "peak": 0.42,
+      "rms": 0.03781,
+      "duration": 0.36
+    },
+    {
+      "asset": "assets/audio/sfx/resonance_armor_02.wav",
+      "peak": 0.24707,
+      "rms": 0.0382,
+      "duration": 0.38
+    },
+    {
+      "asset": "assets/audio/sfx/resonance_dissolve_02.wav",
+      "peak": 0.23834,
+      "rms": 0.03333,
+      "duration": 0.65
+    },
+    {
+      "asset": "assets/audio/sfx/arrow.wav",
+      "peak": 0.19666,
+      "rms": 0.02873,
+      "duration": 0.28
+    },
+    {
+      "asset": "assets/audio/sfx/hurt.wav",
+      "peak": 0.22761,
+      "rms": 0.0336,
+      "duration": 0.33
+    },
+    {
+      "asset": "assets/audio/sfx/deploy.wav",
+      "peak": 0.23407,
+      "rms": 0.03579,
+      "duration": 0.65
+    },
+    {
+      "asset": "assets/audio/sfx/retreat.wav",
+      "peak": 0.18284,
+      "rms": 0.03303,
+      "duration": 0.42
+    },
+    {
+      "asset": "assets/audio/sfx/heal.wav",
+      "peak": 0.21472,
+      "rms": 0.035,
+      "duration": 0.82
+    },
+    {
+      "asset": "assets/audio/sfx/upgrade.wav",
+      "peak": 0.27632,
+      "rms": 0.0373,
+      "duration": 0.95
+    },
+    {
+      "asset": "assets/audio/sfx/wave.wav",
+      "peak": 0.20969,
+      "rms": 0.03302,
+      "duration": 0.64
+    },
+    {
+      "asset": "assets/audio/sfx/core_hit.wav",
+      "peak": 0.2765,
+      "rms": 0.03566,
+      "duration": 0.75
+    },
+    {
+      "asset": "assets/audio/sfx/pause.wav",
+      "peak": 0.13719,
+      "rms": 0.02848,
+      "duration": 0.25
+    },
+    {
+      "asset": "assets/audio/sfx/mio_skill.wav",
+      "peak": 0.42,
+      "rms": 0.04831,
+      "duration": 0.85
+    },
+    {
+      "asset": "assets/audio/sfx/yuma_skill.wav",
+      "peak": 0.35573,
+      "rms": 0.04208,
+      "duration": 0.78
+    },
+    {
+      "asset": "assets/audio/sfx/status.wav",
+      "peak": 0.20703,
+      "rms": 0.03314,
+      "duration": 0.52
+    }
+  ]
+}

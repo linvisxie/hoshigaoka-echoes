@@ -6,14 +6,14 @@
   "title": "1-4 · 背得太多",
   "background": "bg_env_corridor_battle",
   "music": "unheard_memory",
-  "authorship": "Original project dialogue based on V2.1.4 chapter events; 2026-10-10",
+  "authorship": "Project original dialogue; 2026-10-11 revision, preserves existing chapter events and character unlocks.",
   "completionFlags": [],
   "nodes": [
     {
       "id": "0",
       "speaker": "",
       "character": "",
-      "text": "又一次残响出现在走廊。澪比约定时间来得更早，剑袋靠在她身边。"
+      "text": "放课铃已经响过两遍。约好的走廊里，澪正把剑袋的带子绕紧；午间买的面包还原封不动地躺在窗台上。"
     },
     {
       "id": "1",
@@ -25,14 +25,14 @@
       "id": "2",
       "speaker": "雨宫澪",
       "character": "amamiya_mio",
-      "text": "练习有点久。没事。",
+      "text": "练习结束得晚了。等这边处理完再吃。",
       "emotion": "determined"
     },
     {
       "id": "3",
       "speaker": "神谷悠真",
       "character": "kamiya_yuma",
-      "text": "你昨天也这么说。"
+      "text": "从午休等到放学？面包都要比你先毕业了。"
     },
     {
       "id": "4",
@@ -44,7 +44,7 @@
       "id": "5",
       "speaker": "雨宫澪",
       "character": "amamiya_mio",
-      "text": "这次很硬。可能要多挡一会儿。",
+      "text": "书脊叠得很厚。你们站在后面，别让碎页划到。",
       "emotion": "serious"
     },
     {
@@ -57,7 +57,7 @@
       "id": "7",
       "speaker": "神谷悠真",
       "character": "kamiya_yuma",
-      "text": "它越慢，越有时间处理。先稳住站位，别急着追。"
+      "text": "我会先把它外面的纸打散。澪，留一点力气给自己。"
     }
   ]
 }

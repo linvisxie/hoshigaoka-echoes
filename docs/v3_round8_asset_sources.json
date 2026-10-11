@@ -1,0 +1,28 @@
+{
+  "provider": "Built-in OpenAI image generation; model ID not exposed",
+  "referenceRights": "User confirmed GPT-generated project concepts and authorized adaptation",
+  "terms": "https://openai.com/policies/terms-of-use/",
+  "termsChecked": "2026-10-11",
+  "notice": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+  "finalUserArtAcceptance": false,
+  "assets": [
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_attack.png",
+      "sha256": "7c04f320b10501c235b697c3622b73c7593de508223c253bf3e2283f88f861f4",
+      "source": "tools/source_art/mio_attack_refined_v3.png",
+      "sourceSha256": "7951310919a7aabeaa3100fb855530eec5be5b6d43a022b875e5ad6e6f050e05"
+    },
+    {
+      "asset": "assets/art/characters/amamiya_mio/amamiya_mio_recovery.png",
+      "sha256": "7e6b9d2512041c9c9c7c026a9f08b2723b08101bd7226d3637cf5537742e00df",
+      "source": "tools/source_art/mio_recovery_v3.png",
+      "sourceSha256": "bfe19e2bd5ab99df3109e86b95a7107408bb2a4fe5e8a626c92915ca00842942"
+    },
+    {
+      "asset": "assets/art/characters/kamiya_yuma/kamiya_yuma_attack.png",
+      "sha256": "88a2367bdb601002252db58859598d01817aa6bbbcb4646b7b82c43f72cc90ba",
+      "source": "tools/source_art/yuma_attack_refined_v3.png",
+      "sourceSha256": "921ab2722338fe79a9f33fe9f5aa5f5321ee5ceebfa300b1f12c8d6169153bc8"
+    }
+  ]
+}

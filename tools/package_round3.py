@@ -17,6 +17,10 @@ shutil.copy2(ROOT/'docs/v3_round3_external_assets.json',notice/'外部素材来�
 shutil.copy2(ROOT/'assets/audio/source_record.json',notice/'音乐制作记录.json')
 if (ROOT/'docs/v3_combat_foley_sources.json').exists():
  shutil.copy2(ROOT/'docs/v3_combat_foley_sources.json',notice/'战斗拟音来源.json')
+if (ROOT/'docs/v3_resonance_sfx_record.json').exists():
+ shutil.copy2(ROOT/'docs/v3_resonance_sfx_record.json',notice/'残响音效制作记录.json')
+if args.version>='0.4.5' and (ROOT/'docs/v3_round8_asset_sources.json').exists():
+ shutil.copy2(ROOT/'docs/v3_round8_asset_sources.json',notice/'像素精修来源.json')
 readme='''《星丘残响》前五关画面与交互改进候选版 · 0.4.0 · 2026-10-11
 
 解压后双击“启动前五关.cmd”。请保留 exe 与 pck 在同一目录。
@@ -39,7 +43,10 @@ Noto 字体、Lucide 图标与音频许可见“素材授权”目录。
 实际验证与未完成项见工程 docs/V3_20261011_概念画面与交互改进记录.md。
 '''
 readme=readme.replace('0.4.0',args.version)
-if args.version!='0.4.0':
+if args.version>='0.4.5':
+ readme=readme.replace('界面使用 Kenney CC0 音效。','界面使用 Kenney CC0 音效；战斗改为项目原创的柔和气流、共鸣与消散音色，带多段轮换及动态压缩。')
+ readme=readme.replace('第二关采用楼梯平台，','悠真蓄力等待本路贯穿目标时仍会普通攻击旁路。第三至第五关分别为26、25、24名敌人，成组进场；请使用主动技能清群。\n第二关采用楼梯平台，')
+elif args.version!='0.4.0':
  readme=readme.replace('界面使用 Kenney CC0 音效。','界面与剑击、普通命中、护甲命中、残响消散使用 Kenney CC0 音效，多段素材轮换。')
 (OUT/'试玩说明.txt').write_text(readme,encoding='utf-8-sig')
 files=[p for p in sorted(OUT.rglob('*')) if p.is_file() and '_testenv' not in p.parts and p.name!='build_manifest.json']

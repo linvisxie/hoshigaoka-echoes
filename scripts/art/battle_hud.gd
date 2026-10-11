@@ -33,6 +33,8 @@ var menu_status: Label
 var _normal_size := Vector2.ZERO
 var _feedback_active := false
 var overlays: BattleOverlays
+var tutorial_stack: VBoxContainer
+var tutorial_views: Array[Dictionary] = []
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -48,9 +50,16 @@ func _ready() -> void:
 	_build_cards()
 	_build_selected()
 	_build_pause()
+	tutorial_stack = VBoxContainer.new()
+	tutorial_stack.position = Vector2(24, 166)
+	tutorial_stack.size = Vector2(500, 0)
+	tutorial_stack.add_theme_constant_override("separation", 12)
+	tutorial_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	normal.add_child(tutorial_stack)
 	hint = _label(normal, "", Rect2(550, 965, 800, 48), 24, GameSkin.MUTED)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_stylebox_override("normal", _hint_style())
 	overlays = BattleOverlays.new()
 	overlays.hud = self
 	overlays.battle = battle
@@ -61,7 +70,7 @@ func _panel(parent: Node, rect: Rect2, accent: Color = Color("58719b")) -> Panel
 	p.position = rect.position
 	p.size = rect.size
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	p.add_theme_stylebox_override("panel", GameSkin.panel(Color(0.035,0.06,0.13,0.94), accent, true))
+	p.add_theme_stylebox_override("panel", GameSkin.battle_glass())
 	parent.add_child(p)
 	return p
 
@@ -97,6 +106,14 @@ func _button(parent: Node, text: String, rect: Rect2, action: Callable, primary:
 	b.size = rect.size
 	b.add_theme_font_size_override("font_size", 25)
 	GameSkin.style_button(b, primary)
+	if not text.is_empty():
+		var glass := GameSkin.battle_glass()
+		glass.modulate_color = Color(1.12,1.16,1.12) if primary else Color.WHITE
+		b.add_theme_stylebox_override("normal",glass)
+		var hover := GameSkin.battle_glass()
+		hover.modulate_color = Color(1.3,1.45,1.35)
+		b.add_theme_stylebox_override("hover",hover)
+		b.add_theme_color_override("font_color",Color("e6f5f0"))
 	b.pressed.connect(func() -> void:
 		AudioService.play_sfx("select", -4.0)
 		action.call())
@@ -199,7 +216,7 @@ func _build_selected() -> void:
 	selected_hp = _bar(selected,Rect2(132,106,390,8),GameSkin.GREEN)
 	selected_skill = _label(selected,"",Rect2(20,135,510,80),24,GameSkin.BLUE)
 	selected_skill.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	skill_button = _button(normal,"",Rect2(),func() -> void: battle._request_skill_selected(),true)
+	skill_button = _button(normal,"释放技能  Q",Rect2(),func() -> void: battle._request_skill_selected(),true)
 	retreat_button = _button(normal,"撤退  R",Rect2(),func() -> void: battle._request_retreat_selected())
 	retreat_button.tooltip_text = "撤退会返还部分部署费用，角色进入再部署冷却。"
 
@@ -317,22 +334,63 @@ func _process(delta: float) -> void:
 	for i: int in range(cards.size()):
 		_update_card(cards[i],i,factor)
 	_update_selected(factor,vp)
+	_sync_tutorials()
 	var feedback: bool = battle._feedback_timer > 0 and not battle._feedback_text.is_empty()
 	if feedback != _feedback_active:
 		_feedback_active = feedback
-		var background_style: StyleBox = StyleBoxEmpty.new()
-		if feedback:
-			var toast := GameSkin.panel(Color(0.035,0.055,0.12,0.94),Color("52678f"))
-			toast.content_margin_top = 8
-			toast.content_margin_bottom = 8
-			background_style = toast
-		hint.add_theme_stylebox_override("normal",background_style)
-	hint.position = Vector2(520,vp.y-(126 if feedback else 76))
-	hint.size = Vector2(800,100 if feedback else 48)
+		hint.add_theme_stylebox_override("normal",_hint_style())
 	hint.text = battle._feedback_text if feedback else _context_hint(s)
-	hint.add_theme_color_override("font_color",battle._feedback_color if feedback else GameSkin.MUTED)
+	var measured := hint.get_theme_font("font").get_string_size(hint.text,HORIZONTAL_ALIGNMENT_LEFT,-1,24).x
+	var hint_width := clampf(measured+64,400,760)
+	var hint_height := 98.0 if measured > 696 else 68.0
+	hint.position = Vector2((vp.x-hint_width)*0.5,vp.y-hint_height-28)
+	hint.size = Vector2(hint_width,hint_height)
+	hint.add_theme_color_override("font_color",battle._feedback_color if feedback else Color("d8eee9"))
 	hint.modulate.a = clampf(battle._feedback_timer/0.3,0,1) if feedback else 1.0
 	hint.visible = feedback or battle._selected_character_id == 0
+
+
+func _hint_style() -> StyleBoxTexture:
+	var style := GameSkin.battle_glass()
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
+	return style
+
+func _sync_tutorials() -> void:
+	var source: Array = battle._tutorial_cards
+	while tutorial_views.size() < source.size():
+		var box := PanelContainer.new()
+		box.custom_minimum_size = Vector2(500, 0)
+		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_theme_stylebox_override("panel", GameSkin.battle_glass())
+		tutorial_stack.add_child(box)
+		var lines := VBoxContainer.new()
+		lines.add_theme_constant_override("separation", 7)
+		lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(lines)
+		var caption := Label.new()
+		caption.add_theme_font_size_override("font_size", 23)
+		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lines.add_child(caption)
+		var body := Label.new()
+		body.custom_minimum_size.x = 464
+		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		body.add_theme_font_size_override("font_size", 26)
+		body.add_theme_color_override("font_color",Color("e4f4ef"))
+		body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lines.add_child(body)
+		tutorial_views.append({"box":box,"caption":caption,"body":body})
+	for i: int in range(tutorial_views.size()):
+		var view: Dictionary = tutorial_views[i]
+		(view.box as Control).visible = i < source.size()
+		if i >= source.size(): continue
+		var entry: Dictionary = source[i]
+		var enemy := not str(entry.get("enemyId", "")).is_empty()
+		(view.caption as Label).text = "威胁识别  /  " + str(entry.get("title", "")) if enemy else "观测提示  /  FIELD GUIDE"
+		(view.caption as Label).add_theme_color_override("font_color",GameSkin.RED if enemy else GameSkin.GREEN)
+		(view.body as Label).text = str(entry.get("text", ""))
+		var age: float = battle._now() - float(entry.get("at", 0))
+		(view.box as Control).modulate.a = minf(clampf(age / 0.18,0,1),clampf((battle.TUTORIAL_CARD_LIFETIME-age)/0.65,0,1))
 
 func _context_hint(s: StageRuntime) -> String:
 	if not battle._selected_card_id.is_empty():
@@ -419,12 +477,12 @@ func _update_selected(factor: float, vp: Vector2) -> void:
 	selected_stats.text = "生命  %d / %d" % [unit.hp,unit.max_hp]
 	selected_hp.value = unit.hp_ratio()
 	var skill_state := "就绪"
-	if unit.skill_charged: skill_state = "已蓄力 · 下次命中释放"
+	if unit.skill_charged: skill_state = "贯穿已蓄力 · 旁路普攻继续"
 	elif unit.skill_active_remaining>0: skill_state = "生效中 %.1f 秒" % unit.skill_active_remaining
 	elif unit.skill_cooldown_remaining>0: skill_state = "冷却 %.1f 秒" % unit.skill_cooldown_remaining
-	selected_skill.text = "%s  /  %s" % [unit.skill_config.get("name","主动技能"),skill_state]
+	selected_skill.text = "%s\n%s" % [unit.skill_config.get("name","主动技能"),skill_state]
 	skill_button.tooltip_text = str(unit.skill_config.get("description",""))
-	skill_button.text = "释放技能  Q" if unit.skill_ready() else skill_state
+	skill_button.text = "释放技能  Q" if unit.skill_ready() else ("贯穿待发" if unit.skill_charged else skill_state)
 	skill_button.disabled = not unit.skill_ready()
 	skill_button.position = battle._skill_rect.position/factor
 	skill_button.size = battle._skill_rect.size/factor

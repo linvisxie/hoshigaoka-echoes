@@ -1,0 +1,789 @@
+{
+  "version": "0.4.5",
+  "evidenceType": "Original Windows game captures; automated, not human play/listening",
+  "campaignRevision": "26/25/24 enemies, ordinary clock and production flow; before final pack offset and compact toast styling",
+  "dynamicRevision": "Final pack offset, compact toast, recovery frames and actual draw ledger; before the final hint padding correction verified in Retail",
+  "retailRevision": "Final exported binary; real OS mouse/keyboard, earned campaign save copied into isolated test directory",
+  "files": [
+    {
+      "file": "campaign_battle_1-1.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\campaign_dense_final\\appdata\\HoshigaokaEchoes\\campaign_shots\\battle_1-1.png",
+      "sha256": "d2e72ca78fdb641e79e97fd9f9ea2ff9929c085967f4617ad634f60c71844503"
+    },
+    {
+      "file": "campaign_battle_1-2.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\campaign_dense_final\\appdata\\HoshigaokaEchoes\\campaign_shots\\battle_1-2.png",
+      "sha256": "4052c204387aa08b0952edb19dbb3f8c80f5a3b4f791f4c7e7ef078bb74700e4"
+    },
+    {
+      "file": "campaign_briefing_1-1.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\campaign_dense_final\\appdata\\HoshigaokaEchoes\\campaign_shots\\briefing_1-1.png",
+      "sha256": "91923bc4119e2f10188e46d18c093dfcff4f4d0b1180759e08eeaa5f25efbf8a"
+    },
+    {
+      "file": "campaign_briefing_1-2.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\campaign_dense_final\\appdata\\HoshigaokaEchoes\\campaign_shots\\briefing_1-2.png",
+      "sha256": "73e42d87077d21fa2c05feb2eb3e69928f48607253c3ced2922b75fab1688d9c"
+    },
+    {
+      "file": "campaign_title.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\campaign_dense_final\\appdata\\HoshigaokaEchoes\\campaign_shots\\title.png",
+      "sha256": "a504b98c25894e9be1b83a09392bde986bbcb954bfd13c40fc94a90a6a214fdc"
+    },
+    {
+      "file": "dynamic_v3_attack_00.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_00.png",
+      "sha256": "e34d06a914d5ed1f8044716a7b42a14db04bdda4e7db586971f74d5584a3d9e7"
+    },
+    {
+      "file": "dynamic_v3_attack_00.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_00.png.json",
+      "sha256": "e2861ca5c7b937893597b612f8c8254ff38e341ace92ceffad36b335f0672e7e"
+    },
+    {
+      "file": "dynamic_v3_attack_01.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_01.png",
+      "sha256": "5e1128f3ff8125fe380fe110430c04d2eaac1a2b9bf0a7ce25c2939982921b52"
+    },
+    {
+      "file": "dynamic_v3_attack_01.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_01.png.json",
+      "sha256": "cb4e28d9f97f768db82c124eb76b060ad83df420a072e81b37c48620b4bec0cf"
+    },
+    {
+      "file": "dynamic_v3_attack_02.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_02.png",
+      "sha256": "f8fb40c5433e496be15f5c87aa8aaa163ac7fee51325c3d00a82ec56055cdc2d"
+    },
+    {
+      "file": "dynamic_v3_attack_02.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_02.png.json",
+      "sha256": "b943604cab90b6a7d2c40adbea8b6618f9510c4bf0e0756f4edbe558fd95dba0"
+    },
+    {
+      "file": "dynamic_v3_attack_03.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_03.png",
+      "sha256": "44aed05c6b24c168eb948cec072222c29a3fe65e17271c3f59f17a917dfd5f95"
+    },
+    {
+      "file": "dynamic_v3_attack_03.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_03.png.json",
+      "sha256": "ea6864aa7517738bd88cf98da02f842507cf1aa9464db060d74a9b4e3297baa6"
+    },
+    {
+      "file": "dynamic_v3_attack_04.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_04.png",
+      "sha256": "ea6903d9a94c627c15b4a6e9cd4d35d04cb8d34bb31736f0a05381ed333399cf"
+    },
+    {
+      "file": "dynamic_v3_attack_04.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_04.png.json",
+      "sha256": "d99dec95fcdec8bbce7383cc0c44974f1c281935a0b3e891c1e4a967cc6f456e"
+    },
+    {
+      "file": "dynamic_v3_attack_05.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_05.png",
+      "sha256": "5ea3d926a78b728802882bdd13fa0140a11c50aeb0418492190a2666e37e9c48"
+    },
+    {
+      "file": "dynamic_v3_attack_05.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_05.png.json",
+      "sha256": "761c10155c39d539f2cef52f32603d7309254c35d99fe147d2e8a67abbf93671"
+    },
+    {
+      "file": "dynamic_v3_attack_06.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_06.png",
+      "sha256": "3cef97cf103c6c9fa1a2cd7b423799433b041295dfc264ba23234e39758cbc45"
+    },
+    {
+      "file": "dynamic_v3_attack_06.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_06.png.json",
+      "sha256": "2d2b08cdb84ce9cbf0b143bcb6b2acfcda3c4e1991f269cf38c5ca3dcc59fc96"
+    },
+    {
+      "file": "dynamic_v3_attack_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_07.png",
+      "sha256": "ccbc91c31d6c548cfc54198482b05330554d8f58049feca67ec4b143028d11ac"
+    },
+    {
+      "file": "dynamic_v3_attack_07.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_07.png.json",
+      "sha256": "afa76e1d0cda355f50f15d7b365f9b1f885cb523d314abee7b2e210f669782f5"
+    },
+    {
+      "file": "dynamic_v3_attack_08.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_08.png",
+      "sha256": "2d0b150d4df3bc42e9d21e2fa1443b3298b222fc2d6654ebf780d74c5e4fcd2d"
+    },
+    {
+      "file": "dynamic_v3_attack_08.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_08.png.json",
+      "sha256": "997a8116fe140eb21fb33da7caa7e771f833dc4656253fadfff7a9fe76bf0bfe"
+    },
+    {
+      "file": "dynamic_v3_attack_09.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_09.png",
+      "sha256": "df49540995137607691da2648d18615dd0c54e17ad6d52f73d893523333174a4"
+    },
+    {
+      "file": "dynamic_v3_attack_09.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_attack_09.png.json",
+      "sha256": "b687f07f57af762e47b8fff9a1d734e5b8b2b0bf37d78e3a1c1597e8a6721cbd"
+    },
+    {
+      "file": "dynamic_v3_battle_30s.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_battle_30s.png",
+      "sha256": "302bdc2dd4728f7a4520d57c3bbf41fd121bb02b950e71a34b2255c0b6c892fb"
+    },
+    {
+      "file": "dynamic_v3_battle_30s.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_battle_30s.png.json",
+      "sha256": "3542644c600b923da0924f429814fe7aae6851f58c02f508b634d19304067c7a"
+    },
+    {
+      "file": "dynamic_v3_battle_60s.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_battle_60s.png",
+      "sha256": "302bdc2dd4728f7a4520d57c3bbf41fd121bb02b950e71a34b2255c0b6c892fb"
+    },
+    {
+      "file": "dynamic_v3_battle_60s.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_battle_60s.png.json",
+      "sha256": "cc480564e3da371b6d80b1667c366a75d657aecbbfa91e7df377cbf9be3bdce5"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_00.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_00.png",
+      "sha256": "2b1e07bcf09e28ba0dc9d0c445c2cc5bbf7d05defa87c647c57676e3ba42bbfc"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_00.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_00.png.json",
+      "sha256": "1d2a9a9a62bea7d01f9f3bebd53eeb9aa00aa3fbe65f5dab42315a8551f84dcb"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_01.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_01.png",
+      "sha256": "f1e8a7fd22d72a33f34b5797ff56b901870f943698a21ad7f8b5d8bca0d7cb74"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_01.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_01.png.json",
+      "sha256": "e581e21388ac338dde61b146aefa3243bc5337b4aaa5bd465afcff88cb63c3e9"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_02.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_02.png",
+      "sha256": "ab69984319180856982baa48fa69570fa5c95907ed86bdad17eb5934648a9f8c"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_02.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_02.png.json",
+      "sha256": "d525770a92d0becada6252e4f787a40d9569bf8af49aa1cbef3b199d5f0b07b9"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_03.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_03.png",
+      "sha256": "82b00117b5c963ef957ee9177e80c4f0ce267b5bc1b03e71bf3a99b174fe4fdf"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_03.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_03.png.json",
+      "sha256": "45d09ecb1c76893d5ba1bcf7ac9e46f3873c0d967dbe2c6a4ffd7e5de4837b92"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_04.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_04.png",
+      "sha256": "2560778fc5ec58ffadf2f8eb37e24b4f493fb1e214c397a73527595dacc428e2"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_04.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_04.png.json",
+      "sha256": "5e0e76977f18800126556d8ba24b916e2b19c74412e419a9bc38302662e65db4"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_05.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_05.png",
+      "sha256": "7235f9aff7f0b1b633bb9523cf17fe71dbec440dbe6204d38e779acfcc5af307"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_05.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_05.png.json",
+      "sha256": "005a3decd913b17fc55da2c692886943817a6940815559eb18af0fe606ce5665"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_06.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_06.png",
+      "sha256": "26cf45a60fce8dc529a45551fad74ec71259069c1f487ec91a49a3bf0bb9043f"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_06.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_06.png.json",
+      "sha256": "6fa0dd05f82c98ab7696f3b866d56905e2d3ba60efc3992bf69164a23ec93bb5"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_07.png",
+      "sha256": "2a5dfda3860cde328859ddd0e1261beec1d94fc6af42b32ee907d96da1cf5d62"
+    },
+    {
+      "file": "dynamic_v3_crosslane_arrow_07.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crosslane_arrow_07.png.json",
+      "sha256": "14b330817a2c7a13b682f062118c842334860e37ebb0021834a331edb7948d30"
+    },
+    {
+      "file": "dynamic_v3_crowd_04.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crowd_04.png",
+      "sha256": "d7d6a1ffd34b693fbfb92bc9d72df9ae603ecfbbfe0267c42078e4fc605315c9"
+    },
+    {
+      "file": "dynamic_v3_crowd_04.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crowd_04.png.json",
+      "sha256": "afd5e3dfdc826747d2ca18b7355edf3b545055bbb9cd8869e26ce5fa472c0072"
+    },
+    {
+      "file": "dynamic_v3_crowd_05.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crowd_05.png",
+      "sha256": "09a06c15ebea6b85a48c9a57aaebdd88de5a66f19d0a303583ff4420287b4339"
+    },
+    {
+      "file": "dynamic_v3_crowd_05.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crowd_05.png.json",
+      "sha256": "4d27c7bd45655dd963f7f11336df90a3349485b2737ba8c14b857eb16e582b73"
+    },
+    {
+      "file": "dynamic_v3_crowd_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crowd_07.png",
+      "sha256": "ea324639ec874eba3b21bd58c06d8a4f97544b4a0a0c5c1bc4788bbfa2774c6b"
+    },
+    {
+      "file": "dynamic_v3_crowd_07.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crowd_07.png.json",
+      "sha256": "b376f9fb14f5c895eb0ea459072cb1cccef5576d8b03cf6494e4f8bd2eabaafe"
+    },
+    {
+      "file": "dynamic_v3_crowd_settled_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crowd_settled_07.png",
+      "sha256": "74de6b931d765baf32f7df1d80cc58a71d9cd035925751d6173d735b0a0e40e1"
+    },
+    {
+      "file": "dynamic_v3_crowd_settled_07.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_crowd_settled_07.png.json",
+      "sha256": "af9cb53c5a79a96c2da60381780e20526acfd131dc9b7011f01c8722e048817c"
+    },
+    {
+      "file": "dynamic_v3_deployment_preview.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_deployment_preview.png",
+      "sha256": "b5c4123eacb6ad1325732d20b29f36dad7164c32b4f617f301f4f2ace1c1a220"
+    },
+    {
+      "file": "dynamic_v3_deployment_preview.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_deployment_preview.png.json",
+      "sha256": "bcce440472655bebe10032300e5a0554c94b3184d23b443ec68fb1a176b3552e"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_00.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_00.png",
+      "sha256": "88aa8083dcbeea1bb0f1eb2ff0c775dc8e14cf6f5bc16140f09477f09541ba83"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_00.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_00.png.json",
+      "sha256": "20673ea1c725bb173dd215bc29a824b1a5fc08f5e3ec6507ac914e3326b3fa68"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_01.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_01.png",
+      "sha256": "d258012b23847ed90b8328b1b102f347cf2d91386d88cc900e21967afe6103d0"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_01.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_01.png.json",
+      "sha256": "4b1650318357c14c85c27937e223edc37b4a52f0daeffe9166bc1050f7058e0e"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_02.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_02.png",
+      "sha256": "4939672cbfa556817d52fe5e9613e50add900ed75c8e94fc829451676bd6d048"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_02.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_02.png.json",
+      "sha256": "1f702f3cfe05acb5d799a960bbafcc81189cecae126a79156773054bbc9bf15b"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_03.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_03.png",
+      "sha256": "6bc5e75690f2963612603749325ecad75e0ad6f11d7a3a9792c5919858d2bc5d"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_03.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_03.png.json",
+      "sha256": "c4524e07eb33cd86f2a748d1bf40b4027fb15a06503d1462ba68332ad1dd325d"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_04.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_04.png",
+      "sha256": "25c9b3c7b436c7289b8a711b45f55ec02c19b3de479bcc12705abc169d6c2bde"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_04.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_04.png.json",
+      "sha256": "0801711d8b8bb22ea194aaa07efafd4ed9982c28f05034321e506f37143f8aca"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_05.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_05.png",
+      "sha256": "62d353ad66c2fc76d4e71d673c002a656dd5611e4924cf375ce301ff6cc1048e"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_05.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_05.png.json",
+      "sha256": "7c9163371a0d7285357b11a54c703a264a4a24ac64bfaaffe0f0bf36286cf5a2"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_06.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_06.png",
+      "sha256": "e950ab38ff41f02e11b2571c8cb561315c5e8720b81b4a2a67f2b6cfe92f31de"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_06.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_06.png.json",
+      "sha256": "18c94ba20bcc6aa913551f3a536c4c05602bd1c8e7a812d54217bb72cfb1ac26"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_07.png",
+      "sha256": "bbcb7b3150a6086e044b08947e6edd70c837284180f93436ef803313346b09e4"
+    },
+    {
+      "file": "dynamic_v3_empowered_arrow_07.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_empowered_arrow_07.png.json",
+      "sha256": "34ed6d5cc5fa1095313cd652d962346186e7c59089a7c04b0a1ca598db654336"
+    },
+    {
+      "file": "dynamic_v3_initial.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_initial.png",
+      "sha256": "4ae9cc30e9a0fa7ac60d56e61d0350401bf8a5aa3bc1770ecad63009a8ca1625"
+    },
+    {
+      "file": "dynamic_v3_initial.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_initial.png.json",
+      "sha256": "e09e8a7a3d5784ae5a6cedf44f78cf3e2ae963bc7de7e3ac73388afefc9884a9"
+    },
+    {
+      "file": "dynamic_v3_move_clean_echo_normal.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_move_clean_echo_normal.png",
+      "sha256": "0b83bb46472e3e40d7b1dd0e1e1a4954f386f44fc171c74b82a5ab489114a928"
+    },
+    {
+      "file": "dynamic_v3_move_clean_echo_normal.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_move_clean_echo_normal.png.json",
+      "sha256": "229fdbd1608a286ccea49f15e9035f92cb6fad579a8d3918fa29474f0393cf50"
+    },
+    {
+      "file": "dynamic_v3_move_clean_echo_runner.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_move_clean_echo_runner.png",
+      "sha256": "635bdb30320830bcb209cffffd186f9368deb15d2280e79e80cb6c07c58e8992"
+    },
+    {
+      "file": "dynamic_v3_move_clean_echo_runner.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_move_clean_echo_runner.png.json",
+      "sha256": "7d3c2bd6f6aaf0537bc4cae1c43a4e6ca851b8f16e0e9d338b95fabf874bc47a"
+    },
+    {
+      "file": "dynamic_v3_result.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_result.png",
+      "sha256": "b01ab77fe562da82601c48ec5dea417fe4f860b6496932e40bf0abb03b3764a9"
+    },
+    {
+      "file": "dynamic_v3_result.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_result.png.json",
+      "sha256": "07698e7f463759caeacd10baec5bbb83c494ee797666b8d6fda1167f4714642a"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_00.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_00.png",
+      "sha256": "501c16659bfbb63d6ffc6f613ba113de87361ffde86cde9054397beaf5ccbebd"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_00.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_00.png.json",
+      "sha256": "d92b3f36dcdd2c65f930154c8ae4e37838dce3f2d4eae8a1074ec9cd933add2a"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_01.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_01.png",
+      "sha256": "d0e8918fa2b3b2bea988a44e60b61a6b7e26df77b124db21d06c88c0ca66b618"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_01.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_01.png.json",
+      "sha256": "555eaf6cf6cac578854aa54c80003609095b7ac063621c7635842eceffafb6e3"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_02.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_02.png",
+      "sha256": "96fa382e2117c806f1c1f0d7e1bfd18e1fc85262d70cc0588f2812f7d39f8283"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_02.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_02.png.json",
+      "sha256": "4cc56ae21f3cedf65ff965909f39d57bc0717a066114f2f73d5db1eea1507c43"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_03.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_03.png",
+      "sha256": "573bc4471191435a634f6fd494f90551d2cb7937ce74edc40bd71eed3a286456"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_03.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_03.png.json",
+      "sha256": "43e0edf6c3b17d618fd646f03c167b5613be86a69ae1609cb427aaaba71262e4"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_04.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_04.png",
+      "sha256": "5bf5f62a4daf24247c9ee713c674b959605c831443d1a20854192ef7aa88fe4c"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_04.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_04.png.json",
+      "sha256": "415c79bf876d96a5ab0282c24421385a6c66ccfa3618f03dd1aeb888340605ed"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_05.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_05.png",
+      "sha256": "e996a05e13df946895bc4199bb3842cbdc0d7cc3ffc58dd4fd8414a30a8047b5"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_05.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_05.png.json",
+      "sha256": "c00726e72bd2d75068601ad2292fae0f733dced426e43a715dc00c90e4ca4b3f"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_06.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_06.png",
+      "sha256": "13f6612d803fdbf3cb83a88f249cf6d09c8e70375d010b0f64776e2d36b05cf2"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_06.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_06.png.json",
+      "sha256": "ee000d977432cceb3197d531ff9e4bd7ee8e9941d1a1cb4ea2a004109b0ec862"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_07.png",
+      "sha256": "e34d06a914d5ed1f8044716a7b42a14db04bdda4e7db586971f74d5584a3d9e7"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_07.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_07.png.json",
+      "sha256": "b2a78ddb90adbf9107161f968b963875322ae2c57687aed4ff94d96564bff84d"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_08.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_08.png",
+      "sha256": "5e1128f3ff8125fe380fe110430c04d2eaac1a2b9bf0a7ce25c2939982921b52"
+    },
+    {
+      "file": "dynamic_v3_skill_amamiya_mio_08.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_amamiya_mio_08.png.json",
+      "sha256": "606942ca4fca554e2efdd96c84e87723b52299de99ebc94532bc57d6cc8e9030"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_00.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_00.png",
+      "sha256": "e78ee1c4b8aa9e1d180d6be48e0ec125700764351f1f29066920f3af0c0d876e"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_00.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_00.png.json",
+      "sha256": "18588c9c88d9d33982a703c4a447c4acade84d33290989eb53ed5d2b7fdddd8f"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_01.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_01.png",
+      "sha256": "679de76723886935c76bfe8223a44f4102b03c2751624dfe799c1d39a254de0e"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_01.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_01.png.json",
+      "sha256": "533182568df742b931f3991f7d1c9456b9febca35590310933acdfaa7c44fa28"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_02.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_02.png",
+      "sha256": "fd18cce5eb691ef4807ec48b27e14e8c178278bb365bd7b3b3f08e7730126a7e"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_02.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_02.png.json",
+      "sha256": "3ce73f96dde4a18c20f945df3c2a3d683b86d029ef8776d2b11a670674c0a671"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_03.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_03.png",
+      "sha256": "f5f68305687e131f0357734b060a540e4967e661e9f34976e23e47ffff8fdca1"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_03.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_03.png.json",
+      "sha256": "856a65a2f1353dbca63525762ad5e5066f58839d9ac7fdd5056b623ec86cc953"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_04.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_04.png",
+      "sha256": "2462bbca3d3d9b6b058f3ff78c960d8ec711ecdc90063ef78af69f788ee7ad3f"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_04.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_04.png.json",
+      "sha256": "e091e277388c42a02c6dd130ee8da62d4d91815b0258152f3f3245bde7772397"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_05.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_05.png",
+      "sha256": "acfa83258805582f60f5adb1a0d22e7a630b4277bbce9a84ab3559312b862ab6"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_05.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_05.png.json",
+      "sha256": "74dd8b33ada6b237ab6e414ad85ee6139c1a5e1984ffd94dbf96b76b98198a75"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_06.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_06.png",
+      "sha256": "88aa8083dcbeea1bb0f1eb2ff0c775dc8e14cf6f5bc16140f09477f09541ba83"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_06.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_06.png.json",
+      "sha256": "080cac00ea646a8317061f8bb6c2b1712c6e04d3e2cc9201c351ac3c0a80ead1"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_07.png",
+      "sha256": "d258012b23847ed90b8328b1b102f347cf2d91386d88cc900e21967afe6103d0"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_07.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_07.png.json",
+      "sha256": "06cbafd52421d269a0fe6d39bccbe7f8b806c291d79433415f4a52dbf54fceff"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_08.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_08.png",
+      "sha256": "4939672cbfa556817d52fe5e9613e50add900ed75c8e94fc829451676bd6d048"
+    },
+    {
+      "file": "dynamic_v3_skill_kamiya_yuma_08.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_skill_kamiya_yuma_08.png.json",
+      "sha256": "1b554ac236beaac2affa8845bd562d6373b0d551882145c4979f7d4988f2e8a4"
+    },
+    {
+      "file": "dynamic_v3_two_characters.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_two_characters.png",
+      "sha256": "589ee4f3328a52b8e33f9967d13d3a64b2b39354f61f975ea34c496c00a01ffd"
+    },
+    {
+      "file": "dynamic_v3_two_characters.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_two_characters.png.json",
+      "sha256": "b54ef6e562ed92fd7c3b801387fc059bea4be9a0a095ceac8aff63316226f5f9"
+    },
+    {
+      "file": "dynamic_v3_victory_00.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_00.png",
+      "sha256": "cebaefd9bf5c8ae1138cf6326cf26c8d7b5cb7143fa1612526db21f6b2cfb81c"
+    },
+    {
+      "file": "dynamic_v3_victory_00.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_00.png.json",
+      "sha256": "975bd37184bf99e4f6ed2c3a8558a9a31c4beba3096d0de82d812e2582c788a5"
+    },
+    {
+      "file": "dynamic_v3_victory_01.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_01.png",
+      "sha256": "cebaefd9bf5c8ae1138cf6326cf26c8d7b5cb7143fa1612526db21f6b2cfb81c"
+    },
+    {
+      "file": "dynamic_v3_victory_01.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_01.png.json",
+      "sha256": "a40797b964540ebbdbea16f63c26214a9044ae52dd66a1eb1ed3dd2ac2f382db"
+    },
+    {
+      "file": "dynamic_v3_victory_02.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_02.png",
+      "sha256": "0b7465875ec04ffb3c739df3e233ab835ac21686f86e88089f21afa84f6b80cf"
+    },
+    {
+      "file": "dynamic_v3_victory_02.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_02.png.json",
+      "sha256": "983fd202c49bc24a2e65673a2b8efecffbee6a35a8c9f52f803e15f32f880260"
+    },
+    {
+      "file": "dynamic_v3_victory_03.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_03.png",
+      "sha256": "0b7465875ec04ffb3c739df3e233ab835ac21686f86e88089f21afa84f6b80cf"
+    },
+    {
+      "file": "dynamic_v3_victory_03.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_03.png.json",
+      "sha256": "b5e076d8c0fd6184ba15c30b3a367918c3663d15794fe7b1b7d6200d318b17c9"
+    },
+    {
+      "file": "dynamic_v3_victory_04.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_04.png",
+      "sha256": "0b7465875ec04ffb3c739df3e233ab835ac21686f86e88089f21afa84f6b80cf"
+    },
+    {
+      "file": "dynamic_v3_victory_04.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_04.png.json",
+      "sha256": "6f41d5338f3b34034f22d95c8ba02edc5a8194194b8fed9f07e83346729f6ecf"
+    },
+    {
+      "file": "dynamic_v3_victory_05.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_05.png",
+      "sha256": "0d9fc20aeaf16f8b5e045955daff29d1bbea7d72aaa5d7230c4f16895ed33531"
+    },
+    {
+      "file": "dynamic_v3_victory_05.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_05.png.json",
+      "sha256": "ba065781d4eae509196502c6dfabab8284d0194751e3394902e5b025005f2f50"
+    },
+    {
+      "file": "dynamic_v3_victory_06.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_06.png",
+      "sha256": "0d9fc20aeaf16f8b5e045955daff29d1bbea7d72aaa5d7230c4f16895ed33531"
+    },
+    {
+      "file": "dynamic_v3_victory_06.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_06.png.json",
+      "sha256": "053c1858c4fd154e20c60207412c68add91af417cfa87b6fe31748be5b02b46a"
+    },
+    {
+      "file": "dynamic_v3_victory_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_07.png",
+      "sha256": "61f2d14178a063b1806a0af9321a4a32ffa3e68ce192bab45953cea4291d78fe"
+    },
+    {
+      "file": "dynamic_v3_victory_07.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_07.png.json",
+      "sha256": "cccf73c29369dc564ab82eeb6618ccbc84b056f53e0358b2a18a61196d49e886"
+    },
+    {
+      "file": "dynamic_v3_victory_08.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_08.png",
+      "sha256": "2e5247b662c6287975afab41879cf7e88cb1839ab917f2841c972da056266a89"
+    },
+    {
+      "file": "dynamic_v3_victory_08.png.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\p0.3_shots\\v3_victory_08.png.json",
+      "sha256": "af78aef9552f04cabc9c9cfcecb037fae63d82d13d5fcbb0594932e25be9f46d"
+    },
+    {
+      "file": "retail_battle_context_hint.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\battle_context_hint.png",
+      "sha256": "dbeab9f6e86d0af6a97a19da7ff5dc0b92820739f52244106fba1fc51f3158a5"
+    },
+    {
+      "file": "retail_battle_deployed.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\battle_deployed.png",
+      "sha256": "502a02bf97cae3d04e730359fb780647fcaf088ba99593617a8d60ab866368fb"
+    },
+    {
+      "file": "retail_battle_initial.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\battle_initial.png",
+      "sha256": "56f33656fcecee01d7d3c10f6ebfd8415db32aa1ee77fd351b7e907a65ef9858"
+    },
+    {
+      "file": "retail_briefing.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\briefing.png",
+      "sha256": "ab467017d7ba4f1cb640f58d5b0431fb9bb72bdf3699c49e77262eba57558c6f"
+    },
+    {
+      "file": "retail_briefing_reordered.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\briefing_reordered.png",
+      "sha256": "24f7f3377652ceffe35d6231e4eaee5857815d2a314fa495946685ec8521d293"
+    },
+    {
+      "file": "retail_campus.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\campus.png",
+      "sha256": "a78480d30dd5f320f3cbf469ff1a2882c6c1c78eb3bfa7d1fa23b7bb10f27eee"
+    },
+    {
+      "file": "retail_deployed_card_tooltip.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\deployed_card_tooltip.png",
+      "sha256": "abfa9d0f8724a4a0187a322714f1c0a2ccb70fb82cf6a7c1fb1da28ac4227c79"
+    },
+    {
+      "file": "retail_deployment_preview.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\deployment_preview.png",
+      "sha256": "f828710237bb48d810ee67766b035acff9516e4abb46f50294d34ad914069c74"
+    },
+    {
+      "file": "retail_exit_confirmation.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\exit_confirmation.png",
+      "sha256": "03ede912b1f1f7c8f6e652728ec19809bb57bbbf4d8dc6c6798edc22ddd05aa4"
+    },
+    {
+      "file": "retail_leave_confirmation.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\leave_confirmation.png",
+      "sha256": "8d58644da81c5880d0f3416e4d21f2d645f322e244a8c9bfa05ab4321a8586b5"
+    },
+    {
+      "file": "retail_pause.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\pause.png",
+      "sha256": "fd9e630dc5d5960faed746e6da4974ec10b288f6033a9917b951793fd7bb158c"
+    },
+    {
+      "file": "retail_stage_cards.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\stage_cards.png",
+      "sha256": "fee46924211389f8e1636635222134f2c4a97cea3d486940aa956167e6bcf6c6"
+    },
+    {
+      "file": "retail_title.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\title.png",
+      "sha256": "44f2e762e623fa3846040d5e2336fdbc1121e43861dd7b2625bfe7863e844e94"
+    },
+    {
+      "file": "campaign_report.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\campaign_dense_final\\appdata\\HoshigaokaEchoes\\campaign_report.json",
+      "sha256": "e8f2891ba14bda7441ee9eeb2e94f3a6936316d74870259ec55a18ce5e21193b"
+    },
+    {
+      "file": "dynamic_report.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\visual_slice_report.json",
+      "sha256": "e09e9c722d04b40dd9f128a477b60cec1b4948ed2d5bad3320e1c3a53bc0624c"
+    },
+    {
+      "file": "dynamic_actual_draw_ledger.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\dynamic_fanned\\appdata\\HoshigaokaEchoes\\art_probe\\latest.json",
+      "sha256": "5e1d795005d2a1edba1ea078926a3334ed83954f3afd9eceeab8ba64deedea4f"
+    },
+    {
+      "file": "regression_report.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\regression_final\\result.json",
+      "sha256": "4275daf192024ad647c05673fef3ba78c34004bdcf9609358184ba3384cfa40a"
+    },
+    {
+      "file": "retail_report.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\retail_hint_final\\retail_report.json",
+      "sha256": "1067a01f911f0d8a5fd935bf1852cfdb7217ab4fbc62ad95afd47d9a5683a767"
+    },
+    {
+      "file": "battle_audio_report.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\audio_battle_final\\audio_report.json",
+      "sha256": "482b9eb27d79de7c8ffe027b006b6834a08d8bc90eb851c390cdcfa1edd2ff25"
+    },
+    {
+      "file": "title_audio_report.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\audio_retail_final\\audio_report.json",
+      "sha256": "e84df5ca366c9c628a5c2e24d1fd35b5c289af0eb5b46adc3b351da2ae388d88"
+    },
+    {
+      "file": "battle_windows_loopback.wav",
+      "source": "D:\\星丘残响\\_testenv\\v3-round8\\audio_battle_final\\windows_loopback.wav",
+      "sha256": "f1ad58bfe18f5afa5428c563928769bd349d439af9e6dd7b453cd287f1f7783a"
+    }
+  ]
+}

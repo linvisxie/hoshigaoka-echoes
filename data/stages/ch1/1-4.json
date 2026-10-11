@@ -31,9 +31,21 @@
       "wave": 1
     },
     {
+      "time": 11.7,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
       "time": 19.0,
       "lane": 1,
       "enemy": "echo_runner",
+      "wave": 1
+    },
+    {
+      "time": 19.7,
+      "lane": 1,
+      "enemy": "echo_normal",
       "wave": 1
     },
     {
@@ -43,7 +55,25 @@
       "wave": 2
     },
     {
+      "time": 36.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 39,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
       "time": 50.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 50.8,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 2
@@ -55,9 +85,45 @@
       "wave": 3
     },
     {
+      "time": 70.1,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 70.2,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 70.3,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 70.4,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 70.7,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
       "time": 78.0,
       "lane": 1,
       "enemy": "echo_runner",
+      "wave": 3
+    },
+    {
+      "time": 79,
+      "lane": 1,
+      "enemy": "echo_normal",
       "wave": 3
     },
     {
@@ -73,9 +139,27 @@
       "wave": 4
     },
     {
+      "time": 112.7,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 115,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 4
+    },
+    {
       "time": 124.0,
       "lane": 1,
       "enemy": "echo_runner",
+      "wave": 4
+    },
+    {
+      "time": 124.8,
+      "lane": 1,
+      "enemy": "echo_normal",
       "wave": 4
     },
     {
@@ -86,7 +170,7 @@
     }
   ],
   "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段承载 Wave 调度。",
-  "_timeline_candidate": "出怪秒数与数量属 V2.1.4 G-十一 明列的候选可配置平衡参数；本文件给出首轮值，已用 tools/simulate_ch1_stages.gd 验证。",
+  "_timeline_candidate": "2026-10-11 用户明确要求提高出怪数量、并行压力和打击节奏；时间与数量仍是可调平衡参数。以enemySpawnTimeline为唯一出怪来源。",
   "waves": [
     {
       "number": 1,
@@ -114,8 +198,8 @@
     }
   ],
   "_waveCount_spec": "V2.1.4 D-33 表 32 的第一章 5 波骨架；1-4 承担「引入装甲」一个教学点，取 4 波（装甲波之后安排一个喘息波，符合 F-二十二 压力曲线）。",
-  "_enemyCount_spec": "11 只（普通 ×6 / 疾走 ×3 / 装甲 ×2），低于 D-30 的 18～24——装甲单只击杀时间约 15 秒，2 只已占据本关近一半时长；敌人数按「总击杀时间」而非「只数」控制。",
-  "_balanceNote": "装甲残响体设计参数（唯一来源 data/enemies.json）：HP 800 / 攻 85 / 防 100 / 移速 0.35 / 间隔 1.5。反算：它打雨宫澪（防 80）为 85×100/180 ≈ 47 伤害/1.5 秒 ≈ 31.3 DPS；雨宫澪 1000 HP 可扛约 32 秒，足够两人合力击杀（约 15 秒）。**若只有一人**：雨宫澪单独需 14 次 × 1.1 秒 ≈ 15.4 秒，仍可击杀但极慢，期间她还会被持续攻击——这正是「两人同线」优于「一人苦撑」的量化依据。",
+  "_enemyCount_spec": "2026-10-11 成组进场版：25 名；中后段包含集中压线的小队，正常使用主动技能清群。",
+  "_balanceNote": "2026-10-11 以真实配置重新验证成组出怪、主动技能、不同站位和空部署失败路径。敌人及角色基础面板、AP、核心HP不作隐藏加强/削弱；旧版耐久计算仅适用于历史时间线。",
   "_softCounterNote": "V2.1.4 F-五十五：目标是软克制，「装甲敌人科学部更有效，但物理阵容仍能通过」——本关用纯物理阵容（澪 + 悠真）**可以通关**，只是效率明显更低。这与「禁止没有某角色就完全不能过关」一致。",
   "tutorialTriggers": [
     {
@@ -155,5 +239,7 @@
     "equipment_part": 2
   },
   "stageName": "背得太多",
-  "briefing": "装甲残响防御较高。前线承压时保持后方输出，留意澪的生命与再部署冷却。"
+  "briefing": "装甲残响防御较高。前线承压时保持后方输出，留意澪的生命与再部署冷却。",
+  "_encounterRevision": "2026-10-11 用户要求增加成组出怪、战斗紧张感。保留首遇顺序、解锁、精英机制与无治疗条件；旧数量和静态通关说明是历史基线，以本时间线和本轮实测为准。",
+  "_stableClearPath": "2026-10-11 成组进场版：澪中路col3、悠真中路col1；按正常AP部署，技能就绪且有敌人时释放。回归验证包含无治疗、正常Lv.1基础数值与零漏怪目标。旧无技能静态打法不再是当前密集版本的验收条件，实际Windows新游戏连续流程另行记录。"
 }

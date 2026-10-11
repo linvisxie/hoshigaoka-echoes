@@ -21,6 +21,9 @@ var arrow_next := 0.0
 var empowered_frames := 0
 var empowered_recording := false
 var empowered_next := 0.0
+var peak_enemies := 0
+var crowd_settle_at := -1.0
+var crowd_settle_count := 0
 
 func _ready() -> void:
 	_begin.call_deferred()
@@ -41,6 +44,15 @@ func _process(_delta: float) -> void:
 		return
 	var session: BattleSession = battle.session
 	var now := session.stage.elapsed_seconds
+	if session.stage.enemies.size() > peak_enemies:
+		peak_enemies = session.stage.enemies.size()
+		if peak_enemies >= 4:
+			shot("crowd_%02d" % peak_enemies)
+			crowd_settle_at = now + 0.7
+			crowd_settle_count = peak_enemies
+	if crowd_settle_at >= 0 and now >= crowd_settle_at:
+		shot("crowd_settled_%02d" % crowd_settle_count)
+		crowd_settle_at = -1.0
 	for enemy: EnemyRuntime in session.stage.enemies:
 		if enemy.enemy_id in ["echo_normal", "echo_runner"] and enemy.state == BattleTypes.EnemyState.MOVING:
 			var label := "move_clean_" + enemy.enemy_id
@@ -75,13 +87,14 @@ func _process(_delta: float) -> void:
 			arrow_recording = false
 	if not session.is_decided() and not session.is_paused() and not battle._upgrade_panel_active():
 		for character: CharacterRuntime in session.stage.characters:
-			if character.skill_ready() and not skill_recorded.has(character.character_id) and active_skill_clip.is_empty():
+			if character.skill_ready() and active_skill_clip.is_empty():
 				battle._selected_character_id = character.instance_id
 				battle._request_skill_selected()
-				skill_recorded[character.character_id] = true
-				active_skill_clip = character.character_id
-				skill_frame = 0
-				skill_next_frame = now + 0.02
+				if not skill_recorded.has(character.character_id):
+					skill_recorded[character.character_id] = true
+					active_skill_clip = character.character_id
+					skill_frame = 0
+					skill_next_frame = now + 0.02
 				break
 	if not active_skill_clip.is_empty() and now >= skill_next_frame:
 		shot("skill_%s_%02d" % [active_skill_clip, skill_frame])
@@ -99,7 +112,9 @@ func _process(_delta: float) -> void:
 		var mio := session.stage.get_character_by_id("amamiya_mio")
 		if mio != null and battle._char_anim.has(mio.instance_id):
 			var state: AnimState = battle._char_anim[mio.instance_id]
-			if state.anim == AnimState.ATTACK and attack_frames == 0 and not recording:
+			var special: Dictionary = battle._special_animations.get(mio.instance_id,{})
+			var special_playing := not special.is_empty() and now < float(special["born"])+float(special["life"])
+			if state.anim == AnimState.ATTACK and not special_playing and attack_frames == 0 and not recording:
 				recording = true
 				next_frame = now
 	if recording and now >= next_frame:
@@ -117,7 +132,7 @@ func _process(_delta: float) -> void:
 		shot("battle_60s")
 	if session.is_decided():
 		if victory_frames < 9 and battle._result_animation_time >= float(victory_frames) * 0.1:
-			shot("victory_%02d" % victory_frames)
+			shot(("victory_%02d" if session.outcome == BattleTypes.Outcome.VICTORY else "defeat_%02d") % victory_frames)
 			victory_frames += 1
 		if battle._result_animation_time >= 1.5 and not finish_scheduled:
 			finish_scheduled = true
@@ -138,5 +153,5 @@ func _finish() -> void:
 	file.store_string(JSON.stringify({"evidenceType": "Real Windows Godot viewport; automated input, not human play",
 		"stage": battle.session.stage.stage_id, "outcome": BattleTypes.outcome_name(battle.session.outcome),
 		"time": battle._now(), "shots": captured.keys(), "attackFrames": attack_frames, "victoryFrames": victory_frames,"crosslaneArrowFrames":arrow_frames,"empoweredArrowFrames":empowered_frames,
-		"summary": battle.session.result_summary(), "audioHistory": audio_history}, "\t"))
-	get_tree().quit()
+		"summary": battle.session.result_summary(), "peakLivingEnemies":peak_enemies,"audioHistory": audio_history}, "\t"))
+	get_tree().quit(0 if battle.session.outcome == BattleTypes.Outcome.VICTORY else 2)

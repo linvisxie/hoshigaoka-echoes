@@ -1,0 +1,38 @@
+{
+  "source": "tools\\source_art\\mio_recovery_v3.png",
+  "method": "Four distinct imagegen poses, connected-component extraction and nearest-neighbour registration to pre-existing 96px production cells.",
+  "output": "assets/art/characters/amamiya_mio/amamiya_mio_recovery.png",
+  "frames": [
+    {
+      "frame": 0,
+      "generatedBox": [
+        314,
+        232,
+        858,
+        616
+      ],
+      "productionBox": [
+        8,
+        35,
+        85,
+        91
+      ]
+    },
+    {
+      "frame": 1,
+      "generatedBox": [
+        1405,
+        214,
+        1910,
+        616
+      ],
+      "productionBox": [
+        10,
+        28,
+        90,
+        91
+      ]
+    }
+  ],
+  "status": "Imported; dynamic identity, weapon and transition inspection required."
+}

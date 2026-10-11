@@ -10,6 +10,14 @@ const BLUE := Color("8adaff")
 const GREEN := Color("8de0c3")
 const RED := Color("ff899e")
 
+static func battle_glass() -> StyleBoxTexture:
+	var style := StyleBoxTexture.new()
+	style.texture = preload("res://assets/art/ui/battle_glass.svg")
+	for side: int in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+		style.set_texture_margin(side, 18.0)
+		style.set_content_margin(side, 18.0)
+	return style
+
 static func panel(fill: Color = Color("111c34"), accent: Color = Color("52678f"), heavy: bool = false) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = fill

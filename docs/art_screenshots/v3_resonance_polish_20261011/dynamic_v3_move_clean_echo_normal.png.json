@@ -1,0 +1,20 @@
+{
+	"actualDrawLedger": {
+		"char_anim:deploy": 24,
+		"char_anim:idle": 123,
+		"char_special:deploy": 24,
+		"enemy_anim:idle": 1,
+		"enemy_anim:move": 1,
+		"res://assets/art/characters/amamiya_mio/amamiya_mio_deploy.png": 24,
+		"res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 123,
+		"res://assets/art/enemies/echo_normal/echo_normal_idle.png": 1,
+		"res://assets/art/enemies/echo_normal/echo_normal_move.png": 1,
+		"res://assets/vfx/vfx_deploy.png": 21,
+		"vfx:vfx_deploy": 21
+	},
+	"evidenceType": "Godot native viewport (not desktop)",
+	"logicalTime": 4.14999999999999,
+	"renderFrame": 192,
+	"shot": "v3_move_clean_echo_normal",
+	"stage": "1-5"
+}

@@ -1,0 +1,68 @@
+{
+  "source": "tools\\source_art\\yuma_attack_refined_v3.png",
+  "method": "Four distinct imagegen poses, connected-component extraction and nearest-neighbour registration to pre-existing 96px production cells.",
+  "output": "assets/art/characters/kamiya_yuma/kamiya_yuma_attack.png",
+  "frames": [
+    {
+      "frame": 0,
+      "generatedBox": [
+        86,
+        178,
+        443,
+        639
+      ],
+      "productionBox": [
+        28,
+        16,
+        85,
+        90
+      ]
+    },
+    {
+      "frame": 1,
+      "generatedBox": [
+        624,
+        199,
+        1043,
+        639
+      ],
+      "productionBox": [
+        25,
+        22,
+        92,
+        90
+      ]
+    },
+    {
+      "frame": 2,
+      "generatedBox": [
+        1191,
+        191,
+        1604,
+        639
+      ],
+      "productionBox": [
+        3,
+        22,
+        87,
+        90
+      ]
+    },
+    {
+      "frame": 3,
+      "generatedBox": [
+        1793,
+        215,
+        2123,
+        639
+      ],
+      "productionBox": [
+        29,
+        22,
+        81,
+        90
+      ]
+    }
+  ],
+  "status": "Imported; dynamic identity, weapon and transition inspection required."
+}

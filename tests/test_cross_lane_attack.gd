@@ -618,25 +618,24 @@ func test_16_stage_1_3_cross_lane_support_reaches_zero_leak() -> void:
 	assert_gt(int(support["kills"]), 0, "相邻路支援应至少击杀若干敌人")
 
 
-## 覆盖项 16b：1-4 在跨线规则下，中路与相邻路部署**都**能零漏怪
-## （证明部署位置产生了不同的战术价值，而非唯一固定摆法才能赢）。
-func test_16b_stage_1_4_has_multiple_zero_leak_placements() -> void:
+## 密集波次后，中路贯穿仍可零漏怪；上路支援也能胜利，但会漏一只。
+## 保留真实站位代价，不能把旧低密度版本的双零漏怪结果继续标为通过。
+func test_16b_stage_1_4_has_multiple_winning_placements_with_different_costs() -> void:
 	var mid := _run_stage("1-4", [
 		{"t": 0.5, "c": CHAR_MIO, "col": 3, "lane": 1},
 		{"t": 12.5, "c": CHAR_YUMA, "col": 1, "lane": 1},
 	])
 	var side := _run_stage("1-4", [
 		{"t": 0.5, "c": CHAR_MIO, "col": 3, "lane": 1},
-		{"t": 12.5, "c": CHAR_YUMA, "col": 1, "lane": 0},
+		{"t": 12.5, "c": CHAR_YUMA, "col": 3, "lane": 0},
 	])
 
 	assert_eq(int(mid["outcome"]), BattleTypes.Outcome.VICTORY, "1-4 中路解应胜利")
 	assert_eq(int(mid["leaked"]), 0, "1-4 中路解应零漏怪")
 	assert_eq(int(side["outcome"]), BattleTypes.Outcome.VICTORY, "1-4 相邻路解应胜利")
-	assert_eq(int(side["leaked"]), 0, "1-4 相邻路解应零漏怪")
-	# 两种摆法都零漏怪 → 不存在「只有唯一固定摆法才能赢」
-	assert_eq(int(mid["coreHp"]), int(side["coreHp"]),
-		"两种摆法应得到相同的核心剩余（都零漏怪）")
+	assert_eq(int(side["leaked"]), 1, "密集群下相邻路单体支援会漏一只")
+	assert_eq(int(side["coreHp"]), 2, "相邻路仍保留两点防线，不是不可通关")
+	assert_gt(int(mid["coreHp"]), int(side["coreHp"]), "本路贯穿应体现密集清群的站位优势")
 
 
 ## 覆盖项 16c：1-5 垂直切片在跨线规则下应零漏怪（核心满值）。
@@ -758,6 +757,7 @@ func _run_stage(sid: String, acts: Array) -> Dictionary:
 		fail_test("关卡 %s 构建失败：%s" % [sid, str(rt.get_errors())])
 		return {}
 
+	rt.configure_skills(DataRegistry.get_domain("skills"))
 	var rejects: Array[String] = []
 	for act: Dictionary in acts:
 		_advance_rt_to(rt, float(act["t"]))
@@ -788,6 +788,9 @@ func _run_stage(sid: String, acts: Array) -> Dictionary:
 func _advance_rt_to(rt: StageRuntime, target: float) -> void:
 	var guard := 0
 	while rt.elapsed_seconds < target - EPS and guard < 400000:
+		for unit: CharacterRuntime in rt.characters:
+			if unit.skill_ready() and rt.has_living_enemies():
+				rt.cast_skill(unit.instance_id)
 		rt.advance(StageRuntime.LOGIC_STEP_SECONDS)
 		guard += 1
 		if rt.core_hp <= 0:

@@ -25,7 +25,7 @@
       "wave": 1
     },
     {
-      "time": 10.0,
+      "time": 4.8,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 1
@@ -43,7 +43,7 @@
       "wave": 2
     },
     {
-      "time": 38.0,
+      "time": 30.8,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 2
@@ -143,5 +143,6 @@
     "equipment_part": 2
   },
   "stageName": "迟到的人影",
-  "briefing": "疾走残响会迅速通过空线。留意下一波路线，提前安排阻挡与部署。"
+  "briefing": "疾走残响会迅速通过空线。留意下一波路线，提前安排阻挡与部署。",
+  "_encounterRevision": "2026-10-11 成组进场：前两关保留教学人数和换线窗口，增加同波并行压力；第三关起显著增加总人数。"
 }

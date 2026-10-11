@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs><linearGradient id="glass" x2=".85" y2="1"><stop stop-color="#203e58" stop-opacity=".95"/><stop offset=".45" stop-color="#142d45" stop-opacity=".94"/><stop offset="1" stop-color="#111e36" stop-opacity=".96"/></linearGradient><linearGradient id="edge" x2="1" y2="1"><stop stop-color="#b6f6ef" stop-opacity=".85"/><stop offset=".48" stop-color="#74aec9" stop-opacity=".38"/><stop offset="1" stop-color="#8e99db" stop-opacity=".65"/></linearGradient></defs>
+<path d="M14 1h108l5 5v108l-13 13H6l-5-5V14Z" fill="url(#glass)" stroke="url(#edge)"/>
+<path d="M17 5h72M5 18v23M111 123h-30M123 110V87" fill="none" stroke="#c0f6ee" stroke-opacity=".30"/>
+<path d="M20 1h20M127 70v20" stroke="#b4e8ff" stroke-width="2" stroke-opacity=".65"/>
+</svg>
