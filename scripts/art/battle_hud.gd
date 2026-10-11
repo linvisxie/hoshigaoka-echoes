@@ -89,6 +89,7 @@ func _label(parent: Node, text: String, rect: Rect2, font_size: int = 26, color:
 
 func _texture(parent: Node, texture: Texture2D, rect: Rect2) -> TextureRect:
 	var t := TextureRect.new()
+	t.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	t.texture = texture
 	t.position = rect.position
@@ -237,9 +238,12 @@ func _build_pause() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var note := _label(pause_panel,"角色、残响与技能冷却均已暂停",Rect2(35,214,680,40),24,GameSkin.MUTED)
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_button(pause_panel,"继续调查   Space",Rect2(105,290,540,76),func() -> void: battle._toggle_pause(),true)
-	_button(pause_panel,"操作说明与音量",Rect2(105,390,540,76),_show_pause_settings)
-	_button(pause_panel,"结束本次调查",Rect2(105,490,540,76),_confirm_leave)
+	_button(pause_panel,"继续调查   Space",Rect2(105,280,540,66),func() -> void: battle._toggle_pause(),true)
+	var retry := _button(pause_panel,"重试本次调查",Rect2(105,360,540,66),func() -> void: battle._restart_investigation())
+	retry.name = "RetryInvestigation"
+	retry.tooltip_text = "使用当前阵容从本关开头重新开始；本次未结算奖励不发放。"
+	_button(pause_panel,"操作说明与音量",Rect2(105,440,540,66),_show_pause_settings)
+	_button(pause_panel,"结束本次调查",Rect2(105,520,540,66),_confirm_leave)
 	menu_status = _label(pause_panel,"本次尚未结算的奖励不会发放。",Rect2(80,605,590,60),23,GameSkin.MUTED)
 	menu_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pause_layer.hide()

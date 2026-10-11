@@ -162,6 +162,9 @@ static func character_base(char_id: String) -> Texture2D:
 
 ## 角色头像（size 取 64 / 256）。
 static func character_portrait(char_id: String, size: int = 64) -> Texture2D:
+	var polished := load_texture("%s/characters/%s/%s_portrait_polished.png" % [ART_ROOT, char_id, char_id]) if char_id in ["amamiya_mio", "kamiya_yuma"] else null
+	if polished != null:
+		return polished
 	return load_texture("%s/characters/%s/%s_portrait_%d.png" % [
 		ART_ROOT, char_id, char_id, size])
 
@@ -262,7 +265,7 @@ static func stats() -> Dictionary:
 	return {"loaded": loaded, "missing": missing, "missPaths": _miss_cache.keys()}
 
 
-## 清空缓存（仅供测试使用）。
+## Clear at explicit application shutdown, or when resetting an isolated test.
 static func clear_cache() -> void:
 	_tex_cache.clear()
 	_atlas_cache.clear()

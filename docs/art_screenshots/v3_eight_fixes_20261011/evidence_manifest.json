@@ -1,0 +1,348 @@
+{
+  "version": "0.4.7",
+  "type": "Original Windows runtime screenshots, automated input; user aesthetic acceptance pending",
+  "uiChecks": 35,
+  "coreFrameCount": 16,
+  "coreChangedFramesComparedWithFirst": 14,
+  "preview": "GIFs are derived timing previews (closeup is cropped and enlarged); original ui_core_turn PNGs are retained",
+  "uiRevision": "Final UI/art and AP/retry behavior; before moving legacy normalization to App and explicit shutdown cache release",
+  "retailRevision": "Final exported binary, including explicit cache release; real OS input",
+  "regression": "602/602,10159 assertions; existing GUT shutdown resource warnings remain",
+  "files": [
+    {
+      "file": "ui_core_turn_00.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_00.png",
+      "sha256": "1e1e49077ab1f7c61ba36cc9cc6efbea16cb6b4e3b208867d665c8d531f31645"
+    },
+    {
+      "file": "ui_core_turn_01.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_01.png",
+      "sha256": "6aba46d5a01b7872589a756a8d978d8a29785d55193f2cab205a08aadeaae4e2"
+    },
+    {
+      "file": "ui_core_turn_02.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_02.png",
+      "sha256": "be711c53e4941fefd9c0f9508d8a9b2dd3191f58a679b1596699b9243a772990"
+    },
+    {
+      "file": "ui_core_turn_03.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_03.png",
+      "sha256": "a26920e21aa0f3452b5a22c7fc9c67f9f38d04b61191bbd46e4ed977943b5bb0"
+    },
+    {
+      "file": "ui_core_turn_04.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_04.png",
+      "sha256": "5c35ef3b7d339bab43e16b93853997f8bb6742611efa47817b5723ec303ea76d"
+    },
+    {
+      "file": "ui_core_turn_05.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_05.png",
+      "sha256": "8e8d4925ea60fb9c0a59746314fd7cca1238141999e4b559c7b5c19ccb06dafa"
+    },
+    {
+      "file": "ui_core_turn_06.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_06.png",
+      "sha256": "3db4fe1328e660f2f799745aaf3405b2bed9bde636933bb9b50061ac5e5099df"
+    },
+    {
+      "file": "ui_core_turn_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_07.png",
+      "sha256": "fe387a12d7b05e95520c0631199b3556a60685dd219466d50f4a9fb2382f86c7"
+    },
+    {
+      "file": "ui_core_turn_08.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_08.png",
+      "sha256": "c4352b1f9d4d83edf63b7a79062b65edd8997286e5346dc14919f27991b45926"
+    },
+    {
+      "file": "ui_core_turn_09.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_09.png",
+      "sha256": "31b67d7c785b24ae4c35b5dd1651f8711a7cadb090de4ed2185cad084b84579b"
+    },
+    {
+      "file": "ui_core_turn_10.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_10.png",
+      "sha256": "001aab114a446af4e1f107c172289f912e9a74695f5be2b51a549b127adea892"
+    },
+    {
+      "file": "ui_core_turn_11.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_11.png",
+      "sha256": "061a9b46104a7c08b150f53e05edab046d26ccbe154da15c9f3da4850fef47b3"
+    },
+    {
+      "file": "ui_core_turn_12.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_12.png",
+      "sha256": "14b53da008aa35a635a66c2bd40e6d20ed45983e1b974d75542408263ca7c0cd"
+    },
+    {
+      "file": "ui_core_turn_13.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_13.png",
+      "sha256": "0e9f000fe7c068699f1eaee34248e28d185857cde3a9681c045ef1c001ff9b57"
+    },
+    {
+      "file": "ui_core_turn_14.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_14.png",
+      "sha256": "a90ac0c4899cb36c75e1d34815894b4620666f863fd1e19ab045c7a9fc8e89cd"
+    },
+    {
+      "file": "ui_core_turn_15.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\core_turn_15.png",
+      "sha256": "627afcf2cf10edf78ee231fc8f2d09509f39bea78444afb4480bae80d4069fd3"
+    },
+    {
+      "file": "ui_equipment_bow_only.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\equipment_bow_only.png",
+      "sha256": "2a85ed1c9b353087c9e5b3ea252e7d77573f4b8c6dec25611e7c273921228eee"
+    },
+    {
+      "file": "ui_growth_layout.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\growth_layout.png",
+      "sha256": "a2750b8072751ab7d110b6521c3eccdb09818679b751bf60081b283562595000"
+    },
+    {
+      "file": "ui_horizontal_deployment_preview.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\horizontal_deployment_preview.png",
+      "sha256": "1643ae7967e18fa41a6a2dd9b8ce8eba8893573980e5c048a5a034ecdbc72bb4"
+    },
+    {
+      "file": "ui_pause_with_retry.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\pause_with_retry.png",
+      "sha256": "b6ef475d57f6052dd61ccb2ab3436fa7fc1a883a73dd23850fc2ea739992d310"
+    },
+    {
+      "file": "ui_portrait_details.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\portrait_details.png",
+      "sha256": "93e3bd085867e2b927d4f1c8931b3c39d53183595573819861ef90e893efbaa5"
+    },
+    {
+      "file": "ui_resource_club_badge.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\resource_club_badge.png",
+      "sha256": "9f26fb2907d103686e27887cd0e658e1b25eb8919789bd1c901df5a7f587f080"
+    },
+    {
+      "file": "ui_resource_echo_crystal.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\resource_echo_crystal.png",
+      "sha256": "178ac52907744e60fb69251580215b17231a146d8dfc64d636cb125648e31f8d"
+    },
+    {
+      "file": "ui_resource_equipment_part.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\resource_equipment_part.png",
+      "sha256": "de058d19a0e52aba44be2167fbc56e6d1484f34faa844f28579dfd7750a9efe8"
+    },
+    {
+      "file": "ui_resource_school_coin.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\resource_school_coin.png",
+      "sha256": "7c29c3916578f9b2b0a069821a6309b563f9baf4205f5b83f8e77425f0c71efa"
+    },
+    {
+      "file": "ui_resource_study_record.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\resource_study_record.png",
+      "sha256": "2e75f266ea9452f5e0e208f1152aa4beb3f5261d5657955cd591ebe0d6327456"
+    },
+    {
+      "file": "ui_retry_fresh_battle.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\retry_fresh_battle.png",
+      "sha256": "80035069de5283e0a4a8b1efbef61e339682562f02752aba713a7dd71697dfb1"
+    },
+    {
+      "file": "ui_upgrade_spacing.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\frontend_shots\\upgrade_spacing.png",
+      "sha256": "b69cb22d238c60d0390cc5cb314fe51875016d5ecf50569ab9dee8013fcdb7db"
+    },
+    {
+      "file": "retail_battle_context_hint.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\battle_context_hint.png",
+      "sha256": "6bf7da76e46b2adb006a5933dd08c0f243e776bb69e26c55b20127b572649f14"
+    },
+    {
+      "file": "retail_battle_deployed.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\battle_deployed.png",
+      "sha256": "50bcac8a9e1f7c1a88f98376578a69354ae6df38c25dfb8cd2fec445ed9223c3"
+    },
+    {
+      "file": "retail_battle_initial.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\battle_initial.png",
+      "sha256": "7dbb626a51b2cda9c9c189653043df2a175463b815cebd314472edc300b0f9b2"
+    },
+    {
+      "file": "retail_briefing.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\briefing.png",
+      "sha256": "c2d51c313e7784b5fc01255f79447de966fb1b1f8e8eba8ef7723132d1723dc1"
+    },
+    {
+      "file": "retail_briefing_reordered.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\briefing_reordered.png",
+      "sha256": "057fe04e9e0a991e5362b4937e500d7bc9e76bbd4b2b867b8f2709398c5fae19"
+    },
+    {
+      "file": "retail_campus.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\campus.png",
+      "sha256": "51a17b6d03410138c58afe1fbc438b9b9a5dd7f1aa82f06572c5cbc30c949fe1"
+    },
+    {
+      "file": "retail_core_turn_00.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\core_turn_00.png",
+      "sha256": "09180be1b0d3bc78312d37107e1305e5e5ab65b122c423197228aa83478745c7"
+    },
+    {
+      "file": "retail_core_turn_01.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\core_turn_01.png",
+      "sha256": "27f22b15de52725c7e21c5809b31e0d60891edc93b2c28498aa50de294113d2f"
+    },
+    {
+      "file": "retail_core_turn_02.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\core_turn_02.png",
+      "sha256": "b70201fe6d1d8f2136dfe47c4cad730547ba38df57d4f038fbf0edb9595f1edd"
+    },
+    {
+      "file": "retail_core_turn_03.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\core_turn_03.png",
+      "sha256": "8525c4365f08279e07cd97fcba7bf467013c68f4b9852a4b9954b357841b166c"
+    },
+    {
+      "file": "retail_core_turn_04.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\core_turn_04.png",
+      "sha256": "3d8b14372ea7f976dba0f576a0ed8a3f901fd015641ccc1464f48e50ac980920"
+    },
+    {
+      "file": "retail_core_turn_05.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\core_turn_05.png",
+      "sha256": "5e78d697c93e9e403ef02b8c6f4cccd378ff34b89e654e01ef7712b778fbaa11"
+    },
+    {
+      "file": "retail_core_turn_06.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\core_turn_06.png",
+      "sha256": "9ae28b9956579ceaad890363feb9a83b4eefdb4580e5e82912a1604317082f3a"
+    },
+    {
+      "file": "retail_core_turn_07.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\core_turn_07.png",
+      "sha256": "0c125e9ba95eeb1839a145b4d3172f4ee533dcc08370b20e7a1892cb7cd6e9a7"
+    },
+    {
+      "file": "retail_deployed_card_tooltip.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\deployed_card_tooltip.png",
+      "sha256": "cff1c5901dd01567b579385747917d8217bec910a9430fb6a51b60db694ca34a"
+    },
+    {
+      "file": "retail_deployment_preview.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\deployment_preview.png",
+      "sha256": "e56492fcd6cd74e1ffac935fcd2715ae21dcd01ac68f884eb95ffb70b6e05d7f"
+    },
+    {
+      "file": "retail_equipment_bow_only.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\equipment_bow_only.png",
+      "sha256": "cfb24f46886b5307e6b7295610948a2ffe2d2a5766219687b11241e30f869f71"
+    },
+    {
+      "file": "retail_exit_confirmation.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\exit_confirmation.png",
+      "sha256": "8692e497ef910f20e2cdcdba423c51cef05a840ff5aeb74aa4be39a9d17ccffc"
+    },
+    {
+      "file": "retail_growth_layout.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\growth_layout.png",
+      "sha256": "225eaa7ae2f90271aacbbac6df3224de0420a485afb8eb809278291ee6c92487"
+    },
+    {
+      "file": "retail_leave_confirmation.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\leave_confirmation.png",
+      "sha256": "a06f8c729d31e07eb5f5c8cdc9a69a846861dac3ef256b817194c01287eb3a3d"
+    },
+    {
+      "file": "retail_pause.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\pause.png",
+      "sha256": "11a6a2c03ac007d577c79e644db34aa7bff7d04cb022af9d135f7d02d263d5ba"
+    },
+    {
+      "file": "retail_resource_club_badge.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\resource_club_badge.png",
+      "sha256": "be5f3ea85cb86e182a2dbbe0ef80991345a93d4c8e32adcbfda4fe0bdaa67873"
+    },
+    {
+      "file": "retail_resource_echo_crystal.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\resource_echo_crystal.png",
+      "sha256": "968c1a455cd2d51efa18753f9b95d9e3dd8b04d57cd3aa563251db8f4453502f"
+    },
+    {
+      "file": "retail_resource_equipment_part.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\resource_equipment_part.png",
+      "sha256": "4336c65990372e5b023b757838414c858f2513f7b0c2082f536048172c4c5636"
+    },
+    {
+      "file": "retail_resource_school_coin.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\resource_school_coin.png",
+      "sha256": "97ac7c76b71a2aeb1f196f7da176aa94972b98895a9fe1900d8a6a8429f48ace"
+    },
+    {
+      "file": "retail_resource_study_record.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\resource_study_record.png",
+      "sha256": "033f4dbcf91fc0c4384321cbd3c5e26c42cda856e1f75aeb935c034a36cd3b01"
+    },
+    {
+      "file": "retail_retry_fresh_battle.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\retry_fresh_battle.png",
+      "sha256": "75fe6924f7198f427d54e7be8166fd8e60026c0896585ee4c4a38ed4b5b2be0f"
+    },
+    {
+      "file": "retail_stage_cards.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\stage_cards.png",
+      "sha256": "22302f59c6ff2620d1a634e33aa8accb351307120389e2b16043e1ad6fe0ea0f"
+    },
+    {
+      "file": "retail_title.png",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\title.png",
+      "sha256": "89211897ce4b99c332bd7d63d5c6c100490d3d35d7e037746f3018ec45c78f2f"
+    },
+    {
+      "file": "ui_report.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\ui_verified\\appdata\\HoshigaokaEchoes\\round10_ui_report.json",
+      "sha256": "a5c4b9376b5a5f59d884e908b501c2f557fdca35ae77c5418776737de9fe59d4"
+    },
+    {
+      "file": "retail_report.json",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\retail_report.json",
+      "sha256": "746b9f11d9dd3f8c77189ac9bcefb98b730b77caec3008720bcdd5b8bc6dd49f"
+    },
+    {
+      "file": "regression.txt",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\regression_release\\gut.log",
+      "sha256": "5d750f4abff70a094ae723684710b81b2e5c4286ddb7615b66e0e1ae77da1c25"
+    },
+    {
+      "file": "retail_runtime.txt",
+      "source": "D:\\星丘残响\\_testenv\\v3-round10\\retail_final\\game.log",
+      "sha256": "fd7c2fecf1154b5de96a6402cb83886513dbd7a1bb8703cc538033696601427a"
+    },
+    {
+      "file": "user_before_1.png",
+      "source": "C:\\Users\\LINVIS~1\\AppData\\Local\\Temp\\codex-clipboard-d53df685-ae94-48a6-89d3-29d8a229348d.png",
+      "sha256": "d0481ce2dd92552ed2b9a59df993ef66c0dd0b3937601708f9ff812dafa9945f"
+    },
+    {
+      "file": "user_before_2.png",
+      "source": "C:\\Users\\LINVIS~1\\AppData\\Local\\Temp\\codex-clipboard-32ce3413-ec91-4860-9e31-54c06c4bd9a9.png",
+      "sha256": "28df132b257a5c46d5dd7fe94c52dbbbe9b74222d8cdd46bb21dbcdaeea165da"
+    },
+    {
+      "file": "user_before_3.png",
+      "source": "C:\\Users\\LINVIS~1\\AppData\\Local\\Temp\\codex-clipboard-5b02dcfe-7da3-4906-90a5-83cf4b8d8529.png",
+      "sha256": "7932abba971165db610f75b31af0e08a9cbfb6d76242bfd76b79fb6bbbb639ad"
+    },
+    {
+      "file": "user_before_4.png",
+      "source": "C:\\Users\\LINVIS~1\\AppData\\Local\\Temp\\codex-clipboard-ee0b0182-16e4-4294-ac09-d0f093856f2b.png",
+      "sha256": "9a18186ab62423fe335e5f3574666a440452f060559d07a030e82c9705e596ea"
+    },
+    {
+      "file": "user_before_5.png",
+      "source": "C:\\Users\\LINVIS~1\\AppData\\Local\\Temp\\codex-clipboard-8a91dcfc-eeb1-46ba-bf85-c6d62faf0adb.png",
+      "sha256": "e49496e8a96c4258680d2437a5210d9daf85b159b4cea3f3424bbb36eb656ce8"
+    },
+    {
+      "file": "user_before_6.png",
+      "source": "C:\\Users\\LINVIS~1\\AppData\\Local\\Temp\\codex-clipboard-eea905d9-dcd3-425f-96e7-aea74cb611f0.png",
+      "sha256": "43e9b666a84178d07f924cf6f1cb32242af70dbe12f7c06417f85dc73142c5a9"
+    }
+  ]
+}

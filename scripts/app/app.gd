@@ -7,7 +7,8 @@ extends Node
 const TAG := "App"
 
 ## 与 project.godot 的 config/version 保持一致
-const APP_VERSION := "0.4.6"
+const APP_VERSION := "0.4.7"
+var _quitting := false
 const APP_NAME := "HoshigaokaEchoes"
 
 ## 当前开发阶段（V2.1.4 B4 阶段术语：Prototype / Alpha / Beta / RC / Release）
@@ -75,6 +76,7 @@ func _init_growth() -> void:
 		growth = null
 		return
 	_growth_generation = SaveService.save_generation()
+	EquipmentService.return_incompatible_to_inventory(SaveService.get_current())
 	var levels := PackedStringArray()
 	for cid: String in growth.all_character_ids():
 		var p: CharacterProgress = growth.get_progress(cid)
@@ -91,6 +93,7 @@ func _init_growth() -> void:
 ## **存档世代校验**：若存档被重新加载过（世代号变化），此处会重建成长服务，
 ## 保证调用方拿到的角色面板一定来自当前存档，而不是上一份存档的残留。
 func ensure_growth() -> bool:
+	EquipmentService.return_incompatible_to_inventory(SaveService.get_current())
 	if growth != null and growth.is_ready():
 		if _growth_generation == SaveService.save_generation():
 			return true
@@ -137,5 +140,20 @@ func stage_label() -> String:
 
 ## 请求退出（Hub 的 Esc 菜单二次确认后调用；二次确认 UI 属 Alpha A0.7）。
 func request_quit() -> void:
+	if _quitting:
+		return
+	_quitting = true
 	GameLog.info(TAG, "收到退出请求，正在退出")
+	_finish_quit.call_deferred()
+
+
+func _finish_quit() -> void:
+	# Free the scene first: its final draw must not refill the static cache.
+	var scene := get_tree().current_scene
+	if scene != null:
+		scene.queue_free()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	# Release static atlas/texture references while the renderer is still alive.
+	ArtRegistry.clear_cache()
 	get_tree().quit()

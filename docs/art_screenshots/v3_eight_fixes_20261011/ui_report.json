@@ -1,0 +1,192 @@
+{
+	"art": {
+		"char_anim:attack": 279,
+		"char_anim:deploy": 51,
+		"char_anim:hit": 26,
+		"char_anim:idle": 1636,
+		"char_anim:recovery": 59,
+		"char_anim:skill": 76,
+		"char_special:deploy": 51,
+		"char_special:skill": 76,
+		"core:rotating_sprite": 1410,
+		"enemy_anim:attack": 77,
+		"enemy_anim:death": 219,
+		"enemy_anim:hit": 79,
+		"enemy_anim:idle": 80,
+		"enemy_anim:move": 596,
+		"res://assets/art/characters/amamiya_mio/amamiya_mio_attack.png": 103,
+		"res://assets/art/characters/amamiya_mio/amamiya_mio_deploy.png": 27,
+		"res://assets/art/characters/amamiya_mio/amamiya_mio_hit.png": 26,
+		"res://assets/art/characters/amamiya_mio/amamiya_mio_idle.png": 1126,
+		"res://assets/art/characters/amamiya_mio/amamiya_mio_recovery.png": 27,
+		"res://assets/art/characters/amamiya_mio/amamiya_mio_skill.png": 34,
+		"res://assets/art/characters/kamiya_yuma/kamiya_yuma_attack.png": 117,
+		"res://assets/art/characters/kamiya_yuma/kamiya_yuma_deploy.png": 24,
+		"res://assets/art/characters/kamiya_yuma/kamiya_yuma_idle.png": 510,
+		"res://assets/art/characters/kamiya_yuma/kamiya_yuma_recovery.png": 32,
+		"res://assets/art/characters/kamiya_yuma/kamiya_yuma_skill.png": 42,
+		"res://assets/art/enemies/echo_normal/echo_normal_attack.png": 77,
+		"res://assets/art/enemies/echo_normal/echo_normal_death.png": 189,
+		"res://assets/art/enemies/echo_normal/echo_normal_hit.png": 75,
+		"res://assets/art/enemies/echo_normal/echo_normal_idle.png": 79,
+		"res://assets/art/enemies/echo_normal/echo_normal_move.png": 531,
+		"res://assets/art/enemies/echo_runner/echo_runner_death.png": 30,
+		"res://assets/art/enemies/echo_runner/echo_runner_hit.png": 4,
+		"res://assets/art/enemies/echo_runner/echo_runner_idle.png": 1,
+		"res://assets/art/enemies/echo_runner/echo_runner_move.png": 65,
+		"res://assets/vfx/vfx_arrow.png": 179,
+		"res://assets/vfx/vfx_death.png": 279,
+		"res://assets/vfx/vfx_deploy.png": 115,
+		"res://assets/vfx/vfx_impact.png": 262,
+		"res://assets/vfx/vfx_slash.png": 130,
+		"vfx:vfx_arrow": 179,
+		"vfx:vfx_death": 279,
+		"vfx:vfx_deploy": 115,
+		"vfx:vfx_impact": 262,
+		"vfx:vfx_slash": 130
+	},
+	"checks": [
+		{
+			"name": "navigation does not intersect character card",
+			"ok": true
+		},
+		{
+			"name": "navigation does not intersect character card",
+			"ok": true
+		},
+		{
+			"name": "navigation does not intersect character card",
+			"ok": true
+		},
+		{
+			"name": "navigation does not intersect character card",
+			"ok": true
+		},
+		{
+			"name": "navigation does not intersect character card",
+			"ok": true
+		},
+		{
+			"name": "navigation does not intersect character card",
+			"ok": true
+		},
+		{
+			"name": "navigation does not intersect character card",
+			"ok": true
+		},
+		{
+			"name": "navigation does not intersect character card",
+			"ok": true
+		},
+		{
+			"name": "navigation does not intersect character card",
+			"ok": true
+		},
+		{
+			"name": "resource tooltip: school_coin",
+			"ok": true
+		},
+		{
+			"name": "resource tooltip: study_record",
+			"ok": true
+		},
+		{
+			"name": "resource tooltip: club_badge",
+			"ok": true
+		},
+		{
+			"name": "resource tooltip: echo_crystal",
+			"ok": true
+		},
+		{
+			"name": "resource tooltip: equipment_part",
+			"ok": true
+		},
+		{
+			"name": "button exists: 技能与天赋",
+			"ok": true
+		},
+		{
+			"name": "button exists: 返回培养",
+			"ok": true
+		},
+		{
+			"name": "button exists: 装备背包",
+			"ok": true
+		},
+		{
+			"name": "button exists: 领取全部装备奖励",
+			"ok": true
+		},
+		{
+			"name": "bow offers no sword-user equip action",
+			"ok": true
+		},
+		{
+			"name": "bow offers eligible archer",
+			"ok": true
+		},
+		{
+			"name": "button exists: 装备给神谷悠真",
+			"ok": true
+		},
+		{
+			"name": "projected center deploys Mio",
+			"ok": true
+		},
+		{
+			"name": "pause before retry",
+			"ok": true
+		},
+		{
+			"name": "pause freezes core animation clock",
+			"ok": true
+		},
+		{
+			"name": "button exists: 重试本次调查",
+			"ok": true
+		},
+		{
+			"name": "retry retains stage",
+			"ok": true
+		},
+		{
+			"name": "retry resets battle clock",
+			"ok": true
+		},
+		{
+			"name": "retry clears deployed characters",
+			"ok": true
+		},
+		{
+			"name": "retry resets enemy progression",
+			"ok": true
+		},
+		{
+			"name": "retry restores core",
+			"ok": true
+		},
+		{
+			"name": "retry resumes fresh investigation",
+			"ok": true
+		},
+		{
+			"name": "retry grants no rewards or save progression",
+			"ok": true
+		},
+		{
+			"name": "real first-wave upgrade offer reached",
+			"ok": true
+		},
+		{
+			"name": "cards separated from title and subtitle",
+			"ok": true
+		},
+		{
+			"name": "upgrade card remains clickable after moving",
+			"ok": true
+		}
+	],
+	"normalBattleClock": true,
+	"type": "Real Windows renderer and viewport UI events; earned isolated campaign save"
+}

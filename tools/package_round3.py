@@ -24,6 +24,8 @@ if args.version>='0.4.5' and (ROOT/'docs/v3_round8_asset_sources.json').exists()
 if args.version>='0.4.6':
  for source,name in [('v3_round9_asset_sources.json','本轮角色素材来源.json'),('v3_round9_audio_record.json','监考者与调度音频来源.json')]:
   shutil.copy2(ROOT/'docs'/source,notice/name)
+if args.version>='0.4.7':
+ shutil.copy2(ROOT/'docs/v3_round10_asset_sources.json',notice/'头像与动态核心来源.json')
 readme='''《星丘残响》前五关画面与交互改进候选版 · 0.4.0 · 2026-10-11
 
 解压后双击“启动前五关.cmd”。请保留 exe 与 pck 在同一目录。
@@ -54,6 +56,12 @@ elif args.version!='0.4.0':
 if args.version>='0.4.6':
  readme=readme.replace('操作：1/2 选角色','本轮：五关统一核心、格子与HUD的尺寸；战场改为倾斜平行四边形投影，核心移至最左，路线标识居中衔接战场。标题门牌文字已收进牌框。\n悠真增加真实收弓帧；监考者增加登场、注视预告与加速演出，以及钢琴主题变奏。\n观测会成立后，凛加入1-3～1-5重玩阵容：AP回复+15%、紧急调度+6 AP、下一友军部署减费；无普通攻击。第五关重玩有第二次强化选择。\n\n操作：1/2/3 选角色')
  readme=readme.replace('实际验证与未完成项见工程 docs/V3_20261011_概念画面与交互改进记录.md。','599项回归通过；新游戏正常计时五关连续通关，重玩与导出Windows输入另行实测。\n实际证据、规格裁决及未完成项见工程 docs/V3_20261011_透视与演出改进记录.md。')
+if args.version>='0.4.7':
+ readme=readme.replace('599项回归通过','602项回归通过')
+ readme=readme.replace('三路改为倾斜平行四边形投影','三路保持水平，部署格侧边保留透视')
+ readme=readme.replace('战场改为倾斜平行四边形投影','三路保持水平，部署格侧边保留透视')
+ readme=readme.replace('观测会成立后，','本版修正培养页导航遮挡、强化卡留白，统一澪与悠真的细腻头像，澪的头发改为明确的紫色。\n核心内部水晶使用16帧独立旋转动画；暂停增加“重试本次调查”，恢复本关初始战斗状态。\n资源悬停显示用途与楷体短句；练习弓仅适配弓箭角色，旧误装完整退回背包。\n\n观测会成立后，')
+ readme=readme.replace('docs/V3_20261011_透视与演出改进记录.md','docs/V3_20261011_八项反馈修复记录.md')
 (OUT/'试玩说明.txt').write_text(readme,encoding='utf-8-sig')
 files=[p for p in sorted(OUT.rglob('*')) if p.is_file() and '_testenv' not in p.parts and p.name!='build_manifest.json']
 manifest={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),

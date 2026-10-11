@@ -18,13 +18,22 @@
       "quality": "FINE",
       "_quality_spec": "V2.1.4 表 70：1-2 首通奖励「**优秀级**基础武器」；表 64：优秀 = 1 主属性 + 1 固定副属性。",
       "_source_spec": "V2.1.4 表 70：1-2 首通；stage_rewards.json → reward_1_2_first.equipmentId。",
-      "primaryStat": { "key": "attack", "value": 18, "_candidate": true },
-      "affixes": ["affix_weapon_atkspeed_pct_01"],
+      "primaryStat": {
+        "key": "attack",
+        "value": 18,
+        "_candidate": true
+      },
+      "affixes": [
+        "affix_weapon_atkspeed_pct_01"
+      ],
       "_affixes_note": "V2.1.4 L1599：「优先出现职业可理解的词条，例如近战防御、**远程攻速**、治疗效率。」本模板给远程可理解的固定副属性（攻速）。",
       "enhanceMax": 10,
       "_enhanceMax_spec": "V2.1.4 L1604：武器可强化至 +10。",
       "dismantleParts": 3,
-      "_dismantleParts_note": "V2.1.4 L1611：分解「回收该模板规定的基础零件，不再次返还其强化投入」。3 为第一轮候选（规格未给数值）。"
+      "_dismantleParts_note": "V2.1.4 L1611：分解「回收该模板规定的基础零件，不再次返还其强化投入」。3 为第一轮候选（规格未给数值）。",
+      "allowedWeaponTypes": [
+        "BOW"
+      ]
     },
     {
       "id": "equip_ch1_1_6_heal_accessory",
@@ -33,8 +42,14 @@
       "quality": "FINE",
       "_quality_spec": "V2.1.4 表 70：1-6 首通奖励「**治疗饰品**」；表 64：优秀 = 1 主属性 + 1 固定副属性。",
       "_source_spec": "V2.1.4 表 70：1-6 首通；stage_rewards.json → reward_1_6_first.equipmentId。",
-      "primaryStat": { "key": "healPower", "value": 14, "_candidate": true },
-      "affixes": ["affix_accessory_hp_flat_01"],
+      "primaryStat": {
+        "key": "healPower",
+        "value": 14,
+        "_candidate": true
+      },
+      "affixes": [
+        "affix_accessory_hp_flat_01"
+      ],
       "_affixes_note": "V2.1.4 L1599：治疗角色可理解的词条（治疗效率）。",
       "enhanceMax": 10,
       "_enhanceMax_spec": "V2.1.4 L1604：饰品可强化至 +10。",
@@ -48,8 +63,15 @@
       "quality": "RARE",
       "_quality_spec": "V2.1.4 L1678：「首通 1-9 的上述**稀有级通用饰品**为确定性固定奖励，固定 ID 在 stage_rewards.json 唯一发放，词条由 equipment.json / equipment_affixes.json 定义。装备图纸系统未列入首发，不得将『或』留给 Codex 自行选择。」表 64：稀有 = 1 主属性 + 1～2 副属性。",
       "_source_spec": "V2.1.4 表 70 + L1678：1-9 首通，ID 唯一确定 `equip_ch1_1_9_rare_accessory`。",
-      "primaryStat": { "key": "defense", "value": 22, "_candidate": true },
-      "affixes": ["affix_accessory_hp_flat_01", "affix_accessory_cd_pct_01"],
+      "primaryStat": {
+        "key": "defense",
+        "value": 22,
+        "_candidate": true
+      },
+      "affixes": [
+        "affix_accessory_hp_flat_01",
+        "affix_accessory_cd_pct_01"
+      ],
       "_affixes_note": "稀有品质给 2 条固定副属性（表 64 的「1～2 副属性」，取上限 2 以体现稀有度）。",
       "enhanceMax": 10,
       "_enhanceMax_spec": "V2.1.4 L1604：饰品可强化至 +10。",

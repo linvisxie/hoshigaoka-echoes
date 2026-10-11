@@ -54,10 +54,11 @@ func _ready() -> void:
 		lines += "\n当前装备：%s" % (DataRegistry.get_entry("characters", bound).get("name", bound) if not bound.is_empty() else "未装备")
 		label_at(lines, Rect2(870, 340, 850, 240), 29)
 		var offset := 0
-		for cid: String in ["amamiya_mio", "kamiya_yuma"]:
-			if not CampaignFlow.character_unlocked(cid):
+		for cfg: Dictionary in DataRegistry.get_domain("characters").get("characters", []):
+			var cid := str(cfg.get("id", ""))
+			if not CampaignFlow.character_unlocked(cid) or not EquipmentService.can_equip(str(inst.get("equipmentId", "")), cid):
 				continue
-			var equip_button := button_at("装备给" + str(DataRegistry.get_entry("characters", cid).get("name", cid)), Rect2(870 + offset * 430, 610, 400, 65), func() -> void: _result(EquipmentService.equip(cid, selected_id)))
+			var equip_button := button_at("装备给" + str(DataRegistry.get_entry("characters", cid).get("name", cid)), Rect2(870 + (offset % 3) * 300, 610 + (offset / 3) * 74, 280, 65), func() -> void: _result(EquipmentService.equip(cid, selected_id)))
 			equip_button.disabled = bound == cid
 			equip_button.tooltip_text = "已装备给这名角色" if bound == cid else "替换同槽位装备；旧装备保留在背包，强化等级不变。"
 			offset += 1

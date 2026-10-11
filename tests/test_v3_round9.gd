@@ -113,5 +113,5 @@ func test_slanted_cell_boundaries_do_not_claim_gaps_or_neighboring_lanes() -> vo
 	var lower: Vector2 = board._cell_screen_pos(0,2)
 	assert_lt(lower.x,upper.x,"nearer route shifts left, as the concept ground plane")
 	assert_gt(lower.y,upper.y)
-	assert_lt((board._cell_screen_pos(5,0) as Vector2).y,upper.y)
+	assert_almost_eq((board._cell_screen_pos(5,0) as Vector2).y,upper.y,.001,"route remains horizontal")
 	board.free()

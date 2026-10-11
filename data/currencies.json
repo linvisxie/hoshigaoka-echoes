@@ -11,8 +11,14 @@
       "name": "学园币",
       "kind": "CURRENCY",
       "use": "突破、技能、装备强化",
-      "sources": ["关卡", "任务", "章节"],
-      "displayOrder": 1
+      "sources": [
+        "关卡",
+        "任务",
+        "章节"
+      ],
+      "displayOrder": 1,
+      "uiDescription": "用于角色突破与装备强化。",
+      "flavorText": "把黄昏攒进口袋，留给明日的约定。"
     },
     {
       "id": "study_record",
@@ -20,38 +26,85 @@
       "kind": "EXP_MATERIAL",
       "_kind_note": "V2.1.4 H 章五：「学习记录不是货币，而是直接转化为角色经验。」库存以「本数」计，使用时按 studyRecordItems.expValue 折算经验。",
       "use": "角色升级",
-      "sources": ["关卡", "任务"],
-      "displayOrder": 2
+      "sources": [
+        "关卡",
+        "任务"
+      ],
+      "displayOrder": 2,
+      "uiDescription": "投入学习记录，为角色积累成长经验。",
+      "flavorText": "纸页记得的微光，终会照亮前行的你。"
     },
     {
       "id": "club_badge",
       "name": "社团徽章",
       "kind": "MATERIAL",
       "use": "角色突破",
-      "sources": ["精英关", "章节任务"],
-      "displayOrder": 3
+      "sources": [
+        "精英关",
+        "章节任务"
+      ],
+      "displayOrder": 3,
+      "uiDescription": "用于角色突破，拓展成长上限。",
+      "flavorText": "别在胸前的星花，是我们并肩的证明。"
     },
     {
       "id": "echo_crystal",
       "name": "残响结晶",
       "kind": "MATERIAL",
       "use": "高阶突破、技能升级",
-      "sources": ["Boss", "高难", "剧情"],
-      "displayOrder": 4
+      "sources": [
+        "Boss",
+        "高难",
+        "剧情"
+      ],
+      "displayOrder": 4,
+      "uiDescription": "角色高阶突破所需的残响材料。",
+      "flavorText": "碎裂的时间里，仍有未曾熄灭的回声。"
     },
     {
       "id": "equipment_part",
       "name": "装备零件",
       "kind": "MATERIAL",
       "use": "装备强化",
-      "sources": ["关卡", "分解", "任务"],
-      "displayOrder": 5
+      "sources": [
+        "关卡",
+        "分解",
+        "任务"
+      ],
+      "displayOrder": 5,
+      "uiDescription": "用于装备强化，提升装备属性。",
+      "flavorText": "将散落的齿轮，拼成守护日常的力量。"
     }
   ],
   "_studyRecordItems_spec": "V2.1.4 H 章五 表 58。三档不是第六类货币，而是 study_record 这一资源的三种面额（背包中以 itemId 区分，折算经验见 expValue）。",
   "studyRecordItems": [
-    { "id": "study_record_short", "name": "学习记录·短篇", "expValue": 100, "sources": ["普通关卡", "教学奖励"] },
-    { "id": "study_record_note", "name": "学习记录·笔记", "expValue": 500, "sources": ["精英关", "任务"] },
-    { "id": "study_record_archive", "name": "学习记录·档案", "expValue": 2000, "sources": ["Boss", "章节奖励", "高难内容"] }
+    {
+      "id": "study_record_short",
+      "name": "学习记录·短篇",
+      "expValue": 100,
+      "sources": [
+        "普通关卡",
+        "教学奖励"
+      ]
+    },
+    {
+      "id": "study_record_note",
+      "name": "学习记录·笔记",
+      "expValue": 500,
+      "sources": [
+        "精英关",
+        "任务"
+      ]
+    },
+    {
+      "id": "study_record_archive",
+      "name": "学习记录·档案",
+      "expValue": 2000,
+      "sources": [
+        "Boss",
+        "章节奖励",
+        "高难内容"
+      ]
+    }
   ]
 }

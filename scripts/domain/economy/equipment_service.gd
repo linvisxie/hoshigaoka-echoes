@@ -105,6 +105,38 @@ static func all_templates() -> Array:
 	return DataRegistry.get_domain("equipment").get("equipment", [])
 
 
+static func can_equip(equipment_id: String, character_id: String) -> bool:
+	var template := template_of(equipment_id)
+	var character := DataRegistry.get_entry("characters", character_id)
+	if template.is_empty() or character.is_empty():
+		return false
+	var weapons: Array = template.get("allowedWeaponTypes", [])
+	return weapons.is_empty() or weapons.has(str(character.get("weaponType", "")))
+
+
+## Old saves may bind a practice bow to a sword user. Return it intact to inventory.
+## Pure save normalization; loading does not write either the main save or backup.
+static func return_incompatible_to_inventory(save: Dictionary) -> int:
+	if not DataRegistry.is_loaded():
+		return 0
+	var count := 0
+	for instance: Dictionary in _instances_of(save):
+		var holder := str(instance.get("boundCharacterId", ""))
+		var equipment_id := str(instance.get("equipmentId", ""))
+		if holder.is_empty() or template_of(equipment_id).is_empty() or can_equip(equipment_id,holder):
+			continue
+		var instance_id := str(instance.get("instanceId", ""))
+		var chars: Dictionary = save.get(CHARACTERS_KEY,{})
+		for character: Dictionary in chars.values():
+			var slots: Dictionary = character.get(EQUIP_SLOT_KEY,{})
+			for slot: String in slots.keys():
+				if str(slots[slot]) == instance_id:
+					slots.erase(slot)
+		instance["boundCharacterId"] = ""
+		count += 1
+	return count
+
+
 ## 强化成本配置（来自 upgrade_costs.json 的 equipment 段）
 static func enhancement_costs() -> Dictionary:
 	return DataRegistry.get_domain("upgrade_costs").get("upgradeCosts", {})
@@ -216,7 +248,10 @@ static func equipped_of(save: Dictionary, character_id: String) -> Dictionary:
 static func bonuses_for_character(save: Dictionary, character_id: String) -> Dictionary:
 	var total := {}
 	for instance_id: Variant in equipped_of(save, character_id).values():
-		var bonus := stat_bonus_of(find_instance(save, str(instance_id)))
+		var instance := find_instance(save, str(instance_id))
+		if not can_equip(str(instance.get("equipmentId", "")), character_id):
+			continue
+		var bonus := stat_bonus_of(instance)
 		for key: String in bonus:
 			total[key] = float(total.get(key, 0.0)) + float(bonus[key])
 	return total
@@ -370,6 +405,8 @@ static func equip(character_id: String, instance_id: String) -> OpResult:
 	var inst := find_instance(save, instance_id)
 	if inst.is_empty():
 		return OpResult.new(false, "装备实例不存在")
+	if not can_equip(str(inst.get("equipmentId", "")), character_id):
+		return OpResult.new(false, "武器类型不匹配：这件装备仅适用于使用弓箭的角色")
 	var slot := str(template_of(str(inst.get("equipmentId", ""))).get("slot", ""))
 	if not VALID_SLOTS.has(slot):
 		return OpResult.new(false, "模板槽位非法：%s" % slot)

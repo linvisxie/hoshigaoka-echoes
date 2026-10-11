@@ -47,7 +47,8 @@
         "battleIdle": "char_amamiya_mio_battle_idle_01.png",
         "portrait": "char_amamiya_mio_portrait_01.png"
       },
-      "_spec": "V2.1.4 D-13 雨宫澪 / E-三十五 角色 01"
+      "_spec": "V2.1.4 D-13 雨宫澪 / E-三十五 角色 01",
+      "weaponType": "SWORD"
     },
     {
       "id": "kamiya_yuma",
@@ -98,7 +99,8 @@
         "battleIdle": "char_kamiya_yuma_battle_idle_01.png",
         "portrait": "char_kamiya_yuma_portrait_01.png"
       },
-      "_spec": "V2.1.4 表 28 神谷悠真 / 表 47 第 2 行"
+      "_spec": "V2.1.4 表 28 神谷悠真 / 表 47 第 2 行",
+      "weaponType": "BOW"
     },
     {
       "id": "ogawa_yui",

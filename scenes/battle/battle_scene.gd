@@ -257,7 +257,7 @@ const UPGRADE_CARD_W := 400.0
 const UPGRADE_CARD_H := 470.0
 const UPGRADE_CARD_GAP := 32.0
 const UPGRADE_PANEL_PAD_X := 44.0
-const UPGRADE_PANEL_PAD_TOP := 150.0
+const UPGRADE_PANEL_PAD_TOP := 238.0
 const UPGRADE_PANEL_PAD_BOTTOM := 150.0
 
 ## 卡面配色：普通项为冷蓝家族，CORE 用暖金边框形成记忆点（L2057：**不做抽卡式炫耀**，
@@ -1825,6 +1825,15 @@ func _update_upgrade_hover(pos: Vector2) -> void:
 
 
 ## 暂停 / 继续（V2.1.4 D-35）
+func _restart_investigation() -> void:
+	if session == null or not session.is_paused() or session.is_decided():
+		return
+	PrototypeEntry.set_pending_stage_id(session.stage.stage_id)
+	AudioService.stop_music()
+	GameLog.info(TAG, "重试本次调查：%s，未发放本次奖励" % session.stage.stage_id)
+	SceneRouter.go_to("battle")
+
+
 func _toggle_pause() -> void:
 	if session == null or session.is_decided():
 		return
@@ -2624,7 +2633,7 @@ func _draw_core() -> void:
 	var flash := clampf((_core_flash_until - now) / CORE_FLASH_SECONDS, 0.0, 1.0)
 	var energy := Color(0.62, 0.74, 1.0) if not danger else Color(1.0, 0.40, 0.57)
 	energy = energy.lerp(Color(1, 0.94, 0.85), flash)
-	var tower := ArtRegistry.load_texture("res://assets/art/ui/core_tower_six.png")
+	var tower := ArtRegistry.load_texture("res://assets/art/ui/core_cradle_round10.png")
 	var core_center := Vector2(_origin.x - _px(480.0), _px(580.0))
 	if tower != null:
 		var tower_h := _px(350.0)
@@ -2644,6 +2653,17 @@ func _draw_core() -> void:
 			if danger:
 				modulate_color = modulate_color.lerp(Color(1.25,0.55,0.65),0.16+0.16*sin(now*7))
 			draw_texture_rect(tower, tower_rect, false, modulate_color)
+			# Replace the generated medallion with the authoritative six-petal crest.
+			var seal := tower_rect.position + Vector2(tower_w*0.54,tower_h*0.75)
+			draw_circle(seal,_px(23),Color("29243e"))
+			draw_texture_rect(GameSkin.crest(),Rect2(seal-Vector2(_px(24),_px(31)),Vector2(_px(48),_px(62))),false,modulate_color)
+			var crystal_center := tower_rect.position+Vector2(tower_w*0.53,tower_h*0.34)
+			var crystal := ArtRegistry.frame_at("res://assets/art/ui/core_crystal_turn.png",int(fmod(now,2.4)/2.4*16),16)
+			if crystal != null:
+				draw_texture_rect(crystal,Rect2(crystal_center-Vector2.ONE*_px(64),Vector2.ONE*_px(128)),false,modulate_color)
+				_mark_drawn("core:rotating_sprite")
+			else:
+				ResonanceCrystal.draw_on(self,crystal_center,_render_scale,now,danger,flash)
 	var tex := ArtRegistry.load_texture("res://assets/art/ui/core_anchor.svg")
 	for lane: int in range(grid.lanes):
 		var center := _logical_to_screen(Vector2(-1.48,lane))
@@ -4373,15 +4393,14 @@ func _now() -> float:
 ## Resolve logical tiles/lane at render time; no battle geometry is changed.
 func _logical_to_screen(pos: Vector2) -> Vector2:
 	return _origin + Vector2(_px(grid.tile_size_px) * pos.x - _px(54.0) * pos.y,
-		_render_lane_spacing() * pos.y - _px(14.0) * pos.x)
+		_render_lane_spacing() * pos.y)
 
 
 func _screen_to_logical(pos: Vector2) -> Vector2:
 	var local := (pos-_origin)/_render_scale
 	var spacing := grid.lane_spacing_px * (5.0/6.0)
-	var det := grid.tile_size_px*spacing-756.0
-	return Vector2((spacing*local.x+54.0*local.y)/det,
-		(14.0*local.x+grid.tile_size_px*local.y)/det)
+	var lane := local.y / spacing
+	return Vector2((local.x + 54.0 * lane) / grid.tile_size_px, lane)
 
 
 func _cell_polygon(column: int, lane: int) -> PackedVector2Array:

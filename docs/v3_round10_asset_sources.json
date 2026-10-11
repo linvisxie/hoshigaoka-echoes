@@ -1,0 +1,38 @@
+[
+  {
+    "source": "tools/source_art/amamiya_mio_round10.png",
+    "runtime": "assets/art/characters/amamiya_mio/amamiya_mio_portrait_polished.png",
+    "sha256": "ec6bbe0c00ddb1ce98220cafc77e24e020ac301cbe65bfd6a51c963f0059b153",
+    "origin": "OpenAI built-in image generation; edited project-owned character/core references",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "source": "tools/source_art/kamiya_yuma_round10.png",
+    "runtime": "assets/art/characters/kamiya_yuma/kamiya_yuma_portrait_polished.png",
+    "sha256": "47d22a575893ed578ed06f58f7dbd0ec660e079aa1669b39107b860dbb5f17d1",
+    "origin": "OpenAI built-in image generation; edited project-owned character/core references",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "source": "tools/source_art/core_cradle_round10.png",
+    "runtime": "assets/art/ui/core_cradle_round10.png",
+    "sha256": "37aabaf538e2890614ac314f0f40de4b94b1761854381a2d8af0543a1a78b240",
+    "origin": "OpenAI built-in image generation; edited project-owned character/core references",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "source": "tools/source_art/core_crystal_round10.png",
+    "runtime": "assets/art/ui/core_crystal_turn.png",
+    "frames": 16,
+    "frameSize": 128,
+    "cycleSeconds": 2.4,
+    "registration": "largest connected alpha component, fixed height and center",
+    "sha256": "edeeed705ed97b7451ce8c47e586e072cebebf118fd93f00f970d410952c60cb",
+    "origin": "OpenAI built-in generation; referenced project crystal",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  }
+]

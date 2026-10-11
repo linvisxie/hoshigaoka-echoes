@@ -18,7 +18,7 @@
 ## 纪律：所有夹具先 duplicate(true) 再改，绝不修改 DataRegistry 里的权威字典。
 extends GutTest
 
-const CHAR_MIO := "amamiya_mio"
+const CHAR_YUMA := "kamiya_yuma" # Bow fixtures must use the eligible archer.
 const EQUIP_1_2 := "equip_ch1_1_2_fine_weapon"
 const EQUIP_1_6 := "equip_ch1_1_6_heal_accessory"
 const EQUIP_1_9 := "equip_ch1_1_9_rare_accessory"
@@ -311,15 +311,15 @@ func test_06_equip_and_swap_keeps_old_instance() -> void:
 	]}
 	SaveService._current = save
 
-	var r1 := EquipmentService.equip(CHAR_MIO, "inst_a")
+	var r1 := EquipmentService.equip(CHAR_YUMA, "inst_a")
 	assert_true(r1.ok, "应能装备 inst_a：%s" % r1.reason)
-	assert_eq(str(EquipmentService.equipped_of(SaveService.get_current(), CHAR_MIO).get("WEAPON", "")),
+	assert_eq(str(EquipmentService.equipped_of(SaveService.get_current(), CHAR_YUMA).get("WEAPON", "")),
 		"inst_a", "武器槽应指向 inst_a")
 
 	# 换装到 inst_b
-	var r2 := EquipmentService.equip(CHAR_MIO, "inst_b")
+	var r2 := EquipmentService.equip(CHAR_YUMA, "inst_b")
 	assert_true(r2.ok, "应能换装到 inst_b：%s" % r2.reason)
-	assert_eq(str(EquipmentService.equipped_of(SaveService.get_current(), CHAR_MIO).get("WEAPON", "")),
+	assert_eq(str(EquipmentService.equipped_of(SaveService.get_current(), CHAR_YUMA).get("WEAPON", "")),
 		"inst_b", "武器槽应改指 inst_b")
 	# 旧实例仍留在背包且解绑（V2.1.4 L1610：换装只卸下，不销毁、不返还材料）
 	assert_eq(EquipmentService.instance_count(), 2, "换装不得销毁旧实例")
@@ -335,10 +335,10 @@ func test_06b_unequip_keeps_instance_and_level() -> void:
 	save["inventory"] = {"equipmentInstances": [inst]}
 	SaveService._current = save
 
-	EquipmentService.equip(CHAR_MIO, "inst_x")
-	var r := EquipmentService.unequip(CHAR_MIO, "WEAPON")
+	EquipmentService.equip(CHAR_YUMA, "inst_x")
+	var r := EquipmentService.unequip(CHAR_YUMA, "WEAPON")
 	assert_true(r.ok, "应能卸下：%s" % r.reason)
-	assert_eq(EquipmentService.equipped_of(SaveService.get_current(), CHAR_MIO).size(), 0,
+	assert_eq(EquipmentService.equipped_of(SaveService.get_current(), CHAR_YUMA).size(), 0,
 		"卸下后不应有装备")
 	var after := EquipmentService.find_instance(SaveService.get_current(), "inst_x")
 	assert_eq(int(after.get("enhanceLevel", 0)), 4, "卸下必须保留强化等级（L1610）")
@@ -349,17 +349,17 @@ func test_06b_unequip_keeps_instance_and_level() -> void:
 func test_06c_instance_cannot_be_bound_to_two_characters() -> void:
 	var save := SaveService.build_default_save()
 	save["inventory"] = {"equipmentInstances": [
-		EquipmentService.build_instance(EQUIP_1_2, "inst_shared"),
+		EquipmentService.build_instance(EQUIP_1_9, "inst_shared"),
 	]}
 	SaveService._current = save
 
-	EquipmentService.equip(CHAR_MIO, "inst_shared")
-	EquipmentService.equip("kamiya_yuma", "inst_shared")
+	EquipmentService.equip(CHAR_YUMA, "inst_shared")
+	EquipmentService.equip("amamiya_mio", "inst_shared")
 
-	var mio_eq := EquipmentService.equipped_of(SaveService.get_current(), CHAR_MIO)
-	var yuma_eq := EquipmentService.equipped_of(SaveService.get_current(), "kamiya_yuma")
-	assert_eq(mio_eq.size(), 0, "原持有者的槽位应被清空")
-	assert_eq(str(yuma_eq.get("WEAPON", "")), "inst_shared", "新持有者应持有该实例")
+	var previous_holder := EquipmentService.equipped_of(SaveService.get_current(), CHAR_YUMA)
+	var next_holder := EquipmentService.equipped_of(SaveService.get_current(), "amamiya_mio")
+	assert_eq(previous_holder.size(), 0, "原持有者的槽位应被清空")
+	assert_eq(str(next_holder.get("ACCESSORY", "")), "inst_shared", "新持有者应持有该实例")
 	assert_eq(EquipmentService.instance_count(), 1, "不得复制实例")
 
 
@@ -590,11 +590,11 @@ func test_09d_dismantle_equipped_clears_slot() -> void:
 	save["inventory"] = {"equipmentInstances": [EquipmentService.build_instance(EQUIP_1_2, "inst_de")]}
 	save["currencies"] = {"equipment_part": 0}
 	SaveService._current = save
-	EquipmentService.equip(CHAR_MIO, "inst_de")
+	EquipmentService.equip(CHAR_YUMA, "inst_de")
 
 	var r := EquipmentService.dismantle("inst_de", true)
 	assert_true(r.ok, "分解已装配装备应成功：%s" % r.reason)
-	assert_eq(EquipmentService.equipped_of(SaveService.get_current(), CHAR_MIO).size(), 0,
+	assert_eq(EquipmentService.equipped_of(SaveService.get_current(), CHAR_YUMA).size(), 0,
 		"角色槽位应被清空，不得留下指向已销毁实例的悬空引用")
 
 

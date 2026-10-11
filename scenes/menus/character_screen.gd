@@ -189,9 +189,16 @@ var _sb_cache: Dictionary = {}
 var _grad_cache: Dictionary = {}
 var _tex_cache: Dictionary = {}
 var _navigation: Array[Button] = []
+var _resource_chips: Array[Dictionary] = []
+var _resource_tip: Panel
+var _resource_tip_body: Label
+var _resource_tip_quote: Label
+var _resource_hover_id := ""
+var _resource_hover_age := 0.0
 
 
 func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	theme = GameSkin.make_theme()
 	_refresh_viewport()
 	_ensure_service()
@@ -228,6 +235,22 @@ func _ready() -> void:
 		GameSkin.style_button(button)
 		button.pressed.connect(func() -> void: AudioService.play_sfx("select"))
 	_layout_navigation()
+	_resource_tip = Panel.new()
+	_resource_tip.name = "ResourceDescription"
+	_resource_tip.z_index = 50
+	_resource_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_resource_tip.add_theme_stylebox_override("panel", GameSkin.panel(Color("101d33"), GameSkin.BLUE))
+	add_child(_resource_tip)
+	_resource_tip_body = Label.new()
+	_resource_tip_quote = Label.new()
+	var kai := SystemFont.new()
+	kai.font_names = PackedStringArray(["KaiTi", "楷体", "STKaiti"])
+	_resource_tip_quote.add_theme_font_override("font", kai)
+	_resource_tip_quote.add_theme_color_override("font_color", GameSkin.GOLD)
+	for line: Label in [_resource_tip_body, _resource_tip_quote]:
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_resource_tip.add_child(line)
+	_resource_tip.hide()
 	GameLog.info(TAG, "角色培养界面就绪（%d 名角色，服务就绪=%s，画布 %.0fx%.0f，缩放 %.3f）"
 		% [_card_ids.size(), str(_svc != null and _svc.is_ready()),
 			_viewport.x, _viewport.y, _scale])
@@ -237,9 +260,41 @@ func _layout_navigation() -> void:
 	if _navigation.size() != 3:
 		return
 	for i: int in range(3):
-		_navigation[i].position = Vector2(_list_rect.position.x + _px(18), _info_rect.position.y - _px(160) + _px(i * 54))
-		_navigation[i].size = Vector2(_list_rect.size.x - _px(36), _px(48))
-		_navigation[i].add_theme_font_size_override("font_size", int(_px(24)))
+		var width := (_list_rect.size.x - _px(24)) / 3.0
+		_navigation[i].position = Vector2(_list_rect.position.x + i * (width + _px(12)), _info_rect.position.y - _px(78))
+		_navigation[i].size = Vector2(width, _px(58))
+		_navigation[i].add_theme_font_size_override("font_size", int(_px(22)))
+
+
+func _update_resource_tip(delta: float) -> void:
+	if _resource_tip == null:
+		return
+	var hit: Dictionary = {}
+	for chip: Dictionary in _resource_chips:
+		if (chip.rect as Rect2).has_point(get_local_mouse_position()):
+			hit = chip
+			break
+	var cid := str(hit.get("id", ""))
+	if cid != _resource_hover_id:
+		_resource_hover_id = cid
+		_resource_hover_age = 0
+	_resource_hover_age += delta
+	_resource_tip.visible = not cid.is_empty() and _resource_hover_age >= 0.22
+	if not _resource_tip.visible:
+		return
+	var config: Dictionary = {}
+	for entry: Dictionary in DataRegistry.get_domain("currencies").get("currencies", []):
+		if str(entry.get("id", "")) == cid:
+			config = entry
+			break
+	_resource_tip_body.text = str(config.get("uiDescription", config.get("use", "")))
+	_resource_tip_quote.text = str(config.get("flavorText", ""))
+	_resource_tip.size = Vector2(_px(540), _px(120))
+	_resource_tip.position = Vector2(clampf((hit.rect as Rect2).end.x - _resource_tip.size.x, _px(24), _viewport.x - _resource_tip.size.x - _px(24)), _px(116))
+	_resource_tip_body.position = Vector2(_px(24), _px(20))
+	_resource_tip_quote.position = Vector2(_px(24), _px(65))
+	_resource_tip_body.add_theme_font_size_override("font_size", int(_px(24)))
+	_resource_tip_quote.add_theme_font_size_override("font_size", int(_px(21)))
 
 ## 取当前**实际画布尺寸**（游戏单位），而不是 ProjectSettings 里的参考分辨率。
 ##
@@ -295,6 +350,7 @@ func _process(delta: float) -> void:
 	_refresh_viewport()
 	_layout()
 	_layout_navigation()
+	_update_resource_tip(delta)
 	queue_redraw()
 
 
@@ -715,7 +771,7 @@ func _layout() -> void:
 	var info_h := _px(268.0)
 	_info_rect = Rect2(Vector2(m, _viewport.y - m - info_h), Vector2(list_w, info_h))
 	_list_rect = Rect2(Vector2(m, list_top),
-		Vector2(list_w, maxf(0.0, _info_rect.position.y - gap - list_top)))
+		Vector2(list_w, maxf(0.0, _info_rect.position.y - _px(100) - list_top)))
 
 	var n := maxi(1, _card_ids.size())
 	var card_h := clampf((_list_rect.size.y - float(n - 1) * gap) / float(n), _px(110.0), _px(200.0))
@@ -903,6 +959,7 @@ func _draw_header(font: Font) -> void:
 
 ## 五类资源条（顺序与 displayOrder 一致，唯一来自 currencies.json）：图标 + 名称 + 数量
 func _draw_currency_bar(font: Font) -> void:
+	_resource_chips.clear()
 	var entries: Array = DataRegistry.get_domain("currencies").get("currencies", [])
 	var sorted := entries.duplicate()
 	sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
@@ -933,6 +990,7 @@ func _draw_currency_bar(font: Font) -> void:
 		var cid := str(c.get("id", ""))
 		var label := str(c.get("name", cid))
 		var r := Rect2(Vector2(x, chip_y), Vector2(widths[i], chip_h))
+		_resource_chips.append({"id": cid, "rect": r})
 		draw_style_box(_sb(Color(0.08, 0.10, 0.18, 0.90), BORDER_SOFT, _px(8.0), _px(1.0)), r)
 		var text_base := r.position.y + chip_h * 0.5 + _px(8.0)
 		# 图标按文字基线对齐（而不是按 chip 中心），避免与汉字视觉错位
@@ -1030,7 +1088,7 @@ func _draw_character_card(character_id: String, rect: Rect2, index: int) -> void
 		_draw_exp_bar(bar, p, false)
 
 	# 定位标签（右上）
-	var role := _role_label(behavior)
+	var role := "调度" if character_id == "fujiwara_rin" else _role_label(behavior)
 	var rw := _text_w(font, role, F_TINY) + _px(20.0)
 	var rrect := Rect2(
 		Vector2(rect.position.x + rect.size.x - pad - rw, rect.position.y + _px(14.0)),
