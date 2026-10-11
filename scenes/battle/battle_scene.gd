@@ -2681,6 +2681,12 @@ func _draw_stage_background() -> void:
 	var w := tw * s
 	var h := th * s
 	draw_texture_rect(tex, Rect2((vp.x - w) * 0.5, (vp.y - h) * 0.5, w, h), false)
+	# The school wall uses the same canonical six-petal crest as the interface.
+	if _stage_id_for_art() == "1-7":
+		var crest := GameSkin.crest()
+		if crest != null:
+			var offset := Vector2((vp.x - w) * 0.5, (vp.y - h) * 0.5)
+			draw_texture_rect(crest, Rect2(offset + Vector2(918, 209) * s, Vector2(84, 108) * s), false, Color(0.83, 0.79, 0.88, 0.72))
 	# 可读性遮罩：让背景退到单位之后
 	draw_rect(Rect2(Vector2.ZERO, vp), BG_SCRIM, true)
 
@@ -4249,7 +4255,7 @@ func _draw_result_overlay() -> void:
 	draw_line(Vector2(left, top + _px(160)), Vector2(panel.end.x - _px(55), top + _px(160)), Color(accent, 0.35), _px(1))
 	var stats: Array = [
 		["核心防线", "%d / %d" % [summary["coreHp"], summary["coreHpMax"]]],
-		["击退残响", "%d / %d" % [summary["kills"], summary["planned"]]],
+		["击退残响", "%d" % summary["kills"]],
 		["突破防线", str(summary["leaked"])],
 		["角色失能", str(summary["lost"])],
 		["战斗用时", "%02d:%02d" % [int(summary["elapsed"]) / 60, int(summary["elapsed"]) % 60]],

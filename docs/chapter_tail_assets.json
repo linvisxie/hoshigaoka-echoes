@@ -11,17 +11,6 @@
     "finalUserArtAcceptance": false
   },
   {
-    "name": "bg_env_ranking_battle",
-    "source": "tools\\source_art\\chapter_tail\\bg_env_ranking_battle.png",
-    "targets": [
-      "assets\\art\\environments\\bg_env_ranking_battle.png"
-    ],
-    "sha256": "7758865a7564cf5b953071b9a8850cbe9b66b8ad5a3474c84058a019e17804a7",
-    "origin": "OpenAI built-in imagegen with user-owned visual bible",
-    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
-    "finalUserArtAcceptance": false
-  },
-  {
     "name": "bg_env_science_battle",
     "source": "tools\\source_art\\chapter_tail\\bg_env_science_battle.png",
     "targets": [
@@ -225,6 +214,17 @@
       "assets\\art\\ui\\sara_device_idle.png"
     ],
     "sha256": "a540ecf64ced20114ca55d8380fe41503b7f53e855ef34329779c43415afd69c",
+    "origin": "OpenAI built-in imagegen with user-owned visual bible",
+    "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
+    "finalUserArtAcceptance": false
+  },
+  {
+    "name": "bg_env_ranking_battle",
+    "source": "tools\\source_art\\chapter_tail\\bg_env_ranking_battle.png",
+    "targets": [
+      "assets\\art\\environments\\bg_env_ranking_battle.png"
+    ],
+    "sha256": "46a4324f14f8298417f9ba24d6b191e2f81a9d9ffc9a78f34b14a12049feb129",
     "origin": "OpenAI built-in imagegen with user-owned visual bible",
     "licenseRecord": "assets/licenses/AI_GENERATED_ART_NOTICE.txt",
     "finalUserArtAcceptance": false
