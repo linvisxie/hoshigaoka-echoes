@@ -4,13 +4,13 @@ from PIL import Image
 import hashlib,json,shutil,subprocess,zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT/'dist/chapter_one_0.5.1_20261011'
+OUT=ROOT/'dist/chapter_one_0.5.1_20261012'
 BASE=ROOT.parent/'_testenv/chapter-polish'
 reports={
     'fresh_campaign':BASE/'fresh/appdata/HoshigaokaEchoes/campaign_report.json',
     'first_challenge_training':BASE/'fresh/appdata/HoshigaokaEchoes/first_challenge_training.json',
     'ui':BASE/'ui/appdata/HoshigaokaEchoes/chapter_ui_report.json',
-    'retail':BASE/'retail/retail_report.json',
+    'retail':BASE/'retail_final/retail_report.json',
     'audio':BASE/'audio/audio_report.json',
 }
 data={k:json.loads(p.read_text(encoding='utf8')) for k,p in reports.items()}
@@ -25,7 +25,7 @@ shutil.copy2(BASE/'unit/unit_final.log',evidence/'unit.log')
 for label,folder,patterns in [
     ('fresh_campaign',BASE/'fresh/appdata/HoshigaokaEchoes/campaign_shots',['battle_1-*.png','result_1-*.png','boss_*.png','first_challenge_training_*.png']),
     ('ui',BASE/'ui/appdata/HoshigaokaEchoes/frontend_shots',['device_selected_interface.png','chinatsu_active.png','growth_page_2.png','ending_silhouette.png']),
-    ('retail',BASE/'retail',['boss_phase_*.png','boss_continuous_*.png','victory.png','pause_retry.png'])]:
+    ('retail',BASE/'retail_final',['boss_phase_*.png','boss_continuous_*.png','victory.png','pause_retry.png'])]:
     dest=evidence/label;dest.mkdir(exist_ok=True)
     for pattern in patterns:
         for p in folder.glob(pattern):shutil.copy2(p,dest/p.name)
@@ -76,7 +76,7 @@ manifest={'version':'0.5.1','sourceCommit':subprocess.check_output(['git','rev-p
           'gameplayCommit':'19553ee','userArtAcceptance':False,
           'sha256':{p.relative_to(OUT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
 (OUT/'build_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf8')
-archive=ROOT/'dist/星丘残响_第一章十关打磨候选版_0.5.1_20261011.zip'
+archive=ROOT/'dist/星丘残响_第一章十关打磨候选版_0.5.1_20261012.zip'
 with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
     for p in files+[OUT/'build_manifest.json']:z.write(p,p.relative_to(OUT).as_posix())
 with zipfile.ZipFile(archive) as z:

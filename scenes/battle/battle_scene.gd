@@ -3250,7 +3250,9 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 			if phase == 2: emod = Color(1.12,0.91,1.15)
 			elif phase == 3: emod = Color(1.28,0.78,0.90)
 		if hit_k > 0.0:
-			emod = emod.lerp(Color(2.8, 2.8, 2.8, 1.0), 0.75 * hit_k)
+			# Preserve the Boss face/hair under sustained five-person damage.
+			var hit_color := Color(1.48,1.30,1.55,1) if e.enemy_id == "boss_model_student" else Color(2.8,2.8,2.8,1)
+			emod = emod.lerp(hit_color,0.75*hit_k)
 		if not e.is_active():
 			emod = Color(0.5, 0.45, 0.62, 0.55)
 		# ---- 动画状态机（本轮指令 第三条）：移动/攻击/受击/消散 ----
@@ -3286,6 +3288,7 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 	# 类别标签（常驻，保证不看颜色也能分辨敌种）
 	# 本轮精修：字号 14→15 并加**深色描边**，解决"背景偏亮时标签糊掉"的问题。
 	var label := _enemy_kind_label(e.enemy_id)
+	if e.enemy_id == "boss_model_student": label = ""
 	var group_count := int(_enemy_group_sizes.get(e.instance_id, 1))
 	if group_count > 1:
 		label = "残响群 ×%d" % group_count

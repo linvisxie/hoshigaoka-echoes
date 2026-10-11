@@ -106,7 +106,7 @@ func _build_result(viewport: Vector2, factor: float) -> void:
 	heading(p,"残响平息" if victory else "锚点失守",Rect2(143,28,730,70),48,accent)
 	var saved := "调查记录已保存" if bool(battle._reward_summary.get("ok",false)) else "结算状态：" + str(battle._reward_summary.get("reason","没有奖励"))
 	text(p,battle._stage_display_name()+"  ·  "+saved,Rect2(146,104,1100,42),23,GameSkin.MUTED)
-	var stats: Array = [["核心防线","%d / %d" % [summary["coreHp"],summary["coreHpMax"]]],["击退残响","%d / %d" % [summary["kills"],summary["planned"]]],["突破防线",str(summary["leaked"])],["角色失能",str(summary["lost"])],["战斗用时","%02d:%02d" % [int(summary["elapsed"])/60,int(summary["elapsed"])%60]],["完成波次","%d / %d" % [summary["wave"],summary["waveTotal"]]]]
+	var stats: Array = [["核心防线","%d / %d" % [summary["coreHp"],summary["coreHpMax"]]],["击退残响",str(summary["kills"])],["突破防线",str(summary["leaked"])],["角色失能",str(summary["lost"])],["战斗用时","%02d:%02d" % [int(summary["elapsed"])/60,int(summary["elapsed"])%60]],["完成波次","%d / %d" % [summary["wave"],summary["waveTotal"]]]]
 	for i: int in range(stats.size()):
 		var x := 55+float(i%3)*225
 		var y := 190+float(i/3)*110
