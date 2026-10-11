@@ -50,7 +50,7 @@ func _combat() -> Dictionary:
 
 
 func _stage_config() -> Dictionary:
-	return DataRegistry.get_entry("stages", "1-1")
+	return JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/balance_0_5_1/1-1.json"))
 
 
 ## 出怪时序类夹具：清空 waves 元数据，让波次由 enemySpawnTimeline 自动推导，
@@ -155,7 +155,7 @@ func test_redeploy_seconds_comes_from_config() -> void:
 		"普通角色再部署冷却应为 20 秒（表 24）")
 	# 角色级覆盖
 	var mio: Dictionary = _char_table()[CHAR_ID]
-	assert_eq(float(mio.get("redeployTime", -1.0)), 20.0,
+	assert_eq(float(mio.get("redeployTime", -1.0)), 12.0,
 		"雨宫澪 redeployTime 应为 20 秒（表 26 / 表 47）")
 
 
@@ -373,7 +373,7 @@ func test_redeploy_cooldown_starts_at_spec_value() -> void:
 	var rt := _runtime(_cfg([]))
 	rt.deploy_character(CHAR_ID, 2, 1)
 	rt.withdraw_character_by_id(CHAR_ID)
-	assert_almost_eq(rt.get_redeploy_remaining(CHAR_ID), 20.0, EPS,
+	assert_almost_eq(rt.get_redeploy_remaining(CHAR_ID), 12.0, EPS,
 		"撤退后应进入 20 秒再部署冷却")
 	assert_true(rt.is_redeploy_cooling(CHAR_ID), "应处于冷却中")
 
@@ -389,7 +389,7 @@ func test_redeploy_rejected_during_cooldown() -> void:
 	var q := rt.query_deploy(CHAR_ID, 3, 0)
 	assert_false(q.ok, "冷却期间不得部署")
 	assert_eq(q.reason, StageRuntime.DeployReject.REDEPLOY_COOLDOWN, "原因应为再部署冷却")
-	assert_almost_eq(q.cooldown_remaining, 20.0, EPS, "应带出剩余秒数供 UI 显示")
+	assert_almost_eq(q.cooldown_remaining, 12.0, EPS, "应带出剩余秒数供 UI 显示")
 
 	var r := rt.deploy_character(CHAR_ID, 3, 0)
 	assert_false(r.ok, "冷却期间部署应被拒绝")
@@ -403,7 +403,7 @@ func test_redeploy_cooldown_expires_exactly() -> void:
 	rt.withdraw_character_by_id(CHAR_ID)
 
 	# 推进 19 秒：仍在冷却
-	_step_n(rt, 19.0)
+	_step_n(rt, 11.0)
 	assert_gt(rt.get_redeploy_remaining(CHAR_ID), 0.0, "19 秒时应仍在冷却")
 	assert_false(rt.query_deploy(CHAR_ID, 3, 0).ok, "19 秒时不应可部署")
 
@@ -456,7 +456,7 @@ func test_incapacitated_character_also_enters_redeploy_cooldown() -> void:
 	rt.advance(StageRuntime.LOGIC_STEP_SECONDS)
 
 	assert_true(rt.is_redeploy_cooling(CHAR_ID), "失能离场后应处于再部署冷却")
-	assert_almost_eq(rt.get_redeploy_remaining(CHAR_ID), 20.0, 0.05,
+	assert_almost_eq(rt.get_redeploy_remaining(CHAR_ID), 12.0, 0.05,
 		"失能后同样应进入 20 秒冷却")
 	assert_false(rt.query_deploy(CHAR_ID, 3, 0).ok, "冷却期间不得部署")
 
@@ -473,7 +473,7 @@ func test_redeploy_cooldown_is_frame_rate_independent() -> void:
 		results.append(snappedf(rt.get_redeploy_remaining(CHAR_ID), 0.001))
 	assert_eq(results[0], results[1], "60fps 与 30fps 的剩余冷却必须一致")
 	assert_eq(results[1], results[2], "30fps 与 144fps 的剩余冷却必须一致")
-	assert_almost_eq(results[0], 10.0, 0.02, "10 秒后应剩余约 10 秒冷却")
+	assert_almost_eq(results[0], 2.0, 0.02, "10 秒后应剩余约 10 秒冷却")
 
 
 func test_redeploy_timers_stop_after_outcome() -> void:

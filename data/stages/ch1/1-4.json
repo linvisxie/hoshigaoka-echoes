@@ -43,127 +43,157 @@
       "wave": 1
     },
     {
+      "time": 19.35,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
       "time": 19.7,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 1
     },
     {
-      "time": 36.0,
+      "time": 31.7,
       "lane": 1,
       "enemy": "echo_armored",
       "wave": 2
     },
     {
-      "time": 36.8,
+      "time": 32.5,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 2
     },
     {
-      "time": 39,
+      "time": 34.7,
       "lane": 1,
       "enemy": "echo_runner",
       "wave": 2
     },
     {
-      "time": 50.0,
+      "time": 45.7,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 2
     },
     {
-      "time": 50.8,
+      "time": 46.05,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 2
     },
     {
-      "time": 70.0,
+      "time": 46.5,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 58.5,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 70.1,
+      "time": 58.6,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 70.2,
+      "time": 58.7,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 70.3,
+      "time": 58.8,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 70.4,
+      "time": 58.9,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 70.7,
+      "time": 59.15,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 78.0,
+      "time": 59.2,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 66.5,
       "lane": 1,
       "enemy": "echo_runner",
       "wave": 3
     },
     {
-      "time": 79,
+      "time": 67.5,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 90.0,
+      "time": 78.5,
       "lane": 2,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 112.0,
+      "time": 78.85,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 90.5,
       "lane": 1,
       "enemy": "echo_armored",
       "wave": 4
     },
     {
-      "time": 112.7,
+      "time": 91.2,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 4
     },
     {
-      "time": 115,
+      "time": 93.5,
       "lane": 1,
       "enemy": "echo_runner",
       "wave": 4
     },
     {
-      "time": 124.0,
+      "time": 102.5,
       "lane": 1,
       "enemy": "echo_runner",
       "wave": 4
     },
     {
-      "time": 124.8,
+      "time": 103.3,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 4
     },
     {
-      "time": 146.0,
+      "time": 103.65,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 115.3,
       "lane": 0,
       "enemy": "echo_normal",
       "wave": 4
@@ -240,7 +270,7 @@
   },
   "stageName": "背得太多",
   "briefing": "装甲残响防御较高。前线承压时保持后方输出，留意澪的生命与再部署冷却。",
-  "_encounterRevision": "2026-10-11 用户要求增加成组出怪、战斗紧张感。保留首遇顺序、解锁、精英机制与无治疗条件；旧数量和静态通关说明是历史基线，以本时间线和本轮实测为准。",
+  "_encounterRevision": "2026-10-12: tighter wave gaps, same-lane paired pressure, 40 percent shorter redeploy; candidate pending playtest",
   "_stableClearPath": "2026-10-11 成组进场版：澪中路col3、悠真中路col1；按正常AP部署，技能就绪且有敌人时释放。回归验证包含无治疗、正常Lv.1基础数值与零漏怪目标。旧无技能静态打法不再是当前密集版本的验收条件，实际Windows新游戏连续流程另行记录。",
   "_round9Tactics": "2026-10-11: redistribute existing normal echoes into alternating side-lane pressure; total counts and heavy-unit lanes unchanged. Normal two-person clear must be revalidated."
 }

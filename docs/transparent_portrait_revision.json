@@ -1,0 +1,27 @@
+{
+  "tool": "Built-in imagegen background-removal edit of project-owned AI portraits",
+  "userArtAcceptance": false,
+  "assets": [
+    {
+      "character": "ogawa_yui",
+      "source": "tools\\source_art\\chapter_tail\\ogawa_yui_portrait_transparent_revision.png",
+      "sha256": "3959fc1dd02992e0ab8fa829f3de6a422673a5d5391758a1e01f152e392b0666",
+      "alphaCorner": 0,
+      "processing": "RGBA conversion and Lanczos resize only; original closeup preserved"
+    },
+    {
+      "character": "minase_sara",
+      "source": "tools\\source_art\\chapter_tail\\minase_sara_portrait_transparent_revision.png",
+      "sha256": "bc2803706f079070d41864bb8a94e9b6bce4b9b84e5e9695fcc4f2b4272da5dd",
+      "alphaCorner": 0,
+      "processing": "RGBA conversion and Lanczos resize only; original closeup preserved"
+    },
+    {
+      "character": "shiraishi_chinatsu",
+      "source": "tools\\source_art\\chapter_tail\\shiraishi_chinatsu_portrait_transparent_revision.png",
+      "sha256": "e28635c79d0be59a5eb7338dc61fb8f499fbdec9453dd7aa33f276d6295cacd7",
+      "alphaCorner": 0,
+      "processing": "RGBA conversion and Lanczos resize only; original closeup preserved"
+    }
+  ]
+}

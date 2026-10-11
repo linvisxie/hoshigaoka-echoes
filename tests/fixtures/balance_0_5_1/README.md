@@ -1,0 +1,1 @@
+Pinned 0.5.1 encounters for fixed-action cross-lane and retreat mechanics regression. These fixtures do not validate current encounter balance. Current stage data is checked by data-contract tests and the new-game Windows campaign run.

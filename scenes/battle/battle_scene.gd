@@ -634,6 +634,11 @@ func _build_battle() -> void:
 		var order: Array = CampaignFlow.state().get("party_order", [])
 		if order.size() == _roster.size() and order.all(func(cid: Variant) -> bool: return _roster.has(cid)):
 			_roster.assign(order)
+		if str(CampaignFlow.state().get("party_stage","")) == stage_id:
+			var selected: Array = CampaignFlow.state().get("party_selected",_roster)
+			_roster = _roster.filter(func(cid: Variant) -> bool: return selected.has(cid))
+			session.stage.available_characters.assign(_roster)
+		_update_layout()
 
 	# P1.0：关卡教学条目（V2.1.4 G-九：教学触发点必须数据驱动，不得硬编码在场景脚本）
 	_build_tutorial_queue(stage_config)
@@ -961,7 +966,7 @@ func _layout_upgrade_cards() -> void:
 			Vector2(start_x + float(i) * (card_w + gap), y),
 			Vector2(card_w, card_h)))
 	# 底部操作条（重掷 / 跳过）
-	var bar_y := y + card_h + _px(30.0)
+	var bar_y := y + card_h + _px(80.0)
 	var bh := _px(56.0)
 	var bgap := _px(24.0)
 	var reroll_w := _px(260.0)
@@ -1994,7 +1999,7 @@ func _handle_left_click(pos: Vector2) -> void:
 
 	# 战斗结束：只处理结果界面上的按钮
 	if session.is_decided():
-		if session.outcome == BattleTypes.Outcome.VICTORY and _result_animation_time < 1.0:
+		if session.outcome == BattleTypes.Outcome.VICTORY and _result_animation_time < 2.8:
 			return
 		_handle_result_click(pos)
 		return
@@ -2186,7 +2191,7 @@ var _autoplay_attempts: int = 0
 func _drive_autoplay() -> void:
 	# Outcome handling must precede AP waits (the domain clock freezes at outcome).
 	if session.is_decided():
-		if not _autoplay_result_captured and _result_animation_time >= 1.0:
+		if not _autoplay_result_captured and _result_animation_time >= 2.8:
 			_autoplay_result_captured = true
 			_ap_capture("result")
 			GameLog.info(TAG, "[autoplay] 已确认结果：%s" % BattleTypes.outcome_name(session.outcome))
@@ -2473,7 +2478,7 @@ func _draw() -> void:
 	if _native_hud == null:
 		_draw_upgrade_overlay()
 	if session.is_decided() and _native_hud == null:
-		if session.outcome != BattleTypes.Outcome.VICTORY or _result_animation_time >= 1.0:
+		if session.outcome != BattleTypes.Outcome.VICTORY or _result_animation_time >= 2.8:
 			_draw_result_overlay()
 
 
@@ -2748,10 +2753,10 @@ func _draw_core() -> void:
 	var tower := ArtRegistry.load_texture("res://assets/art/ui/core_cradle_round10.png")
 	var core_center := Vector2(_origin.x - _px(480.0), _px(580.0))
 	if tower != null:
-		var tower_h := _px(350.0)
+		var tower_h := _px(405.0)
 		var tower_w := tower_h * 0.625
 		var tower_rect := Rect2(core_center.x - tower_w * 0.5, core_center.y - tower_h * 0.5, tower_w, tower_h)
-		var modulate_color := Color(1, 1, 1).lerp(energy, 0.65 if danger else flash * 0.7)
+		var modulate_color := Color(1.10, 1.10, 1.16).lerp(energy, 0.65 if danger else flash * 0.7)
 		if hp <= 0:
 			var break_progress := clampf(_result_animation_time/0.75,0,1)
 			for piece: int in range(8):
@@ -2766,7 +2771,7 @@ func _draw_core() -> void:
 				modulate_color = modulate_color.lerp(Color(1.25,0.55,0.65),0.16+0.16*sin(now*7))
 			draw_texture_rect(tower, tower_rect, false, modulate_color)
 			# Replace the generated medallion with the authoritative six-petal crest.
-			var seal := tower_rect.position + Vector2(tower_w*0.54,tower_h*0.75)
+			var seal := tower_rect.position + Vector2(tower_w*0.54,tower_h*0.70)
 			draw_circle(seal,_px(23),Color("29243e"))
 			draw_texture_rect(GameSkin.crest(),Rect2(seal-Vector2(_px(24),_px(31)),Vector2(_px(48),_px(62))),false,modulate_color)
 			var crystal_center := tower_rect.position+Vector2(tower_w*0.53,tower_h*0.34)
@@ -2792,7 +2797,7 @@ func _draw_core() -> void:
 			_draw_corner_marks(Rect2(center - Vector2.ONE * r * 1.3, Vector2.ONE * r * 2.6), r * 0.35, Color(energy, pulse), _px(2.0))
 	# Three seals defend three routes, all read the same authoritative HP.
 	var label := "防线崩解" if hp <= 0 else ("最后防线" if danger else "残响锚点")
-	draw_string(ThemeDB.fallback_font, Vector2(core_center.x - _px(58.0), core_center.y + _px(198.0)), label,
+	draw_string(ThemeDB.fallback_font, Vector2(core_center.x - _px(58.0), core_center.y + _px(222.0)), label,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), energy)
 
 
@@ -2875,7 +2880,8 @@ func _draw_characters(lane_filter: int = -1) -> void:
 						pose_anim = str(special["anim"])
 						_mark_drawn("char_special:" + str(special["anim"]))
 			var redrawn := c.character_id in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin","ogawa_yui","minase_sara","shiraishi_chinatsu"]
-			_draw_sprite_anchored(sprite, Vector2(px_x, px_y), tile * (1.28 if redrawn else 0.96), mod, 0.25 if redrawn else 0.33)
+			var body_h := tile * ArtRegistry.character_body_scale(c.character_id)
+			_draw_sprite_anchored(sprite, Vector2(px_x, px_y + tile * 0.32 - body_h * 0.25), body_h, mod, 0.25)
 			if c.skill_active_remaining > 0 or c.skill_charged:
 				var aura := Color("a9cfff") if c.character_id == "amamiya_mio" else Color("ffd58c")
 				var foot := Vector2(px_x,px_y+tile*0.32)
@@ -3268,8 +3274,10 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 		if ef != null:
 			esprite = ef
 		# 敌人目标高度随 spriteFramePx 放大（96 的重装单位视觉更大）
-		var eh := tile * 0.72 * scale
-		if e.enemy_id == "boss_model_student": eh = tile * 1.65
+		var eh := tile * 0.92 * scale
+		if e.enemy_id not in ["echo_normal","echo_runner","boss_model_student"]:
+			eh = maxf(eh,tile*1.18)
+		if e.enemy_id == "boss_model_student": eh = tile * 2.05
 		_draw_sprite_anchored(esprite, Vector2(px_x, px_y), eh, emod, 0.16 if e.enemy_id == "boss_model_student" else 0.42)
 		if ef != null:
 			_mark_drawn("enemy_anim:%s" % est.anim)
@@ -4634,8 +4642,12 @@ func _draw_departures() -> void:
 		if texture == null:
 			continue
 		var redrawn := kind == "character" and code in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin","ogawa_yui","minase_sara","shiraishi_chinatsu"]
-		var height := _px(grid.tile_size_px) * (1.28 if redrawn else (0.96 if kind == "character" else 0.72))
-		if code == "boss_model_student": height = _px(grid.tile_size_px)*1.65
+		var height := _px(grid.tile_size_px) * (ArtRegistry.character_body_scale(code) if redrawn else (0.96 if kind == "character" else 0.92))
+		if kind == "enemy":
+			var enemy_cfg: Dictionary = DataRegistry.get_entry("enemies",code)
+			height *= clampf(float(enemy_cfg.get("spriteFramePx",64))/64.0,0.8,1.6)
+			if code not in ["echo_normal","echo_runner","boss_model_student"]: height=maxf(height,_px(grid.tile_size_px)*1.18)
+		if code == "boss_model_student": height = _px(grid.tile_size_px)*2.05
 		var offset: Vector2 = ghost.get("offset", Vector2.ZERO)
 		_draw_sprite_anchored(texture, _logical_to_screen(ghost["logical"]) + Vector2(_px(offset.x), _px(offset.y)), height,
 			Color(1, 1, 1, 1.0 - progress), 0.16 if code == "boss_model_student" else (0.25 if redrawn else (0.33 if kind == "character" else 0.42)))
@@ -4727,5 +4739,5 @@ func visual_layout_snapshot() -> Dictionary:
 			var rect := control.get_global_rect()
 			hud[key] = [rect.position.x,rect.position.y,rect.size.x,rect.size.y]
 	return {"scale":_render_scale,"origin":[_origin.x,_origin.y],"laneSpacing":_render_lane_spacing(),
-		"coreCenter":[_origin.x-_px(480),_px(580)],"coreHeight":_px(350),"coreWidth":_px(350*.625),
+		"coreCenter":[_origin.x-_px(480),_px(580)],"coreHeight":_px(405),"coreWidth":_px(405*.625),
 		"cells":cells,"hud":hud}

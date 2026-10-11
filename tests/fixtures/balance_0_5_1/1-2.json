@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "1.0.0-a0.3",
+  "domain": "stage",
+  "stageId": "1-2",
+  "_spec": "V2.1.4 G 章表 52：1-2 教学重点「高速敌人 / 空线意识」。表 53：1-2 解锁「敌人图鉴」。表 73：推荐等级 Lv.1～3。F-十九：1-2「普通 + 疾走残响体——理解不同移动速度」。",
+  "_scope": "Alpha A0.3 首章 1-1～1-5 施工。本关首次引入疾走残响体（echo_runner，1.0 格/秒，是普通残响体的 1.82 倍），教学目标是让玩家意识到「不能只看一路」。",
+  "chapter": 1,
+  "mapId": "ch1_classroom_sunset",
+  "_mapId_spec": "V2.1.4 G-四：1-1～1-3 为普通教学楼黄昏，异常程度较轻。",
+  "coreHp": 3,
+  "_coreHp_spec": "V2.1.4 G-五：普通关核心生命默认为 3（1-1 是唯一放宽为 5 的例外）。",
+  "startingAp": 10,
+  "_startingAp_spec": "V2.1.4 D-7：开局 AP 10。",
+  "apRegen": 1,
+  "_apRegen_spec": "V2.1.4 D-7：自然回复 1/秒；上限 30 来自 balance.json combat.maxAp。",
+  "availableCharacters": [
+    "amamiya_mio"
+  ],
+  "_availableCharacters_spec": "V2.1.4 G-三 / 表 51：1-2 尚未解锁任何新角色，仍只有雨宫澪。神谷悠真 1-3 才常规可部署。",
+  "enemySpawnTimeline": [
+    {
+      "time": 4.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 4.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 17.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 30.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 30.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 46.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 62.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 62.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 74.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 3
+    },
+    {
+      "time": 100.0,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    }
+  ],
+  "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段以承载 Wave 调度（与 1-1.json 同构）。",
+  "_timeline_candidate": "各关精确出怪秒数与数量属 V2.1.4 G-十一 明列的**候选可配置平衡参数**（「这些内容不在纸面阶段强行锁死，待第一个可玩 Prototype 后依据实际手感调整」）。本文件给出首轮值，并已用 tools/simulate_ch1_stages.gd 验证存在稳定通关解。",
+  "waves": [
+    {
+      "number": 1,
+      "label": "热身",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段 3 只普通残响体，间隔 6～7 秒。延续 1-1 的单路节奏，让玩家在熟悉的压力下开局；雨宫澪单人即可稳定处理（击杀单只约 4.6 秒 < 间隔）。"
+    },
+    {
+      "number": 2,
+      "label": "疾走",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段首次出现疾走残响体（速度 1.0 格/秒，从入口到中段阻挡位只需约 2 秒，普通需 3.6 秒），因此「看到再部署」往往来不及——本波的教学点是**提前判断**，而不是反应。注意本波**仍在中段单路**：疾走的速度差先让玩家看清「同一路线上快慢敌人的处理节奏不同」，空线压力留到第 3 波才施加。"
+    },
+    {
+      "number": 3,
+      "label": "空线",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段两只普通残响体（同一时刻 62s 出怪）压上前，随后中段再出疾走（74s）；最后上段 1 只普通残响体收尾（100s）。雨宫澪只能驻守一条路线，**但不再被机制强迫漏怪**：上段那只是在 74s 疾走被清掉之后才出现，中间留有足够时间「撤退 → 上段再部署」。本波中段与上段的出怪间隔约 26 秒（> 20 秒再部署冷却），玩家有时间判断该不该放弃中段去补上段。"
+    }
+  ],
+  "_waveCount_spec": "V2.1.4 D-33 表 32 的第一章 5 波骨架（普通 / +疾走 / +装甲 / 混合 / 最终波）。1-2 只承担「引入疾走」一个教学点，故取前 3 波，不提前引入装甲。",
+  "_enemyCount_spec": "10 只（普通 ×7 / 疾走 ×3），低于 V2.1.4 D-30 表 33「建议总敌人数 18～24」——因为 1-2 是**教学关**且只有 1 名可部署角色，敌人数按 G-五「每关只首次教学 1～2 个新概念，避免信息过载」压缩。",
+  "_balanceNote": "雨宫澪对普通残响体 100 伤害/1.1 秒；对疾走残响体 120×100/110 = 109 伤害。疾走残响体 HP 260，需 3 次命中约 2.2 秒；但它从入口推进到中段 col3 接触线只需约 2 秒，因此**若雨宫澪不在它所在的路线，它必然漏怪**。这正是「高速敌人」的教学语义。",
+  "_zeroLeak_note": "**零漏怪可达性（第二阶段验收）**：Wave 3 的末位敌人（上段，100s）与中段疾走（74s）间隔 26 秒 > 20 秒再部署冷却，因此「撤退换线救上段」在机制上可行。实测（tools/probe_cross_lane.gd）：中段 col3 起步，**79.0s 撤退、99.5s 上段 col3 再部署** → 胜利、核心 3/3、击杀 10/10、**漏怪 0**、失能 0。对照「全程只守中段」为击杀 9 / 漏怪 1 / 核心 2/3。**注意时序容差很紧**：81.0s 才撤退就会因「再部署冷却剩余 1.5 秒」被拒（该负面对照已固化为回归断言，用于证明 20 秒冷却这一约束真实存在且仍具约束力）。本轮未修改 20 秒冷却本身，只调整出怪节奏，使冷却成为**可规划**的战术约束而非必输陷阱。",
+  "tutorialTriggers": [
+    {
+      "at": 0.0,
+      "id": "TUT_1_2_GOAL",
+      "text": "本关新敌人：疾走残响体——移动速度是普通残响体的近两倍"
+    },
+    {
+      "at": 26.0,
+      "id": "TUT_1_2_FAST",
+      "text": "疾走残响体从右侧入口冲到防线只需约 2 秒：请提前判断它走哪一路"
+    },
+    {
+      "at": 58.0,
+      "id": "TUT_1_2_LANES",
+      "text": "雨宫澪只能守一条路线；两路同时来敌时，先保威胁最大的那一路"
+    },
+    {
+      "at": 60.0,
+      "id": "TUT_1_2_CORE",
+      "text": "漏怪会直接扣核心生命；三路共享同一个残响锚点"
+    }
+  ],
+  "_tutorialTriggers_spec": "V2.1.4 G-九 把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念」。本关只教「疾走敌人的速度」与「空线意识」两件事。",
+  "specialRules": [],
+  "firstClearRewardId": "reward_1_2_first",
+  "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID，不在 StageConfig 里写金额。表 53 规定 1-2 解锁「敌人图鉴」——该奖励需 stage_rewards.json 填充后接入，属 Alpha A0.4 经济阶段。",
+  "repeatRewardId": "reward_repeat_standard",
+  "storyBefore": "ch1_1_2_before",
+  "storyAfter": "ch1_1_2_after",
+  "_story_note": "V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts.",
+  "bossConfig": {},
+  "_outOfScope": "本关不引入装甲残响体（1-4 才引入）、不引入试卷飞灵与监考者（data/enemies.json 中尚无其数值，属 A0.2 敌人生态阶段）、不实现局内三选一（Alpha A0.6）。",
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  },
+  "stageName": "迟到的人影",
+  "briefing": "疾走残响会迅速通过空线。留意下一波路线，提前安排阻挡与部署。",
+  "_encounterRevision": "2026-10-11 成组进场：前两关保留教学人数和换线窗口，增加同波并行压力；第三关起显著增加总人数。"
+}

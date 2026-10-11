@@ -26,6 +26,7 @@ const SCENES := {
 	"new_game": "res://scenes/menus/new_game.tscn",
 	"character_details": "res://scenes/menus/character_details.tscn",
 	"equipment": "res://scenes/menus/equipment.tscn",
+	"character_equipment": "res://scenes/menus/character_equipment.tscn",
 }
 
 var _current_scene_key: String = ""
@@ -86,6 +87,8 @@ func _change(path: String, key: String) -> bool:
 	if err != OK:
 		GameLog.error(TAG, "切换场景失败 %s（错误 %d）" % [path, err])
 		return false
+	if key == "home":
+		CampaignFlow.inspected_character_id = "amamiya_mio"
 	_current_scene_key = key
 	_history.append(path)
 	GameLog.debug(TAG, "场景切换 -> %s" % path)

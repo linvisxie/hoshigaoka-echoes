@@ -172,6 +172,20 @@ static func character_portrait(char_id: String, size: int = 64) -> Texture2D:
 	return load_texture("%s/characters/%s/%s_portrait_%d.png" % [
 		ART_ROOT, char_id, char_id, size])
 
+static var _body_height_scale: Dictionary = {}
+
+## Normalize the visible idle body, retaining one scale for every action frame.
+static func character_body_scale(char_id: String) -> float:
+	if not _body_height_scale.has(char_id):
+		var texture := load_texture("%s/characters/%s/%s_base.png" % [ART_ROOT,char_id,char_id])
+		var ratio := 1.28
+		if texture != null:
+			var bounds := texture.get_image().get_used_rect()
+			if bounds.size.y > 0:
+				ratio = float(texture.get_height()) / float(bounds.size.y) * 0.96
+		_body_height_scale[char_id] = ratio
+	return float(_body_height_scale[char_id])
+
 
 # ============================================================ 敌人
 

@@ -1,0 +1,98 @@
+{
+  "redeploy": [
+    [
+      "amamiya_mio",
+      20.0,
+      12
+    ],
+    [
+      "kamiya_yuma",
+      20.0,
+      12
+    ],
+    [
+      "ogawa_yui",
+      20.0,
+      12
+    ],
+    [
+      "fujiwara_rin",
+      25.0,
+      15
+    ],
+    [
+      "minase_sara",
+      22,
+      13
+    ],
+    [
+      "shiraishi_chinatsu",
+      20,
+      12
+    ]
+  ],
+  "status": "Validated by normal-clock Windows fresh new-game ten-stage campaign and final Retail Boss replay; user balance acceptance pending",
+  "evidence": "../_testenv/interaction-revision/fresh2/appdata/HoshigaokaEchoes/campaign_report.json (workspace parent); final shipping copy in 实机验证/fresh_campaign_report.json",
+  "encounters": [
+    {
+      "stage": 1,
+      "before": 6,
+      "after": 7,
+      "lastSpawn": 49.8
+    },
+    {
+      "stage": 2,
+      "before": 10,
+      "after": 11,
+      "lastSpawn": 92.0
+    },
+    {
+      "stage": 3,
+      "before": 26,
+      "after": 31,
+      "lastSpawn": 123.6
+    },
+    {
+      "stage": 4,
+      "before": 25,
+      "after": 30,
+      "lastSpawn": 115.3
+    },
+    {
+      "stage": 5,
+      "before": 24,
+      "after": 29,
+      "lastSpawn": 99.35
+    },
+    {
+      "stage": 6,
+      "before": 27,
+      "after": 32,
+      "lastSpawn": 128.8
+    },
+    {
+      "stage": 7,
+      "before": 27,
+      "after": 32,
+      "lastSpawn": 128.8
+    },
+    {
+      "stage": 8,
+      "before": 27,
+      "after": 32,
+      "lastSpawn": 128.8
+    },
+    {
+      "stage": 9,
+      "before": 27,
+      "after": 32,
+      "lastSpawn": 128.8
+    },
+    {
+      "stage": 10,
+      "before": 71,
+      "after": 85,
+      "lastSpawn": 301.5
+    }
+  ]
+}

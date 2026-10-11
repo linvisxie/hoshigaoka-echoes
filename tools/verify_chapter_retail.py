@@ -88,7 +88,7 @@ with (out/'game.log').open('w',encoding='utf8') as log:
             actions.append({'clock':state['time'],'characters':sorted(present),'audio':state['audio']})
             time.sleep(.15)
         state=probe();assert state and state['outcome']=='胜利','Retail final stage did not clear: '+str(state and state['outcome'])
-        time.sleep(1.2);shot('victory')
+        time.sleep(3.2);shot('victory')
         final=state
         # Return to the campus through the real result button, then quit normally.
         click(1096,905);time.sleep(1.2)

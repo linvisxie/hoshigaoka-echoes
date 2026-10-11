@@ -1,0 +1,26 @@
+{
+  "origin": "Original chapter motif arrangement; original synthesized drums and bass; existing CC0 VSCO2 piano",
+  "tracks": [
+    {
+      "phase": 1,
+      "bpm": 148,
+      "seconds": 38.91890625,
+      "peak": 0.5336691250407315,
+      "rms": 0.0946712321544743
+    },
+    {
+      "phase": 2,
+      "bpm": 156,
+      "seconds": 36.9230625,
+      "peak": 0.5827652214034648,
+      "rms": 0.09268102242380039
+    },
+    {
+      "phase": 3,
+      "bpm": 164,
+      "seconds": 35.1219375,
+      "peak": 0.613795996457296,
+      "rms": 0.10087324926889901
+    }
+  ]
+}

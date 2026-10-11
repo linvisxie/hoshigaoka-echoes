@@ -11,7 +11,7 @@ for c in chars['characters']:
         c['skillIds']=['yui_small_light'];c['weaponType']='MEDICAL'
 def ranged(cid,name,hp,atk,defense,interval,reach,cost,redep,skill,talent,weapon,unlock):
     return dict(id=cid,name=name,nameShort=name[-2:],grade='高一',club='科学部' if 'sara' in cid else '轻音部',classType=weapon,behavior='RANGED',roleTags=['RANGED','SUPPORT'],baseStats=dict(hp=hp,attack=atk,defense=defense),growthProfileId='growth_standard',attackInterval=interval,attackRange=dict(shape='lane_band',direction='forward',rangeTiles=reach,maxLaneDelta=0),blockCount=0,deployCost=cost,redeployTime=redep,damageType='SPECIAL',skillIds=[skill],talentIds=[talent],weaponType=weapon,unlockStage=unlock,spriteFramePx=96)
-new=[ranged('minase_sara','水濑纱良',650,115,25,1.8,3.5,18,22,'sara_experiment','sara_analysis','DEVICE','1-8'),ranged('shiraishi_chinatsu','白石千夏',700,75,35,1.6,3,15,20,'chinatsu_beat','chinatsu_presence','GUITAR','1-10')]
+new=[ranged('minase_sara','水濑纱良',650,115,25,1.8,3.5,18,13,'sara_experiment','sara_analysis','DEVICE','1-8'),ranged('shiraishi_chinatsu','白石千夏',700,75,35,1.6,3,15,12,'chinatsu_beat','chinatsu_presence','GUITAR','1-10')]
 for c in new:
     chars['characters']=[old for old in chars['characters'] if old['id']!=c['id']]+[c]
 write('data/characters.json',chars)
@@ -24,7 +24,7 @@ write('data/skills.json',skills)
 enemies=read('data/enemies.json')
 def enemy(eid,name,hp,atk,defense,speed,interval,mechanic):
     return dict(id=eid,name=name,tier=2,tags=['MECHANISM'],weightClass='HEAVY',spriteFramePx=96,hp=hp,attack=atk,defense=defense,moveSpeed=speed,attackInterval=interval,attackRange='MELEE',coreDamage=1,abilityIds=[],mechanic=mechanic)
-newenemies=[enemy('echo_anxiety','焦虑团块',520,55,30,.4,1.4,dict(kind='ANXIETY_AURA',radiusTiles=2,attackSpeedPct=-.15,cdRecoveryPct=-.1)),enemy('echo_rank','排名幽灵',380,45,20,.5,1.6,dict(kind='RANK_COMPARE',rangeTiles=3.5,intervalSeconds=8,durationSeconds=5,attackPct=-.15)),enemy('boss_model_student','无名优等生',8000,150,70,.18,2,dict(kind='CHAPTER_BOSS'))]
+newenemies=[enemy('echo_anxiety','焦虑团块',520,55,30,.4,1.4,dict(kind='ANXIETY_AURA',radiusTiles=2,attackSpeedPct=-.15,cdRecoveryPct=-.1)),enemy('echo_rank','排名幽灵',380,45,20,.5,1.6,dict(kind='RANK_COMPARE',rangeTiles=3.5,intervalSeconds=8,durationSeconds=5,attackPct=-.15)),enemy('boss_model_student','无名优等生',8000,170,70,.13,1.65,dict(kind='CHAPTER_BOSS'))]
 newenemies[0]['weightClass']='MEDIUM';newenemies[0]['spriteFramePx']=64
 newenemies[1]['weightClass']='LIGHT';newenemies[1]['spriteFramePx']=64
 newenemies[-1]['coreDamage']=3
@@ -67,6 +67,17 @@ for n in range(6,11):
     cfg=dict(schemaVersion='1.0.0-v3-tail',domain='stage',stageId=f'1-{n}',chapter=1,stageName=names[n],mapId=env[n],coreHp=3,startingAp=10,apRegen=1,availableCharacters=roster,enemySpawnTimeline=timeline,tutorialTriggers=[dict(at=0,id=f'TUT_TAIL_{n}',text=brief[n])],specialRules=[],firstClearRewardId=f'reward_1_{n}_first',repeatRewardId='reward_repeat_standard',storyBefore=f'ch1_1_{n}_before',storyAfter=f'ch1_1_{n}_after',bossConfig={},battleRewards=dict(school_coin=160,study_record_short=2,equipment_part=2),briefing=brief[n],waves=[dict(number=i,label=['观测','异常加深','短暂喘息','核心残响','最终波'][i-1],clearCondition='ALL_ENEMIES_DEFEATED') for i in range(1,5 if n==10 else 6)])
     if n==10: cfg['bossConfig']=dict(enemyId='boss_model_student',phaseThresholds=[.6,.3],standardInterval=12,warningSeconds=3,comparisonInterval=15,comparisonDuration=5,comparisonPct=-.15,anxietyInterval=12,anxietyDuration=6,anxietySpeedPct=.3,mistakeInterval=18,mistakeDamage=220,mistakeRadius=1,rankingInterval=15,rankingDuration=6,rankingPct=-.25,finalMovePct=.4,finalAttackSpeedPct=.2,enrageSeconds=480)
     if n==10: cfg['bossConfig'].update(skillInherit='replace',phaseFirstCastSeconds=3,firstStandardSeconds=3,firstComparisonSeconds=5,finalSummonInterval=12)
+    # Keep regeneration aligned with the validated 0.5.2 encounter rhythm.
+    previous=0;shift=0;paired=[]
+    for i,event in enumerate(timeline):
+        original=event['time']
+        if i: shift+=max(0,original-previous-(10 if n==10 else 12))
+        previous=original
+        event['time']=round(original-shift,2)
+        if i>=3 and i%5==3 and event['enemy']!='boss_model_student':
+            paired.append(dict(time=round(event['time']+.35,2),lane=event['lane'],enemy='echo_normal',wave=event['wave']))
+    cfg['enemySpawnTimeline']=sorted(timeline+paired,key=lambda e:e['time'])
+    cfg['_encounterRevision']='2026-10-12: tighter wave gaps, same-lane paired pressure, 40 percent shorter redeploy; candidate pending playtest'
     write(f'data/stages/ch1/1-{n}.json',cfg)
 up=read('data/upgrades.json')
 for n in range(6,11): up['openByStage'][f'1-{n}']=dict(opens=3 if n==10 else 2,triggerWaves=[1,2,3] if n==10 else [1,3])

@@ -1,0 +1,44 @@
+[
+  {
+    "character": "ogawa_yui",
+    "raw": "tools\\source_art\\chapter_tail\\ogawa_yui_fullbody_revision.png",
+    "sourceSha256": "ad7d11d9461b487209f1db01e6f9ba90f1a4fd561a93b228077cfe0cddff2aad",
+    "portraitCrop": [
+      220,
+      0,
+      800,
+      580
+    ],
+    "alphaCorner": 0,
+    "origin": "built-in imagegen; existing character portrait reference; full-body extension; transparent_background=true",
+    "userArtAcceptance": false
+  },
+  {
+    "character": "minase_sara",
+    "raw": "tools\\source_art\\chapter_tail\\minase_sara_fullbody_revision.png",
+    "sourceSha256": "66fcb7eb7b555417898d3445ad77f025022359c1def341dbc8323a351305d5b2",
+    "portraitCrop": [
+      235,
+      0,
+      815,
+      580
+    ],
+    "alphaCorner": 0,
+    "origin": "built-in imagegen; existing character portrait reference; full-body extension; transparent_background=true",
+    "userArtAcceptance": false
+  },
+  {
+    "character": "shiraishi_chinatsu",
+    "raw": "tools\\source_art\\chapter_tail\\shiraishi_chinatsu_fullbody_revision.png",
+    "sourceSha256": "8c0b99db89d5e63a50d0421a9d2279cb4e3e736a50dca00a891793c882e72393",
+    "portraitCrop": [
+      240,
+      0,
+      820,
+      580
+    ],
+    "alphaCorner": 0,
+    "origin": "built-in imagegen; existing character portrait reference; full-body extension; transparent_background=true",
+    "userArtAcceptance": false
+  }
+]

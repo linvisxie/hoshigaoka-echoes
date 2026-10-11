@@ -48,7 +48,7 @@ func _ready() -> void:
 	normal.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(normal)
 	_build_top()
-	boss_hp = _bar(normal,Rect2(710,139,500,9),GameSkin.RED)
+	boss_hp = _bar(normal,Rect2(690,140,540,18),GameSkin.RED)
 	boss_hp.visible = false
 	_build_cards()
 	_build_selected()
@@ -331,8 +331,10 @@ func _process(delta: float) -> void:
 	boss_hp.visible = boss != null
 	if boss != null:
 		waves.text = "BOSS · 无名优等生  /  阶段 %d" % int(s.boss_state.get("phase",1))
-		waves.add_theme_font_size_override("font_size",25)
-		boss_hp.position.x = (vp.x-500)*.5
+		waves.add_theme_font_size_override("font_size",27)
+		waves.add_theme_color_override("font_color",GameSkin.GOLD)
+		boss_hp.position.x = (vp.x-540)*.5
+		boss_hp.tooltip_text = "无名优等生 · 三阶段核心残响"
 		boss_hp.value = float(boss.hp)/maxf(1,boss.hp_max)
 	var next := s.next_wave_preview()
 	preview.text = "最终波 · 清除全部残响体" if next.is_empty() else "下一波  %s · %d 名" % [battle._lanes_text(next["lanes"]),int(next["enemyCount"])]

@@ -29,6 +29,7 @@ func _process(delta: float) -> void:
 			else:
 				var order: Array[String]=["amamiya_mio","kamiya_yuma","ogawa_yui","fujiwara_rin","minase_sara","shiraishi_chinatsu"]
 				var slots: Array[Vector2i]=[Vector2i(3,1),Vector2i(2,1),Vector2i(2,0),Vector2i(0,0),Vector2i(1,1),Vector2i(1,0)]
+				if int(rt.stage_id.get_slice("-",1)) < 6: slots[1] = Vector2i(1,1)
 				for i: int in range(order.size()):
 					var cid := order[i]
 					if not rt.available_characters.has(cid) or rt.get_character_by_id(cid)!=null: continue

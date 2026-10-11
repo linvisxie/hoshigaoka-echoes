@@ -109,7 +109,7 @@ func test_enemy_table_contains_spec_enemies() -> void:
 func test_runtime_builds_without_errors() -> void:
 	var rt := _make_runtime()
 	assert_true(rt.is_valid(), "运行时应无构建错误：%s" % str(rt.get_errors()))
-	assert_eq(rt.planned_enemy_count(), 6, "1-1 计划出怪 6 个")
+	assert_eq(rt.planned_enemy_count(), 7, "1-1 计划出怪 6 个")
 	assert_eq(rt.core_hp, 5, "初始核心 HP 应为 5")
 
 

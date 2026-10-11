@@ -39,139 +39,169 @@
       "wave": 1
     },
     {
+      "time": 16.55,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
       "time": 19.6,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 1
     },
     {
-      "time": 44.0,
+      "time": 31.6,
       "lane": 1,
       "enemy": "echo_anxiety",
       "wave": 2
     },
     {
-      "time": 47.4,
+      "time": 35.0,
       "lane": 1,
       "enemy": "echo_runner",
       "wave": 2
     },
     {
-      "time": 50.8,
+      "time": 38.4,
       "lane": 1,
       "enemy": "echo_exam_sheet",
       "wave": 2
     },
     {
-      "time": 54.2,
+      "time": 41.8,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 2
     },
     {
-      "time": 57.6,
+      "time": 42.15,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 45.2,
       "lane": 0,
       "enemy": "echo_normal",
       "wave": 2
     },
     {
-      "time": 82.0,
+      "time": 57.2,
       "lane": 1,
       "enemy": "echo_runner",
       "wave": 3
     },
     {
-      "time": 85.4,
+      "time": 60.6,
       "lane": 1,
       "enemy": "echo_exam_sheet",
       "wave": 3
     },
     {
-      "time": 88.8,
+      "time": 64.0,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 92.2,
+      "time": 67.4,
       "lane": 1,
       "enemy": "echo_anxiety",
       "wave": 3
     },
     {
-      "time": 95.6,
+      "time": 67.75,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 70.8,
       "lane": 2,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 120.0,
+      "time": 82.8,
       "lane": 1,
       "enemy": "echo_exam_sheet",
       "wave": 4
     },
     {
-      "time": 123.4,
+      "time": 86.2,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 4
     },
     {
-      "time": 126.8,
+      "time": 89.6,
       "lane": 1,
       "enemy": "echo_anxiety",
       "wave": 4
     },
     {
-      "time": 130.2,
+      "time": 93.0,
       "lane": 1,
       "enemy": "echo_runner",
       "wave": 4
     },
     {
-      "time": 133.6,
+      "time": 93.35,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 96.4,
       "lane": 0,
       "enemy": "echo_normal",
       "wave": 4
     },
     {
-      "time": 158.0,
+      "time": 108.4,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 5
     },
     {
-      "time": 161.4,
+      "time": 111.8,
       "lane": 1,
       "enemy": "echo_anxiety",
       "wave": 5
     },
     {
-      "time": 164.8,
+      "time": 115.2,
       "lane": 1,
       "enemy": "echo_runner",
       "wave": 5
     },
     {
-      "time": 168.2,
+      "time": 118.6,
       "lane": 1,
       "enemy": "echo_exam_sheet",
       "wave": 5
     },
     {
-      "time": 171.6,
+      "time": 118.95,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 5
     },
     {
-      "time": 175.0,
+      "time": 122.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 125.4,
       "lane": 1,
       "enemy": "echo_anxiety",
       "wave": 5
     },
     {
-      "time": 178.4,
+      "time": 128.8,
       "lane": 2,
       "enemy": "echo_normal",
       "wave": 5
@@ -222,5 +252,6 @@
       "label": "最终波",
       "clearCondition": "ALL_ENEMIES_DEFEATED"
     }
-  ]
+  ],
+  "_encounterRevision": "2026-10-12: tighter wave gaps, same-lane paired pressure, 40 percent shorter redeploy; candidate pending playtest"
 }

@@ -2,6 +2,7 @@ extends CampusScreen
 
 static var selected_id := ""
 static var feedback := ""
+static var expanded_slots := {"WEAPON": true, "ACCESSORY": false, "MEMENTO": false}
 var confirmation: Panel
 
 func _ready() -> void:
@@ -24,17 +25,27 @@ func _ready() -> void:
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list.add_theme_constant_override("separation",12)
 	scroll.add_child(list)
-	for i: int in range(items.size()):
-		var item: Dictionary = items[i]
-		var template := EquipmentService.template_of(str(item.get("equipmentId", "")))
-		var instance_id := str(item.get("instanceId", ""))
-		var item_button := button_at("%s  +%d" % [template.get("name", "装备"), int(item.get("enhanceLevel", 0))], Rect2(110, 335 + i * 84, 610, 68), func() -> void:
-			selected_id = instance_id
-			SceneRouter.go_to("equipment"), instance_id == selected_id)
-		item_button.reparent(list)
-		item_button.custom_minimum_size = Vector2(590,76)
-		var owner_id := str(item.get("boundCharacterId", ""))
-		item_button.tooltip_text = EquipmentService.quality_name(str(template.get("quality", ""))) + (" · 未装备" if owner_id.is_empty() else " · " + str(DataRegistry.get_entry("characters",owner_id).get("name",owner_id)))
+	for slot: String in EquipmentService.VALID_SLOTS:
+		var category: Array = items.filter(func(item: Dictionary) -> bool: return str(EquipmentService.template_of(str(item.get("equipmentId",""))).get("slot","")) == slot)
+		var heading := button_at(("▾ " if expanded_slots[slot] else "▸ ") + EquipmentService.slot_name(slot) + "  ·  %d" % category.size(),Rect2(),func() -> void:
+			expanded_slots[slot] = not expanded_slots[slot]
+			SceneRouter.go_to("equipment"))
+		heading.reparent(list)
+		heading.custom_minimum_size = Vector2(590,60)
+		if not expanded_slots[slot]: continue
+		for item: Dictionary in category:
+			var template := EquipmentService.template_of(str(item.get("equipmentId", "")))
+			var instance_id := str(item.get("instanceId", ""))
+			var item_button := button_at("%s  +%d" % [template.get("name", "装备"), int(item.get("enhanceLevel", 0))], Rect2(), func() -> void:
+				selected_id = instance_id
+				SceneRouter.go_to("equipment"), instance_id == selected_id)
+			item_button.icon = ArtRegistry.icon(EquipmentService.slot_icon(slot),32)
+			item_button.expand_icon = true
+			item_button.add_theme_constant_override("icon_max_width",32)
+			item_button.reparent(list)
+			item_button.custom_minimum_size = Vector2(590,70)
+			var owner_id := str(item.get("boundCharacterId", ""))
+			item_button.tooltip_text = EquipmentService.slot_name(slot) + " · " + EquipmentService.quality_name(str(template.get("quality", ""))) + (" · 未装备" if owner_id.is_empty() else " · " + str(DataRegistry.get_entry("characters",owner_id).get("name",owner_id)))
 	if items.is_empty():
 		label_at("背包中还没有装备。\n完成调查后，可在这里领取奖励。", Rect2(110, 350, 600, 180), 28, MUTED)
 	var claim := button_at("领取全部装备奖励", Rect2(110, 820, 610, 65), _claim)
@@ -51,8 +62,8 @@ func _ready() -> void:
 			var names := {"hp": "生命", "attack": "攻击", "defense": "防御", "healPower": "治疗力", "attackSpeed": "攻击速度", "cdRecovery": "冷却恢复"}
 			lines += "%s  +%s\n" % [names.get(key, key), ("%.0f%%" % (float(bonus[key]) * 100.0)) if key in ["attackSpeed", "cdRecovery"] else str(int(bonus[key]))]
 		var bound := str(inst.get("boundCharacterId", ""))
-		lines += "\n当前装备：%s" % (DataRegistry.get_entry("characters", bound).get("name", bound) if not bound.is_empty() else "未装备")
-		label_at(lines, Rect2(870, 340, 850, 240), 29)
+		label_at(lines, Rect2(870, 340, 850, 200), 27)
+		label_at("当前装备：%s" % (DataRegistry.get_entry("characters", bound).get("name", bound) if not bound.is_empty() else "未装备"),Rect2(870,535,850,40),25,BLUE)
 		var offset := 0
 		for cfg: Dictionary in DataRegistry.get_domain("characters").get("characters", []):
 			var cid := str(cfg.get("id", ""))

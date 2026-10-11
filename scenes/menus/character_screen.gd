@@ -227,11 +227,13 @@ func _ready() -> void:
 	add_child(details)
 	_navigation.append(details)
 	var equipment := Button.new()
-	equipment.text = "装备背包"
+	equipment.text = "角色装备"
 	equipment.position = Vector2(70, 695)
 	equipment.size = Vector2(510, 60)
 	equipment.add_theme_font_size_override("font_size", 27)
-	equipment.pressed.connect(func() -> void: SceneRouter.go_to("equipment"))
+	equipment.pressed.connect(func() -> void:
+		CampaignFlow.inspected_character_id = _selected_id
+		SceneRouter.go_to("character_equipment"))
 	add_child(equipment)
 	_navigation.append(equipment)
 	for button: Button in _navigation:
@@ -272,9 +274,11 @@ func _ready() -> void:
 func _layout_navigation() -> void:
 	if _navigation.size() != 3:
 		return
-	for i: int in range(3):
-		var width := (_list_rect.size.x - _px(24)) / 3.0
-		_navigation[i].position = Vector2(_list_rect.position.x + i * (width + _px(12)), _info_rect.position.y - _px(78))
+	_navigation[0].position = Vector2(_list_rect.position.x, _info_rect.position.y - _px(78))
+	_navigation[0].size = Vector2(_list_rect.size.x, _px(58))
+	for i: int in range(1, 3):
+		var width := (_panel_rect.size.x - _px(84)) / 2.0
+		_navigation[i].position = Vector2(_panel_rect.position.x + _px(32) + (i - 1) * (width + _px(20)), _panel_rect.end.y - _px(90))
 		_navigation[i].size = Vector2(width, _px(58))
 		_navigation[i].add_theme_font_size_override("font_size", int(_px(22)))
 
@@ -347,6 +351,7 @@ func _pick_first_character() -> void:
 		_card_ids.sort()
 	if not _card_ids.is_empty():
 		_selected_id = CampaignFlow.inspected_character_id if _card_ids.has(CampaignFlow.inspected_character_id) else _card_ids[0]
+		_list_page = int(_card_ids.find(_selected_id) / 3)
 	GameLog.info(TAG, "角色培养界面：载入 %d 名角色（服务就绪=%s）"
 		% [_card_ids.size(), str(_svc != null and _svc.is_ready())])
 
@@ -411,6 +416,16 @@ func _input(event: InputEvent) -> void:
 
 
 func _handle_click(pos: Vector2) -> void:
+	var records: Array = DataRegistry.get_domain("currencies").get("studyRecordItems", [])
+	for i: int in range(records.size()):
+		var row := Rect2(_info_rect.position + Vector2(_px(24), _px(68 + i * 62)), Vector2(_info_rect.size.x - _px(48), _px(56)))
+		if row.has_point(pos):
+			_preview_item = str(records[i].get("id", ""))
+			_preview_count = 0
+			AudioService.play_sfx("select")
+			_layout()
+			queue_redraw()
+			return
 	# 角色卡
 	for i: int in range(_card_rects.size()):
 		if _card_rects[i].has_point(pos):
@@ -828,7 +843,7 @@ func _layout() -> void:
 	var btn_row_h := _px(56.0)
 	var btn_gap := _px(12.0)
 	var stats_h := _px(132.0)
-	var main_y := iy + ih - btn_main_h
+	var main_y := iy + ih - btn_main_h - _px(72)
 	var row_y := main_y - btn_gap - btn_row_h
 	_stats_rect = Rect2(Vector2(ix, row_y - _px(20.0) - stats_h), Vector2(iw, stats_h))
 
@@ -871,7 +886,7 @@ func _layout() -> void:
 		"action": "preview",
 		"rect": Rect2(Vector2(quick_x + float(qi) * (q_w + q_gap), row_y),
 			Vector2(q_w, btn_row_h)),
-		"arg": max_count, "item": _preview_item})
+		"arg": max_count, "item": _preview_item, "all": true})
 
 	# 主操作：升级 / 突破
 	_btn_rects.append({
@@ -1272,7 +1287,7 @@ func _draw_growth_panel(font: Font) -> void:
 				icon = "icon_refresh"
 			"preview":
 				var cnt := int(b.get("arg", 0))
-				label = "投入 %d 份" % cnt
+				label = "全部投入" if bool(b.get("all", false)) else "投入 %d 份" % cnt
 				icon = "icon_study_record"
 				# 当前生效的档位：与预览份数一致时高亮为"已选中"
 				active = _preview_count > 0 and cnt == _preview_count
@@ -1335,9 +1350,9 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 			_px(F_LABEL), WARN)
 		return
 
-	var node_cy := band.position.y + _px(84.0)
+	var node_cy := band.position.y + _px(60.0)
 	var half := _px(22.0)
-	var label_y := node_cy + half + _px(32.0)
+	var label_y := node_cy + half + _px(20.0)
 	var n := levels.size()
 	var span := maxf(_px(1.0), iw - half * 2.0)
 	var step := span / float(maxi(1, n - 1))
@@ -1390,7 +1405,7 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 
 	# ---- 成本 / 原因 ----
 	var next := p.next_breakthrough_level()
-	var cost_y := label_y + _px(34.0)
+	var cost_y := label_y + _px(24.0)
 	if next <= 0:
 		_draw_text(font, Vector2(ix, cost_y), "已完成全部突破", _px(F_LABEL), POSITIVE)
 		return
@@ -1431,7 +1446,7 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 	if not q_ok:
 		var reason := str(q.get("reason", ""))
 		if not reason.is_empty():
-			_draw_text(font, Vector2(ix, cost_y + _px(30.0)), "· %s" % reason,
+			_draw_text(font, Vector2(ix, cost_y + _px(22.0)), "· %s" % reason,
 				_px(F_TINY), WARN)
 
 

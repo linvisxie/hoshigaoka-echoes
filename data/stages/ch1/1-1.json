@@ -35,19 +35,25 @@
       "wave": 2
     },
     {
+      "time": 13.45,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
       "time": 13.8,
       "lane": 1,
       "enemy": "echo_normal",
       "wave": 2
     },
     {
-      "time": 48.0,
+      "time": 31.8,
       "lane": 0,
       "enemy": "echo_normal",
       "wave": 3
     },
     {
-      "time": 80.0,
+      "time": 49.8,
       "lane": 2,
       "enemy": "echo_normal",
       "wave": 3
@@ -93,5 +99,5 @@
   "stageName": "初次锚定",
   "briefing": "用发光坐标部署雨宫澪，阻挡正面残响。守住防线并清除全部敌人。",
   "_story_note": "V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts.",
-  "_encounterRevision": "2026-10-11 成组进场：前两关保留教学人数和换线窗口，增加同波并行压力；第三关起显著增加总人数。"
+  "_encounterRevision": "2026-10-12: tighter wave gaps, same-lane paired pressure, 40 percent shorter redeploy; candidate pending playtest"
 }

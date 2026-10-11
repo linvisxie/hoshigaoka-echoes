@@ -1,0 +1,268 @@
+{
+  "schemaVersion": "1.0.0-a0.3",
+  "domain": "stage",
+  "stageId": "1-5",
+  "_spec": "V2.1.4 G 章表 52：1-5 教学重点「精英敌人 / 技能时机」。表 53：1-5 解锁「精英标记；社团徽章 ×3（首通）」。表 73：推荐等级 Lv.5～7。F-十九：1-5「监考者——第一场精英战」。G 章表 54：1-5 是首章三个强制垂直切片之一。",
+  "_scope": "Alpha A0.3 建立、A0.2 回填。本关是**垂直切片闸门**，硬性验收（表 54）：「首次挑战时小川结衣尚未可部署，因此本关必须在『雨宫澪 + 神谷悠真、推荐 Lv.5～7、无治疗』的条件下存在稳定可学会的通关解；同屏不得要求两个永久前线。监考者基础数值可调，但机制不删。」**A0.2 回填后，本关恢复真正的监考者精英机制**（原装甲替身方案已移除，见 _specDeviationResolved）。",
+  "_specDeviationResolved": {
+    "_status": "2026-10-10 V3：①精英机制、②主动技能与局内强化均已落地；历史偏离保留备查。",
+    "_original": "**原规格偏离（A0.3 登记，两处）**：① V2.1.4 F-十九 原定 1-5 用「监考者」作为第一场精英战，但 data/enemies.json 中**没有监考者**（规格给了面板 1600/120/65/0.3/1.8 与两个技能「注视」「时间到」，但 A0.2 敌人生态尚未施工，且精英怪需要独立技能调度与 UI 标记）。因此本关**用装甲残响体 + 疾走残响体的组合承担「高压精英波」的教学职责**：装甲提供「必须集火的高耐久单位」，疾走提供「必须提前判断的快速威胁」。教学点（资源分配与集火时机）不变，只是没有单独的精英怪实体与技能。② V2.1.4 G 章表 52 的「技能时机」与 L2211「1-5 首次固定三选一教学」都以**技能系统与局内强化**为前提，两者分别属技能系统（阶段归属未定，见 A0.1 报告缺口 8）与 Alpha A0.6。本阶段均未实现，因此 1-5 的「时机」教学落在**部署与集火的时机**上，而不是技能释放时机。",
+    "_resolution_1": "**① 已解决**：A0.2 已实现 `echo_invigilator`（监考者）：HP 1600 / 攻击 120 / 防御 65 / 移速 0.3 / 攻击间隔 1.8 / 重量重，并实现两个 LOCKED 机制——「注视」（每隔 10 秒标记最近一名玩家角色、持续 5 秒、被标记角色攻速 -25%）与「时间到」（生命低于 40% 后移速 +30%）。本关因此**回填为 F-十九 的正式设计**：Wave 2 与 Wave 5 各一只监考者，装甲替身方案已移除。原装甲替身所承担的「必须集火的高耐久单位」职责，现由监考者本体（1600 HP，为装甲 800 的 2 倍）直接承担。",
+    "_resolution_2": "2026-10-10 V3：澪夕凪一闪、悠真破空箭已接入领域结算与 Q 输入，实际 Windows 五关运行记录含两人技能事件。原 A0.3 未落地限制已解除；最终教学易懂程度仍需真人试玩。",
+    "_evidence": "tools/design_a0_2_stages.gd 实测：标准解「澪 col3 + 悠真 col1、无治疗」通关，核心 2/3、159.0s、失能 0、击杀 7、漏怪 1（Lv.1 与 Lv.6 双等级均通关）；「只放澪」失败；「悠真分兵上段」失败。战斗日志可见「监考者 施加『注视』于 雨宫澪（新增，攻速 -25%，持续 5.0s）」与「监考者 触发『invigilator_time_up』：移速 0.300 → 0.390 tile/s」，证明两个精英机制在实战中确实生效。",
+    "_preserved": "保留本条以记录「何时因何偏离、何时以何依据回填、哪一部分仍未闭合」，不得删除。"
+  },
+  "chapter": 1,
+  "mapId": "ch1_old_gym_echo",
+  "_mapId_spec": "2026-10-10 用户明确裁决：1-5 旧体育馆；战斗机制与时间线保持。",
+  "coreHp": 3,
+  "_coreHp_spec": "V2.1.4 G-五：普通关核心生命默认为 3。**本关刻意不放宽**——垂直切片需要验证「无治疗条件下核心 3 点是否够用」，放宽会掩盖真实压力。",
+  "startingAp": 10,
+  "_startingAp_spec": "V2.1.4 D-7：开局 AP 10。雨宫澪 10 + 神谷悠真 12 = 22，开局只能放一人，第二人需等约 12 秒 AP 回复。这个等待窗口本身就是「部署顺序」的教学内容。",
+  "apRegen": 1,
+  "availableCharacters": [
+    "amamiya_mio",
+    "kamiya_yuma"
+  ],
+  "_availableCharacters_spec": "V2.1.4 G-三 / 表 51：1-5 无新角色解锁；小川结衣 1-6 才可部署。**因此本关必然无治疗**——这不是缺陷，而是表 54 明文要求的验收条件。**未提前解锁小川结衣，首发角色人数未改动。**",
+  "_noHealerConstraint": "本关只有 2 名可部署角色（前线 1 + 远程 1），且无治疗。因此设计上**不得出现「两条路线同时需要阻挡」**（表 54：「同屏不得要求两个永久前线」），否则在无治疗条件下不可能稳定通关。",
+  "enemySpawnTimeline": [
+    {
+      "time": 4.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 12.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 1
+    },
+    {
+      "time": 12.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 21.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 21.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 40.0,
+      "lane": 1,
+      "enemy": "echo_invigilator",
+      "wave": 2
+    },
+    {
+      "time": 40.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 42.2,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 44,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 74.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 3
+    },
+    {
+      "time": 74.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 88.0,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 94.8,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 110.0,
+      "lane": 1,
+      "enemy": "echo_armored",
+      "wave": 4
+    },
+    {
+      "time": 110.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 112.2,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 4
+    },
+    {
+      "time": 115,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 146.0,
+      "lane": 1,
+      "enemy": "echo_invigilator",
+      "wave": 5
+    },
+    {
+      "time": 146.1,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 146.2,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 5
+    },
+    {
+      "time": 146.3,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 146.4,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 5
+    },
+    {
+      "time": 146.5,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 146.6,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    }
+  ],
+  "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段承载 Wave 调度。",
+  "_timeline_candidate": "2026-10-11 用户明确要求提高出怪数量、并行压力和打击节奏；时间与数量仍是可调平衡参数。以enemySpawnTimeline为唯一出怪来源。",
+  "_timeline_design": "中段成组推进；第三波上段两只普通由悠真跨线处理。最终波监考者与六名随从在0.6秒内进场，形成技能清群高潮。",
+  "_elite_design": "保留两次监考者与全部机制；40秒及146秒附近追加随从，形成群战高潮。旧版不追加小怪的裁决由用户本轮提高战斗密度的要求取代。",
+  "waves": [
+    {
+      "number": 1,
+      "label": "预热",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段普通 → 疾走 → 普通。低压开局，让玩家用 10 AP 先放雨宫澪（10 AP），并在约 12 秒后补神谷悠真。"
+    },
+    {
+      "number": 2,
+      "label": "第一次精英战",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "**监考者首次登场**（V2.1.4 F-十九「第一场精英战」）。1600 HP、防御 65，且每隔 10 秒对最近角色施加「注视」（攻速 -25%，持续 5 秒）。本波的教学点是**精英与普通敌人的差别**：它需要持续集火约 11～12 秒（两人合力约 112 DPS），而「注视」会让输出效率进一步下降——玩家由此理解「精英战必须提前站好位、保持集火」。"
+    },
+    {
+      "number": 3,
+      "label": "空线",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段疾走，随后上段 1 只普通。上段那一只是本关唯一的「非中段」敌人，构成取舍题：放它漏（-1 核心）还是调悠真过去。同时这是精英战后的**喘息波**（F-二十二 压力曲线要求高峰后有短暂喘息）。"
+    },
+    {
+      "number": 4,
+      "label": "集火复习",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段装甲残响体（800 HP / 防 100）。复习 1-4 学到的「高防必须集火」——悠真必须在澪身后同线，否则 800 HP 需要澪单独打 14 次（约 15.4 秒），期间她持续承伤且无治疗。"
+    },
+    {
+      "number": 5,
+      "label": "最终波",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "**监考者回归**，构成本关耐久峰值。它在 HP 跌破 40%（即 640）后触发「时间到」移速 +30%（0.3 → 0.39 tile/s），**让玩家感到压力在最后阶段升级**——这正是 F-十五「时间到」的设计意图。无治疗条件下，玩家必须在前面几波尽量少让澪挨打（提前集火、不让敌人堆积），才能在最终波撑住。"
+    }
+  ],
+  "_waveCount_spec": "V2.1.4 D-33 表 32 的第一章 5 波骨架（普通 / 精英 / 喘息 / 集火复习 / 最终波）。1-5 作为垂直切片取满 5 波，压力曲线遵循 F-二十二：预热 → 精英高峰 → 喘息（空线波含取舍）→ 复习 → 最终波。",
+  "_enemyCount_spec": "2026-10-11 成组进场版：24名；最终波监考者带六名随从成组进场，保留全部精英机制和双人无治疗条件。",
+  "_balanceNote": "2026-10-11 以真实配置重新验证成组出怪、主动技能、不同站位和空部署失败路径。敌人及角色基础面板、AP、核心HP不作隐藏加强/削弱；旧版耐久计算仅适用于历史时间线。",
+  "_stableClearPath": "2026-10-11 成组进场版：澪中路col3、悠真中路col1；按正常AP部署，技能就绪且有敌人时释放。回归验证包含无治疗、正常Lv.1基础数值与零漏怪目标。旧无技能静态打法不再是当前密集版本的验收条件，实际Windows新游戏连续流程另行记录。",
+  "tutorialTriggers": [
+    {
+      "at": 0.0,
+      "id": "TUT_1_5_NOHEAL",
+      "text": "本关没有治疗角色：前线的生命无法恢复，请尽量减少她挨打的时间"
+    },
+    {
+      "at": 34.0,
+      "id": "TUT_1_5_ELITE",
+      "text": "监考者：第一章的精英敌人。它的「注视」会降低被标记角色的攻击速度"
+    },
+    {
+      "at": 70.0,
+      "id": "TUT_1_5_TRADEOFF",
+      "text": "上路也有残响接近。中路悠真可以支援旁路；破空箭蓄力时仍会正常射击旁路目标。"
+    },
+    {
+      "at": 140.0,
+      "id": "TUT_1_5_TIMEUP",
+      "text": "监考者的生命低于 40% 后会加速：最后阶段请保持集火，不要让它堆在防线上"
+    }
+  ],
+  "_tutorialTriggers_spec": "V2.1.4 G-九 把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念」。本关教「精英敌人」与「无治疗条件下的耐久管理」。",
+  "specialRules": [
+    {
+      "id": "NO_HEALER_SLICE",
+      "text": "出战角色：雨宫澪与神谷悠真；本关没有治疗角色。",
+      "_spec": "V2.1.4 表 54：1-5 硬性验收要求「在雨宫澪 + 神谷悠真、推荐 Lv.5～7、无治疗的条件下存在稳定可学会的通关解」。"
+    },
+    {
+      "id": "ELITE_INVIGILATOR",
+      "text": "监考者：注视（每 10 秒标记最近角色 5 秒，攻速 -25%）与时间到（HP<40% 移速 +30%）",
+      "_spec": "V2.1.4 F-十五 L1147-1150（LOCKED）：两个机制均不得删除。"
+    }
+  ],
+  "_specialRules_note": "V3 当前实现：首次三选一由 data/upgrades.json 与领域强化系统提供；主动技能由 data/skills.json 驱动。此处不重复登记数值，保留唯一数据源。",
+  "firstClearRewardId": "reward_1_5_first",
+  "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID，不在 StageConfig 里写金额。表 53 规定 1-5 首通「精英标记；社团徽章 ×3」。",
+  "repeatRewardId": "reward_repeat_standard",
+  "storyBefore": "ch1_1_5_before",
+  "storyAfter": "ch1_1_5_after",
+  "_story_note": "V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts.",
+  "bossConfig": {},
+  "_outOfScope": "本关不提前引入沉默学生（1-8）、作弊纸偶（1-9）、排名幽灵（1-7）和焦虑团块（1-6）。其余旧阶段限制以 V3 当前实现记录为准。",
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  },
+  "stageName": "监考者",
+  "briefing": "监考者的注视会拖慢角色攻击，低生命时会加速。处理杂兵并在首次三选一中选择适合阵容的强化。",
+  "_encounterRevision": "2026-10-11 用户要求增加成组出怪、战斗紧张感。保留首遇顺序、解锁、精英机制与无治疗条件；旧数量和静态通关说明是历史基线，以本时间线和本轮实测为准。",
+  "_round9Tactics": "2026-10-11: redistribute existing normal echoes into alternating side-lane pressure; total counts and heavy-unit lanes unchanged. Normal two-person clear must be revalidated."
+}

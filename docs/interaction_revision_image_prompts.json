@@ -1,0 +1,44 @@
+[
+  {
+    "asset": "yui",
+    "prompt": "Extend the exact referenced Ogawa Yui into one premium anime RPG FULL BODY standing illustration, head to shoes fully visible, generous transparent margin. Preserve identical face pink eyes, soft long pink hair with side braid and white flower/red tassel, white sailor school blouse dark collar and red ribbon. Navy pleated skirt, dark knee socks, brown loafers. Gentle school nurse/healer holding a slim cream first-aid pouch. Match original beautiful clean shaded fine-line illustration, no text, no environment, NO shadow/backdrop panel, genuine transparent alpha everywhere outside figure. Vertical portrait composition suitable story standing figure. Keep face large and finely detailed.",
+    "tool": "built-in imagegen",
+    "transparent_background": true
+  },
+  {
+    "asset": "sara",
+    "prompt": "Extend the exact referenced Minase Sara into one premium anime RPG FULL BODY standing illustration, head to shoes fully visible with generous transparent margin. Preserve identical face blue eyes thin blue oval glasses, long midnight blue hair and crossed silver hairpins, white laboratory coat over navy sailor school uniform and blue tie. Navy pleated skirt, black tights, brown loafers. Thoughtful scientist holding small luminous cyan scientific tablet, free hand adjusting glasses. Original beautiful fine-line clean shaded illustration, not chibi. No text, no environment, NO background panel or drop shadow, genuine transparent alpha outside figure. Vertical fullbody composition; carefully detailed face.",
+    "tool": "built-in imagegen",
+    "transparent_background": true
+  },
+  {
+    "asset": "chinatsu",
+    "prompt": "Extend the exact referenced Shiraishi Chinatsu into one premium anime RPG FULL BODY standing illustration, head to shoes fully visible, generous transparent margins. Preserve identical blue eyes, long honey blonde hair, red flower hairpin, black school blazer white sailor collar and large crimson bow. Navy pleated skirt, black knee socks and brown loafers. Light music club girl holding an elegant dark electric guitar and shoulder strap, gentle confident smile. Original beautiful fine-line clean shaded illustration, not chibi. No text, no environment, NO background panel or shadow, genuine transparent alpha everywhere outside figure. Vertical fullbody composition, carefully detailed face.",
+    "tool": "built-in imagegen",
+    "transparent_background": true
+  },
+  {
+    "asset": "core",
+    "prompt": "Edit ONLY the center front panel of the pedestal base in this exact transparent pixel-art magical brass core cradle. Erase the existing large five petal flower medallion, wreath, outline, ALL emblem marks from the central front hexagonal panel. Replace that area with a plain uninterrupted deep navy purple enamel metal surface with subtle bevel lighting. The game adds its official school crest dynamically later. Preserve ALL other geometry, exact overall silhouette, orbit rings, columns, glowing purple diamonds, stairs, pixel texture, size and alignment. Do NOT add a new symbol, do NOT add the central floating main crystal (separate animated asset). Genuine transparent background, preserve transparency.",
+    "tool": "built-in imagegen",
+    "transparent_background": true
+  },
+  {
+    "asset": "ogawa_yui_portrait_transparent_revision",
+    "prompt": "Precise background removal edit. Preserve the exact original Ogawa Yui head-and-shoulders portrait, original composition/crop, face pink eyes and detailed hair, white flower, outfit and colors. Remove ALL dark navy background, backdrop, gradient, shadow, glow behind her silhouette, leaving only the girl as a clean isolated cutout. True fully transparent background and empty space between separated hair strands. Do not shrink the character, do not add full body, do not add shadow panel, do not change identity or pose. Transparent PNG.",
+    "tool": "built-in imagegen",
+    "transparent_background": true
+  },
+  {
+    "asset": "minase_sara_portrait_transparent_revision",
+    "prompt": "Precise background removal edit. Preserve this exact Minase Sara head-and-shoulders portrait, original closeup composition/crop, blue eyes and thin blue glasses, long midnight blue hair, crossed silver hairpins, white lab coat and blue tie, exact pose and fine detailed rendering. Remove ALL dark navy backdrop, gradient, shadow or glow behind her silhouette. Only the girl as a clean isolated cutout. Genuine fully transparent alpha background and empty spaces between strands. Do not shrink character or add full body. No panel, no drop shadow. Transparent PNG.",
+    "tool": "built-in imagegen",
+    "transparent_background": true
+  },
+  {
+    "asset": "shiraishi_chinatsu_portrait_transparent_revision",
+    "prompt": "Remove only the dark rectangular background and any surrounding background haze from the provided existing Shiraishi Chinatsu game portrait. Output a genuine transparent RGBA cutout. Preserve precisely the original closeup framing, face, blonde hair, red hair flower and ribbon, blue eyes, black school uniform and red bow, fine illustrated texture and colors. No redesign, no new pose, no full body, no square panel, no drop shadow or halo. Hair flyaways remain delicately antialiased. Keep the same character occupying the same large proportion of the square avatar.",
+    "tool": "built-in imagegen",
+    "transparent_background": true
+  }
+]

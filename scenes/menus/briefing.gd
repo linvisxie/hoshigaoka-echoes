@@ -1,7 +1,13 @@
 extends CampusScreen
 
 var party: Array = []
-var party_labels: Array[Label] = []
+var selected: Array = []
+var cards: Dictionary = {}
+var pressed_id := ""
+var press_position := Vector2.ZERO
+var drag_offset := Vector2.ZERO
+var dragging := false
+var pointer := Vector2.ZERO
 
 func _ready() -> void:
 	super._ready()
@@ -32,31 +38,89 @@ func _ready() -> void:
 		unique_saved[cid] = true
 	if saved.size() == party.size() and unique_saved.size() == party.size() and saved.all(func(cid: Variant) -> bool: return party.has(cid)):
 		party = saved.duplicate()
+	selected = party.duplicate()
+	if str(CampaignFlow.state().get("party_stage", "")) == sid:
+		selected = CampaignFlow.state().get("party_selected", party).filter(func(cid: Variant) -> bool: return party.has(cid))
 	for i: int in range(party.size()):
 		var cid := str(party[i])
 		var char_cfg := DataRegistry.get_entry("characters", cid)
-		var dense := party.size()>3
-		var x := 1040+(i%3)*250 if dense else 1040+i*240
-		var y := 335+int(i/3)*270 if dense else 365
-		texture_at(ArtRegistry.character_portrait(cid, 256), Rect2(x,y,190 if dense else 210,150 if dense else 250))
-		label_at(str(char_cfg.get("name", cid)), Rect2(x,y+(155 if dense else 280),230,48),27 if dense else 30)
-		var role := "前线 · 阻挡" if str(char_cfg.get("behavior","")) == "FRONTLINE" else "远程 · 支援"
-		if cid == "fujiwara_rin":
-			role = "资源 · 调度"
-		if cid == "ogawa_yui": role = "治疗 · 支援"
-		label_at("%s  /  %d AP" % [role,int(char_cfg.get("deployCost",0))],Rect2(x,y+(200 if dense else 340),235,40),22,BLUE)
-	label_at("出战顺序  ·  点击名字轮换", Rect2(1030, 875 if party.size()>3 else 745, 760, 40), 23, MUTED)
-	for i: int in range(party.size()):
-		if party.size()<=3: button_at(str(DataRegistry.get_entry("characters", str(party[i])).get("name", party[i])), Rect2(1040 + i * 240, 815, 210, 65), _rotate_party, false)
-	if party.size()>3: button_at("轮换角色卡顺序  ↻",Rect2(1030,945,315,70),_rotate_party)
+		var card := panel(Rect2(1025 + (i%3)*260, 330 + int(i/3)*260, 240, 245))
+		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cards[cid] = card
+		var portrait := texture_at(ArtRegistry.character_portrait(cid,256),Rect2(0,0,210,155))
+		portrait.reparent(card)
+		portrait.position = Vector2(15,8)
+		var name_label := label_at(str(char_cfg.get("name",cid)),Rect2(0,0,220,45),26)
+		name_label.reparent(card)
+		name_label.position = Vector2(12,160)
+		var cost := label_at("%d AP" % int(char_cfg.get("deployCost",0)),Rect2(0,0,210,35),22,BLUE)
+		cost.reparent(card)
+		cost.position = Vector2(12,203)
+		_refresh_card(cid)
+	label_at("单击选择 / 再次单击取消 · 拖动头像调整顺序",Rect2(1030,875,760,40),23,MUTED)
 	button_at("返回校园", Rect2(90, 970, 380, 75), func() -> void: SceneRouter.go_to("home"))
-	button_at("开始战斗   →", Rect2(1390, 970, 450, 75), func() -> void: CampaignFlow.launch_battle(), true).grab_focus()
+	button_at("开始战斗   →", Rect2(1390, 970, 450, 75), _start, true).grab_focus()
 
-func _rotate_party() -> void:
-	if party.size() < 2:
+func _process(delta: float) -> void:
+	for cid: String in cards:
+		var index := party.find(cid)
+		var target := Vector2(1025 + (index%3)*260,330+int(index/3)*260)
+		if cid == pressed_id and dragging:
+			target = pointer - drag_offset
+		var card: Panel = cards[cid]
+		card.position = card.position.lerp(target,1.0-exp(-delta*22.0))
+		card.z_index = 20 if cid == pressed_id and dragging else 0
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouse:
+		pointer = canvas.get_global_transform_with_canvas().affine_inverse() * event.position
+	if event is InputEventMouseMotion and not pressed_id.is_empty():
+		if pointer.distance_to(press_position)>10:
+			dragging = true
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		var pos := pointer
+		if event.pressed:
+			for cid: String in cards:
+				var card: Panel = cards[cid]
+				if Rect2(card.position,card.size).has_point(pos):
+					pressed_id = cid
+					press_position = pos
+					drag_offset = pos-card.position
+					dragging = false
+					break
+		elif not pressed_id.is_empty():
+			if dragging:
+				for i: int in range(party.size()):
+					if Rect2(1025+(i%3)*260,330+int(i/3)*260,240,245).has_point(pos):
+						party.erase(pressed_id)
+						party.insert(i,pressed_id)
+						break
+			elif selected.has(pressed_id):
+				selected.erase(pressed_id)
+			else:
+				selected.append(pressed_id)
+			_refresh_card(pressed_id)
+			AudioService.play_sfx("select")
+			pressed_id = ""
+			dragging = false
+			_save_party()
+
+func _refresh_card(cid: String) -> void:
+	var card: Panel = cards[cid]
+	var style := GameSkin.panel(Color(0.05,0.09,0.17,0.28),BLUE if selected.has(cid) else Color(0.24,0.31,0.43,0.35))
+	style.set_border_width_all(2 if selected.has(cid) else 1)
+	style.set_corner_radius_all(3)
+	card.add_theme_stylebox_override("panel",style)
+	var tween := create_tween()
+	tween.tween_property(card,"modulate",Color.WHITE if selected.has(cid) else Color(0.65,0.7,0.8,0.65),0.16)
+
+func _save_party() -> bool:
+	var sid := str(CampaignFlow.state().get("pending_stage_id",""))
+	return CampaignFlow.persist({"party_order":party,"party_selected":selected,"party_stage":sid})
+
+func _start() -> void:
+	if selected.is_empty():
+		show_error("请至少选择一名出战角色。")
 		return
-	party.append(party.pop_front())
-	if CampaignFlow.persist({"party_order": party}):
-		SceneRouter.go_to("briefing")
-	else:
-		show_error("阵容顺序保存失败。")
+	if _save_party(): CampaignFlow.launch_battle()
+	else: show_error("阵容保存失败，请重试。")

@@ -14,7 +14,7 @@ func sync(viewport: Vector2, factor: float) -> void:
 	var mode := ""
 	if battle._upgrade_panel_active():
 		mode = "offer:" + JSON.stringify(battle._upgrade_card_views) + str(battle.session.stage.pending_offer.get("rerollsRemaining",0))
-	elif battle.session.is_decided() and battle._result_animation_time >= (1.0 if battle.session.outcome == BattleTypes.Outcome.VICTORY else 0.75):
+	elif battle.session.is_decided() and battle._result_animation_time >= (2.8 if battle.session.outcome == BattleTypes.Outcome.VICTORY else 0.75):
 		mode = "result:" + JSON.stringify(battle._reward_summary)
 	mode += str(viewport) if not mode.is_empty() else ""
 	if mode == signature:

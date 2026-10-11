@@ -45,6 +45,12 @@ const SLOT_ACCESSORY := "ACCESSORY"
 const SLOT_MEMENTO := "MEMENTO"
 const VALID_SLOTS: Array[String] = [SLOT_WEAPON, SLOT_ACCESSORY, SLOT_MEMENTO]
 
+static func slot_name(slot: String) -> String:
+	return str({SLOT_WEAPON:"武器", SLOT_ACCESSORY:"饰品", SLOT_MEMENTO:"校园纪念物"}.get(slot,"未知类型"))
+
+static func slot_icon(slot: String) -> String:
+	return str({SLOT_WEAPON:"icon_attack_up", SLOT_ACCESSORY:"icon_defense_up", SLOT_MEMENTO:"icon_memento"}.get(slot,"icon_material"))
+
 ## 品质（V2.1.4 表 64 四档）
 const QUALITY_NAMES := {
 	"COMMON": "普通",

@@ -31,7 +31,8 @@ def score(name,bpm,intensity):
 
 if __name__=='__main__':
     records=[score('infirmary_light',100,.35),score('ranking_pressure',128,.8),score('science_resonance',132,.9),score('archive_convergence',136,1.1)]
-    records += [score('boss_exam_'+str(i),120+12*i,.8+i*.35) for i in range(1,4)]
+    from render_boss_drive import render as render_boss
+    records += [render_boss(i) for i in range(1,4)]
     records.append(score('chapter_one_coda',90,0))
     render('yui_skill',1.2,[72,79,84,88],.025,.035,2200,0)
     render('sara_skill',.95,[57,69,76,81],.06,.05,2400,20)

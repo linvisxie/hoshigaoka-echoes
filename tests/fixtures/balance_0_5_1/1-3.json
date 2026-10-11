@@ -1,0 +1,259 @@
+{
+  "schemaVersion": "1.0.0-a0.3",
+  "domain": "stage",
+  "stageId": "1-3",
+  "_spec": "V2.1.4 G 章表 52：1-3 教学重点「远程输出 / 弓道部」。表 53：1-3 解锁「神谷悠真；编队功能」。表 73：推荐等级 Lv.3～5。F-十九：1-3「试卷飞灵——学习远程输出」。",
+  "_scope": "Alpha A0.3 建立、A0.2 回填。本关解锁神谷悠真（远程），教学目标是「前线阻挡 + 远程输出」的分工：把悠真放在澪身后，让他用 4.0 格射程覆盖整条路线。**A0.2 回填后，本关重新引入试卷飞灵作为远程教学的正式载体**（原临时组合已移除，见 _specDeviationResolved）。",
+  "_specDeviationResolved": {
+    "_status": "RESOLVED（A0.2 回填后关闭）",
+    "_original": "**原规格偏离（A0.3 登记，现已解决）**：V2.1.4 F-十九 原定 1-3 用「试卷飞灵」教远程输出，但 `data/enemies.json` 中**没有 echo_exam_sheet**（A0.2 敌人生态尚未施工，且规格对试卷飞灵只给了面板、未给远程攻击的完整实现口径）。因此本关当时改用「疾走残响体 + 普通残响体」的组合，用**悠真自身的 4.0 格射程**承担远程输出教学——教学点（理解射程与站位）不变，只是教的载体不同。",
+    "_resolution": "A0.2 已实现 `echo_exam_sheet`（试卷飞灵）：HP 330 / 攻击 75 / 防御 15 / 移速 0.45 / 攻击间隔 1.6 / 重量轻 / **攻击距离 3 格**，达到攻击距离后**停下**并远程攻击（V2.1.4 F-十 L1094-1102 LOCKED）。本关因此**回填为 F-十九 的正式设计**：中段引入 4 只试卷飞灵，承担「远程威胁迫使玩家使用远程单位」的教学职责。原临时组合（疾走 + 普通替代飞灵）已移除。",
+    "_evidence": "tools/design_a0_2_stages.gd 实测（Lv.1 基准面板）：标准解「澪 col3 + 悠真 col1」胜利、核心 2/3、136.5s、失能 0；对照「只放澪」**失败**（核心 0/3、澪失能）——证明试卷飞灵确实构成了澪单独无法应对的远程压力，远程教学有了真实载体。Lv.6 复验同样通关（核心 2/3、澪 796/1210）。",
+    "_preserved": "保留本条以记录「何时因何偏离、何时以何依据回填」，不得删除。"
+  },
+  "chapter": 1,
+  "mapId": "ch1_classroom_sunset",
+  "_mapId_spec": "V2.1.4 G-四：1-1～1-3 为普通教学楼黄昏。",
+  "coreHp": 3,
+  "_coreHp_spec": "V2.1.4 G-五：普通关核心生命默认为 3。",
+  "startingAp": 10,
+  "_startingAp_spec": "V2.1.4 D-7：开局 AP 10。雨宫澪 10 + 神谷悠真 12 = 22，因此开局只能先放一人，第二人需等 AP 回复——这正是「部署顺序」的教学点。",
+  "apRegen": 1,
+  "availableCharacters": [
+    "amamiya_mio",
+    "kamiya_yuma"
+  ],
+  "_availableCharacters_spec": "V2.1.4 G-三 / 表 51：1-3 解锁神谷悠真（「1-2 剧情出现、1-3 常规可部署」）。小川结衣 1-6 才解锁。角色解锁顺序未改动。",
+  "enemySpawnTimeline": [
+    {
+      "time": 4.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 11.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 18.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 18.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 34.0,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 2
+    },
+    {
+      "time": 34.6,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 41.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 41.8,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 50.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 50.8,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 66.0,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 3
+    },
+    {
+      "time": 66.1,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 66.2,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 66.3,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 66.4,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 66.6,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 70.0,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 3
+    },
+    {
+      "time": 82.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 82.8,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 3
+    },
+    {
+      "time": 92.0,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 108.0,
+      "lane": 1,
+      "enemy": "echo_exam_sheet",
+      "wave": 4
+    },
+    {
+      "time": 108.6,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 116.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 4
+    },
+    {
+      "time": 117,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 124.0,
+      "lane": 1,
+      "enemy": "echo_runner",
+      "wave": 4
+    },
+    {
+      "time": 134.0,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    }
+  ],
+  "_timeline_spec": "V2.1.4 D-31 表 34 的 {time, lane, enemy} 为唯一出怪数据结构；本文件在其上增加 wave 字段承载 Wave 调度。",
+  "_timeline_candidate": "2026-10-11 用户明确要求提高出怪数量、并行压力和打击节奏；时间与数量仍是可调平衡参数。以enemySpawnTimeline为唯一出怪来源。",
+  "_timeline_design": "**试卷飞灵的教学设计（V2.1.4 F-十 / F-十九）**：飞灵出生在 x=5.0（入口），射程 3 格，因此当澪位于 col3（x=3）时，飞灵**在出生点就停下**并远程攻击澪——而澪的射程只有 1.25 格（col3 只覆盖 x∈[3,4.25]），**根本够不到 x=5 的飞灵**。玩家必须使用悠真：他放在 col1（x=1）时射程 4.0 格覆盖 x∈[1,5]，正好能打到停在入口的飞灵。这就是「远程输出」教学的真实载体——不是靠文案说明，而是让「只放前线」直接打不过。",
+  "waves": [
+    {
+      "number": 1,
+      "label": "热身",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段 3 只普通残响体。让玩家用 1-2 的旧办法（单澪）先稳住，为引入试卷飞灵与悠真做对照。"
+    },
+    {
+      "number": 2,
+      "label": "被批改的空气",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "**试卷飞灵首次登场**（V2.1.4 表 52 的 1-3 关名「被批改的空气」）。飞灵停在入口远程打澪，澪够不到它；玩家必须把悠真放到澪身后（col1）才能反击。本波是悠真的教学波：只靠澪会被持续消耗。"
+    },
+    {
+      "number": 3,
+      "label": "分工",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "中段双飞灵 + 普通，随后下段 1 只普通。玩家已有两人，但分兵就会让中段空虚——本波检验「何时该集中、何时该分兵」，并让玩家确认悠真的站位确实覆盖入口。"
+    },
+    {
+      "number": 4,
+      "label": "最终波",
+      "clearCondition": "ALL_ENEMIES_DEFEATED",
+      "_note": "**本关压力峰值**：中段飞灵 + 双疾走 + 普通连续压上。飞灵持续远程输出、疾走快速逼近，玩家必须在「先清飞灵还是先挡疾走」之间取舍。标准解是让悠真留在澪身后的中段持续集火——一旦把他调去别路，中段就会因输出不足而失守。"
+    }
+  ],
+  "_waveCount_spec": "V2.1.4 D-33 表 32 的第一章 5 波骨架；1-3 承担「引入远程」一个教学点，取 4 波（在 1-2 的 3 波基础上增加一个「分工」过渡波），不提前引入装甲。",
+  "_enemyCount_spec": "2026-10-11 成组进场版：26 名；中后段包含集中压线的小队，正常使用主动技能清群。",
+  "_balanceNote": "2026-10-11 以真实配置重新验证成组出怪、主动技能、不同站位和空部署失败路径。敌人及角色基础面板、AP、核心HP不作隐藏加强/削弱；旧版耐久计算仅适用于历史时间线。",
+  "_stableClearPath": "2026-10-11 成组进场版：澪中路col3、悠真中路col1；按正常AP部署，技能就绪且有敌人时释放。回归验证包含无治疗、正常Lv.1基础数值与零漏怪目标。旧无技能静态打法不再是当前密集版本的验收条件，实际Windows新游戏连续流程另行记录。",
+  "tutorialTriggers": [
+    {
+      "at": 0.0,
+      "id": "TUT_1_3_UNLOCK",
+      "text": "神谷悠真加入：远程输出，射程 4.0 格，但无法阻挡敌人"
+    },
+    {
+      "at": 30.0,
+      "id": "TUT_1_3_RANGED_ENEMY",
+      "text": "试卷飞灵会停在远处攻击：前线的射程够不到它，必须用远程反击"
+    },
+    {
+      "at": 44.0,
+      "id": "TUT_1_3_RANGE",
+      "text": "把悠真放在前线身后：他的射程能覆盖整条路线，越靠后越安全"
+    },
+    {
+      "at": 98.0,
+      "id": "TUT_1_3_CHOICE",
+      "text": "两名角色覆盖不了三条路线：优先守住压力最大的那一路"
+    }
+  ],
+  "_tutorialTriggers_spec": "V2.1.4 G-九 把 tutorialTriggers 列为关卡必备字段；G-五「每关只首次教学 1～2 个新概念」。本关教「远程射程与站位」与「应对远程敌人」。",
+  "specialRules": [],
+  "firstClearRewardId": "reward_1_3_first",
+  "_firstClearRewardId_note": "V2.1.4 G-九：本关只引用 stage_rewards.json 中的奖励 ID。表 53 规定 1-3 解锁「神谷悠真 + 学习记录」——角色解锁已通过 availableCharacters 与 characters.json 的 unlockStage 落实。",
+  "repeatRewardId": "reward_repeat_standard",
+  "storyBefore": "ch1_1_3_before",
+  "storyAfter": "ch1_1_3_after",
+  "_story_note": "V3 first-five playable story flow; original dialogue follows V2.1.4 narrative facts.",
+  "bossConfig": {},
+  "_outOfScope": "不引入装甲（1-4）、不引入监考者（1-5）、不引入沉默学生（1-8）/作弊纸偶（1-9）、不实现编队 UI（表 53 的「编队功能」属 A0.6/A0.7）、不实现局内三选一（A0.6）。",
+  "battleRewards": {
+    "school_coin": 160,
+    "study_record_short": 2,
+    "equipment_part": 2
+  },
+  "stageName": "被批改的空气",
+  "briefing": "试卷飞灵不能被近战阻挡。神谷悠真从后方攻击自己的路线与相邻路线。",
+  "_encounterRevision": "2026-10-11 用户要求增加成组出怪、战斗紧张感。保留首遇顺序、解锁、精英机制与无治疗条件；旧数量和静态通关说明是历史基线，以本时间线和本轮实测为准。",
+  "_round9Tactics": "2026-10-11: redistribute existing normal echoes into alternating side-lane pressure; total counts and heavy-unit lanes unchanged. Normal two-person clear must be revalidated."
+}

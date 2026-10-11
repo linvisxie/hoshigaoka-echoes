@@ -47,7 +47,7 @@ const REFUND := {CHAR_MIO: 5, CHAR_YUMA: 6, CHAR_YUI: 7}
 const HEAL_POWER := 110
 const HEAL_INTERVAL := 1.5
 const AP_MAX := 30
-const REDEPLOY_SECONDS := 20.0
+const REDEPLOY_SECONDS := 12.0
 const EPS := 0.0001
 
 
