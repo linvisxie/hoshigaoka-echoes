@@ -36,7 +36,7 @@ func _ready() -> void:
 	AudioService.play_music(str(data.get("music", "after_school")))
 	figure = texture_at(null, Rect2(1040, 100, 680, 750))
 	var dialogue_panel := panel(Rect2(70, 730, 1780, 270), BLUE)
-	dialogue_panel.add_theme_stylebox_override("panel",GameSkin.panel(Color(0.025,0.045,0.105,0.94),Color("7c9acb"),true))
+	dialogue_panel.add_theme_stylebox_override("panel",GameSkin.glass(Color("7c9acb"),.96))
 	portrait_frame = panel(Rect2(84, 745, 238, 238), Color("718bc2"))
 	portrait = texture_at(null, Rect2(90, 751, 226, 226))
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
@@ -118,7 +118,7 @@ func _show_node() -> void:
 			framed.region = Rect2(emotion_tex.get_size()*Vector2(0.035,0.015),emotion_tex.get_size()*Vector2(0.93,0.86))
 			portrait.texture = framed
 	var figure_path := "res://assets/art/characters/%s/%s_story.png" % [cid, cid]
-	figure.texture = ArtRegistry.load_texture(figure_path) if not cid.is_empty() else null
+	figure.texture = ArtRegistry.character_story(cid) if not cid.is_empty() else null
 	if node.has("background"):
 		set_background(str(node["background"]))
 	if node.has("sound"):

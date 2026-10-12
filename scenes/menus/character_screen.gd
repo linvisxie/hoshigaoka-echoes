@@ -236,6 +236,11 @@ func _ready() -> void:
 		SceneRouter.go_to("character_equipment"))
 	add_child(equipment)
 	_navigation.append(equipment)
+	var backpack := Button.new()
+	backpack.text = "装备背包"
+	backpack.pressed.connect(func() -> void: SceneRouter.go_to("equipment"))
+	add_child(backpack)
+	_navigation.append(backpack)
 	for button: Button in _navigation:
 		GameSkin.style_button(button)
 		button.pressed.connect(func() -> void: AudioService.play_sfx("select"))
@@ -272,10 +277,13 @@ func _ready() -> void:
 	queue_redraw()
 
 func _layout_navigation() -> void:
-	if _navigation.size() != 3:
+	if _navigation.size() != 4:
 		return
 	_navigation[0].position = Vector2(_list_rect.position.x, _info_rect.position.y - _px(78))
-	_navigation[0].size = Vector2(_list_rect.size.x, _px(58))
+	_navigation[0].size = Vector2((_list_rect.size.x-_px(20))*.5, _px(58))
+	_navigation[3].position = _navigation[0].position + Vector2(_navigation[0].size.x+_px(20),0)
+	_navigation[3].size = _navigation[0].size
+	_navigation[3].add_theme_font_size_override("font_size",int(_px(22)))
 	for i: int in range(1, 3):
 		var width := (_panel_rect.size.x - _px(84)) / 2.0
 		_navigation[i].position = Vector2(_panel_rect.position.x + _px(32) + (i - 1) * (width + _px(20)), _panel_rect.end.y - _px(90))
@@ -698,19 +706,19 @@ func _icon_y_for_text(baseline_y: float, font_size: float, icon_size: float) -> 
 
 
 ## 缓存的圆角样式盒（固定配色集合，缓存规模有界）。
-func _sb(fill: Color, border: Color, radius: float, border_w: float) -> StyleBoxFlat:
-	var key := "%s|%s|%.1f|%.1f" % [fill.to_html(true), border.to_html(true), radius, border_w]
-	if _sb_cache.has(key):
-		return _sb_cache[key] as StyleBoxFlat
-	var s := StyleBoxFlat.new()
-	s.bg_color = fill
-	s.set_corner_radius_all(int(round(radius)))
-	if border_w > 0.0:
-		s.set_border_width_all(int(round(border_w)))
-		s.border_color = border
-	s.anti_aliasing = true
-	_sb_cache[key] = s
-	return s
+func _sb(fill: Color, border: Color, radius: float, border_w: float) -> StyleBox:
+	var key := "%s|%s|%.1f|%.1f" % [fill.to_html(true),border.to_html(true),radius,border_w]
+	if not _sb_cache.has(key):
+		if fill.a < .4 or radius <= _px(6):
+			var detail := StyleBoxFlat.new()
+			detail.bg_color = fill
+			detail.border_color = border
+			detail.set_border_width_all(int(border_w))
+			detail.set_corner_radius_all(int(radius))
+			_sb_cache[key] = detail
+		else:
+			_sb_cache[key] = GameSkin.glass(border, clampf(fill.a*.96,.40,.94))
+	return _sb_cache[key] as StyleBox
 
 
 ## 缓存的竖向渐变贴图（顶部→底部）。用于头带压暗与底部渐隐。
@@ -805,7 +813,7 @@ func _layout() -> void:
 
 	var paged := _card_ids.size()>3
 	var n := mini(3,maxi(1, _card_ids.size()))
-	var card_h := clampf((_list_rect.size.y - (_px(50) if paged else 0.0) - float(n - 1) * gap) / float(n), _px(110.0), _px(200.0))
+	var card_h := clampf((_list_rect.size.y - (_px(72) if paged else 0.0) - float(n - 1) * gap) / float(n), _px(110.0), _px(200.0))
 	for i: int in range(_card_ids.size()):
 		if paged and int(i/3)!=_list_page:
 			_card_rects.append(Rect2())
@@ -839,11 +847,11 @@ func _layout() -> void:
 	_portrait_rect = Rect2(Vector2(ix, iy), Vector2(port_s, port_s))
 
 	# 操作区自面板底部向上排布，剩余空间再分给节点带与属性带
-	var btn_main_h := _px(76.0)
+	var btn_main_h := _px(58.0)
 	var btn_row_h := _px(56.0)
 	var btn_gap := _px(12.0)
 	var stats_h := _px(132.0)
-	var main_y := iy + ih - btn_main_h - _px(72)
+	var main_y := _panel_rect.end.y - _px(90) - _px(16) - btn_main_h
 	var row_y := main_y - btn_gap - btn_row_h
 	_stats_rect = Rect2(Vector2(ix, row_y - _px(20.0) - stats_h), Vector2(iw, stats_h))
 
@@ -861,7 +869,7 @@ func _layout() -> void:
 	var main_w := (iw - _px(20.0)) * 0.5
 
 	# 学习记录类型切换（必须放在 _btn_rects[0]：_on_button 的 "preview" 分支读它取当前 item）
-	var cycle_w := minf(_px(560.0), iw * 0.48)
+	var cycle_w := main_w
 	_btn_rects.append({
 		"action": "cycle_item",
 		"rect": Rect2(Vector2(ix, row_y), Vector2(cycle_w, btn_row_h)),

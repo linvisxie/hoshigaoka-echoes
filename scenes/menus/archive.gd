@@ -26,9 +26,18 @@ func _ready() -> void:
 		chapter_open = not chapter_open
 		SceneRouter.go_to("archive"))
 	if chapter_open:
+		var grid := GridContainer.new()
+		grid.columns = 4
+		grid.add_theme_constant_override("h_separation",16)
+		grid.add_theme_constant_override("v_separation",16)
+		list.add_child(grid)
 		for raw: Variant in chapter_ids:
 			var sid := str(raw)
-			_entry(list,"    " + str(DataRegistry.get_entry("story",sid).get("title",sid)),func() -> void: _replay(sid))
+			var tile := button_at(str(DataRegistry.get_entry("story",sid).get("title",sid)),Rect2(),func() -> void: _replay(sid))
+			tile.reparent(grid)
+			tile.custom_minimum_size = Vector2(414,100)
+			tile.add_theme_font_size_override("font_size",23)
+			tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button_at("返回校园",Rect2(100,965,370,75),func() -> void: SceneRouter.go_to("home"))
 
 func _story_order(sid: String) -> int:

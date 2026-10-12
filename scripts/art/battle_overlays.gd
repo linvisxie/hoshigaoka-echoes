@@ -69,7 +69,7 @@ func _build_offer(viewport: Vector2, factor: float) -> void:
 		card.name = "UpgradeChoice%d" % i
 		var tier := str(view.get("tier","COMMON"))
 		var accent := GameSkin.GOLD if tier == "CORE" else (GameSkin.BLUE if tier == "ADVANCED" else Color("a8b7d8"))
-		card.add_theme_stylebox_override("normal",GameSkin.panel(Color("14213b"),accent,true))
+		card.add_theme_stylebox_override("normal",GameSkin.glass(accent,.94))
 		var category := str(view.get("category","残响强化"))
 		text(card,category,Rect2(24,12,220,34),21,accent)
 		text(card,str({"COMMON":"普通","ADVANCED":"进阶","CORE":"核心"}.get(tier,"强化")),Rect2(302,12,75,34),19,accent,true)

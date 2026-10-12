@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,subprocess,sys,time
 ROOT=Path(__file__).resolve().parents[1]
-BASE=ROOT.parent/'_testenv/interaction-revision'
+BASE=ROOT.parent/'_testenv/glass-combat-revision'
 probe=BASE/'retail_final/appdata/HoshigaokaEchoes/art_probe/latest.json'
 deadline=time.monotonic()+360
 while time.monotonic()<deadline:

@@ -30,9 +30,9 @@
       "rangeShape": "lane_band",
       "direction": "forward",
       "rangeTiles": 4,
-      "maxLaneDelta": 0,
+      "maxLaneDelta": 1,
       "targetLimit": 3,
-      "description": "下次本路攻击造成300%伤害，贯穿最多3名敌人；等待目标时仍以普攻支援相邻路线，保留蓄力。"
+      "description": "下次攻击造成300%伤害，贯穿前方及相邻路线最多3名敌人；适合截断多路残响的协同攻势。"
     },
     {
       "id": "rin_emergency_dispatch",

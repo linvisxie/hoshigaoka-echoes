@@ -20,15 +20,18 @@ func _process(delta: float) -> void:
 		var rt: StageRuntime=scene.session.stage
 		if not scene.session.is_decided() and not scene.session.is_paused() and not scene._upgrade_panel_active() and Time.get_ticks_msec()>input_after:
 			if scene._device_select_owner!=0:
-				for lane: int in [0,2,1]:
-					if rt.get_character_at(3,lane)==null:
-						scene._send_click_at(scene._cell_screen_pos(3,lane))
+				var threat: EnemyRuntime=null
+				for e: EnemyRuntime in rt.enemies:
+					if e.is_active() and e.lane!=1 and (threat==null or e.logical_x<threat.logical_x):threat=e
+				if threat!=null:
+					var column:=clampi(int(floor(threat.logical_x)),0,3)
+					if rt.get_character_at(column,threat.lane)==null:
+						scene._send_click_at(scene._cell_screen_pos(column,threat.lane))
 						input_after=Time.get_ticks_msec()+300
 						capture("experiment_"+rt.stage_id)
-						break
 			else:
 				var order: Array[String]=["amamiya_mio","kamiya_yuma","ogawa_yui","fujiwara_rin","minase_sara","shiraishi_chinatsu"]
-				var slots: Array[Vector2i]=[Vector2i(3,1),Vector2i(2,1),Vector2i(2,0),Vector2i(0,0),Vector2i(1,1),Vector2i(1,0)]
+				var slots: Array[Vector2i]=[Vector2i(3,1),Vector2i(1,1),Vector2i(2,0),Vector2i(0,0),Vector2i(2,1),Vector2i(1,0)]
 				if int(rt.stage_id.get_slice("-",1)) < 6: slots[1] = Vector2i(1,1)
 				for i: int in range(order.size()):
 					var cid := order[i]
@@ -52,6 +55,24 @@ func _process(delta: float) -> void:
 		if scene.session.is_decided() and not summaries.has(rt.stage_id):
 			summaries["mechanics_"+rt.stage_id]={"bossEvents":rt.boss_events.duplicate(true),"healedTotal":rt.total_healing_done,"healEvents":rt.heal_events.duplicate(true),"skillEvents":rt.skill_events.duplicate(true)}
 	super._process(delta)
+
+func should_cast(rt: StageRuntime,c: CharacterRuntime) -> bool:
+	if int(rt.stage_id.get_slice("-",1))<6:return true
+	var targets:=rt._active_skill_targets(c)
+	if c.character_id=="kamiya_yuma":
+		for e: EnemyRuntime in targets:
+			if e.lane!=c.lane:return true
+		return targets.size()>=2
+	if c.character_id=="amamiya_mio":return not targets.is_empty()
+	if c.character_id=="ogawa_yui":
+		for ally: CharacterRuntime in rt.characters:
+			if ally.hp_ratio()<.7:return true
+		return false
+	if c.character_id=="minase_sara":
+		for e: EnemyRuntime in rt.enemies:
+			if e.is_active() and e.lane!=1 and e.logical_x<5:return true
+		return false
+	return true
 
 func finish(ok: bool, reason: String) -> void:
 	if ok:

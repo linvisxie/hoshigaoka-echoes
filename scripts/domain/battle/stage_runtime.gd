@@ -28,6 +28,8 @@ var skill_events: Array[Dictionary] = []
 var _deploy_discount: Dictionary = {}
 var ap_regen_bonus_cap: float = 0.5
 var boss_config: Dictionary = {}
+var sequential_waves := false
+var _wave_time_delay := 0.0
 var boss_state: Dictionary = {}
 var boss_events: Array[Dictionary] = []
 var boss_warnings: Array[Dictionary] = []
@@ -176,10 +178,12 @@ func _tick_chapter_mechanics(step: float) -> void:
 					var damage := c.take_damage(combat_math.compute_damage(float(boss_config.get("mistakeDamage",220)),c.defense,CombatMath.DamageType.SPECIAL))
 					_record_damage_event(false,c.instance_id,damage,c.hp<=0,"enemy",boss.instance_id,Vector2(boss.logical_x,boss.lane),Vector2(c.column,c.lane),CombatMath.DamageType.SPECIAL,true)
 		boss_warnings.erase(warning)
-	if phase in [1,3] and elapsed_seconds >= float(boss_state.standard):
+	if (phase in [1,3] or bool(boss_config.get("summonAllPhases",false))) and elapsed_seconds >= float(boss_state.standard):
 		var lane := _chapter_rng.randi_range(0,2)
 		boss_state.standardCount=int(boss_state.get("standardCount",0))+1
 		boss_warnings.append({"kind":"standard","lane":lane,"born":elapsed_seconds,"due":elapsed_seconds+float(boss_config.get("warningSeconds",3))})
+		if bool(boss_config.get("summonAllPhases",false)):
+			boss_warnings.append({"kind":"standard","lane":(lane+1)%3,"born":elapsed_seconds,"due":elapsed_seconds+float(boss_config.get("warningSeconds",3))})
 		boss_state.standard=elapsed_seconds+float(boss_config.get("finalSummonInterval",12) if phase==3 else boss_config.get("standardInterval",12))
 		_boss_event("最后五分钟 · 残响汇聚" if phase==3 else "标准答案 · 增援预告")
 	if phase==1 and elapsed_seconds >= float(boss_state.compare) and not characters.is_empty():
@@ -270,7 +274,7 @@ func _active_skill_targets(character: CharacterRuntime) -> Array[EnemyRuntime]:
 	var cfg := character.skill_config
 	var reach := float(cfg.get("rangeTiles", 0))
 	for enemy: EnemyRuntime in enemies:
-		if not enemy.is_active() or enemy.lane != character.lane:
+		if not enemy.is_active() or absi(enemy.lane-character.lane) > int(cfg.get("maxLaneDelta",0)):
 			continue
 		var distance := enemy.logical_x - float(character.column)
 		if character.is_blocking(enemy.instance_id) or (distance >= -0.00001 and distance <= reach + 0.00001):
@@ -459,6 +463,7 @@ static func from_config(
 	rt.stage_id = sid
 	rt._chapter_rng.seed = sid.hash()
 	rt.boss_config = stage_config.get("bossConfig", {}).duplicate(true)
+	rt.sequential_waves = bool(stage_config.get("sequentialWaves", false))
 
 	# ---- 核心 HP ----
 	var core_hp_raw: Variant = stage_config.get("coreHp", null)
@@ -617,6 +622,9 @@ static func from_config(
 
 	# ---- 出怪时间线（唯一数据源）----
 	rt._spawn_plan = rt._validate_spawn_timeline(stage_config, enemy_table)
+	if rt.sequential_waves:
+		rt._spawn_plan.sort_custom(func(a: Dictionary,b: Dictionary) -> bool:
+			return float(a.time)<float(b.time) if int(a.get("wave",1))==int(b.get("wave",1)) else int(a.get("wave",1))<int(b.get("wave",1)))
 	rt._max_battle_seconds = rt._compute_max_battle_seconds()
 
 	# ---- Wave 元数据与运行状态 ----
@@ -1462,6 +1470,19 @@ func total_wave_count() -> int:
 ## 当前波次序号（1 起；无波次时返回 0）。
 ## 全部波次已完成时返回**最后一波的编号**，而不是 0——
 ## 否则结算摘要与 HUD 会显示成「Wave 0/3」这种自相矛盾的读数。
+## Latest wave that has actually spawned. Early tutorials intentionally allow
+## overlapping waves; the HUD must not lag behind their incoming wave number.
+func display_wave_number() -> int:
+	var number := current_wave_number()
+	for state: Dictionary in _wave_states:
+		if int(state.get("spawned",0))>0:number=maxi(number,int(state["number"]))
+	return number
+
+func incoming_wave_preview() -> Dictionary:
+	for wave: Dictionary in waves:
+		if int(wave["number"])>display_wave_number():return wave
+	return {}
+
 func current_wave_number() -> int:
 	if waves.is_empty():
 		return 0
@@ -1536,6 +1557,10 @@ func _complete_current_wave() -> void:
 			int(_wave_states[_current_wave_index]["leaked"]),
 		])
 	_current_wave_index += 1
+	if sequential_waves and _current_wave_index < _wave_states.size():
+		var first := int(_wave_states[_current_wave_index]["spawnIndexFirst"])
+		if first >= 0:
+			_wave_time_delay = elapsed_seconds + 2.0 - float(_spawn_plan[first]["time"])
 	if _current_wave_index < _wave_states.size():
 		_wave_states[_current_wave_index]["status"] = WAVE_ACTIVE
 		GameLog.info("StageRuntime", "Wave %d 开始（%d 名敌人，路线 %s）"
@@ -2115,7 +2140,9 @@ func _tick_redeploy_cooldowns(step: float) -> void:
 func _spawn_due() -> void:
 	while _spawn_cursor < _spawn_plan.size():
 		var entry: Dictionary = _spawn_plan[_spawn_cursor]
-		if float(entry["time"]) > elapsed_seconds:
+		if sequential_waves and int(entry.get("wave",1)) > current_wave_number():
+			break
+		if float(entry["time"]) + _wave_time_delay > elapsed_seconds:
 			break
 		# 敌人被无限阻挡时也要保证对局收敛：超过战斗时长上限后不再生成
 		if _max_battle_seconds > 0.0 and elapsed_seconds > _max_battle_seconds:

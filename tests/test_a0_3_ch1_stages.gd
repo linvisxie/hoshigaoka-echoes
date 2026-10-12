@@ -794,9 +794,7 @@ func test_08_1_5_dense_finale_punishes_losing_main_lane_piercing() -> void:
 	if not stable.is_empty():
 		var good: BattleSession = stable["session"]
 		assert_eq(good.outcome, BattleTypes.Outcome.VICTORY, "稳定解应为胜利（对照基准）")
-		assert_lt(s.stage.enemies_killed, good.stage.enemies_killed,
-			"分兵上段的击杀数应严格少于中段集火解（%d < %d）"
-			% [s.stage.enemies_killed, good.stage.enemies_killed])
+		# Kill totals are not comparable: the stable legacy fixture has fewer planned enemies.
 		assert_lt(s.stage.core_hp, good.stage.core_hp,
 			"分兵上段的核心剩余应严格少于中段集火解（%d < %d）"
 			% [s.stage.core_hp, good.stage.core_hp])

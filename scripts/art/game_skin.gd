@@ -18,18 +18,38 @@ static func battle_glass() -> StyleBoxTexture:
 		style.set_content_margin(side, 18.0)
 	return style
 
+static var _glass_cache: Dictionary = {}
+
+static func glass(accent: Color = BLUE, opacity: float = 0.90) -> StyleBoxTexture:
+	var key := accent.to_html() + str(opacity)
+	if not _glass_cache.has(key):
+		var svg := FileAccess.get_file_as_string("res://assets/art/ui/battle_glass.svg")
+		svg = svg.replace("#b6f6ef", "#" + accent.to_html(false)).replace("#c0f6ee", "#" + accent.lightened(.15).to_html(false))
+		svg = svg.replace("#74aec9", "#" + accent.darkened(.20).to_html(false)).replace("#8e99db", "#" + accent.darkened(.10).to_html(false)).replace("#b4e8ff", "#" + accent.lightened(.15).to_html(false))
+		svg = svg.replace('stop-opacity=".95"', 'stop-opacity="%s"' % opacity).replace('stop-opacity=".94"', 'stop-opacity="%s"' % (opacity-.04)).replace('stop-opacity=".96"', 'stop-opacity="%s"' % opacity)
+		var image := Image.new()
+		image.load_svg_from_string(svg, 2.0)
+		var style := StyleBoxTexture.new()
+		style.texture = ImageTexture.create_from_image(image)
+		for side: int in [SIDE_LEFT,SIDE_TOP,SIDE_RIGHT,SIDE_BOTTOM]:
+			style.set_texture_margin(side, 36.0)
+			style.set_content_margin(side, 18.0)
+		style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		_glass_cache[key] = style
+	return (_glass_cache[key] as StyleBoxTexture).duplicate() as StyleBoxTexture
+
 static func panel(fill: Color = Color("111c34"), accent: Color = Color("52678f"), heavy: bool = false) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
-	s.bg_color = fill
+	s.bg_color = Color(fill.lerp(Color("24445c"), 0.58), fill.a * 0.82)
 	s.border_color = accent
 	s.set_border_width_all(1)
 	s.border_width_top = 2 if heavy else 1
-	s.corner_radius_top_left = 12
+	s.corner_radius_top_left = 10
 	s.corner_radius_top_right = 3
 	s.corner_radius_bottom_left = 3
 	s.corner_radius_bottom_right = 12
 	s.shadow_color = Color(0.005, 0.01, 0.03, 0.5)
-	s.shadow_size = 10
+	s.shadow_size = 4
 	s.shadow_offset = Vector2(0, 4)
 	s.set_content_margin_all(18)
 	return s
@@ -48,12 +68,12 @@ static func make_theme() -> Theme:
 	t.set_color("font_color", "Button", WHITE)
 	t.set_color("font_hover_color", "Button", Color.WHITE)
 	t.set_color("font_disabled_color", "Button", Color("73809b"))
-	t.set_stylebox("normal", "Button", panel(Color("16233e"), Color("4c638e")))
-	t.set_stylebox("hover", "Button", panel(Color("293d61"), BLUE, true))
-	t.set_stylebox("pressed", "Button", panel(Color("123850"), BLUE, true))
-	t.set_stylebox("disabled", "Button", panel(Color("10182b"), Color("35415a")))
+	t.set_stylebox("normal", "Button", glass(BLUE,.88))
+	t.set_stylebox("hover", "Button", glass(BLUE,.96))
+	t.set_stylebox("pressed", "Button", glass(GREEN,.96))
+	t.set_stylebox("disabled", "Button", glass(Color("586c85"),.70))
 	t.set_stylebox("focus", "Button", panel(Color(0, 0, 0, 0), GOLD, true))
-	t.set_stylebox("panel", "Panel", panel())
+	t.set_stylebox("panel", "Panel", glass())
 	t.set_stylebox("background", "ProgressBar", bar(Color("28344e")))
 	t.set_stylebox("fill", "ProgressBar", bar(BLUE))
 	t.set_stylebox("panel", "TooltipPanel", panel(Color("0d1930"), GOLD))
@@ -76,14 +96,14 @@ static func make_theme() -> Theme:
 	return t
 
 static func style_button(button: Button, primary: bool = false) -> void:
-	button.add_theme_stylebox_override("normal", panel(Color("253652") if primary else Color("14213a"), GOLD if primary else Color("51688e"), primary))
-	button.add_theme_stylebox_override("hover", panel(Color("294a61"), Color("b3eee8"), true))
-	button.add_theme_stylebox_override("pressed", panel(Color("19384b"), GREEN, true))
-	button.add_theme_stylebox_override("disabled", panel(Color("111a2b"), Color("35415b")))
+	button.add_theme_stylebox_override("normal", glass(GOLD if primary else BLUE, .88))
+	button.add_theme_stylebox_override("hover", glass(Color("b3eee8"), .96))
+	button.add_theme_stylebox_override("pressed", glass(GREEN, .96))
+	button.add_theme_stylebox_override("disabled", glass(Color("586c85"), .70))
 	button.add_theme_stylebox_override("focus", panel(Color(0,0,0,0), GOLD, true))
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	for state: String in ["normal","hover","pressed","disabled","focus"]:
-		var style := button.get_theme_stylebox(state) as StyleBoxFlat
+		var style := button.get_theme_stylebox(state)
 		if style != null:
 			style.content_margin_top = 6
 			style.content_margin_bottom = 6
@@ -94,6 +114,14 @@ static func style_button(button: Button, primary: bool = false) -> void:
 				AudioService.play_sfx("ui_hover",-14.0)
 				var hover := button.get_theme_stylebox("hover") as StyleBoxFlat
 				var normal := button.get_theme_stylebox("normal") as StyleBoxFlat
+				var glass_hover := button.get_theme_stylebox("hover") as StyleBoxTexture
+				if glass_hover != null:
+					var previous: Tween = button.get_meta("skin_hover_tween") if button.has_meta("skin_hover_tween") else null
+					if previous != null: previous.kill()
+					glass_hover.modulate_color = Color(.86,.90,.94)
+					var motion := button.create_tween()
+					motion.tween_property(glass_hover,"modulate_color",Color(1.08,1.14,1.12),.14)
+					button.set_meta("skin_hover_tween",motion)
 				if hover != null and normal != null:
 					var previous: Tween = button.get_meta("skin_hover_tween") if button.has_meta("skin_hover_tween") else null
 					if previous != null: previous.kill()

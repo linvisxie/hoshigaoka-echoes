@@ -6,7 +6,7 @@ func _ready() -> void:
 	var cfg := DataRegistry.get_entry("characters", cid)
 	page_heading(str(cfg.get("name", cid)) + " · 角色装备", "武器、饰品、校园纪念物各一件 · 换装保留强化等级")
 	set_background("bg_env_corridor_battle")
-	texture_at(ArtRegistry.load_texture("res://assets/art/characters/%s/%s_story.png" % [cid,cid]), Rect2(100,180,650,760))
+	texture_at(ArtRegistry.character_story(cid), Rect2(100,180,650,760))
 	panel(Rect2(810,210,1030,710))
 	label_at("装备面板",Rect2(860,240,900,60),36,GOLD)
 	var equipped := EquipmentService.equipped_of(SaveService.get_current(),cid)

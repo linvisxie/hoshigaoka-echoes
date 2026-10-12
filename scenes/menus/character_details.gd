@@ -6,7 +6,7 @@ func _ready() -> void:
 	var cfg := DataRegistry.get_entry("characters", cid)
 	set_background("bg_env_corridor_battle")
 	page_heading(str(cfg.get("name", "角色")), "%s  /  %s" % [cfg.get("grade", ""), cfg.get("club", "")])
-	texture_at(ArtRegistry.load_texture("res://assets/art/characters/%s/%s_story.png" % [cid, cid]), Rect2(80, 170, 730, 780))
+	texture_at(ArtRegistry.character_story(cid), Rect2(80, 170, 730, 780))
 	panel(Rect2(850, 210, 990, 710))
 	label_at("战斗记录", Rect2(900, 245, 880, 70), 38, GOLD)
 	var text := "部署费用 %d AP    /    再部署 %.0f 秒\n" % [int(cfg.get("deployCost", 0)), float(cfg.get("redeployTime", 0))]
@@ -21,7 +21,12 @@ func _ready() -> void:
 	for talent: Dictionary in DataRegistry.get_domain("skills").get("talents", []):
 		if cfg.get("talentIds", []).has(str(talent.get("id", ""))):
 			text += "%s\n%s\n" % [talent.get("name", ""), talent.get("description", "")]
-	var description := label_at(text, Rect2(900, 350, 880, 500), 29)
-	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var description := RichTextLabel.new()
+	description.text = text
+	description.position = Vector2(900,345)
+	description.size = Vector2(880,540)
+	description.add_theme_font_size_override("normal_font_size",26)
+	description.scroll_active = true
+	canvas.add_child(description)
 	button_at("返回培养", Rect2(90, 965, 360, 75), func() -> void: SceneRouter.go_to("character"))
 	button_at("剧情档案", Rect2(1430, 965, 410, 75), func() -> void: SceneRouter.go_to("archive"), true)

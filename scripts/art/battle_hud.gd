@@ -48,7 +48,7 @@ func _ready() -> void:
 	normal.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(normal)
 	_build_top()
-	boss_hp = _bar(normal,Rect2(690,140,540,18),GameSkin.RED)
+	boss_hp = _bar(normal,Rect2(690,140,540,22),Color("ff223b"))
 	boss_hp.visible = false
 	_build_cards()
 	_build_selected()
@@ -326,7 +326,7 @@ func _process(delta: float) -> void:
 	defense.add_theme_color_override("font_color",GameSkin.RED if danger else GameSkin.BLUE)
 	var center := normal.get_node("WavePanel") as Control
 	center.position.x = (vp.x-center.size.x)*0.5
-	waves.text = "WAVE  %02d / %02d" % [s.current_wave_number(),s.total_wave_count()]
+	waves.text = "WAVE  %02d / %02d" % [s.display_wave_number(),s.total_wave_count()]
 	var boss := s.chapter_boss()
 	boss_hp.visible = boss != null
 	if boss != null:
@@ -336,14 +336,14 @@ func _process(delta: float) -> void:
 		boss_hp.position.x = (vp.x-540)*.5
 		boss_hp.tooltip_text = "无名优等生 · 三阶段核心残响"
 		boss_hp.value = float(boss.hp)/maxf(1,boss.hp_max)
-	var next := s.next_wave_preview()
-	preview.text = "最终波 · 清除全部残响体" if next.is_empty() else "下一波  %s · %d 名" % [battle._lanes_text(next["lanes"]),int(next["enemyCount"])]
+	var next := s.incoming_wave_preview()
+	preview.text = "最终波 · 清除全部残响体" if next.is_empty() else "下一波 %02d · %s" % [int(next["number"]),battle._lanes_text(next["lanes"])]
 	if boss != null:
 		preview.text = "%d / %d HP" % [boss.hp,boss.hp_max]
 		if not s.boss_events.is_empty() and s.elapsed_seconds-float(s.boss_events.back().at)<4:
 			preview.text = str(s.boss_events.back().name)
 	for i: int in range(wave_marks.get_child_count()):
-		(wave_marks.get_child(i) as ColorRect).color = GameSkin.GOLD if i<s.current_wave_number() else Color("354465")
+		(wave_marks.get_child(i) as ColorRect).color = GameSkin.GOLD if i<s.display_wave_number() else Color("354465")
 	var ap := normal.get_node("APPanel") as Control
 	ap.position.x = vp.x-510
 	ap_label.text = "%d / %d  AP" % [s.ap,s.ap_max]
@@ -527,7 +527,7 @@ func _update_actor_details(unit: CharacterRuntime) -> void:
 	selected_stats.text = "生命  %d / %d" % [unit.hp,unit.max_hp]
 	selected_hp.value = unit.hp_ratio()
 	var skill_state := "就绪"
-	if unit.skill_charged: skill_state = "贯穿已蓄力 · 旁路普攻继续"
+	if unit.skill_charged: skill_state = "贯穿已蓄力 · 可截击相邻路线"
 	elif unit.skill_active_remaining>0: skill_state = "生效中 %.1f 秒" % unit.skill_active_remaining
 	elif unit.skill_cooldown_remaining>0: skill_state = "冷却 %.1f 秒" % unit.skill_cooldown_remaining
 	selected_skill.text = "%s\n%s" % [unit.skill_config.get("name","主动技能"),skill_state]

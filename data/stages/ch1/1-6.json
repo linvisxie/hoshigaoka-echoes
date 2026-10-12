@@ -51,6 +51,24 @@
       "wave": 1
     },
     {
+      "time": 30.0,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 30.15,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 30.3,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
       "time": 31.6,
       "lane": 1,
       "enemy": "echo_anxiety",
@@ -66,6 +84,24 @@
       "time": 38.4,
       "lane": 1,
       "enemy": "echo_exam_sheet",
+      "wave": 2
+    },
+    {
+      "time": 41.12,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 41.27,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 41.42,
+      "lane": 2,
+      "enemy": "echo_normal",
       "wave": 2
     },
     {
@@ -105,6 +141,24 @@
       "wave": 3
     },
     {
+      "time": 66.72,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 66.87,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 67.02,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
       "time": 67.4,
       "lane": 1,
       "enemy": "echo_anxiety",
@@ -138,6 +192,24 @@
       "time": 89.6,
       "lane": 1,
       "enemy": "echo_anxiety",
+      "wave": 4
+    },
+    {
+      "time": 92.32,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 92.47,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 92.62,
+      "lane": 2,
+      "enemy": "echo_normal",
       "wave": 4
     },
     {
@@ -195,6 +267,24 @@
       "wave": 5
     },
     {
+      "time": 122.68,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 122.83,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 122.98,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
       "time": 125.4,
       "lane": 1,
       "enemy": "echo_anxiety",
@@ -212,6 +302,11 @@
       "at": 0,
       "id": "TUT_TAIL_6",
       "text": "结衣的治疗跨越相邻路线。焦虑领域降低攻速和技能恢复，让结衣守在澪身后。"
+    },
+    {
+      "at": 26,
+      "id": "TUT_SURGE_6",
+      "text": "三路残响即将协同接近。保留悠真的破空箭清理密集目标；受压时治疗，或撤退后换线再部署。"
     }
   ],
   "specialRules": [],
@@ -253,5 +348,6 @@
       "clearCondition": "ALL_ENEMIES_DEFEATED"
     }
   ],
-  "_encounterRevision": "2026-10-12: tighter wave gaps, same-lane paired pressure, 40 percent shorter redeploy; candidate pending playtest"
+  "_encounterRevision": "0.5.3: sequential waves; coordinated multi-lane surges, 8 second redeploy, cross-lane piercing skill",
+  "sequentialWaves": true
 }

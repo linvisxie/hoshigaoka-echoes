@@ -1,0 +1,86 @@
+[
+  {
+    "character": "amamiya_mio",
+    "source": "tools\\source_art\\glass_revision\\amamiya_mio_sheet.png",
+    "sourceSha256": "0c3709348388295a4532b50130ca8abedc0d78ac0d4a2310376bd8d491cea126",
+    "origin": "OpenAI built-in imagegen, edited from existing user-owned character sheets and Sara style reference",
+    "frameSize": 128,
+    "uniformScale": 0.3547400611620795,
+    "reviewedRows": [
+      0,
+      350,
+      650,
+      940,
+      1214
+    ],
+    "targets": [
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_base.png",
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_idle.png",
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_move.png",
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_attack.png",
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_recovery.png",
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_skill.png",
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_deploy.png",
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_hit.png",
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_death.png",
+      "assets\\art\\characters\\amamiya_mio\\amamiya_mio_victory.png"
+    ],
+    "humanArtAcceptance": false
+  },
+  {
+    "character": "kamiya_yuma",
+    "source": "tools\\source_art\\glass_revision\\kamiya_yuma_sheet.png",
+    "sourceSha256": "b17a171c26ddb13d62718b1269bd120cd1f0518f2ab429c75804b9966f4676ac",
+    "origin": "OpenAI built-in imagegen, edited from existing user-owned character sheets and Sara style reference",
+    "frameSize": 128,
+    "uniformScale": 0.35802469135802467,
+    "reviewedRows": [
+      0,
+      338,
+      647,
+      942,
+      1216
+    ],
+    "targets": [
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_base.png",
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_idle.png",
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_move.png",
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_attack.png",
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_recovery.png",
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_skill.png",
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_deploy.png",
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_hit.png",
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_death.png",
+      "assets\\art\\characters\\kamiya_yuma\\kamiya_yuma_victory.png"
+    ],
+    "humanArtAcceptance": false
+  },
+  {
+    "character": "ogawa_yui",
+    "source": "tools\\source_art\\glass_revision\\ogawa_yui_sheet.png",
+    "sourceSha256": "a4501636ce050a057c09ab03669c693190a100b6b4c8b6b69a0a5d7b065feff1",
+    "origin": "OpenAI built-in imagegen, edited from existing user-owned character sheets and Sara style reference",
+    "frameSize": 128,
+    "uniformScale": 0.35802469135802467,
+    "reviewedRows": [
+      0,
+      333,
+      637,
+      940,
+      1216
+    ],
+    "targets": [
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_base.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_idle.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_move.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_attack.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_recovery.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_skill.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_deploy.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_hit.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_death.png",
+      "assets\\art\\characters\\ogawa_yui\\ogawa_yui_victory.png"
+    ],
+    "humanArtAcceptance": false
+  }
+]

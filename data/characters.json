@@ -32,7 +32,7 @@
       },
       "blockCount": 2,
       "deployCost": 10,
-      "redeployTime": 12,
+      "redeployTime": 8,
       "_redeployTime_spec": "V2.1.4 D 章表 26『重新部署 20 秒』与表 24『普通角色冷却 20 秒』一致。",
       "damageType": "PHYSICAL",
       "skillIds": [
@@ -84,7 +84,7 @@
       "blockCount": 0,
       "_blockCount_spec": "V2.1.4 表 28『阻挡 0』；表 25 同列『神谷悠真 阻挡 0』。",
       "deployCost": 12,
-      "redeployTime": 12,
+      "redeployTime": 8,
       "damageType": "PHYSICAL",
       "skillIds": [
         "yuma_piercing_arrow"
@@ -136,7 +136,7 @@
       "blockCount": 0,
       "_blockCount_spec": "V2.1.4 表 30『阻挡 0』。",
       "deployCost": 14,
-      "redeployTime": 12,
+      "redeployTime": 8,
       "damageType": "PHYSICAL",
       "skillIds": [
         "yui_small_light"
@@ -179,7 +179,7 @@
       },
       "blockCount": 0,
       "deployCost": 16,
-      "redeployTime": 15,
+      "redeployTime": 10,
       "damageType": "PHYSICAL",
       "normalAttackEnabled": false,
       "apRegenBonusPct": 0.15,
@@ -221,7 +221,7 @@
       },
       "blockCount": 0,
       "deployCost": 18,
-      "redeployTime": 13,
+      "redeployTime": 8,
       "damageType": "SPECIAL",
       "skillIds": [
         "sara_experiment"
@@ -260,7 +260,7 @@
       },
       "blockCount": 0,
       "deployCost": 15,
-      "redeployTime": 12,
+      "redeployTime": 8,
       "damageType": "SPECIAL",
       "skillIds": [
         "chinatsu_beat"

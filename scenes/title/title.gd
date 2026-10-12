@@ -375,7 +375,7 @@ func _quit() -> void:
 	var panel := Panel.new()
 	panel.position = (_viewport-Vector2(_px(720),_px(330)))*0.5
 	panel.size = Vector2(_px(720),_px(330))
-	panel.add_theme_stylebox_override("panel",GameSkin.panel(Color("101a31"),GameSkin.GOLD,true))
+	panel.add_theme_stylebox_override("panel",GameSkin.glass(GameSkin.GOLD,.96))
 	_quit_confirmation.add_child(panel)
 	var title := Label.new()
 	title.text = "暂别星丘？"

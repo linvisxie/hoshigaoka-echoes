@@ -65,6 +65,8 @@ func _grid() -> BattleGrid:
 func _rt(stage_id: String, data: Dictionary, spawns: Array) -> StageRuntime:
 	var cfg: Dictionary = DataRegistry.get_entry("stages", stage_id).duplicate(true)
 	cfg["enemySpawnTimeline"] = spawns
+	# This lifecycle fixture intentionally generates simultaneous overlapping waves.
+	cfg["sequentialWaves"] = false
 	cfg.erase("waves")
 	return StageRuntime.from_config(cfg, _enemies(), _grid(), _chars(), _combat(), data)
 

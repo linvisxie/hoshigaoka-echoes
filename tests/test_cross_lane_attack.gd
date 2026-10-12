@@ -685,11 +685,11 @@ func test_16e_stage_1_2_zero_leak_requires_timing() -> void:
 	# 这证明冷却约束真实存在，而不是被本轮重平衡架空。
 	var late := _run_stage("1-2", [
 		{"t": 0.5, "c": CHAR_MIO, "col": 3, "lane": 1},
-		{"t": 89.0, "a": "retreat", "c": CHAR_MIO},
+		{"t": 93.0, "a": "retreat", "c": CHAR_MIO},
 		{"t": 99.5, "c": CHAR_MIO, "col": 3, "lane": 0},
 	])
 	assert_gt((late["rejects"] as Array).size(), 0,
-		"晚 10 秒撤退应被 12 秒再部署冷却拒绝（冷却仍具约束力）")
+		"晚撤退后仅过 6.5 秒应被 8 秒再部署冷却拒绝（冷却仍具约束力）")
 
 
 ## 覆盖项 16f：所有关卡在不部署时都必须失败（关卡压力真实存在）。

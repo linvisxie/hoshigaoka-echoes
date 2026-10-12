@@ -52,6 +52,24 @@
       "wave": 1
     },
     {
+      "time": 30.0,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 30.15,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 30.3,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
       "time": 31.6,
       "lane": 1,
       "enemy": "echo_rank",
@@ -67,6 +85,24 @@
       "time": 38.4,
       "lane": 1,
       "enemy": "echo_runner",
+      "wave": 2
+    },
+    {
+      "time": 41.12,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 41.27,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 41.42,
+      "lane": 2,
+      "enemy": "echo_normal",
       "wave": 2
     },
     {
@@ -106,6 +142,24 @@
       "wave": 3
     },
     {
+      "time": 66.72,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 66.87,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 67.02,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
       "time": 67.4,
       "lane": 1,
       "enemy": "echo_rank",
@@ -139,6 +193,24 @@
       "time": 89.6,
       "lane": 1,
       "enemy": "echo_rank",
+      "wave": 4
+    },
+    {
+      "time": 92.32,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 92.47,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 92.62,
+      "lane": 2,
+      "enemy": "echo_normal",
       "wave": 4
     },
     {
@@ -196,6 +268,24 @@
       "wave": 5
     },
     {
+      "time": 122.68,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 122.83,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 122.98,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
       "time": 125.4,
       "lane": 1,
       "enemy": "echo_rank",
@@ -213,6 +303,11 @@
       "at": 0,
       "id": "TUT_TAIL_7",
       "text": "排名幽灵每8秒削弱范围内攻击最高的角色。凛负责资源调度，悠真兼顾旁路。"
+    },
+    {
+      "at": 26,
+      "id": "TUT_SURGE_7",
+      "text": "三路残响即将协同接近。保留悠真的破空箭清理密集目标；受压时治疗，或撤退后换线再部署。"
     }
   ],
   "specialRules": [],
@@ -254,5 +349,6 @@
       "clearCondition": "ALL_ENEMIES_DEFEATED"
     }
   ],
-  "_encounterRevision": "2026-10-12: tighter wave gaps, same-lane paired pressure, 40 percent shorter redeploy; candidate pending playtest"
+  "_encounterRevision": "0.5.3: sequential waves; coordinated multi-lane surges, 8 second redeploy, cross-lane piercing skill",
+  "sequentialWaves": true
 }

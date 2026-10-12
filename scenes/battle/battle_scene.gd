@@ -2943,8 +2943,7 @@ func _draw_characters(lane_filter: int = -1) -> void:
 		draw_rect(Rect2(bar_pos, Vector2(bar_w, bar_h)), Color(0.12, 0.12, 0.16), true)
 		var ratio := c.hp_ratio()
 		var bar_color := Color(0.4, 0.95, 0.55) if ratio > 0.4 else Color(0.95, 0.55, 0.3)
-		draw_rect(Rect2(Vector2(bar_pos.x, bar_pos.y + bar_h * (1.0 - ratio)),
-			Vector2(bar_w, bar_h * ratio)), bar_color, true)
+		draw_rect(Rect2(bar_pos, Vector2(bar_w * ratio, bar_h)), bar_color, true)
 		draw_rect(Rect2(bar_pos, Vector2(bar_w, bar_h)), Color(1, 1, 1, 0.22), false, 1.0)
 
 		# 职责标签（永远显示，确保玩家看懂谁在做什么）
@@ -3171,14 +3170,10 @@ func _draw_sprite_anchored(tex: Texture2D, center: Vector2, target_h: float,
 	var feet_y := center.y + target_h * baseline_ratio
 	var dst := Rect2(center.x - w * 0.5, feet_y - h, w, h)
 	_draw_ground_shadow(Vector2(center.x, feet_y - _px(4.0)), w * 0.30, Color(0.015, 0.018, 0.035, 0.44 * mod.a))
-	# The two special-skill sheets retain a few source-caption pixels in the
-	# unused top band. Clip only that band at draw time, preserving full-frame
-	# scale and foot registration; never crop the bow, sword or character body.
+	# Legacy enemy source sheets retain caption pixels in an unused top band.
 	var source_path: String = (tex.atlas.resource_path if tex is AtlasTexture else tex.resource_path)
 	var top := 0.0
-	if source_path.ends_with("amamiya_mio_skill.png") or source_path.ends_with("kamiya_yuma_skill.png"):
-		top = minf(16.0,th*0.17)
-	elif source_path.ends_with("echo_normal_move.png") or source_path.ends_with("echo_runner_move.png"):
+	if source_path.ends_with("echo_normal_move.png") or source_path.ends_with("echo_runner_move.png"):
 		# Source-sheet caption remnants occupy rows 4-5; creature pixels start
 		# at row 13/14. Clip the unused band without changing foot registration.
 		top = 8.0
@@ -3274,10 +3269,10 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 		if ef != null:
 			esprite = ef
 		# 敌人目标高度随 spriteFramePx 放大（96 的重装单位视觉更大）
-		var eh := tile * 0.92 * scale
+		var eh := tile * 1.10 * scale
 		if e.enemy_id not in ["echo_normal","echo_runner","boss_model_student"]:
-			eh = maxf(eh,tile*1.18)
-		if e.enemy_id == "boss_model_student": eh = tile * 2.05
+			eh = maxf(eh,tile*1.40)
+		if e.enemy_id == "boss_model_student": eh = tile * 2.40
 		_draw_sprite_anchored(esprite, Vector2(px_x, px_y), eh, emod, 0.16 if e.enemy_id == "boss_model_student" else 0.42)
 		if ef != null:
 			_mark_drawn("enemy_anim:%s" % est.anim)
@@ -4642,12 +4637,12 @@ func _draw_departures() -> void:
 		if texture == null:
 			continue
 		var redrawn := kind == "character" and code in ["amamiya_mio", "kamiya_yuma", "fujiwara_rin","ogawa_yui","minase_sara","shiraishi_chinatsu"]
-		var height := _px(grid.tile_size_px) * (ArtRegistry.character_body_scale(code) if redrawn else (0.96 if kind == "character" else 0.92))
+		var height := _px(grid.tile_size_px) * (ArtRegistry.character_body_scale(code) if redrawn else (0.96 if kind == "character" else 1.10))
 		if kind == "enemy":
 			var enemy_cfg: Dictionary = DataRegistry.get_entry("enemies",code)
 			height *= clampf(float(enemy_cfg.get("spriteFramePx",64))/64.0,0.8,1.6)
-			if code not in ["echo_normal","echo_runner","boss_model_student"]: height=maxf(height,_px(grid.tile_size_px)*1.18)
-		if code == "boss_model_student": height = _px(grid.tile_size_px)*2.05
+			if code not in ["echo_normal","echo_runner","boss_model_student"]: height=maxf(height,_px(grid.tile_size_px)*1.40)
+		if code == "boss_model_student": height = _px(grid.tile_size_px)*2.40
 		var offset: Vector2 = ghost.get("offset", Vector2.ZERO)
 		_draw_sprite_anchored(texture, _logical_to_screen(ghost["logical"]) + Vector2(_px(offset.x), _px(offset.y)), height,
 			Color(1, 1, 1, 1.0 - progress), 0.16 if code == "boss_model_student" else (0.25 if redrawn else (0.33 if kind == "character" else 0.42)))
@@ -4669,7 +4664,8 @@ func _write_art_probe() -> void:
 	var characters: Array[Dictionary] = []
 	for c: CharacterRuntime in session.stage.characters:
 		characters.append({"id": c.instance_id, "code": c.character_id,
-			"column": c.column, "lane": c.lane, "hp": c.hp})
+			"column": c.column, "lane": c.lane, "hp": c.hp,"hpMax":c.max_hp,
+			"hpRatio":c.hp_ratio(),"skillReady":c.skill_ready()})
 	var active_vfx: Array[String] = []
 	for effect: Dictionary in _vfx:
 		if _now() - float(effect["born"]) < float(effect["life"]):

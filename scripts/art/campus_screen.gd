@@ -48,7 +48,7 @@ func panel(rect: Rect2, accent: Color = GOLD) -> Panel:
 	control.position = rect.position
 	control.size = rect.size
 	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	control.add_theme_stylebox_override("panel", GameSkin.panel(Color(0.035, 0.055, 0.12, 0.93), Color(accent, 0.65), true))
+	control.add_theme_stylebox_override("panel", GameSkin.glass(accent, .90))
 	canvas.add_child(control)
 	return control
 
@@ -78,7 +78,7 @@ func modal_panel(rect: Rect2) -> Panel:
 	var surface := Panel.new()
 	surface.size = rect.size
 	surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	surface.add_theme_stylebox_override("panel", GameSkin.panel(Color("111c34"), GOLD, true))
+	surface.add_theme_stylebox_override("panel", GameSkin.glass(GOLD, .96))
 	dialog.add_child(surface)
 	return dialog
 
@@ -142,3 +142,20 @@ func fade_in_content() -> void:
 
 func show_error(message: String) -> void:
 	label_at(message, Rect2(85, 1010, 1600, 45), 25, Color("ffacb0"))
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		var key := SceneRouter.get_current_key()
+		if key in ["character_details","character_equipment"]:
+			SceneRouter.go_to("character")
+		elif key == "equipment":
+			SceneRouter.go_to("character_equipment" if SceneRouter.previous_key() == "character_equipment" else "character")
+		elif key == "archive" and SceneRouter.previous_key() in ["character_details","character_equipment"]:
+			SceneRouter.go_back()
+		elif key in ["archive","stage_select","briefing"]:
+			SceneRouter.go_to("stage_select" if key == "briefing" else "home")
+		elif key == "new_game":
+			SceneRouter.go_to("title")
+		else:
+			return
+		get_viewport().set_input_as_handled()

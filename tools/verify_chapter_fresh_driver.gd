@@ -2,6 +2,7 @@
 extends "res://tools/verify_chapter_tail_driver.gd"
 
 var trained_for_boss := false
+var trained_for_tail := false
 var training_in_progress := false
 
 func _ready() -> void:
@@ -14,6 +15,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if training_in_progress: return
+	if not trained_for_tail and SceneRouter.get_current_key()=="briefing" and str(CampaignFlow.state().get("pending_stage_id",""))=="1-6":
+		training_in_progress=true
+		_train_before_boss.call_deferred()
+		return
 	if not trained_for_boss and SceneRouter.get_current_key()=="home" and CampaignFlow.next_stage()=="1-10":
 		training_in_progress=true
 		_train_before_boss.call_deferred()
@@ -34,14 +39,20 @@ func _click(pos: Vector2) -> void:
 
 func _train_before_boss() -> void:
 	var before:=SaveService.snapshot()
+	var return_to := SceneRouter.get_current_key()
 	SceneRouter.go_to("character")
 	await _wait_ui()
 	var growth:=get_tree().current_scene
-	# Exactly 7,600 EXP; stage 10's reward has not been earned or borrowed.
-	for spec: Array in [["amamiya_mio","study_record_archive",1,9],
-		["kamiya_yuma","study_record_note",4,9],["ogawa_yui","study_record_note",4,9],
-		["minase_sara","study_record_short",16,8]]:
+	# Spend 4,000 of the 5,000 EXP earned by stage 5, then another 3,600
+	# before the Boss. No stage 10 reward, grants, or repeated farming.
+	var specs := [["amamiya_mio","study_record_archive",1,9],
+		["kamiya_yuma","study_record_note",2,6],["ogawa_yui","study_record_note",2,6]] if not trained_for_tail else [
+		["kamiya_yuma","study_record_note",2,9],["ogawa_yui","study_record_note",2,9],
+		["minase_sara","study_record_short",16,8]]
+	for spec: Array in specs:
 		var index: int=growth._card_ids.find(str(spec[0]))
+		if index<0:
+			finish(false,"Training character has not joined: "+str(spec[0]));return
 		var key:=InputEventKey.new();key.keycode=KEY_1+index;key.pressed=true
 		Input.parse_input_event(key)
 		var release:=InputEventKey.new();release.keycode=key.keycode
@@ -63,10 +74,11 @@ func _train_before_boss() -> void:
 		if App.growth.get_progress(str(spec[0])).level!=int(spec[3]):
 			finish(false,"Earned first-challenge training failed: "+str(spec[0]));return
 		capture("first_challenge_training_"+str(spec[0]))
-	var file:=FileAccess.open("user://first_challenge_training.json",FileAccess.WRITE)
+	var file:=FileAccess.open("user://first_challenge_training_%s.json" % ("tail" if not trained_for_tail else "boss"),FileAccess.WRITE)
 	file.store_string(JSON.stringify({"type":"Fresh new game; actual earned stages 1-9 growth UI; no grants or save edits", "before":before,"after":SaveService.snapshot()},"\t"))
-	trained_for_boss=true
-	SceneRouter.go_to("home")
+	if trained_for_tail:trained_for_boss=true
+	else:trained_for_tail=true
+	SceneRouter.go_to(return_to)
 	await _wait_ui()
 	training_in_progress=false
 

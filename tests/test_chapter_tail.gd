@@ -162,20 +162,20 @@ func test_tail_normal_ap_clear_paths() -> void:
 	assert_gte(before_boss_exp,7600,"Normal-AP fixture training is actually affordable before first Boss")
 	for n: int in range(6,11):
 		var rt := runtime("1-%d" % n)
-		if n==10:
+		if n>=6:
 			# First challenge only has 7,800 EXP from stages 1-9, excluding
 			# the Boss reward itself. Three Lv.9 + Sara Lv.8 cost 7,600.
 			var stats: Dictionary={}
 			for cid: String in ["amamiya_mio","kamiya_yuma","ogawa_yui","minase_sara"]:
 				var cfg: Dictionary=rt._character_configs[cid]
 				var progress:=CharacterProgress.from_growth_config(cid,DataRegistry.get_domain("character_growth"),cfg.baseStats,str(cfg.growthProfileId))
-				progress.add_exp(1600 if cid=="minase_sara" else 2000)
-				assert_eq(progress.level,8 if cid=="minase_sara" else 9)
+				progress.add_exp(1600 if cid=="minase_sara" else (2000 if n==10 or cid=="amamiya_mio" else 1000))
+				assert_eq(progress.level,8 if cid=="minase_sara" else (9 if n==10 or cid=="amamiya_mio" else 6))
 				stats[cid]=progress.compute_stats()
 			rt.set_character_level_stats(stats)
 		var order: Array[String]=["amamiya_mio","kamiya_yuma","ogawa_yui","fujiwara_rin"]
 		if n>=8: order.append("minase_sara")
-		var slots: Array[Vector2i]=[Vector2i(3,1),Vector2i(2,1),Vector2i(2,0),Vector2i(0,0),Vector2i(1,1)]
+		var slots: Array[Vector2i]=[Vector2i(3,1),Vector2i(1,1),Vector2i(2,0),Vector2i(0,0),Vector2i(2,1)]
 		var index := 0
 		for tick: int in range(600*60):
 			if index<order.size() and rt.query_deploy(order[index],slots[index].x,slots[index].y).ok:
@@ -190,7 +190,14 @@ func test_tail_normal_ap_clear_paths() -> void:
 					if threat!=null:
 						var column:=clampi(int(floor(threat.logical_x)),0,3)
 						rt.place_experiment(c.instance_id,column,threat.lane)
-				else: rt.cast_skill(c.instance_id)
+				else:
+					var targets:=rt._active_skill_targets(c)
+					if c.character_id=="kamiya_yuma":
+						var side:=false
+						for e: EnemyRuntime in targets:side=side or e.lane!=c.lane
+						if not side and targets.size()<2:continue
+					if c.character_id=="amamiya_mio" and targets.is_empty():continue
+					rt.cast_skill(c.instance_id)
 			if rt.pending_offer_active_guard(): rt.resolve_offer(str(rt.pending_offer.candidates[0]))
 			rt.advance(1.0/60)
 			if rt.core_hp<=0 or rt.all_waves_cleared(): break

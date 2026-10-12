@@ -55,13 +55,14 @@ with (out/'game.log').open('w',encoding='utf8') as log:
         assert '重试本次调查：1-10' in (out/'game.log').read_text(encoding='utf8',errors='replace')
         shot('retry_initial')
         roster=['amamiya_mio','kamiya_yuma','ogawa_yui','fujiwara_rin','minase_sara']
-        slots=[(3,1),(2,1),(2,0),(0,0),(1,1)]
+        slots=[(3,1),(1,1),(2,0),(0,0),(2,1)]
         deadline=time.monotonic()+540;last_action=0
         while time.monotonic()<deadline:
             state=probe()
             if not state:time.sleep(.1);continue
             assert state['stage']=='1-10'
             if state['outcome']!='进行中':break
+            if any(c.get('hpRatio',1)<.85 for c in state['characters']):shot('health_depleted')
             if state['upgradeOffer']['active']:
                 shot('upgrade_'+str(len(state['gainedUpgrades'])))
                 click_rect(state['upgradeOffer']['cardRects'][0],state);time.sleep(.3);continue
@@ -79,13 +80,20 @@ with (out/'game.log').open('w',encoding='utf8') as log:
                 if cid not in present:
                     cell(*slots[i],state)
                     break
+                actor=next(c for c in state['characters'] if c['code']==cid)
+                if not actor.get('skillReady',False):continue
+                targets=[e for e in state['enemies'] if e['hp']>0 and 0<=e['x']-actor['column']<=3 and abs(e['lane']-actor['lane'])<=1]
+                if cid=='kamiya_yuma' and not (len(targets)>=2 or any(e['lane']!=actor['lane'] for e in targets)):continue
+                if cid=='amamiya_mio' and not any(e['lane']==actor['lane'] for e in targets):continue
+                if cid=='ogawa_yui' and not any(c['hpRatio']<.7 for c in state['characters']):continue
+                if cid=='minase_sara' and not any(e['lane']!=1 and e['x']<5 for e in state['enemies']):continue
                 key(0x51)
                 if cid=='minase_sara':
                     side=[e for e in state['enemies'] if e['lane']!=1 and e['hp']>0]
                     if side:
                         e=min(side,key=lambda e:e['x']);cell(max(0,min(3,int(e['x']))),e['lane'],state)
                     else:key(0x1B)
-            actions.append({'clock':state['time'],'characters':sorted(present),'audio':state['audio']})
+            actions.append({'clock':state['time'],'characters':sorted(present),'healthRatios':{c['code']:c.get('hpRatio',1) for c in state['characters']},'audio':state['audio']})
             time.sleep(.15)
         state=probe();assert state and state['outcome']=='胜利','Retail final stage did not clear: '+str(state and state['outcome'])
         time.sleep(3.2);shot('victory')

@@ -27,7 +27,7 @@ func _ready() -> void:
 	scroll.add_child(list)
 	for slot: String in EquipmentService.VALID_SLOTS:
 		var category: Array = items.filter(func(item: Dictionary) -> bool: return str(EquipmentService.template_of(str(item.get("equipmentId",""))).get("slot","")) == slot)
-		var heading := button_at(("▾ " if expanded_slots[slot] else "▸ ") + EquipmentService.slot_name(slot) + "  ·  %d" % category.size(),Rect2(),func() -> void:
+		var heading := button_at(("▾ " if expanded_slots[slot] else "▸ ") + EquipmentService.slot_name(slot),Rect2(),func() -> void:
 			expanded_slots[slot] = not expanded_slots[slot]
 			SceneRouter.go_to("equipment"))
 		heading.reparent(list)
@@ -111,3 +111,10 @@ func _confirm() -> void:
 		var button := button_at(str(spec[0]), Rect2(0, 0, 320, 70), spec[2])
 		button.reparent(confirmation)
 		button.position = Vector2(int(spec[1]), 350)
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode==KEY_ESCAPE and confirmation!=null and confirmation.visible:
+		confirmation.hide()
+		get_viewport().set_input_as_handled()
+		return
+	super._unhandled_key_input(event)

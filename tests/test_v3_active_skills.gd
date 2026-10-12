@@ -59,41 +59,36 @@ func test_mio_three_targets_same_lane_and_range_restore() -> void:
 	rt._resolve_attacker_action(c, 0.0)
 	assert_eq(c.total_damage_dealt, total, "normal 1.25 range restores")
 
-func test_yuma_charge_waits_for_own_lane_and_consumes_once() -> void:
+func test_yuma_cross_lane_charge_consumes_once_and_restores_normal_attack() -> void:
 	var rt := _runtime()
 	var c := rt.deploy_character("kamiya_yuma", 1, 1).character
-	c.skill_cooldown_remaining = 0
-	var adjacent := _enemy(rt, 2.0, 0, 100)
+	c.skill_cooldown_remaining=0
+	var adjacent := _enemy(rt,2.0,0,100)
 	assert_true(rt.cast_skill(c.instance_id).ok)
-	rt._resolve_attacker_action(c, 0.0)
-	assert_true(c.skill_charged)
-	assert_eq(adjacent.total_damage_taken, rt.combat_math.compute_damage(150.0, adjacent.defense, c.damage_type), "waiting charge must not stop ordinary adjacent-lane support")
-	assert_false(rt.damage_events[-1].skillAttack)
-	var same := _enemy(rt, 3.0, 1, 101)
-	c.attack_cooldown = 0
-	rt._resolve_attacker_action(c, 0.0)
+	rt._resolve_attacker_action(c,0.0)
 	assert_false(c.skill_charged)
-	assert_eq(same.total_damage_taken, rt.combat_math.compute_damage(450.0, same.defense, c.damage_type))
-	assert_true(rt.damage_events[-1].skillAttack, "committed hit retains skill identity after charge consumption")
-	c.attack_cooldown = 0
-	rt._resolve_attacker_action(c, 0.0)
-	assert_false(rt.damage_events[-1].skillAttack, "subsequent ordinary hit must not inherit charged visuals")
+	assert_eq(adjacent.total_damage_taken,rt.combat_math.compute_damage(450.0,adjacent.defense,c.damage_type))
+	assert_true(rt.damage_events[-1].skillAttack)
+	var same := _enemy(rt,3.0,1,101)
+	c.attack_cooldown=0
+	rt._resolve_attacker_action(c,0.0)
+	assert_false(rt.damage_events[-1].skillAttack)
 	assert_false(rt.cast_skill(c.instance_id).ok)
 
-func test_charged_middle_yuma_keeps_supporting_both_adjacent_lanes() -> void:
-	for lane: int in [0, 2]:
+func test_charged_middle_yuma_can_interrupt_either_adjacent_lane() -> void:
+	for lane: int in [0,2]:
 		var rt := _runtime()
-		var c := rt.deploy_character("kamiya_yuma", 1, 1).character
-		c.skill_cooldown_remaining = 0
-		var adjacent := _enemy(rt, 3.9, lane, 120 + lane)
+		var c := rt.deploy_character("kamiya_yuma",1,1).character
+		c.skill_cooldown_remaining=0
+		var adjacent := _enemy(rt,3.9,lane,120+lane)
 		assert_true(rt.cast_skill(c.instance_id).ok)
-		rt._resolve_attacker_action(c, 0.0)
-		assert_gt(adjacent.total_damage_taken, 0, "both upper and lower lanes remain targetable while charged")
-		assert_true(c.skill_charged, "ordinary support preserves the piercing arrow")
-		assert_almost_eq(c.attack_cooldown, c.effective_attack_interval(), 0.001)
+		rt._resolve_attacker_action(c,0.0)
+		assert_gt(adjacent.total_damage_taken,0)
+		assert_false(c.skill_charged)
+		assert_almost_eq(c.attack_cooldown,c.effective_attack_interval(),.001)
 		var damage := adjacent.total_damage_taken
-		rt._resolve_attacker_action(c, 0.0)
-		assert_eq(adjacent.total_damage_taken, damage, "fallback must respect ordinary attack cooldown")
+		rt._resolve_attacker_action(c,0.0)
+		assert_eq(adjacent.total_damage_taken,damage,"charged attack respects attack cadence")
 
 func test_skill_cooldown_is_frozen_when_stage_paused() -> void:
 	var rt := _runtime()

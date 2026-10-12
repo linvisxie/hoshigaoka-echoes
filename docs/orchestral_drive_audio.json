@@ -1,0 +1,77 @@
+{
+  "composition": "Original project chapter motif; piano, recorded spiccato violin, layered strings, bass and percussion",
+  "samples": "VSCO 2 CE, Sam Gossner/Versilian Studios, CC0-1.0",
+  "source": "https://github.com/sgossner/VSCO-2-CE",
+  "tracks": [
+    {
+      "track": "echo_frontline",
+      "bpm": 138,
+      "seconds": 41.739125,
+      "peak": 0.38550670645368074,
+      "rms": 0.0703965982501562
+    },
+    {
+      "track": "corridor_pressure",
+      "bpm": 146,
+      "seconds": 39.45203125,
+      "peak": 0.40802932484738574,
+      "rms": 0.07357027440025185
+    },
+    {
+      "track": "infirmary_light",
+      "bpm": 140,
+      "seconds": 41.14284375,
+      "peak": 0.4036465731858576,
+      "rms": 0.07471016036681791
+    },
+    {
+      "track": "ranking_pressure",
+      "bpm": 148,
+      "seconds": 38.91890625,
+      "peak": 0.43539330413033284,
+      "rms": 0.07213024927094466
+    },
+    {
+      "track": "science_resonance",
+      "bpm": 152,
+      "seconds": 37.89471875,
+      "peak": 0.44772146582089517,
+      "rms": 0.07698382562422036
+    },
+    {
+      "track": "archive_convergence",
+      "bpm": 156,
+      "seconds": 36.9230625,
+      "peak": 0.4316084328846958,
+      "rms": 0.0759734377499116
+    },
+    {
+      "track": "boss_exam_1",
+      "bpm": 168,
+      "seconds": 34.2856875,
+      "peak": 0.5224959789425816,
+      "rms": 0.10508327181967811
+    },
+    {
+      "track": "boss_exam_2",
+      "bpm": 176,
+      "seconds": 32.72725,
+      "peak": 0.6044852510366103,
+      "rms": 0.11046449378517081
+    },
+    {
+      "track": "boss_exam_3",
+      "bpm": 184,
+      "seconds": 31.30434375,
+      "peak": 0.6331455359226359,
+      "rms": 0.11345844459020328
+    }
+  ],
+  "sampleSha256": {
+    "LLVln_ArcoVib_A4_f.wav": "19e5374658351508a9e2c929e871a43caff41e62d5e3363ead6f88428a9ab863",
+    "LLVln_spic_A3_v2_rr1.wav": "cda80f0f3d2deebc97d313581f810cb1b42b516cd26d617252e62e12ea205a1b",
+    "LLVln_spic_A4_v2_rr1.wav": "6c506b5fccacbbbadb70993ff00d77c68a185af79febb35dc7101eb616046650",
+    "LLVln_spic_A5_v2_rr1.wav": "c5e2925c08a55dd4329c74bc9f0b832dac4e405d04da7a19fd790bff71f02162",
+    "Timpani1_Roll_v5_rr1_Sum.wav": "9a4b61ae283d607cc77f07d99908f5f1835c4512fdfaa2a69b8b878f51a0ae60"
+  }
+}

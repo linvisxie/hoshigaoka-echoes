@@ -65,7 +65,7 @@ func go_back() -> bool:
 		if SCENES[k] == prev:
 			key = k
 			break
-	return _change(prev, key if not key.is_empty() else prev)
+	return _change(prev, key if not key.is_empty() else prev, false)
 
 
 ## 当前场景 key（未登记场景时为空）。
@@ -82,7 +82,7 @@ func previous_key() -> String:
 	return "title"
 
 
-func _change(path: String, key: String) -> bool:
+func _change(path: String, key: String, remember: bool = true) -> bool:
 	var err := get_tree().change_scene_to_file(path)
 	if err != OK:
 		GameLog.error(TAG, "切换场景失败 %s（错误 %d）" % [path, err])
@@ -90,6 +90,7 @@ func _change(path: String, key: String) -> bool:
 	if key == "home":
 		CampaignFlow.inspected_character_id = "amamiya_mio"
 	_current_scene_key = key
-	_history.append(path)
+	if remember and (_history.is_empty() or _history[-1] != path):
+		_history.append(path)
 	GameLog.debug(TAG, "场景切换 -> %s" % path)
 	return true

@@ -73,7 +73,7 @@ const D30_MIN_ENEMIES := 18
 const D30_MAX_ENEMIES := 24
 
 const AP_MAX := 30
-const REDEPLOY_SECONDS := 12.0
+const REDEPLOY_SECONDS := 8.0
 const EPS := 0.0001
 const MAX_SIM_SECONDS := 900.0
 

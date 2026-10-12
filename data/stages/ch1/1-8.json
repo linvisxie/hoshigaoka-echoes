@@ -53,6 +53,42 @@
       "wave": 1
     },
     {
+      "time": 30.0,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 30.15,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 30.3,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 44.0,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 44.15,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
+      "time": 44.3,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 1
+    },
+    {
       "time": 31.6,
       "lane": 1,
       "enemy": "echo_armored",
@@ -61,6 +97,24 @@
     {
       "time": 35.0,
       "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 37.72,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 37.87,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 38.02,
+      "lane": 2,
       "enemy": "echo_normal",
       "wave": 2
     },
@@ -83,6 +137,24 @@
       "wave": 2
     },
     {
+      "time": 43.16,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 43.31,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
+      "time": 43.46,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 2
+    },
+    {
       "time": 45.2,
       "lane": 0,
       "enemy": "echo_normal",
@@ -101,6 +173,24 @@
       "wave": 3
     },
     {
+      "time": 63.32,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 63.47,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 63.62,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
       "time": 64.0,
       "lane": 1,
       "enemy": "echo_silent",
@@ -115,6 +205,24 @@
     {
       "time": 67.75,
       "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 68.76,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 68.91,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 3
+    },
+    {
+      "time": 69.06,
+      "lane": 2,
       "enemy": "echo_normal",
       "wave": 3
     },
@@ -137,6 +245,24 @@
       "wave": 4
     },
     {
+      "time": 88.92,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 89.07,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 89.22,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
       "time": 89.6,
       "lane": 1,
       "enemy": "echo_armored",
@@ -151,6 +277,24 @@
     {
       "time": 93.35,
       "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 94.36,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 94.51,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 4
+    },
+    {
+      "time": 94.66,
+      "lane": 2,
       "enemy": "echo_normal",
       "wave": 4
     },
@@ -179,6 +323,24 @@
       "wave": 5
     },
     {
+      "time": 117.58,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 117.73,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 117.88,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
       "time": 118.6,
       "lane": 1,
       "enemy": "echo_exam_sheet",
@@ -203,6 +365,24 @@
       "wave": 5
     },
     {
+      "time": 125.74,
+      "lane": 0,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 125.89,
+      "lane": 1,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
+      "time": 126.04,
+      "lane": 2,
+      "enemy": "echo_normal",
+      "wave": 5
+    },
+    {
       "time": 128.8,
       "lane": 2,
       "enemy": "echo_normal",
@@ -214,6 +394,11 @@
       "at": 0,
       "id": "TUT_TAIL_8",
       "text": "沉默只封锁主动技能。纱良用特殊伤害处理装甲，并用实验装置短暂补住旁路。"
+    },
+    {
+      "at": 26,
+      "id": "TUT_SURGE_8",
+      "text": "三路残响即将协同接近。保留悠真的破空箭清理密集目标；受压时治疗，或撤退后换线再部署。"
     }
   ],
   "specialRules": [],
@@ -255,5 +440,6 @@
       "clearCondition": "ALL_ENEMIES_DEFEATED"
     }
   ],
-  "_encounterRevision": "2026-10-12: tighter wave gaps, same-lane paired pressure, 40 percent shorter redeploy; candidate pending playtest"
+  "_encounterRevision": "0.5.3: sequential waves; coordinated multi-lane surges, 8 second redeploy, cross-lane piercing skill",
+  "sequentialWaves": true
 }

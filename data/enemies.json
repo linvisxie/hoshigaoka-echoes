@@ -302,7 +302,7 @@
       "hp": 8000,
       "attack": 170,
       "defense": 70,
-      "moveSpeed": 0.13,
+      "moveSpeed": 0.055,
       "attackInterval": 1.65,
       "attackRange": "MELEE",
       "coreDamage": 3,

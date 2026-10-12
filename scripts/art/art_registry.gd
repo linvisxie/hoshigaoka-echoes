@@ -27,7 +27,7 @@ extends RefCounted
 const TAG := "ArtRegistry"
 
 const ART_ROOT := "res://assets/art"
-const CHARACTER_FRAME_SIZE := {"amamiya_mio": 96, "kamiya_yuma": 96, "fujiwara_rin": 96,"ogawa_yui":128,"minase_sara":128,"shiraishi_chinatsu":128}
+const CHARACTER_FRAME_SIZE := {"amamiya_mio": 128, "kamiya_yuma": 128, "fujiwara_rin": 96,"ogawa_yui":128,"minase_sara":128,"shiraishi_chinatsu":128}
 
 ## 特效根目录（与 art_src/tools/build_vfx.py 的输出一致）。
 ## 注意：特效刻意放在 assets/vfx/ 而不是 assets/art/ 下 —— 它是"战斗反馈"
@@ -160,6 +160,18 @@ static func character_frame_progress(char_id: String, anim: String, progress: fl
 	return frame_progress(character_strip_path(char_id, anim), anim, progress)
 
 
+static func character_story(char_id: String) -> Texture2D:
+	var texture := load_texture("%s/characters/%s/%s_story.png" % [ART_ROOT,char_id,char_id])
+	if texture == null or char_id not in ["ogawa_yui","minase_sara","shiraishi_chinatsu"]:
+		return texture
+	var key := "story_frame:" + char_id
+	if not _atlas_cache.has(key):
+		var framed := AtlasTexture.new()
+		framed.atlas = texture
+		framed.region = Rect2(0,0,texture.get_width(),texture.get_height()*.67)
+		_atlas_cache[key] = framed
+	return _atlas_cache[key] as AtlasTexture
+
 static func character_base(char_id: String) -> Texture2D:
 	return load_texture("%s/characters/%s/%s_base.png" % [ART_ROOT, char_id, char_id])
 
@@ -266,6 +278,7 @@ static func title_background() -> Texture2D:
 
 ## UI 图标（size 取 32 / 64）。
 static func icon(name: String, size: int = 32) -> Texture2D:
+	if name == "icon_necklace": return load_texture("res://assets/art/ui/icons/icon_necklace.svg")
 	return load_texture("%s/ui/icons/%s_%d.png" % [ART_ROOT, name, size])
 
 

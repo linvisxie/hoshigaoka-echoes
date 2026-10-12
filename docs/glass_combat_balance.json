@@ -1,0 +1,61 @@
+{
+  "stages": [
+    {
+      "stage": "1-1",
+      "plannedEnemies": 7,
+      "sequentialWaves": false
+    },
+    {
+      "stage": "1-2",
+      "plannedEnemies": 11,
+      "sequentialWaves": false
+    },
+    {
+      "stage": "1-3",
+      "plannedEnemies": 31,
+      "sequentialWaves": false
+    },
+    {
+      "stage": "1-4",
+      "plannedEnemies": 30,
+      "sequentialWaves": false
+    },
+    {
+      "stage": "1-5",
+      "plannedEnemies": 29,
+      "sequentialWaves": false
+    },
+    {
+      "stage": "1-6",
+      "plannedEnemies": 47,
+      "sequentialWaves": true
+    },
+    {
+      "stage": "1-7",
+      "plannedEnemies": 47,
+      "sequentialWaves": true
+    },
+    {
+      "stage": "1-8",
+      "plannedEnemies": 62,
+      "sequentialWaves": true
+    },
+    {
+      "stage": "1-9",
+      "plannedEnemies": 62,
+      "sequentialWaves": true
+    },
+    {
+      "stage": "1-10",
+      "plannedEnemies": 103,
+      "sequentialWaves": true
+    }
+  ],
+  "bossMoveSpeed": 0.055,
+  "redeploySeconds": {
+    "default": 8,
+    "rin": 10
+  },
+  "validation": "See glass revision evidence; simulation and real Windows runs are reported separately",
+  "regenerationBaseline": "647a51ab2ea2fcfc118f2536e63d50aae5a45976"
+}

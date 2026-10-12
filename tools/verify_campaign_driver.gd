@@ -93,7 +93,7 @@ func _process(_delta: float) -> void:
 					if not (metrics["attackLanes"] as Array).has(lane): metrics["attackLanes"].append(lane)
 			if not session.is_decided() and not session.is_paused() and not scene._upgrade_panel_active():
 				for character: CharacterRuntime in session.stage.characters:
-					if character.skill_ready():
+					if character.skill_ready() and should_cast(session.stage,character):
 						scene._selected_character_id = character.instance_id
 						var event := InputEventKey.new()
 						event.keycode = KEY_Q
@@ -150,6 +150,9 @@ func _process(_delta: float) -> void:
 					capture("character_after_1_1")
 					return
 				SceneRouter.go_to("home")
+
+func should_cast(_rt: StageRuntime,_character: CharacterRuntime) -> bool:
+	return true
 
 func capture(label: String) -> void:
 	if captured.has(label):
