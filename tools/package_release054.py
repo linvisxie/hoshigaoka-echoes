@@ -67,7 +67,9 @@ for key,path in {
  'retail':BASE/'retail_final',
 }.items():
     target=evidence/key;target.mkdir(exist_ok=True)
-    for image in path.glob('*.png'):shutil.copy2(image,target/image.name)
+    captured={m.group(1) for m in re.finditer(r'^([^\r\n]+) 1280 720\s*$',(BASE/'retail_driver.log').read_text(encoding='utf8'),re.M)} if key=='retail' else None
+    for image in path.glob('*.png'):
+        if captured is None or image.stem in captured:shutil.copy2(image,target/image.name)
 shutil.copy2(BASE/'audio/windows_loopback.wav',evidence/'Boss实机音频采样.wav')
 shutil.copy2(ROOT/'docs/scene_scores_054.json',evidence/'scene_scores_054.json')
 shutil.copy2(ROOT/'docs/RELEASE054_ACCEPTANCE_20261012.md',OUT/'本轮修改与验证.md')
