@@ -4,6 +4,7 @@ class_name CampaignFlow
 extends RefCounted
 
 static var replay_story_id := ""
+static var replay_return_key := "archive"
 static var last_result: Dictionary = {}
 static var inspected_character_id := "amamiya_mio"
 
@@ -33,6 +34,11 @@ static func resume() -> bool:
 	if not SaveService.ensure_loaded():
 		return false
 	var flow := state()
+	var pending := str(flow.get("pending_story_after", ""))
+	var current := str(flow.get("current_story_id", ""))
+	if (not pending.is_empty() and not story_allowed(pending)) or (not current.is_empty() and not story_allowed(current)):
+		if not persist({"pending_story_after":"", "current_story_id":"", "current_story_node":"", "mode":"hub"}):return false
+		return SceneRouter.go_to("home")
 	if not str(flow.get("pending_story_after", "")).is_empty():
 		return open_story(str(flow["pending_story_after"]), str(flow.get("pending_stage_id", "")), "post_battle", true)
 	if str(flow.get("mode", "hub")) == "story" and not str(flow.get("current_story_id", "")).is_empty():
@@ -53,7 +59,7 @@ static func next_stage() -> String:
 
 static func open_stage(sid: String) -> bool:
 	var cfg := DataRegistry.get_entry("stages", sid)
-	if not StageRewardService.cfg_has_content(cfg):
+	if not can_open_stage(sid):
 		return false
 	# A pending required story cannot be bypassed by another menu entry.
 	if not str(state().get("pending_story_after", "")).is_empty():
@@ -67,6 +73,7 @@ static func open_stage(sid: String) -> bool:
 	return SceneRouter.go_to("briefing")
 
 static func open_story(story_id: String, sid: String, mode: String, preserve_node: bool = false) -> bool:
+	if not story_allowed(story_id):return false
 	replay_story_id = ""
 	var node := str(state().get("current_story_node", "0")) if preserve_node and str(state().get("current_story_id", "")) == story_id else "0"
 	if not persist({"campaign_active": true, "mode": mode, "current_story_id": story_id,
@@ -76,6 +83,8 @@ static func open_story(story_id: String, sid: String, mode: String, preserve_nod
 
 static func finish_story(story_id: String) -> bool:
 	var cfg := DataRegistry.get_entry("story", story_id)
+	if not story_allowed(story_id):
+		return false
 	var save := SaveService.snapshot()
 	var story: Dictionary = save.get("story", {"readNodes": [], "choices": {}, "flags": {}})
 	var flags: Dictionary = story.get("flags", {})
@@ -86,7 +95,8 @@ static func finish_story(story_id: String) -> bool:
 	save["story"] = story
 	var flow: Dictionary = save.get("flow_state", {})
 	var after := str(flow.get("pending_story_after", "")) == story_id
-	flow["mode"] = "hub" if after else "pre_battle"
+	var optional := str(cfg.get("category", "")) in ["character_event", "environment_event"]
+	flow["mode"] = "hub" if after or optional else "pre_battle"
 	flow["current_story_id"] = ""
 	flow["current_story_node"] = ""
 	flow["pending_story_after"] = ""
@@ -94,7 +104,7 @@ static func finish_story(story_id: String) -> bool:
 	save["flow_state"] = flow
 	if not SaveService.commit(save):
 		return false
-	return SceneRouter.go_to("home" if after else "briefing")
+	return SceneRouter.go_to("home" if after or optional else "briefing")
 
 static func record_node(story_id: String, index: int) -> bool:
 	if not SaveService.ensure_loaded():
@@ -114,16 +124,45 @@ static func record_node(story_id: String, index: int) -> bool:
 
 static func launch_battle() -> bool:
 	var sid := str(state().get("pending_stage_id", ""))
-	if sid.is_empty():
+	if not can_open_stage(sid):
 		return false
 	PrototypeEntry.set_pending_stage_id(sid)
 	return SceneRouter.go_to("battle")
 
-static func after_battle() -> bool:
+static func after_battle(victory: bool = true) -> bool:
+	if not victory:
+		if not persist({"mode":"hub", "pending_story_after":"", "current_story_id":"", "current_story_node":""}):
+			return false
+		return SceneRouter.go_to("home")
 	var story_id := str(state().get("pending_story_after", ""))
-	if not story_id.is_empty():
+	if not story_id.is_empty() and story_allowed(story_id):
 		return open_story(story_id, str(state().get("pending_stage_id", "")), "post_battle", true)
 	return SceneRouter.go_to("home")
+
+## Entry guards apply to every menu, resume and battle launch, not only tiles.
+static func can_open_stage(sid: String) -> bool:
+	if not StageRewardService.cfg_has_content(DataRegistry.get_entry("stages",sid)):
+		return false
+	var pieces := sid.split("-")
+	if pieces.size()!=2 or pieces[0]!="1" or not pieces[1].is_valid_int(): return false
+	var number := int(pieces[1])
+	if number<1 or number>10: return false
+	for i: int in range(1,number):
+		if not StageRewardService.is_first_cleared("1-%d" % i): return false
+	return true
+
+static func story_allowed(story_id: String) -> bool:
+	var cfg := DataRegistry.get_entry("story",story_id)
+	if cfg.is_empty():return false
+	if str(cfg.get("category","")) in ["character_event","environment_event"]:
+		return CampusHub.available(cfg)
+	for i: int in range(1,11):
+		var stage := DataRegistry.get_entry("stages","1-%d" % i)
+		if str(stage.get("storyAfter",""))==story_id:
+			return StageRewardService.is_first_cleared("1-%d" % i)
+		if str(stage.get("storyBefore",""))==story_id:
+			return can_open_stage("1-%d" % i)
+	return true
 
 static func character_unlocked(cid: String) -> bool:
 	if cid == "amamiya_mio":

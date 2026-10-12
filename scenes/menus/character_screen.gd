@@ -850,7 +850,7 @@ func _layout() -> void:
 	var btn_main_h := _px(58.0)
 	var btn_row_h := _px(56.0)
 	var btn_gap := _px(12.0)
-	var stats_h := _px(132.0)
+	var stats_h := _px(116.0)
 	var main_y := _panel_rect.end.y - _px(90) - _px(16) - btn_main_h
 	var row_y := main_y - btn_gap - btn_row_h
 	_stats_rect = Rect2(Vector2(ix, row_y - _px(20.0) - stats_h), Vector2(iw, stats_h))
@@ -861,7 +861,7 @@ func _layout() -> void:
 	_exp_rect = Rect2(Vector2(info_x, iy + port_s - _px(30.0)), Vector2(info_w, _px(30.0)))
 
 	# 节点带：经验条之下、属性带之上
-	var nodes_top := iy + port_s + _px(26.0)
+	var nodes_top := iy + port_s + _px(24.0)
 	_nodes_rect = Rect2(Vector2(ix, nodes_top),
 		Vector2(iw, maxf(_px(120.0), _stats_rect.position.y - _px(14.0) - nodes_top)))
 
@@ -1413,7 +1413,7 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 
 	# ---- 成本 / 原因 ----
 	var next := p.next_breakthrough_level()
-	var cost_y := label_y + _px(24.0)
+	var cost_y := label_y + _px(34.0)
 	if next <= 0:
 		_draw_text(font, Vector2(ix, cost_y), "已完成全部突破", _px(F_LABEL), POSITIVE)
 		return
@@ -1454,7 +1454,7 @@ func _draw_breakthrough_section(font: Font, p: CharacterProgress) -> void:
 	if not q_ok:
 		var reason := str(q.get("reason", ""))
 		if not reason.is_empty():
-			_draw_text(font, Vector2(ix, cost_y + _px(22.0)), "· %s" % reason,
+			_draw_text(font, Vector2(ix, cost_y + _px(34.0)), "· %s" % reason,
 				_px(F_TINY), WARN)
 
 

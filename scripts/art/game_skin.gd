@@ -20,23 +20,33 @@ static func battle_glass() -> StyleBoxTexture:
 
 static var _glass_cache: Dictionary = {}
 
-static func glass(accent: Color = BLUE, opacity: float = 0.90) -> StyleBoxTexture:
+static func glass(accent: Color = BLUE, opacity: float = 0.90) -> StyleBox:
 	var key := accent.to_html() + str(opacity)
 	if not _glass_cache.has(key):
-		var svg := FileAccess.get_file_as_string("res://assets/art/ui/battle_glass.svg")
-		svg = svg.replace("#b6f6ef", "#" + accent.to_html(false)).replace("#c0f6ee", "#" + accent.lightened(.15).to_html(false))
-		svg = svg.replace("#74aec9", "#" + accent.darkened(.20).to_html(false)).replace("#8e99db", "#" + accent.darkened(.10).to_html(false)).replace("#b4e8ff", "#" + accent.lightened(.15).to_html(false))
-		svg = svg.replace('stop-opacity=".95"', 'stop-opacity="%s"' % opacity).replace('stop-opacity=".94"', 'stop-opacity="%s"' % (opacity-.04)).replace('stop-opacity=".96"', 'stop-opacity="%s"' % opacity)
-		var image := Image.new()
-		image.load_svg_from_string(svg, 2.0)
+		# Imported textures survive export remapping; raw SVG text does not.
+		var palette := {"blue": BLUE, "gold": GOLD, "green": GREEN, "red": RED, "muted": Color("586c85")}
+		var variant := "blue"
+		var distance := INF
+		for name: String in palette:
+			var color: Color = palette[name]
+			var diff := Vector3(accent.r-color.r,accent.g-color.g,accent.b-color.b).length_squared()
+			if diff < distance:
+				distance = diff
+				variant = name
+		var texture := load("res://assets/art/ui/glass_%s.svg" % variant) as Texture2D
+		if texture == null:
+			push_error("Glass texture missing: " + variant)
+			return panel(Color("142d45"), accent, true)
 		var style := StyleBoxTexture.new()
-		style.texture = ImageTexture.create_from_image(image)
+		style.texture = texture
+		style.modulate_color.a = clampf(opacity / .95, .35, 1.0)
 		for side: int in [SIDE_LEFT,SIDE_TOP,SIDE_RIGHT,SIDE_BOTTOM]:
-			style.set_texture_margin(side, 36.0)
+			# Match the battle HUD's actual 18px corner, never enlarge the bevel.
+			style.set_texture_margin(side, 18.0)
 			style.set_content_margin(side, 18.0)
 		style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 		_glass_cache[key] = style
-	return (_glass_cache[key] as StyleBoxTexture).duplicate() as StyleBoxTexture
+	return (_glass_cache[key] as StyleBox).duplicate() as StyleBox
 
 static func panel(fill: Color = Color("111c34"), accent: Color = Color("52678f"), heavy: bool = false) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()

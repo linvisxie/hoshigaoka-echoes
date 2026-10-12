@@ -69,7 +69,10 @@ func _ready() -> void:
 
 
 func play_music(track: String, loop: bool = true) -> void:
-	if _music == null or (track == _current_music and _music.playing):
+	# A stopped player remains stopped during the fade-out before stream swap.
+	# Per-frame battle policy must not keep cancelling that pending transition.
+	var transitioning := _music_tween != null and _music_tween.is_running()
+	if _music == null or (track == _current_music and (_music.playing or transitioning)):
 		return
 	var path := "res://assets/audio/bgm/%s.wav" % track
 	if not ResourceLoader.exists(path):

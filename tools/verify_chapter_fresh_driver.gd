@@ -4,6 +4,8 @@ extends "res://tools/verify_chapter_tail_driver.gd"
 var trained_for_boss := false
 var trained_for_tail := false
 var training_in_progress := false
+var trained_frontline := false
+var trained_archer := false
 
 func _ready() -> void:
 	if not TestDataGuard.is_isolated(OS.get_user_data_dir()):
@@ -15,6 +17,14 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if training_in_progress: return
+	if not trained_frontline and SceneRouter.get_current_key()=="home" and CampaignFlow.next_stage()=="1-2":
+		training_in_progress=true
+		_train_before_boss.call_deferred()
+		return
+	if not trained_archer and SceneRouter.get_current_key()=="briefing" and str(CampaignFlow.state().get("pending_stage_id",""))=="1-3":
+		training_in_progress=true
+		_train_before_boss.call_deferred()
+		return
 	if not trained_for_tail and SceneRouter.get_current_key()=="briefing" and str(CampaignFlow.state().get("pending_stage_id",""))=="1-6":
 		training_in_progress=true
 		_train_before_boss.call_deferred()
@@ -43,10 +53,21 @@ func _train_before_boss() -> void:
 	SceneRouter.go_to("character")
 	await _wait_ui()
 	var growth:=get_tree().current_scene
-	# Spend 4,000 of the 5,000 EXP earned by stage 5, then another 3,600
-	# before the Boss. No stage 10 reward, grants, or repeated farming.
-	var specs := [["amamiya_mio","study_record_archive",1,9],
-		["kamiya_yuma","study_record_note",2,6],["ogawa_yui","study_record_note",2,6]] if not trained_for_tail else [
+	# Use only first-clear earned records, through the actual growth interface.
+	# Train progressively as those rewards arrive, rather than hoarding until 1-6.
+	var label := "boss"
+	var specs: Array
+	if not trained_frontline:
+		label="frontline"
+		specs=[["amamiya_mio","study_record_archive",1,9]]
+	elif not trained_archer:
+		label="archer"
+		specs=[["kamiya_yuma","study_record_note",1,4]]
+	elif not trained_for_tail:
+		label="tail"
+		specs=[["kamiya_yuma","study_record_note",1,6],["ogawa_yui","study_record_note",2,6]]
+	else:
+		specs=[
 		["kamiya_yuma","study_record_note",2,9],["ogawa_yui","study_record_note",2,9],
 		["minase_sara","study_record_short",16,8]]
 	for spec: Array in specs:
@@ -74,10 +95,12 @@ func _train_before_boss() -> void:
 		if App.growth.get_progress(str(spec[0])).level!=int(spec[3]):
 			finish(false,"Earned first-challenge training failed: "+str(spec[0]));return
 		capture("first_challenge_training_"+str(spec[0]))
-	var file:=FileAccess.open("user://first_challenge_training_%s.json" % ("tail" if not trained_for_tail else "boss"),FileAccess.WRITE)
+	var file:=FileAccess.open("user://first_challenge_training_%s.json" % label,FileAccess.WRITE)
 	file.store_string(JSON.stringify({"type":"Fresh new game; actual earned stages 1-9 growth UI; no grants or save edits", "before":before,"after":SaveService.snapshot()},"\t"))
-	if trained_for_tail:trained_for_boss=true
-	else:trained_for_tail=true
+	if label=="frontline":trained_frontline=true
+	elif label=="archer":trained_archer=true
+	elif label=="tail":trained_for_tail=true
+	else:trained_for_boss=true
 	SceneRouter.go_to(return_to)
 	await _wait_ui()
 	training_in_progress=false

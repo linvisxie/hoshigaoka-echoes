@@ -619,7 +619,7 @@ func _build_battle() -> void:
 	session.character_deployed.connect(func(character: CharacterRuntime) -> void:
 		_special_animations[character.instance_id] = {"anim": "deploy", "born": _now(), "life": 0.65})
 	session.character_withdrawn.connect(func(_c: CharacterRuntime, _refund: int) -> void: AudioService.play_sfx("retreat"))
-	AudioService.play_music({"1-6":"infirmary_light","1-7":"ranking_pressure","1-8":"science_resonance","1-9":"archive_convergence","1-10":"archive_convergence"}.get(stage_id,"corridor_pressure" if stage_id in ["1-4", "1-5"] else "echo_frontline"))
+	AudioService.play_music(BattleMusic.base_track(stage_id))
 	_last_wave_number = session.stage.current_wave_number()
 
 	# Alpha A0.6（L2132）：1-5 的**首次**三选一是固定教学项，不是随机。
@@ -1351,14 +1351,14 @@ func _process(delta: float) -> void:
 		if str(event.kind) in ["phase", "entrance"]:
 			_boss_transition_at = session.stage.elapsed_seconds
 		AudioService.play_sfx("boss_cast" if str(event.kind)=="skill" else "boss_phase",-5)
-		if str(event.kind) == "entrance": AudioService.play_music("boss_exam_1")
-		elif str(event.kind) == "phase": AudioService.play_music("boss_exam_%d" % int(event.phase))
 	if session == null:
 		return
 	if session.is_decided():
 		_result_animation_time += delta
 	var was_running := session.is_running()
 	session.tick(delta)
+	if session.is_running():
+		AudioService.play_music(BattleMusic.select(session.stage.stage_id,session.stage))
 	# Alpha A0.6：强化面板的出现 / 消失都以 domain 层的 pending_offer 为唯一真值。
 	# 必须在 tick() 之后同步（域层在波次完成的那一刻建立或由玩家操作清空）。
 	_sync_upgrade_offer()
@@ -2097,7 +2097,7 @@ func _handle_result_click(pos: Vector2) -> void:
 	if _quit_rect.has_point(pos):
 		GameLog.info(TAG, "玩家选择返回流程")
 		if bool(CampaignFlow.state().get("campaign_active", false)):
-			CampaignFlow.after_battle()
+			CampaignFlow.after_battle(session.outcome == BattleTypes.Outcome.VICTORY)
 		else:
 			SceneRouter.go_to("stage_select")
 
@@ -2598,7 +2598,6 @@ func _update_elite_feedback(now: float) -> void:
 			_elite_seen[enemy.instance_id] = true
 			_elite_intro_until = now + 2.4
 			AudioService.play_sfx("elite_arrival", -4.0)
-			AudioService.play_music("invigilator_exam")
 			_mark_drawn("elite_event:arrival")
 		if enemy.time_up_triggered and not _elite_phase_seen.has(enemy.instance_id):
 			_elite_phase_seen[enemy.instance_id] = true

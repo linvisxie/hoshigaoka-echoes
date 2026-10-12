@@ -145,6 +145,7 @@ func show_error(message: String) -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		var viewport := get_viewport()
 		var key := SceneRouter.get_current_key()
 		if key in ["character_details","character_equipment"]:
 			SceneRouter.go_to("character")
@@ -158,4 +159,4 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			SceneRouter.go_to("title")
 		else:
 			return
-		get_viewport().set_input_as_handled()
+		viewport.set_input_as_handled()

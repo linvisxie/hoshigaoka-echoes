@@ -19,6 +19,16 @@ func _process(delta: float) -> void:
 	if scene != null and SceneRouter.get_current_key()=="battle" and scene.session!=null:
 		var rt: StageRuntime=scene.session.stage
 		if not scene.session.is_decided() and not scene.session.is_paused() and not scene._upgrade_panel_active() and Time.get_ticks_msec()>input_after:
+			# No healer before stage 6: use the actual retreat input before the
+			# frontline collapses, then redeploy through the ordinary AP/cooldown.
+			var frontline := rt.get_character_by_id("amamiya_mio")
+			if int(rt.stage_id.get_slice("-",1))<6 and frontline != null and frontline.hp_ratio()<.30:
+				scene._selected_character_id=frontline.instance_id
+				var retreat:=InputEventKey.new();retreat.keycode=KEY_R;retreat.pressed=true
+				get_viewport().push_input(retreat,true)
+				var release:=InputEventKey.new();release.keycode=KEY_R
+				get_viewport().push_input(release,true)
+				input_after=Time.get_ticks_msec()+300
 			if scene._device_select_owner!=0:
 				var threat: EnemyRuntime=null
 				for e: EnemyRuntime in rt.enemies:

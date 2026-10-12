@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "hub_ch1_mio",
+  "chapterId": "ch1",
+  "category": "character_event",
+  "hubOrder": 0,
+  "hubLocation": "剑道场",
+  "title": "刀鞘里的暮色",
+  "background": "bg_env_classroom_dusk",
+  "music": "observation_club",
+  "requiresCharacter": "amamiya_mio",
+  "requiresClear": "1-1",
+  "completionFlags": [
+    "campus:mio"
+  ],
+  "authorship": "Project original optional campus vignette; no gameplay reward or main-story gate.",
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "剑道场外，木地板上的暮光像一条还没有归鞘的河。"
+    },
+    {
+      "id": "1",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "今天不用再练一次。剑也是，人也是。"
+    },
+    {
+      "id": "2",
+      "speaker": "{player}",
+      "character": "",
+      "text": "那就陪你坐到太阳落下去。"
+    },
+    {
+      "id": "3",
+      "speaker": "雨宫澪",
+      "character": "amamiya_mio",
+      "text": "……嗯。坐在这边，风小一点。"
+    },
+    {
+      "id": "4",
+      "speaker": "",
+      "character": "",
+      "text": "她把竹刀靠在墙边。这一次，沉默没有催促任何人。"
+    }
+  ]
+}

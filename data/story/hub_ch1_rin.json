@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "hub_ch1_rin",
+  "chapterId": "ch1",
+  "category": "character_event",
+  "hubOrder": 4,
+  "hubLocation": "学生会室",
+  "title": "未填写的空格",
+  "background": "bg_env_classroom_dusk",
+  "music": "observation_club",
+  "requiresCharacter": "fujiwara_rin",
+  "requiresClear": "1-5",
+  "completionFlags": [
+    "campus:rin"
+  ],
+  "authorship": "Project original optional campus vignette; no gameplay reward or main-story gate.",
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "学生会的联络表里，有一格被凛擦了又写。"
+    },
+    {
+      "id": "1",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "“紧急联系人”可以填观测会吗？"
+    },
+    {
+      "id": "2",
+      "speaker": "{player}",
+      "character": "",
+      "text": "可以。不是紧急的时候，也可以找我们。"
+    },
+    {
+      "id": "3",
+      "speaker": "藤原凛",
+      "character": "fujiwara_rin",
+      "text": "这条规定，我会写在表格外面。"
+    },
+    {
+      "id": "4",
+      "speaker": "",
+      "character": "",
+      "text": "她合上笔帽。纸上终于有了一处不必填满的空白。"
+    }
+  ]
+}

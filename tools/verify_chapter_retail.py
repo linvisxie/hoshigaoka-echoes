@@ -13,6 +13,7 @@ save=out/'appdata/HoshigaokaEchoes/save';save.mkdir(parents=True,exist_ok=True)
 shutil.copy2(a.seed_save,save/'savegame.json')
 exe=a.exe.resolve()
 probe_path=save.parent/'art_probe/latest.json'
+if probe_path.exists():probe_path.unlink() # Refuse stale evidence from earlier runs.
 actions=[];captured=set();boss_frames=0;last_boss_sample=0
 with (out/'game.log').open('w',encoding='utf8') as log:
     proc=subprocess.Popen([str(exe),'--resolution','1280x720','--position','30,30'],env=dict(os.environ,APPDATA=str(out/'appdata')),stdout=log,stderr=subprocess.STDOUT)
@@ -27,14 +28,19 @@ with (out/'game.log').open('w',encoding='utf8') as log:
             if name in captured:return
             assert win.capture_forced(hwnd,out,name,{'binary':str(exe),'input':'Actual Windows mouse/keyboard; normal domain clock'},seconds=8)
             captured.add(name)
-        def click(x,y,canvas=(1920,1080)):
+        def foreground():
+            deadline=time.monotonic()+8
+            while win.U.GetForegroundWindow()!=hwnd and time.monotonic()<deadline:
+                win._force_foreground(hwnd);time.sleep(.1)
             assert win.U.GetForegroundWindow()==hwnd,'Refuse input outside owned foreground game'
+        def click(x,y,canvas=(1920,1080)):
+            foreground()
             ox,oy,w,h=win.client(hwnd);win.U.SetCursorPos(ox+round(x*w/canvas[0]),oy+round(y*h/canvas[1]))
             time.sleep(.04)
             assert win.U.GetForegroundWindow()==hwnd
             win.U.mouse_event(2,0,0,0,None);time.sleep(.035);win.U.mouse_event(4,0,0,0,None);time.sleep(.06)
         def key(code):
-            assert win.U.GetForegroundWindow()==hwnd
+            foreground()
             win.U.keybd_event(code,0,0,0);time.sleep(.035);win.U.keybd_event(code,0,2,0);time.sleep(.06)
         def probe():
             try:return json.loads(probe_path.read_text(encoding='utf8'))
@@ -95,12 +101,14 @@ with (out/'game.log').open('w',encoding='utf8') as log:
                     else:key(0x1B)
             actions.append({'clock':state['time'],'characters':sorted(present),'healthRatios':{c['code']:c.get('hpRatio',1) for c in state['characters']},'audio':state['audio']})
             time.sleep(.15)
+        played={x['audio'].get('track') for x in actions if x['audio'].get('musicPlaying') and x['audio'].get('musicPosition',0)>.1}
+        assert {'archive_convergence','boss_exam_1','boss_exam_2','boss_exam_3'}<=played,'Music cue selected but not actually playing: '+str(played)
         state=probe();assert state and state['outcome']=='胜利','Retail final stage did not clear: '+str(state and state['outcome'])
-        time.sleep(3.2);shot('victory')
+        time.sleep(3.2);shot('victory');time.sleep(6);shot('victory_waiting_for_player')
         final=state
         # Return to the campus through the real result button, then quit normally.
         click(1096,905);time.sleep(1.2)
-        key(27);time.sleep(.8);key(27);time.sleep(.5);shot('exit_confirmation');click(1125,629)
+        key(27);time.sleep(.8);shot('campus_menu');click(960,672);time.sleep(.5);shot('exit_confirmation');click(1125,629)
         proc.wait(timeout=8);assert proc.returncode==0
     finally:
         if proc.poll() is None:proc.terminate();proc.wait(timeout=10)

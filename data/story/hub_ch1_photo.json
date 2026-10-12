@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "hub_ch1_photo",
+  "chapterId": "ch1",
+  "category": "environment_event",
+  "hubOrder": 11,
+  "hubLocation": "旧校舍",
+  "title": "相片背面的春天",
+  "background": "bg_env_archive_battle",
+  "music": "unheard_memory",
+  "requiresClear": "1-9",
+  "completionFlags": [
+    "campus:object:photo"
+  ],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "旧照片里，每个人都站得不太整齐。背面却写着：那天大家都来了。你轻轻擦去玻璃上的灰，没有移动任何人的位置。"
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 extends CampusScreen
 
+var campus_panel: Panel
+var exit_panel: Panel
+
 func _ready() -> void:
 	super._ready()
 	set_background("bg_title_gate")
@@ -32,10 +35,61 @@ func _ready() -> void:
 	button_at("关卡记录",Rect2(1300,545,490,90),func() -> void: SceneRouter.go_to("stage_select"))
 	button_at("剧情档案",Rect2(1300,660,490,90),func() -> void: SceneRouter.go_to("archive"))
 	button_at("设置",Rect2(1300,795,230,75),func() -> void: SceneRouter.go_to("settings"))
-	button_at("返回标题",Rect2(1550,795,240,75),func() -> void: SceneRouter.go_to("title"))
+	button_at("校园菜单",Rect2(1550,795,240,75),_show_menu)
+	var unread := CampusHub.unread_count()
+	button_at("校园地点与事件" + ("  ·  %d 新" % unread if unread>0 else ""),Rect2(740,915,440,64),_show_campus,true).add_theme_font_size_override("font_size",25)
+	label_at("放课后 · " + ("第一章调查中" if not next.is_empty() else "第一章调查结束"),Rect2(740,985,450,35),23,BLUE)
 	label_at("留意那些还没有被听见的声音。",Rect2(85,985,1000,50),26,GOLD)
 	fade_in_content()
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		SceneRouter.go_to("title")
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		if campus_panel != null and campus_panel.visible: campus_panel.hide()
+		elif is_instance_valid(exit_panel) and exit_panel.visible: exit_panel.hide()
+		else: _show_menu()
+		get_viewport().set_input_as_handled()
+
+func _in_panel(control: Control, parent: Panel, position: Vector2) -> void:
+	control.reparent(parent)
+	control.position = position
+
+func _show_campus() -> void:
+	if campus_panel != null:
+		campus_panel.show()
+		return
+	campus_panel = modal_panel(Rect2(210,190,1500,730))
+	_in_panel(label_at("校园地点 · 放课后的声音",Rect2(0,0,1300,65),36,GOLD),campus_panel,Vector2(45,25))
+	_in_panel(label_at("主线与地点共用调查进度；同伴交谈和环境记录可以稍后再读。",Rect2(0,0,1320,40),23,MUTED),campus_panel,Vector2(45,95))
+	var entries: Array[Dictionary] = []
+	var next := CampaignFlow.next_stage()
+	if not next.is_empty():
+		var stage := DataRegistry.get_entry("stages",next)
+		entries.append({"title":"当前调查  ·  "+next,"subtitle":str(stage.get("stageName",next)),"action":func() -> void: CampaignFlow.open_stage(next)})
+	for event: Dictionary in CampusHub.events():
+		var sid := str(event.storyId)
+		entries.append({"title":str(event.get("hubLocation","校园"))+ ("  ·  已读" if CampaignFlow.done(sid) else "  ·  新记录"),"subtitle":str(event.title),"action":func() -> void: CampusHub.visit(sid)})
+	for i: int in range(entries.size()):
+		var entry := entries[i]
+		var tile := button_at(str(entry.title)+"\n"+str(entry.subtitle),Rect2(0,0,450,103),entry.action,i==0 and not next.is_empty())
+		tile.add_theme_font_size_override("font_size",23)
+		_in_panel(tile,campus_panel,Vector2(45+(i%3)*480,155+(i/3)*122))
+	if entries.is_empty():
+		_in_panel(label_at("完成一次调查后，新的校园记录将在这里出现。",Rect2(0,0,1300,80),28,BLUE),campus_panel,Vector2(45,180))
+	_in_panel(button_at("返回校园  Esc",Rect2(0,0,300,60),func() -> void: campus_panel.hide()),campus_panel,Vector2(1155,640))
+
+func _show_menu() -> void:
+	if is_instance_valid(exit_panel): exit_panel.queue_free()
+	exit_panel = modal_panel(Rect2(620,245,680,590))
+	_in_panel(label_at("校园菜单",Rect2(0,0,520,60),36,GOLD),exit_panel,Vector2(80,40))
+	_in_panel(label_at("进度已自动保存。",Rect2(0,0,520,45),25,MUTED),exit_panel,Vector2(80,110))
+	for spec: Array in [["继续留在校园",190,func() -> void: exit_panel.hide()],["返回标题",290,func() -> void: SceneRouter.go_to("title")],["退出游戏…",390,_confirm_exit]]:
+		_in_panel(button_at(str(spec[0]),Rect2(0,0,520,75),spec[2]),exit_panel,Vector2(80,int(spec[1])))
+
+func _confirm_exit() -> void:
+	exit_panel.hide()
+	var confirm := modal_panel(Rect2(620,340,680,390))
+	_in_panel(label_at("结束今天的观测？",Rect2(0,0,520,70),34,GOLD),confirm,Vector2(80,45))
+	_in_panel(label_at("已保存的调查和培养进度会保留。",Rect2(0,0,560,50),24,MUTED),confirm,Vector2(60,125))
+	_in_panel(button_at("取消",Rect2(0,0,250,75),func() -> void: confirm.queue_free()),confirm,Vector2(60,250))
+	_in_panel(button_at("退出游戏",Rect2(0,0,250,75),App.request_quit,true),confirm,Vector2(370,250))
+	exit_panel = confirm

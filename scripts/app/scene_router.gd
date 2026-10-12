@@ -11,7 +11,7 @@ const TAG := "SceneRouter"
 ## Alpha A0.7 起含 title；stage_select（关卡选择）本轮新增——
 ##   在校园 Hub（home，J0.4）与关卡情报流程落地前，它是玩家**在界面上**唯一
 ##   能选择 1-1～1-5 的入口（Retail 构建拒绝开发参数 --stage）。
-## home（校园 Hub）属 Alpha A0.7，**尚未实现**，故本表虽有 key 但资源不存在。
+## home 为校园地点、可选事件和学生手册入口；所有推进由 CampaignFlow 校验。
 const SCENES := {
 	"bootstrap": "res://scenes/bootstrap/bootstrap.tscn",
 	"battle": "res://scenes/battle/battle_scene.tscn",

@@ -120,11 +120,14 @@ func _process(_delta: float) -> void:
 					if session.outcome != BattleTypes.Outcome.VICTORY:
 						finish(false, "Battle failed: " + sid)
 						return
-				if now - last_action > 1800:
+				# Victory animation lasts 2.8s. Capture and dwell on the actual
+				# settlement, then require a separate input after six visible seconds.
+				if now - last_action > 3200:
 					if not captured.has("result_" + sid):
 						capture("result_" + sid)
 						return
-					scene._send_click_at(scene._quit_rect.get_center())
+					if now - last_action > 9200:
+						scene._send_click_at(scene._quit_rect.get_center())
 		"home":
 			if dwell < 1200:
 				return

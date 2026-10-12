@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "hub_ch1_chinatsu",
+  "chapterId": "ch1",
+  "category": "character_event",
+  "hubOrder": 10,
+  "hubLocation": "轻音部",
+  "title": "放课后的合拍",
+  "background": "bg_env_corridor_dusk",
+  "music": "observation_club",
+  "requiresCharacter": "shiraishi_chinatsu",
+  "requiresClear": "1-10",
+  "completionFlags": [
+    "campus:chinatsu"
+  ],
+  "authorship": "Project original optional campus vignette; no gameplay reward or main-story gate.",
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "千夏用指尖敲着空琴盒，拍子比昨天松快一些。"
+    },
+    {
+      "id": "1",
+      "speaker": "白石千夏",
+      "character": "shiraishi_chinatsu",
+      "text": "下次排练，你们也来吧。不用会乐器，打拍子也算。"
+    },
+    {
+      "id": "2",
+      "speaker": "{player}",
+      "character": "",
+      "text": "如果跟不上呢？"
+    },
+    {
+      "id": "3",
+      "speaker": "白石千夏",
+      "character": "shiraishi_chinatsu",
+      "text": "那我们就把速度放慢一点。合奏又不是排名。"
+    },
+    {
+      "id": "4",
+      "speaker": "",
+      "character": "",
+      "text": "走廊里响起零零落落的掌声，终于慢慢落在同一个节拍上。"
+    }
+  ]
+}

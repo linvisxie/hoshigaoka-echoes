@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "hub_ch1_yui",
+  "chapterId": "ch1",
+  "category": "character_event",
+  "hubOrder": 6,
+  "hubLocation": "保健室",
+  "title": "留给自己的绷带",
+  "background": "bg_env_infirmary_battle",
+  "music": "observation_club",
+  "requiresCharacter": "ogawa_yui",
+  "requiresClear": "1-6",
+  "completionFlags": [
+    "campus:yui"
+  ],
+  "authorship": "Project original optional campus vignette; no gameplay reward or main-story gate.",
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "结衣在药柜最下层找到一卷没开封的绷带。"
+    },
+    {
+      "id": "1",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "我总是记得补齐大家的药，却忘记给自己留一份。"
+    },
+    {
+      "id": "2",
+      "speaker": "{player}",
+      "character": "",
+      "text": "这一卷写上你的名字吧。"
+    },
+    {
+      "id": "3",
+      "speaker": "小川结衣",
+      "character": "ogawa_yui",
+      "text": "那……如果我忘了，你能提醒我吗？"
+    },
+    {
+      "id": "4",
+      "speaker": "",
+      "character": "",
+      "text": "她认真贴好标签。窗边的灯不再只为别人亮着。"
+    }
+  ]
+}

@@ -38,6 +38,20 @@ func _ready() -> void:
 			tile.custom_minimum_size = Vector2(414,100)
 			tile.add_theme_font_size_override("font_size",23)
 			tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var campus_ids := CampusHub.events().filter(func(event: Dictionary) -> bool: return CampaignFlow.done(str(event.storyId)))
+	if not campus_ids.is_empty():
+		_entry(list,"校园随记 · 已读同伴交谈与环境记录",func() -> void: pass)
+		var campus_grid := GridContainer.new()
+		campus_grid.columns = 4
+		campus_grid.add_theme_constant_override("h_separation",16)
+		campus_grid.add_theme_constant_override("v_separation",16)
+		list.add_child(campus_grid)
+		for event: Dictionary in campus_ids:
+			var sid := str(event.storyId)
+			var tile := button_at(str(event.title),Rect2(),func() -> void: _replay(sid))
+			tile.reparent(campus_grid)
+			tile.custom_minimum_size = Vector2(414,100)
+			tile.add_theme_font_size_override("font_size",23)
 	button_at("返回校园",Rect2(100,965,370,75),func() -> void: SceneRouter.go_to("home"))
 
 func _story_order(sid: String) -> int:
@@ -54,4 +68,5 @@ func _entry(list: VBoxContainer,title: String,action: Callable) -> void:
 
 func _replay(sid: String) -> void:
 	CampaignFlow.replay_story_id = sid
+	CampaignFlow.replay_return_key = "archive"
 	SceneRouter.go_to("story")

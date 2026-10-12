@@ -2555,7 +2555,7 @@ func _select_target_for(c: CharacterRuntime) -> EnemyRuntime:
 	return candidates[0]
 
 
-## 敌人攻击（被阻挡时攻击阻挡者）
+## 敌人攻击：被阻挡时优先阻挡者，行进时可攻击同路接触到的任何角色。
 ## 状态说明：敌人一旦被阻挡即保持 BLOCKED（V2.1.4 F-四十五 状态机中 ATTACKING 表示
 ## 「正在出手」的瞬间态）。为保持逻辑简单且确定，攻击结算不切换主状态，
 ## 仅通过 attack_cooldown 控制出手节奏；BLOCKED 期间持续攻击其阻挡者。
@@ -2563,12 +2563,25 @@ func _resolve_enemy_attacks(step: float) -> void:
 	for e: EnemyRuntime in enemies:
 		if not e.is_active():
 			continue
-		if e.state != BattleTypes.EnemyState.BLOCKED:
+		# Ranged enemies already advance the shared attack clock in their own
+		# branch. Never tick it twice or add a second contact hit.
+		if e.state != BattleTypes.EnemyState.BLOCKED and (e.is_ranged_attacker() or e.state != BattleTypes.EnemyState.MOVING):
 			continue
 		e.attack_cooldown = maxf(0.0, e.attack_cooldown - step)
 		if e.attack_cooldown > 0.0:
 			continue
-		var blocker := get_character(e.blocked_by_character_id)
+		var blocker: CharacterRuntime = null
+		if e.state == BattleTypes.EnemyState.BLOCKED:
+			blocker = get_character(e.blocked_by_character_id)
+		elif e.state == BattleTypes.EnemyState.MOVING:
+			# Passing contact hurts every role, but never grants ranged/support a block.
+			var nearest := block_contact_line_tiles + .0001
+			for c: CharacterRuntime in characters:
+				if c.is_incapacitated() or c.lane!=e.lane:continue
+				var distance := absf(e.logical_x-float(c.column))
+				if distance < nearest:
+					nearest = distance
+					blocker = c
 		if blocker == null or blocker.is_incapacitated():
 			# 阻挡者已失能/已撤退：本帧不结算，状态在 _release_invalid_blocks 中被释放
 			continue

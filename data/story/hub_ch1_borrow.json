@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "hub_ch1_borrow",
+  "chapterId": "ch1",
+  "category": "environment_event",
+  "hubOrder": 7,
+  "hubLocation": "图书角",
+  "title": "借阅卡上的名字",
+  "background": "bg_env_classroom_dusk",
+  "music": "unheard_memory",
+  "requiresClear": "1-4",
+  "completionFlags": [
+    "campus:object:borrow"
+  ],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "借阅卡的最后一行只写着归还日期，姓名栏还是空的。你把卡片夹回书中。总有一天，会有人愿意留下自己的名字。"
+    }
+  ]
+}

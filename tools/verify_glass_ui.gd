@@ -95,6 +95,7 @@ func _run() -> void:
 	SceneRouter.go_to("home")
 	await wait_ui()
 	await shot("campus_glass")
+	await verify_campus_events()
 	SceneRouter.go_to("settings")
 	await wait_ui()
 	await shot("settings_glass")
@@ -137,9 +138,11 @@ func _run() -> void:
 	await click(briefing.cards[first].get_global_rect().get_center())
 	await button("开始战斗   →")
 	check(not get_tree().current_scene._roster.has(first),"deselected character excluded from actual battle roster")
+	await wait_ui()
 	var file:=FileAccess.open("user://glass_ui_report.json",FileAccess.WRITE)
 	file.store_string(JSON.stringify({"checks":checks,"ok":checks.all(func(c:Dictionary)->bool:return c.ok)},"\t"))
-	get_tree().quit(0 if checks.all(func(c:Dictionary)->bool:return c.ok) else 1)
+	if checks.all(func(c:Dictionary)->bool:return c.ok):App.request_quit()
+	else:get_tree().quit(1)
 
 func find_grid(node: Node) -> GridContainer:
 	if node is GridContainer:return node
@@ -147,6 +150,44 @@ func find_grid(node: Node) -> GridContainer:
 		var result:=find_grid(child)
 		if result!=null:return result
 	return null
+
+func verify_campus_events() -> void:
+	var home := get_tree().current_scene
+	check(CampusHub.events().size()==9,"completed chapter offers six conversations and three environment records")
+	home._show_campus()
+	await wait_ui()
+	await shot("campus_locations")
+	var before := SaveService.snapshot()
+	await button("保健室  ·  新记录\n留给自己的绷带")
+	check(SceneRouter.get_current_key()=="story" and not get_tree().current_scene.replay,"campus starts unlocked optional story")
+	await shot("campus_conversation")
+	await finish_current_story()
+	check(SceneRouter.get_current_key()=="home","optional story returns to campus")
+	check(CampaignFlow.done("hub_ch1_yui"),"optional encounter completion persists")
+	check(SaveService.snapshot().currencies==before.currencies and SaveService.snapshot().stages==before.stages,"optional encounter grants no resources or stage unlocks")
+	check(SaveService.load_game() and CampaignFlow.done("hub_ch1_yui"),"encounter remains read after reload")
+	var replay_before := SaveService.snapshot()
+	CampusHub.visit("hub_ch1_yui")
+	await wait_ui()
+	check(get_tree().current_scene.replay,"read encounter uses side-effect-free replay")
+	await finish_current_story()
+	check(SceneRouter.get_current_key()=="home" and SaveService.snapshot()==replay_before,"campus replay returns home without save mutations")
+	home=get_tree().current_scene
+	home._show_menu()
+	await wait_ui()
+	await shot("campus_menu")
+	home._confirm_exit()
+	await wait_ui()
+	await shot("campus_exit_confirmation")
+	await button("取消")
+	check(SceneRouter.get_current_key()=="home","exit confirmation cancel stays in campus")
+
+func finish_current_story() -> void:
+	for i: int in range(40):
+		if SceneRouter.get_current_key()!="story":break
+		var story := get_tree().current_scene
+		await click(story.next_button.get_global_rect().get_center())
+		await wait_ui()
 
 func escape_to(expected: String) -> void:
 	var event:=InputEventKey.new();event.keycode=KEY_ESCAPE;event.pressed=true

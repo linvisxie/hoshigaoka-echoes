@@ -235,8 +235,18 @@ func _session(cfg: Dictionary) -> BattleSession:
 ## 都会在同一逻辑时刻触发同一动作，胜负结果因此可比。
 ##
 ## 返回：session / rejects / waveSeq
-func _run(cfg: Dictionary, actions: Array, tick: float = -1.0) -> Dictionary:
+func _run(cfg: Dictionary, actions: Array, tick: float = -1.0, recommended_growth: bool = false) -> Dictionary:
 	var s := _session(cfg)
+	if recommended_growth:
+		# Current 1-5 encounters use their documented level 5-7 recommendation.
+		# Compute real growth from disk; retain outcome and exact determinism checks.
+		var stats := {}
+		for id: String in [CHAR_MIO, CHAR_YUMA]:
+			var character: Dictionary = _char_table_from_file()[id]
+			var progress := CharacterProgress.from_growth_config(id, _read_json("res://data/character_growth.json"), character.baseStats, character.growthProfileId)
+			progress.level = 6
+			stats[id] = progress.compute_stats()
+		s.stage.set_character_level_stats(stats)
 	var step := tick if tick > 0.0 else StageRuntime.LOGIC_STEP_SECONDS
 	var cursor := 0
 	var guard := 0
@@ -260,6 +270,15 @@ func _run(cfg: Dictionary, actions: Array, tick: float = -1.0) -> Dictionary:
 		for unit: CharacterRuntime in s.stage.characters:
 			if unit.skill_ready() and s.stage.has_living_enemies():
 				s.cast_skill(unit.instance_id)
+		# 0.5.4: passing enemies now damage the back line too. The no-healer
+		# slice includes a real withdrawal/redeployment, rather than assuming
+		# the original formation can remain untouched for the entire fight.
+		if str(cfg.get("stageId","")) == "1-5" and actions == STABLE_TACTICS["1-5"]:
+			var mio := s.stage.get_character_by_id(CHAR_MIO)
+			if mio != null and mio.hp_ratio() < .30:
+				s.withdraw_character_by_id(CHAR_MIO)
+			elif mio == null and cursor == actions.size() and s.stage.query_deploy(CHAR_MIO,3,1).ok:
+				s.deploy_character(CHAR_MIO,3,1)
 		s.tick(step)
 		guard += 1
 
@@ -1041,7 +1060,7 @@ func test_13_1_5_result_is_independent_of_tick_granularity() -> void:
 	var ticks: Array[float] = [1.0 / 60.0, 1.0 / 30.0, 1.0 / 144.0]
 	var results: Array = []
 	for tick: float in ticks:
-		var res := _run(cfg, TACTIC_TWO_MID, tick)
+		var res := _run(cfg, TACTIC_TWO_MID, tick, true)
 		assert_eq((res["rejects"] as Array).size(), 0,
 			"tick=%.5f 时 1-5 的战术动作都应被接受：%s" % [tick, str(res["rejects"])])
 		var s: BattleSession = res["session"]

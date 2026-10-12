@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "hub_ch1_notice",
+  "chapterId": "ch1",
+  "category": "environment_event",
+  "hubOrder": 3,
+  "hubLocation": "教学楼告示栏",
+  "title": "被风翻过的一页",
+  "background": "bg_env_corridor_dusk",
+  "music": "unheard_memory",
+  "requiresClear": "1-2",
+  "completionFlags": [
+    "campus:object:notice"
+  ],
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "告示栏上，上一周的排名表被新的社团招募遮住了半边。没有谁的名字应该永远停在同一个位置。"
+    }
+  ]
+}

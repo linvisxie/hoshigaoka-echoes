@@ -29,6 +29,9 @@ func _ready() -> void:
 		text_speed = clampf(float(preferences.get_value("story","text_speed",42.0)),15,90)
 	replay = not CampaignFlow.replay_story_id.is_empty()
 	story_id = CampaignFlow.replay_story_id if replay else str(CampaignFlow.state().get("current_story_id", "prologue_transfer"))
+	if not replay and not CampaignFlow.story_allowed(story_id):
+		CampaignFlow.resume.call_deferred()
+		return
 	var data := DataRegistry.get_entry("story", story_id)
 	nodes = data.get("nodes", [])
 	index = 0 if replay else int(CampaignFlow.state().get("current_story_node", "0"))
@@ -147,7 +150,7 @@ func advance() -> void:
 func _finish() -> void:
 	if replay:
 		CampaignFlow.replay_story_id = ""
-		SceneRouter.go_to("archive")
+		SceneRouter.go_to(CampaignFlow.replay_return_key)
 	elif not CampaignFlow.finish_story(story_id):
 		index = maxi(0, nodes.size() - 1)
 		show_error("剧情结算保存失败，未推进进度。")

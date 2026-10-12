@@ -7,7 +7,7 @@ extends Node
 const TAG := "App"
 
 ## 与 project.godot 的 config/version 保持一致
-const APP_VERSION := "0.5.3"
+const APP_VERSION := "0.5.4"
 var _quitting := false
 const APP_NAME := "HoshigaokaEchoes"
 
@@ -156,4 +156,5 @@ func _finish_quit() -> void:
 	await get_tree().process_frame
 	# Release static atlas/texture references while the renderer is still alive.
 	ArtRegistry.clear_cache()
+	GameSkin._glass_cache.clear()
 	get_tree().quit()

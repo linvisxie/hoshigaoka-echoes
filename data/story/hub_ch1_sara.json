@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "domain": "story",
+  "storyId": "hub_ch1_sara",
+  "chapterId": "ch1",
+  "category": "character_event",
+  "hubOrder": 8,
+  "hubLocation": "科学部",
+  "title": "省略号之后",
+  "background": "bg_env_science_battle",
+  "music": "observation_club",
+  "requiresCharacter": "minase_sara",
+  "requiresClear": "1-8",
+  "completionFlags": [
+    "campus:sara"
+  ],
+  "authorship": "Project original optional campus vignette; no gameplay reward or main-story gate.",
+  "nodes": [
+    {
+      "id": "0",
+      "speaker": "",
+      "character": "",
+      "text": "记录仪的波形已经平稳，纱良却没有立刻关机。"
+    },
+    {
+      "id": "1",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "有些信号，测不到不等于不存在。比如一句没说完的话。"
+    },
+    {
+      "id": "2",
+      "speaker": "{player}",
+      "character": "",
+      "text": "可以慢慢说。我在听。"
+    },
+    {
+      "id": "3",
+      "speaker": "水濑纱良",
+      "character": "minase_sara",
+      "text": "……今天，谢谢你们等我。"
+    },
+    {
+      "id": "4",
+      "speaker": "",
+      "character": "",
+      "text": "屏幕上没有新的数字。这句话被好好地听见了。"
+    }
+  ]
+}
