@@ -75,6 +75,7 @@ const DEFAULT_ENV := "bg_env_classroom_dusk"
 static var _tex_cache: Dictionary = {}
 static var _atlas_cache: Dictionary = {}
 static var _miss_cache: Dictionary = {}
+static var _icon_cache: Dictionary = {}
 
 
 # ============================================================ 基础加载
@@ -279,7 +280,45 @@ static func title_background() -> Texture2D:
 ## UI 图标（size 取 32 / 64）。
 static func icon(name: String, size: int = 32) -> Texture2D:
 	if name == "icon_necklace": return load_texture("res://assets/art/ui/icons/icon_necklace.svg")
-	return load_texture("%s/ui/icons/%s_%d.png" % [ART_ROOT, name, size])
+	var path := "%s/ui/icons/%s_%d.png" % [ART_ROOT, name, size]
+	if _icon_cache.has(path): return _icon_cache[path] as Texture2D
+	var source := load_texture(path)
+	if source == null: return null
+	var image := source.get_image()
+	if image == null: return source
+	image.convert(Image.FORMAT_RGBA8)
+	# Remove only the export matte connected to the outer transparent border.
+	# Enclosed dark details and every colored pixel retain their original RGBA.
+	var width := image.get_width()
+	var height := image.get_height()
+	var visited := PackedByteArray()
+	visited.resize(width*height)
+	var queue: Array[Vector2i] = []
+	for x: int in range(width):
+		queue.append(Vector2i(x,0))
+		queue.append(Vector2i(x,height-1))
+	for y: int in range(height):
+		queue.append(Vector2i(0,y))
+		queue.append(Vector2i(width-1,y))
+	var cursor := 0
+	while cursor < queue.size():
+		var point := queue[cursor]
+		cursor += 1
+		if point.x < 0 or point.y < 0 or point.x >= width or point.y >= height: continue
+		var index := point.y*width+point.x
+		if visited[index] != 0: continue
+		visited[index] = 1
+		var pixel := image.get_pixelv(point)
+		var matte := pixel.r8 == 20 and pixel.g8 == 18 and pixel.b8 == 42
+		if pixel.a > .001 and not matte: continue
+		if matte:
+			pixel.a = 0.0
+			image.set_pixelv(point,pixel)
+		for offset: Vector2i in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
+			queue.append(point+offset)
+	var result := ImageTexture.create_from_image(image)
+	_icon_cache[path] = result
+	return result
 
 
 # ============================================================ 诊断
@@ -298,6 +337,7 @@ static func stats() -> Dictionary:
 
 ## Clear at explicit application shutdown, or when resetting an isolated test.
 static func clear_cache() -> void:
+	_icon_cache.clear()
 	_tex_cache.clear()
 	_atlas_cache.clear()
 	_miss_cache.clear()

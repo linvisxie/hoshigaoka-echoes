@@ -3,6 +3,8 @@ extends CampusScreen
 const ART_SIZE := Vector2(1672,941)
 const APPROVED := "res://assets/art/hub/campus_approved.png"
 const CLEAN := "res://assets/art/hub/campus_clean.png"
+const TEXTLESS := "res://assets/art/hub/campus_textless.png"
+const MAIN_LOCATIONS: Array[String] = ["观测会活动室","教学楼","弓道场","保健室"]
 const CARD := Rect2(1220,695,424,168)
 const LOCATION_EVENTS := {
 	"观测会活动室":["hub_ch1_mio","hub_ch1_borrow"],
@@ -20,16 +22,21 @@ var investigation_state: Dictionary = {}
 var art_buttons: Dictionary = {}
 var _approved: Texture2D
 var _clean: Texture2D
+var _textless: Texture2D
 
 func _ready() -> void:
 	super._ready()
 	_approved = ArtRegistry.load_texture(APPROVED)
 	_clean = ArtRegistry.load_texture(CLEAN)
+	_textless = ArtRegistry.load_texture(TEXTLESS)
 	background.texture = _approved
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	(get_child(1) as ColorRect).color.a = 0.0
 	canvas.size = ART_SIZE
 	_fit_canvas()
+	var petals := CampusPetals.new()
+	add_child(petals)
+	move_child(petals,2)
 	AudioService.play_music("observation_club")
 	# Reconstruct only occluded rectangles. Every other pixel uses the approved art.
 	for rect: Rect2 in [Rect2(22,22,352,86),Rect2(1337,24,253,48),Rect2(1593,21,64,55),
@@ -41,7 +48,7 @@ func _ready() -> void:
 	_image(_slice(_approved,Rect2(1454,92,205,382)),Rect2(1454,92,205,382))
 	_art_button("设置",Rect2(1593,21,64,55),func() -> void: SceneRouter.go_to("settings"))
 	_art_button("角色培养",Rect2(1482,163,157,55),func() -> void: SceneRouter.go_to("character"))
-	_art_button("角色装备",Rect2(1482,224,157,55),func() -> void: SceneRouter.go_to("character_equipment"))
+	_art_button("装备背包",Rect2(1482,224,157,55),func() -> void: SceneRouter.go_to("equipment"))
 	_art_button("关卡记录",Rect2(1482,284,157,52),func() -> void: SceneRouter.go_to("stage_select"))
 	_art_button("剧情档案",Rect2(1482,344,157,52),func() -> void: SceneRouter.go_to("archive"))
 	_art_button("继续调查",Rect2(1454,401,205,73),_continue_investigation)
@@ -54,11 +61,13 @@ func _ready() -> void:
 	_art_button("查看放课后观测记录",Rect2(6,325,199,243),_toggle_investigation).add_theme_stylebox_override("hover",StyleBoxEmpty.new())
 	if _has_unread("保健室"):
 		_image(_slice(_approved,Rect2(1285,470,147,35)),Rect2(1285,470,147,35))
-	else:
-		_image(_slice(_clean,Rect2(1404,427,25,22)),Rect2(1404,427,25,22))
 	_legacy_resource("school_coin","icon_school_coin",Rect2(1339,29,119,38))
 	_legacy_resource("equipment_part","icon_material",Rect2(1470,29,119,38))
 	_build_investigation()
+	_build_crisp_text()
+	if CampaignFlow.open_campus_menu:
+		CampaignFlow.open_campus_menu = false
+		_show_menu()
 
 func _fit_canvas() -> void:
 	if canvas == null: return
@@ -95,7 +104,7 @@ func _image(texture: Texture2D,rect: Rect2,parent: Control = null) -> TextureRec
 
 func _art_button(caption: String,rect: Rect2,action: Callable,parent: Control = null) -> CampusArtButton:
 	var button := CampusArtButton.new()
-	button.configure(caption,_slice(_approved,rect),action)
+	button.configure(caption,preload("res://assets/art/ui/campus_settings.svg") if caption == "设置" else _slice(_approved,rect),action)
 	button.position = rect.position
 	button.size = rect.size
 	(parent if parent != null else canvas).add_child(button)
@@ -104,17 +113,19 @@ func _art_button(caption: String,rect: Rect2,action: Callable,parent: Control = 
 
 func _legacy_resource(currency_id: String,icon_id: String,rect: Rect2) -> void:
 	var group := Control.new()
+	group.name = currency_id+"Chip"
 	group.position = rect.position
-	var factor := rect.size.y/64.0
-	group.scale = Vector2.ONE*factor
-	group.size = Vector2(rect.size.x/factor,64)
+	group.size = rect.size
 	group.mouse_filter = Control.MOUSE_FILTER_STOP
 	group.tooltip_text = "学园币\n用于角色突破、技能与装备培养。" if currency_id == "school_coin" else "装备零件\n用于强化装备，可通过调查奖励获得。"
 	canvas.add_child(group)
-	var previous := canvas
-	canvas = group
-	resource_chip(currency_id,icon_id,Rect2(Vector2.ZERO,group.size))
-	canvas = previous
+	# Identical fine gold frames; original resource art, fitted to one icon box.
+	_image(preload("res://assets/art/ui/campus_resource.svg"),Rect2(Vector2.ZERO,rect.size),group)
+	var icon := ArtRegistry.icon(icon_id,64)
+	var used := icon.get_image().get_used_rect()
+	_image(_slice(icon,Rect2(used)),Rect2(10,8,22,22),group)
+	var number := _native_text(str(int(SaveService.get_current().get("currencies",{}).get(currency_id,0))),Rect2(42,0,73,38),17,WHITE,group)
+	number.add_theme_font_override("font",GameSkin.body_font())
 
 func _build_investigation() -> void:
 	var sid := CampaignFlow.next_stage()
@@ -128,19 +139,55 @@ func _build_investigation() -> void:
 	_image(_slice(_approved,CARD),Rect2(Vector2.ZERO,CARD.size),investigation)
 	var clue := _investigation_clue(sid)
 	investigation_state["clue"] = clue
-	if sid != "1-3":
-		var material := GradientTexture2D.new()
-		material.gradient = Gradient.new()
-		material.gradient.colors = PackedColorArray([Color("202939"),Color("101c2d")])
-		material.fill_to = Vector2(0,1)
-		_image(material,Rect2(158,8,251,109),investigation)
-		_card_label("当前调查 · "+sid if not sid.is_empty() else "第一章 · 已归档",Rect2(163,7,238,25),14,MUTED)
-		_card_label(str(investigation_state.title),Rect2(163,30,238,37),22,WHITE)
-		_card_label(clue,Rect2(163,67,238,49),15,WHITE)
+	_image(_slice(_textless,Rect2(1378,703,251,109)),Rect2(158,8,251,109),investigation)
+	_card_label("当前调查 · "+sid if not sid.is_empty() else "第一章 · 已归档",Rect2(163,7,238,25),14,MUTED)
+	_card_label(str(investigation_state.title),Rect2(163,30,238,37),22,WHITE)
+	_card_label(clue,Rect2(163,67,238,49),15,WHITE)
 	var action := _art_button("调查卡：继续调查",Rect2(1384,817,201,38),_continue_investigation,investigation)
 	action.position -= CARD.position
 	action.tooltip_text = "重访已开放关卡" if sid.is_empty() else "前往 "+sid+" · "+str(investigation_state.title)
 	art_buttons["继续调查"].tooltip_text = action.tooltip_text
+	_text_patch(Rect2(1444,821,86,26),"继续调查",18,WHITE,investigation,CARD.position)
+
+func _native_text(value: String,rect: Rect2,font_size: int,color: Color,parent: Control) -> Label:
+	var label := Label.new()
+	label.text = value
+	label.position = rect.position
+	label.size = rect.size
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_override("font",GameSkin.serif())
+	label.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	label.add_theme_font_size_override("font_size",font_size)
+	label.add_theme_color_override("font_color",color)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(label)
+	return label
+
+func _text_patch(rect: Rect2,value: String,font_size: int,color: Color = WHITE,parent: Control = null,origin: Vector2 = Vector2.ZERO) -> Label:
+	var owner := parent if parent != null else canvas
+	_image(_slice(_textless,rect),Rect2(rect.position-origin,rect.size),owner)
+	return _native_text(value,Rect2(rect.position-origin,rect.size),font_size,color,owner)
+
+func _build_crisp_text() -> void:
+	# Keep the original painted sign glyphs, spacing and positions. Handbook
+	# captions share one native font so inventory matches the other three.
+	for rect: Rect2 in [Rect2(121,37,229,40),Rect2(124,77,180,24),
+		Rect2(1528,118,93,31),Rect2(1535,417,95,31),Rect2(630,281,78,30),
+		Rect2(425,351,125,32),Rect2(426,388,105,23),Rect2(810,374,91,30),
+		Rect2(796,408,109,23),Rect2(1051,423,68,31),Rect2(1335,441,68,30),
+		Rect2(122,581,78,26),Rect2(77,870,344,31),Rect2(41,334,146,73),
+		Rect2(209,364,27,115)]:
+		_glyph_patch(rect)
+	if _has_unread("保健室"): _glyph_patch(Rect2(1341,474,70,23))
+	for entry: Array in [["角色培养",177],["装备背包",237],["关卡记录",297],["剧情档案",357]]:
+		_text_patch(Rect2(1540,int(entry[1]),91,30),str(entry[0]),19).set_meta("handbook_caption",true)
+
+func _glyph_patch(rect: Rect2) -> void:
+	var image := _image(_slice(_approved,rect),rect)
+	image.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	var clarity := ShaderMaterial.new()
+	clarity.shader = preload("res://scripts/art/campus_glyph_clarity.gdshader")
+	image.material = clarity
 
 func _card_label(value: String,rect: Rect2,font_size: int,color: Color) -> void:
 	var label := Label.new()
@@ -148,6 +195,7 @@ func _card_label(value: String,rect: Rect2,font_size: int,color: Color) -> void:
 	label.add_theme_font_size_override("font_size",font_size)
 	label.add_theme_color_override("font_color",color)
 	label.add_theme_font_override("font",GameSkin.serif())
+	label.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.clip_text = true
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -166,6 +214,7 @@ func _investigation_clue(sid: String) -> String:
 	return str(clues.get(sid,"十次调查已收入学生手册。\n可以重访已开放关卡。"))
 
 func _continue_investigation() -> void:
+	CampaignFlow.briefing_return_key = "home"
 	var flow := CampaignFlow.state()
 	if not str(flow.get("pending_story_after", "")).is_empty() or (str(flow.get("mode", "")) == "story" and not str(flow.get("current_story_id", "")).is_empty()):
 		CampaignFlow.resume()
@@ -204,10 +253,7 @@ func _new_campus_panel(title: String,subtitle: String) -> void:
 
 func _show_campus() -> void:
 	_new_campus_panel("校园漫游","已经开放的地点 · 新的放课后记录会随调查逐步出现")
-	var locations: Array[String] = ["观测会活动室","教学楼","弓道场","保健室"]
-	for event: Dictionary in CampusHub.events():
-		var place := str(event.get("hubLocation","校园"))
-		if not locations.has(place): locations.append(place)
+	var locations := _roaming_locations()
 	var scroll := ScrollContainer.new()
 	scroll.position = Vector2(45,150)
 	scroll.size = Vector2(1120,410)
@@ -218,6 +264,8 @@ func _show_campus() -> void:
 	grid.add_theme_constant_override("h_separation",16)
 	grid.add_theme_constant_override("v_separation",16)
 	scroll.add_child(grid)
+	if locations.is_empty():
+		_in_panel(label_at("其他地区尚未开放。\n继续调查后，新的地点会在这里出现。",Rect2(0,0,1000,120),27,MUTED),campus_panel,Vector2(45,180))
 	for place: String in locations:
 		var events := _location_events(place)
 		var detail := "%d 条记录" % events.size() if not events.is_empty() else "暂时没有可阅读的记录"
@@ -226,6 +274,17 @@ func _show_campus() -> void:
 		tile.reparent(grid)
 		tile.custom_minimum_size = Vector2(354,106)
 		tile.add_theme_font_size_override("font_size",24)
+
+func _roaming_locations() -> Array[String]:
+	var locations: Array[String] = []
+	for event: Dictionary in CampusHub.events():
+		var place := str(event.get("hubLocation","校园"))
+		# Main-place aliases are grouped into their visible doorway, not duplicated.
+		var represented := MAIN_LOCATIONS.has(place)
+		for main_place: String in MAIN_LOCATIONS:
+			if str(event.storyId) in LOCATION_EVENTS.get(main_place,[]): represented = true
+		if not represented and not locations.has(place): locations.append(place)
+	return locations
 
 func _show_location(location: String) -> void:
 	var events := _location_events(location)

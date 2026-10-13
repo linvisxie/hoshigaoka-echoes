@@ -7,6 +7,8 @@ static var replay_story_id := ""
 static var replay_return_key := "archive"
 static var last_result: Dictionary = {}
 static var inspected_character_id := "amamiya_mio"
+static var open_campus_menu := false
+static var briefing_return_key := "home"
 
 static func state() -> Dictionary:
 	return SaveService.get_current().get("flow_state", {})
@@ -50,6 +52,17 @@ static func resume() -> bool:
 		return SceneRouter.go_to("briefing")
 	return SceneRouter.go_to("home")
 
+static func continue_to_campus() -> bool:
+	if not SaveService.ensure_loaded(): return false
+	replay_story_id = ""
+	briefing_return_key = "home"
+	open_campus_menu = false
+	# Landing in campus must not consume or reset an unfinished story/briefing.
+	return SceneRouter.go_to("home")
+
+static func briefing_back_key() -> String:
+	return "stage_select" if briefing_return_key == "stage_select" else "home"
+
 static func done(story_id: String) -> bool:
 	return bool(SaveService.get_current().get("story", {}).get("flags", {}).get("done:" + story_id, false))
 
@@ -60,10 +73,11 @@ static func next_stage() -> String:
 			return sid
 	return ""
 
-static func open_stage(sid: String) -> bool:
+static func open_stage(sid: String,return_key: String = "home") -> bool:
 	var cfg := DataRegistry.get_entry("stages", sid)
 	if not can_open_stage(sid):
 		return false
+	briefing_return_key = "stage_select" if return_key == "stage_select" else "home"
 	# A pending required story cannot be bypassed by another menu entry.
 	if not str(state().get("pending_story_after", "")).is_empty():
 		return resume()

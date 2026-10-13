@@ -8,6 +8,8 @@ var press_position := Vector2.ZERO
 var drag_offset := Vector2.ZERO
 var dragging := false
 var pointer := Vector2.ZERO
+var hint: Label
+var hint_time := 0.0
 
 func _ready() -> void:
 	super._ready()
@@ -58,10 +60,18 @@ func _ready() -> void:
 		cost.position = Vector2(12,215)
 		_refresh_card(cid)
 	label_at("单击选择 / 再次单击取消 · 拖动头像调整顺序",Rect2(1030,875,760,40),23,MUTED)
-	button_at("返回校园", Rect2(90, 970, 380, 75), func() -> void: SceneRouter.go_to("home"))
+	button_at("返回关卡记录" if CampaignFlow.briefing_back_key() == "stage_select" else "返回校园", Rect2(90, 970, 380, 75), _back)
 	button_at("开始战斗   →", Rect2(1390, 970, 450, 75), _start, true).grab_focus()
+	hint = label_at("",Rect2(540,970,840,75),25,Color("ffacb0"))
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hint.hide()
 
 func _process(delta: float) -> void:
+	if hint_time > 0.0:
+		hint_time = maxf(0.0,hint_time-delta)
+		hint.modulate.a = clampf(hint_time/.35,0.0,1.0)
+		if hint_time <= 0.0: hint.hide()
 	for cid: String in cards:
 		var index := party.find(cid)
 		var target := Vector2(1025 + (index%3)*260,330+int(index/3)*260)
@@ -72,6 +82,10 @@ func _process(delta: float) -> void:
 		card.z_index = 20 if cid == pressed_id and dragging else 0
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		get_viewport().set_input_as_handled()
+		_back()
+		return
 	if event is InputEventMouse:
 		pointer = canvas.get_global_transform_with_canvas().affine_inverse() * event.position
 	if event is InputEventMouseMotion and not pressed_id.is_empty():
@@ -120,7 +134,17 @@ func _save_party() -> bool:
 
 func _start() -> void:
 	if selected.is_empty():
-		show_error("请至少选择一名出战角色。")
+		_show_hint("请至少选择一名出战角色。")
 		return
 	if _save_party(): CampaignFlow.launch_battle()
-	else: show_error("阵容保存失败，请重试。")
+	else: _show_hint("阵容保存失败，请重试。")
+
+func _show_hint(message: String) -> void:
+	hint.text = message
+	hint_time = 2.5
+	hint.modulate.a = 1.0
+	hint.show()
+
+func _back() -> void:
+	# Finish the native input dispatch before detaching its current scene.
+	SceneRouter.go_to.call_deferred(CampaignFlow.briefing_back_key())

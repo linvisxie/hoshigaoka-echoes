@@ -1,6 +1,7 @@
 extends CampusScreen
 
 static var chapter_open := false
+static var campus_open := true
 
 func _ready() -> void:
 	super._ready()
@@ -40,8 +41,12 @@ func _ready() -> void:
 			tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var campus_ids := CampusHub.events().filter(func(event: Dictionary) -> bool: return CampaignFlow.done(str(event.storyId)))
 	if not campus_ids.is_empty():
-		_entry(list,"校园随记 · 已读同伴交谈与环境记录",func() -> void: pass)
+		_entry(list,("▾ " if campus_open else "▸ ")+"校园随记 · 已读同伴交谈与环境记录",func() -> void:
+			campus_open = not campus_open
+			SceneRouter.go_to("archive"))
 		var campus_grid := GridContainer.new()
+		campus_grid.name = "CampusEntries"
+		campus_grid.visible = campus_open
 		campus_grid.columns = 4
 		campus_grid.add_theme_constant_override("h_separation",16)
 		campus_grid.add_theme_constant_override("v_separation",16)

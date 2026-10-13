@@ -315,7 +315,7 @@ func _activate(index: int) -> void:
 			if SaveService.get_current().is_empty():
 				_show("还没有有效存档，请选择新游戏。", WARN)
 			else:
-				CampaignFlow.resume()
+				CampaignFlow.continue_to_campus()
 		"new_game":
 			SceneRouter.go_to("new_game")
 		"settings":

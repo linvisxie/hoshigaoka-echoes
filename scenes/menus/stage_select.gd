@@ -550,7 +550,7 @@ func _activate(index: int) -> void:
 		GameLog.info(TAG, "进入关卡 %s" % id)
 
 	_busy = true
-	if not CampaignFlow.open_stage(id):
+	if not CampaignFlow.open_stage(id,"stage_select"):
 		_busy = false
 		_show("进入战斗失败", WARN)
 

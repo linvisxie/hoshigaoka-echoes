@@ -43,6 +43,8 @@ func _ready() -> void:
 	canvas.add_child(speed_slider)
 	status = label_at("设置会保留到下次启动。", Rect2(360, 850, 1100, 45), 25, MUTED)
 	button_at("保存并返回", Rect2(1210, 960, 410, 75), _save, true)
+	if return_key == "home":
+		button_at("校园菜单", Rect2(770,960,410,75),func() -> void: _save(true))
 	fade_in_content()
 
 func _toggle_display() -> void:
@@ -50,7 +52,7 @@ func _toggle_display() -> void:
 	var display := canvas.get_node("DisplayMode") as Button
 	display.text = "全屏显示" if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN else "窗口显示"
 
-func _save() -> void:
+func _save(open_menu: bool = false) -> void:
 	var config := ConfigFile.new()
 	config.load(SaveService.SETTINGS_PATH)
 	for bus: String in ["Master", "BGM", "SFX"]:
@@ -61,6 +63,7 @@ func _save() -> void:
 	if err != OK:
 		status.text = "设置未能保存，错误 %d" % err
 		return
+	CampaignFlow.open_campus_menu = open_menu and return_key == "home"
 	SceneRouter.go_to(return_key)
 
 func _unhandled_key_input(event: InputEvent) -> void:
