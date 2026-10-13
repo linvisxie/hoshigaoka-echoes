@@ -1,0 +1,404 @@
+0	Mio Amamiya
+1	Kendo Club
+2	Yuma Kamiya
+3	Kyudo Club
+4	Yui Ogawa
+5	Health Committee
+6	Rin Fujiwara
+7	Student Council Vice President
+8	Sara Minase
+9	Science Club
+10	Chinatsu Shiraishi
+11	Light Music Club
+12	Standard Growth
+13	School Coins
+14	Ascension, skills and equipment enhancement
+15	Used for character ascension and equipment enhancement.
+16	Pocket a little dusk for the promises of tomorrow.
+17	Study Records
+18	Character leveling
+19	Use Study Records to give characters experience.
+20	The light remembered by these pages will guide your way.
+21	Club Badges
+22	Character ascension
+23	Used for character ascension to raise the level cap.
+24	The starflower on our chests is proof we stood together.
+25	Echo Crystals
+26	Advanced ascension and skill upgrades
+27	Echo material needed for advanced character ascension.
+28	Even in fractured time, some echoes never fade.
+29	Equipment Parts
+30	Equipment enhancement
+31	Used to enhance equipment and improve its stats.
+32	Piece scattered gears into the strength to protect ordinary days.
+33	Study Record: Short Story
+34	Study Record: Notes
+35	Study Record: Archive
+36	Common Echo
+37	Rushing Echo
+38	Armored Echo
+39	Exam Wraith
+40	Silent Student
+41	Cheating Paper Doll
+42	Invigilator
+43	Anxiety Mass
+44	Ranking Phantom
+45	Nameless Honor Student
+46	Kyudo Practice Bow
+47	Health Committee Notebook
+48	Organized Review Notes
+49	Agility
+50	Stability
+51	Composure
+52	Crossed-Out Perfect Exam
+53	Chapter One clear memento. Every name deserves to remain. Skill cooldown recovery +5%.
+54	Evening Calm Slash
+55	For 6s, ATK +50%. Hits up to 3 enemies within 3 tiles ahead in the same lane.
+56	Sky-Piercing Arrow
+57	The next attack deals 300% damage, piercing up to 3 enemies ahead in this and adjacent lanes. Best used against coordinated groups.
+58	Emergency Dispatch
+59	Gain 6 AP immediately, up to the cap. While Rin is deployed, team natural AP recovery +15%. She has no basic attack.
+60	The Unfading Light
+61	Heals all allies in healing range for 250% of Healing Power.
+62	Temporary Experimental Device
+63	Place a device on an empty deployment tile for 12s. Blocks 1 enemy, cannot be healed and uses no character slot.
+64	After-School Beat
+65	For 10s, nearby allies gain +20% attack speed and +10% skill cooldown recovery.
+66	Captain's Resolve
+67	DEF +35% while HP is below 40%. Ends when HP recovers.
+68	Focus
+69	Successive attacks on the same target deal +5% damage each, up to +25%. Resets on target change.
+70	Streamlined Procedure
+71	For 10s after deployment, the next ally costs 2 AP less, minimum 1 AP. Consumed on successful deployment.
+72	Analysis Complete
+73	Special damage +15% against enemies with DEF >=80. Basic attacks splash for 70% to other enemies within 0.75 tiles in the same lane.
+74	Keep the Music Going
+75	Nearby allies gain +8% attack speed. Does not affect herself.
+76	1-1 First-Clear Reward
+77	1-2 First-Clear Reward
+78	1-3 First-Clear Reward
+79	1-4 First-Clear Reward
+80	1-5 First-Clear Reward
+81	1-6 First-Clear Reward
+82	1-7 First-Clear Reward
+83	1-8 First-Clear Reward
+84	1-9 First-Clear Reward
+85	1-10 First-Clear Reward
+86	Regular Stage Repeat Reward
+87	Team Encouragement
+88	Team ATK +10%
+89	Steady Frontline
+90	Frontline DEF +20%
+91	Ready to Strike
+92	Ranged ATK +15%
+93	Improved Care
+94	Healing +20%
+95	Faster Tempo
+96	Natural AP recovery +10%
+97	Rapid Rotation
+98	Retreat refund increased (50% -> 65%)
+99	Resonant Ensemble
+100	Team skill cooldown recovery +15%
+101	1-10 · Nameless Honor Student · After Investigation
+102	The red rings stop turning. Exam papers fall to the floor, neither burning nor tearing.
+103	If... I'm not first...
+104	You can still stay.
+105	Between layers of report cards, the silhouette of an ordinary student appears. No rank. No certificate.
+106	You can rest now. You've done enough today.
+107	The frequency is falling. Not to zero... It's separating again, returning to each person.
+108	Investigation complete. Everyone, return.
+109	I heard you! Every one of you. I heard all your voices.
+110	Then we'll save you a place at our next club meeting, too.
+111	Promise me. Don't only need me when you want someone to liven things up.
+112	Welcome aboard, Chinatsu.
+113	Morning light streams through the gym's high windows. In the corridor, posters for the next cultural festival sway gently.
+114	A loose sheet appears in your handbook. On the back is a single question: Are the voices you hear really all from today?
+115	Chapter One · Echoes of a New Term — End.\nThe After-School Observation Club's records will continue.
+116	1-10 · Nameless Honor Student · Before Investigation
+117	Desks stretch beyond sight inside the gym. Rings of grades turn above the stage. Each correction erases another name.
+118	A little better. First place. Full marks. I must not fail.
+119	Why does it sound... so tired when it speaks?
+120	These voices have no single source. Everyone's expectations have been pressed into one shape.
+121	Don't follow its rhythm. The red warning lasts three seconds. Check positions, then decide whether to heal or retreat.
+122	Tell me if you can't hold on.
+123	Leave the rear to me.
+124	The exit light is still on. I'll wait here for you.
+125	We're not here to hand in a perfect paper. We're here to bring everyone home.
+126	1-1 · Leaving a Coordinate
+127	As the last shadow scatters, real footsteps finally sound at the end of the corridor.
+128	...It's over. You're not hurt, are you?
+129	No. What were those things?
+130	I call them Echoes. They don't appear every day, and not everyone can see them.
+131	I only touched the wall, and that point of light stayed there.
+132	The position you left let me hold my ground. Without it, I'd have had to keep falling back.
+133	She returns her sword to its bag, then realizes her hand still hasn't relaxed around the strap.
+134	Mio Amamiya. Kendo Club. Tomorrow... if you hear something strange again, don't go alone.
+135	{player}. I just transferred here. Looks like I have a lot to catch up on.
+136	Let's find our way out of today first. The school gate really is at the end this time.
+137	1-2 · A Distant Bowstring
+138	There was one more at the far edge. It's gone now.
+139	Were you nearby all along?
+140	I came when I saw the shadows in the corridor getting longer.
+141	Sounds like this isn't your first time seeing them.
+142	No. I just never found a coordinate that would stay before.
+143	So you always watched from a distance?
+144	Sometimes. I wondered whether seeing clearly was enough. Today proved it wasn't.
+145	He shoulders his quiver, his eyes resting on the light you left behind.
+146	Yuma Kamiya. Kyudo Club. Call me next time.
+147	1-2 · The Late Shadow
+148	After the next day's test, some students stay to compare answers. Others bury their papers at the bottom of their bags.
+149	The stairs aren't repeating today.
+150	Don't relax yet. Listen. Those footsteps are too fast.
+151	A blurred figure darts across the far end of the corridor. It chases the school bell, always one beat too late.
+152	It's different from yesterday's.
+153	It'll rush through any gap. Watch which lane it takes, then leave a coordinate.
+154	Outside, a bowstring whispers from the archery range. An arrow pins the shadow trying to skirt the stairs.
+155	...Yuma? Let's handle what's in front of us first.
+156	1-3 · Beyond the Score
+157	The exam papers on the floor have no names, only scores circled over and over.
+158	Could these Echoes be connected to things happening at school?
+159	Whenever rumors about rankings grow, the strange sounds do too. We still don't know why.
+160	Then let's write down everything we see. No guessing.
+161	If only one of us had been here today, we probably couldn't have managed.
+162	I'll watch from behind. If the paper shadows move to the next lane, you won't have to turn around.
+163	The broadcast returns to its usual reminder to leave school. Outside, someone calls for a trip to buy bread, pulling the classroom back into reality.
+164	Come on. We need to eat before investigating, too.
+165	1-3 · Corrected Air
+166	Students gather at the afternoon noticeboard. There are no official rankings, but they're already comparing who scored a few points more.
+167	It's only one test, but everyone seems more nervous than yesterday.
+168	Some people compare even the scores no one says aloud.
+169	The classroom door suddenly closes by itself. An exam paper hangs in the air, its red corrections spreading like wings.
+170	Up there. I can't block it.
+171	I'll handle it. Put my coordinate farther back so I can see its flight path.
+172	Mio holds the front. Yuma supports from behind.
+173	I can cover my own lane and the ones next to it. Don't let them bunch up.
+174	1-4 · You Can Set It Down
+175	The shell of books loosens and scatters into notes covered with rankings. Mio lowers her blade, her other hand still pressed to the strap on her shoulder.
+176	That's enough for today.
+177	But there might be other places—
+178	We can check them together. Sit down for a while first.
+179	If I stand in front, that's one less person who gets caught up in it. That's how it's always been.
+180	Today you have someone in front and someone behind. You don't have to count the old way anymore.
+181	At last, she sets her sword bag beside the bench. Her shoulders slowly relax.
+182	...Then carry this for me. Just as far as the school gate.
+183	Sure. Bring the bread, too. This investigation doesn't include dinner.
+184	1-4 · Carrying Too Much
+185	The school bell has rung twice. In the corridor, Mio tightens her sword bag's strap. The bread she bought at lunch sits untouched on the windowsill.
+186	You didn't rest at lunch either?
+187	Practice ran late. I'll eat once this is dealt with.
+188	You've waited from lunch until now? That bread will graduate before you do.
+189	Pages piled in a corner begin to swell, layering around a shadow like a shell growing heavier with every book.
+190	The spines are stacked thick. Stay behind me. Don't let the pages cut you.
+191	You don't have to do everything alone. We'll bring up the rear support.
+192	I'll scatter the outer pages first. Mio, save some strength for yourself.
+193	1-5 · The After-School Observation Club
+194	"The test is over. Please leave in order." The broadcast finally finishes its broken sentence. Stage lights go out one by one. Only ordinary dust remains beneath the empty chairs.
+195	Time of record: 17:24. Anomaly resolved. Three participants. Nobody missing.
+196	Fujiwara? Were you here all along?
+197	How far the corridor repeats, where the footsteps stop, today's broadcast... I've filled a few pages.
+198	Looks like I wasn't the only one watching.
+199	Amamiya's left hand was shaking the whole time. Next time, record how long each of us can hold on, too.
+200	Rin turns her notebook over, revealing student council forms tucked inside. Venue bookings, safety contacts, activity applications—every section already has its spaces drawn.
+201	Can these records tell us why they appear?
+202	Not yet. I only know the anomalies cluster when talk of tests and rankings does. We need to investigate together.
+203	Under what name?
+204	The After-School Observation Club. For now, an internal student council records project. I'll organize routes and supplies. No more investigating alone.
+205	One rule, at least: nobody gets to say "I'm fine" and go off alone.
+206	...That includes you.
+207	Including me. My number goes on the first line. When we check the old records, I'll come too.
+208	Mio takes her sword bag back from Yuma, but doesn't shoulder it yet. You follow the now-ordinary floor lines toward the door. A club bell sounds in the distance. This time, no one leaves first.
+209	1-5 · The Invigilator
+210	School Broadcast
+211	Time remaining... remaining...
+212	The broadcast passes through the empty old gym. A seating chart glows onstage. Among rows of empty chairs, paper shadows lift their heads together at each announcement.
+213	What's it waiting for?
+214	Look at the stage. Every time that light sweeps over us, the shadows take another step.
+215	A dark figure wrapped in exam papers and staring eyes stands before the stage. It has no face, yet its gaze makes you stand straight.
+216	No one's even watching... but I still want to hide my hands.
+217	Look at me. Breathe slowly. You don't need to count with the broadcast.
+218	I'll watch both sides. Once it and the paper shadows get close, we'll scatter them together.
+219	You grip the warm school crest. Light from its six-petaled starflower spreads along the floor seams. For the first time, the tangled echoes form a rhythm you can recognize.
+220	I hear it. Mio, half a step forward—Yuma, the rear is yours.
+221	1-6 · The Infirmary Light · After Investigation
+222	The final shadow scatters. At last, the hanging lamp stops swaying.
+223	So you don't have to apologize for being cared for, either.
+224	You did it too. Your own wound isn't bandaged yet.
+225	...You noticed. Then could you pass me a bandage?
+226	The club's emergency contact list still needs a health committee member.
+227	Write my name down. But put your own names under "people who need help," too.
+228	Yui closes the medicine cabinet without turning off the light. On the windowsill, an unsigned ranking sheet slowly curls.
+229	1-6 · The Infirmary Light · Before Investigation
+230	The infirmary light is still on. Night has fallen outside, but the white bed curtains reflect a violet glow that isn't moonlight.
+231	Please sit down first. Amamiya, your sword hand is trembling.
+232	There are still people outside. Once the investigation is—
+233	I always say that, too. Think about myself once everyone else is safe.
+234	The shadows under the beds are gathering toward the door. This probably isn't safe either.
+235	Then let me come with you. At least this time, nobody should have to hold on alone.
+236	Update the record. Yui handles healing, Mio establishes the line, and Yuma watches the side lanes.
+237	There are still voices outside. Let's leave the light on.
+238	1-7 · Who Ranks Where · After Investigation
+239	When the Ranking Phantoms fade, the list reveals a small word hidden by tape: Absent.
+240	I always thought that if I planned well enough, no one would fall behind.
+241	But sometimes people just need us to stop and wait.
+242	One frequency hasn't faded. It's from the old science building. It doesn't sound like it's asking for an answer.
+243	More like it's waiting for someone to hear the whole question.
+244	Rin closes her schedule. In the next space, she writes a task without a deadline.
+245	1-7 · Who Ranks Where · Before Investigation
+246	There are no students by the ranking board, but rows of shadows keep trading places. Above every name, another name bears down.
+247	Anonymous comparison posts have spread through the whole year. It started with one screenshot. Now even students who missed the test are sharing it.
+248	Put people in one column, and it looks like there's only one direction to go.
+249	The anomaly frequency isn't proportional to reposts. Comments that keep getting deleted produce stronger waves instead.
+250	Are you from the Science Club?
+251	Sara Minase. I'm looking for something averages can't explain.
+252	Clear the Echoes by the board first. I'll coordinate. Don't let those rankings decide where we stand.
+253	1-8 · Words Unspoken · After Investigation
+254	The black tape sealing the doorway splits inch by inch. From the empty classroom comes the gentle sound of a chair moving.
+255	I thought that if I spoke precisely enough, people would understand.
+256	Sometimes you need to ask one more question.
+257	Then... were you scared back there?
+258	Yes. That's why we need to tell each other.
+259	I can't measure that for you with an instrument. Next time I'll ask directly.
+260	Sara packs away her device, crosses out "emotional noise," and replaces it with "voices not yet understood."
+261	1-8 · Words Unspoken · Before Investigation
+262	The science building corridor is unnaturally quiet. Glassware behind the doors visibly trembles, yet makes no sound.
+263	I tried converting the frequency into words. All I got were ellipses.
+264	You said to go left. I heard to stay here.
+265	So that door... we both missed it.
+266	Don't rush to decide whose fault it was. Let's say it again.
+267	I'll join the fight. This device can hold for a little while, but it can't replace Amamiya.
+268	Silence blocks active skills, but basic attacks still work. Watch the device's remaining time.
+269	This time, I'll make sure everyone hears.
+270	1-9 · Perfect Copies · After Investigation
+271	The last paper doll folds into an ordinary exam paper. An eraser mark appears in the name field.
+272	They weren't copying a perfect student. They were erasing every imperfect part, over and over.
+273	Until they didn't even need a name anymore?
+274	The gym access records are restored. Next time, all of us investigate together.
+275	Don't chase that "first place." Just keep watching out for each other.
+276	Outside the archive room, an exam bell rings in the distance. Again and again, never ending.
+277	1-9 · Perfect Copies · Before Investigation
+278	Every drawer in the old archive room stands open. The same perfect exam paper pours out of different years, its name field blank.
+279	Different handwriting, but only one center to the anomaly. Every route ends at the gym.
+280	Years of grade records were posted there. We're not chasing one student.
+281	I brought a little speaker from the Light Music Club. If the broadcast drowns you out again, use this.
+282	Chinatsu, wait at the safe exit. Don't enter the anomaly alone.
+283	Okay. But when you come back, remember to call my name.
+284	We'll come back together. First, clear the way to the gym.
+285	A Name on the Library Card
+286	The last line of the library card has only a return date. The name field is blank. You slip it back into the book. Someday, someone will want to leave their name.
+287	In Time After School
+288	Chinatsu taps an empty instrument case, her rhythm a little lighter than yesterday.
+289	Come to our next rehearsal. You don't need to play an instrument. Keeping time counts, too.
+290	What if I can't keep up?
+291	Then we'll slow down. An ensemble isn't a ranking.
+292	Scattered applause fills the corridor, slowly settling into the same beat.
+293	Dusk in the Scabbard
+294	Outside the kendo hall, dusk stretches across the wooden floor like a river not yet sheathed.
+295	No more practice today. That goes for swords and people alike.
+296	Then I'll sit with you until the sun goes down.
+297	...Okay. Sit here. There's less wind.
+298	She rests her bamboo sword against the wall. This time, the silence urges no one onward.
+299	A Page Turned by the Wind
+300	At the noticeboard, a new club recruitment poster half covers last week's rankings. Nobody's name should stay in the same place forever.
+301	Spring on the Back of a Photo
+302	In the old photograph, nobody stands quite neatly. On the back: Everyone came that day. You gently wipe dust from the glass without moving anyone's place.
+303	An Unfilled Space
+304	On the student council contact sheet, Rin keeps erasing and rewriting one box.
+305	Can I put the Observation Club as my emergency contact?
+306	Yes. And you can come to us when it isn't an emergency, too.
+307	I'll write that rule outside the boxes.
+308	She caps her pen. At last, the paper has one blank that doesn't need filling.
+309	After the Ellipsis
+310	The recorder's waveform is steady, but Sara doesn't switch it off yet.
+311	Not detecting a signal doesn't mean it isn't there. Like a sentence left unfinished.
+312	Take your time. I'm listening.
+313	...Thank you for waiting for me today.
+314	No new numbers appear on the screen. Her words have been heard.
+315	A Bandage for Yourself
+316	Yui finds an unopened roll of bandage on the medicine cabinet's lowest shelf.
+317	I always remember to restock everyone's supplies, but forget to save some for myself.
+318	Put your name on this roll.
+319	Then... if I forget, will you remind me?
+320	She carefully attaches a label. The light by the window no longer shines only for others.
+321	One Step Beyond the Bowstring
+322	The archery target has fresh paper. Old holes remain in the wood beneath.
+323	I used to count only my hits. Today I realized missed arrows leave a sound, too.
+324	The next arrow doesn't need to prove anything for the last one.
+325	Easy to say. Then will you help me collect them?
+326	He smiles and releases his hand from the string.
+327	Prologue · Transfer
+328	On your first day at Hoshigaoka, the final bell sounds softer than expected. Cherry blossoms drift onto the slope outside. Club practice still echoes in the distance.
+329	Student handbook, classroom key... I think that's everything.
+330	Students leaving campus, please travel safely. Tomorrow's school test will begin on time.
+331	You pass the noticeboard with its test announcement. For the third time. The stairs at the corridor's end are no closer.
+332	Didn't I just pass this place?
+333	A blank exam paper appears in the window's reflection. A red mark rises on its surface, then is erased a moment later.
+334	Stop. Don't go toward that sound.
+335	A student carrying a sword bag blocks the stairs. The flower in her hair holds a trace of white in the suddenly dim corridor.
+336	You noticed it keeps repeating, too?
+337	Yes. You can see them... Questions later. Get behind me.
+338	Pages rustle in an empty classroom. Your fingers touch the wall. A glimmer stretches across the floor and stops at her feet.
+339	This coordinate... it can stabilize. Hold it there. I'll stop what's coming.
+340	I'll try. Be careful, too.
+341	The sunset still hangs beyond the windows. In the corridor, the first ring of a sword cuts through the frozen after-school hour.
+342	Contact
+343	Return
+344	Both Flanks
+345	First Anchor
+346	Deploy Mio Amamiya at a glowing coordinate to block incoming Echoes. Hold the line and defeat every enemy.
+347	The Nameless Honor Student has three phases. Red warning zones last 3s: retreat or heal through them. If the Boss reaches the core, you lose.
+348	Echoes are approaching together across three lanes. Save Yuma's Sky-Piercing Arrow for dense groups. Heal under pressure, or retreat and redeploy to another lane.
+349	Observation
+350	Deepening Anomaly
+351	Brief Respite
+352	Core Echo
+353	Warm-Up
+354	Open Lane
+355	New enemy: Rushing Echo. Moves almost twice as fast as a Common Echo.
+356	A Rushing Echo takes about 2s from the right entrance to your line. Watch its lane in advance.
+357	Mio can hold only one lane. If enemies approach in two, protect the greater threat first.
+358	Enemies that slip through damage the core directly. All three lanes share one Echo Anchor.
+359	The Late Shadow
+360	Rushing Echoes cross empty lanes quickly. Watch the next wave's lanes and prepare your blockers before it arrives.
+361	Corrected Air
+362	Shared Roles
+363	Final Wave
+364	Yuma Kamiya joins: ranged damage with 4.0-tile range, but cannot block enemies.
+365	Exam Wraiths stop at a distance to attack. Frontline attacks cannot reach them; use ranged support.
+366	Place Yuma behind your frontline. His range covers the lane, and farther back is safer.
+367	Two characters cannot cover three lanes. Prioritize the lane under the most pressure.
+368	Exam Wraiths cannot be blocked in melee. Yuma attacks his own and adjacent lanes from behind.
+369	Vanguard
+370	Respite
+371	New enemy: Armored Echo. Extremely high DEF and 800 HP.
+372	High DEF greatly reduces physical damage. A single character struggles against an Armored Echo.
+373	Focus your fire: put frontline and ranged characters in the same lane.
+374	Armored Echoes move slowly (0.35 tiles/s). You can clear another lane first, then return.
+375	Carrying Too Much
+376	Armored Echoes have high DEF. Keep firing from behind while the frontline holds. Watch Mio's HP and redeployment cooldown.
+377	Warm-Up
+378	First Elite Battle
+379	Focus Fire Review
+380	There is no healer this stage. Minimize the time your frontline spends taking damage.
+381	The Invigilator is Chapter One's elite enemy. Its Gaze reduces the marked character's attack speed.
+382	Echoes approach the upper lane, too. Yuma in the middle can support adjacent lanes. Save his piercing arrow for dense groups.
+383	Below 40% HP, the Invigilator speeds up. Keep focus fire in the final phase; don't let enemies pile up at your line.
+384	Available characters: Mio Amamiya and Yuma Kamiya. No healer this stage.
+385	Invigilator: Gaze (every 10s, marks the nearest character for 5s, attack speed -25%); Time's Up (below 40% HP, movement +30%).
+386	The Invigilator's Gaze slows attacks, and it accelerates at low HP. Clear its escorts and choose an upgrade that fits your team.
+387	The Infirmary Light
+388	Yui heals across adjacent lanes. Anxiety fields slow attacks and skill recovery. Keep Yui behind Mio.
+389	Who Ranks Where
+390	Every 8s, Ranking Phantoms weaken the ally with the highest ATK in range. Rin manages resources; Yuma covers the side lanes.
+391	Words Unspoken
+392	Silence blocks only active skills. Sara's special damage counters armor, and her device can briefly hold a side lane.
+393	Perfect Copies
+394	Cheating Paper Dolls split once at low HP. Clear ranged enemies and Ranking Phantoms to prepare for the gym investigation.
+395	Three Lanes
+396	Click a character card below, then a battlefield tile to deploy.
+397	Enemies enter from the right and advance left along three lanes.
+398	All lanes share one Echo Anchor. If its HP reaches zero, you lose.
+399	Deployment costs AP. Recover 1 AP per second, up to 30.
+400	Frontline characters block enemies at their tile, forcing them to stop and fight.
+401	Ranged characters attack from behind the frontline, dealing damage within range.
+402	Healers prioritize wounded allies with the lowest HP percentage in range.
+403	Click a deployed character to retreat. Refunds 50% AP, with a 20s redeployment cooldown.

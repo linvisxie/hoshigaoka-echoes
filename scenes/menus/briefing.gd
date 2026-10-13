@@ -140,7 +140,7 @@ func _start() -> void:
 	else: _show_hint("阵容保存失败，请重试。")
 
 func _show_hint(message: String) -> void:
-	hint.text = message
+	hint.text = GameLocale.text(message)
 	hint_time = 2.5
 	hint.modulate.a = 1.0
 	hint.show()

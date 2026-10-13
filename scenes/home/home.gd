@@ -33,7 +33,7 @@ func _ready() -> void:
 	_approved = ArtRegistry.load_texture(APPROVED)
 	_clean = ArtRegistry.load_texture(CLEAN)
 	_textless = ArtRegistry.load_texture(TEXTLESS)
-	background.texture = _approved
+	background.texture = _textless if GameLocale.is_english() else _approved
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	(get_child(1) as ColorRect).color.a = 0.0
 	canvas.size = ART_SIZE
@@ -48,8 +48,8 @@ func _ready() -> void:
 		Rect2(756,364,169,71),Rect2(995,412,145,50),Rect2(1285,427,147,78),
 		Rect2(75,571,144,47),CARD]:
 		_image(_slice(_clean,rect),rect)
-	_image(_slice(_approved,Rect2(22,22,352,86)),Rect2(22,22,352,86))
-	_image(_slice(_approved,Rect2(1454,92,205,382)),Rect2(1454,92,205,382))
+	_image(_slice(_textless if GameLocale.is_english() else _approved,Rect2(22,22,352,86)),Rect2(22,22,352,86))
+	_image(_slice(_textless if GameLocale.is_english() else _approved,Rect2(1454,92,205,382)),Rect2(1454,92,205,382))
 	_art_button("设置",Rect2(1593,21,64,55),func() -> void: SceneRouter.go_to("settings"))
 	_art_button("角色培养",Rect2(1482,163,157,55),func() -> void: SceneRouter.go_to("character"))
 	_art_button("装备背包",Rect2(1482,224,157,55),func() -> void: SceneRouter.go_to("equipment"))
@@ -63,7 +63,7 @@ func _ready() -> void:
 	_art_button("调查公告板",Rect2(75,571,144,47),_toggle_investigation)
 	_art_button("与雨宫澪交谈",Rect2(244,452,120,348),func() -> void: _show_location("观测会活动室")).add_theme_stylebox_override("hover",StyleBoxEmpty.new())
 	_art_button("查看放课后观测记录",Rect2(6,325,199,243),_toggle_investigation).add_theme_stylebox_override("hover",StyleBoxEmpty.new())
-	if _has_unread("保健室"):
+	if _has_unread("保健室") and not GameLocale.is_english():
 		_image(_slice(_approved,Rect2(1285,470,147,35)),Rect2(1285,470,147,35))
 	_legacy_resource("school_coin","icon_school_coin",Rect2(1339,29,119,38))
 	_legacy_resource("equipment_part","icon_material",Rect2(1470,29,119,38))
@@ -112,7 +112,7 @@ func _image(texture: Texture2D,rect: Rect2,parent: Control = null) -> TextureRec
 
 func _art_button(caption: String,rect: Rect2,action: Callable,parent: Control = null) -> CampusArtButton:
 	var button := CampusArtButton.new()
-	button.configure(caption,preload("res://assets/art/ui/campus_settings.svg") if caption == "设置" else _slice(_approved,rect),action)
+	button.configure(caption,preload("res://assets/art/ui/campus_settings.svg") if caption == "设置" else _slice(_textless if GameLocale.is_english() else _approved,rect),action)
 	button.position = rect.position
 	button.size = rect.size
 	(parent if parent != null else canvas).add_child(button)
@@ -144,7 +144,7 @@ func _build_investigation() -> void:
 	investigation.size = CARD.size
 	investigation.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(investigation)
-	_image(_slice(_approved,CARD),Rect2(Vector2.ZERO,CARD.size),investigation)
+	_image(_slice(_textless if GameLocale.is_english() else _approved,CARD),Rect2(Vector2.ZERO,CARD.size),investigation)
 	var clue := _investigation_clue(sid)
 	investigation_state["clue"] = clue
 	_image(_slice(_textless,Rect2(1378,703,251,109)),Rect2(158,8,251,109),investigation)
@@ -153,20 +153,28 @@ func _build_investigation() -> void:
 	_card_label(clue,Rect2(163,67,238,49),15,WHITE)
 	var action := _art_button("调查卡：继续调查",Rect2(1384,817,201,38),_continue_investigation,investigation)
 	action.position -= CARD.position
-	action.tooltip_text = "重访已开放关卡" if sid.is_empty() else "前往 "+sid+" · "+str(investigation_state.title)
-	art_buttons["继续调查"].tooltip_text = action.tooltip_text
-	_text_patch(Rect2(1444,821,86,26),"继续调查",18,WHITE,investigation,CARD.position)
+	action.tooltip_text = GameLocale.text("重访已开放关卡" if sid.is_empty() else "前往 "+sid+" · "+str(investigation_state.title))
+	art_buttons["继续调查"].tooltip_text = GameLocale.text(action.tooltip_text)
+	_text_patch(Rect2(1410,821,146,26) if GameLocale.is_english() else Rect2(1444,821,86,26),"Continue" if GameLocale.is_english() else "继续调查",18,WHITE,investigation,CARD.position)
 
 func _native_text(value: String,rect: Rect2,font_size: int,color: Color,parent: Control) -> Label:
 	var label := Label.new()
-	label.text = value
+	label.text = GameLocale.text(value)
 	label.position = rect.position
 	label.size = rect.size
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_override("font",GameSkin.serif())
 	label.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	label.add_theme_font_size_override("font_size",font_size)
+	if GameLocale.is_english():
+		var fitted := font_size
+		while fitted>11 and GameSkin.serif().get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,fitted).x>rect.size.x:
+			fitted -= 1
+		label.add_theme_font_size_override("font_size",fitted)
 	label.add_theme_color_override("font_color",color)
+	if GameLocale.is_english():
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.clip_text = true
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(label)
 	return label
@@ -177,6 +185,9 @@ func _text_patch(rect: Rect2,value: String,font_size: int,color: Color = WHITE,p
 	return _native_text(value,Rect2(rect.position-origin,rect.size),font_size,color,owner)
 
 func _build_crisp_text() -> void:
+	if GameLocale.is_english():
+		_build_english_text()
+		return
 	# Keep the original painted sign glyphs, spacing and positions. Handbook
 	# captions share one native font so inventory matches the other three.
 	for rect: Rect2 in [Rect2(121,37,229,40),Rect2(124,77,180,24),
@@ -195,6 +206,33 @@ func _build_crisp_text() -> void:
 		var icon := _image(_slice(_approved,Rect2(1493,source_y,31,33)),Rect2(1493,center-16.5,31,33))
 		icon.name = "HandbookIcon%d"%index
 		_text_patch(Rect2(1540,center-15,91,30),str(entry[0]),19).set_meta("handbook_caption",true)
+
+func _build_english_text() -> void:
+	# Use the existing textless plate only in English; Chinese keeps approved art.
+	var captions := [
+		["Hoshigaoka High School",Rect2(121,37,229,40),22],
+		["After School · Campus",Rect2(124,77,220,24),16],
+		["Handbook",Rect2(1528,118,102,31),20],
+		["Continue",Rect2(1535,417,95,31),19],
+		["Classrooms",Rect2(621,277,92,40),18],
+		["Observation Club",Rect2(418,345,135,44),18],
+		["Mio is here",Rect2(426,388,120,23),15],
+		["Campus Stroll",Rect2(802,369,110,39),18],
+		["Explore other areas",Rect2(783,408,130,23),14],
+		["Kyudo",Rect2(1042,416,85,40),20],
+		["Infirmary",Rect2(1326,431,85,40),19],
+		["Case Board",Rect2(117,576,87,35),16],
+		["Listen for the voices still unheard.",Rect2(77,870,344,31),19],
+		["After-School Records",Rect2(30,344,167,38),16],
+	]
+	if _has_unread("保健室"): captions.append(["New conversation",Rect2(1341,474,85,23),12])
+	for entry: Array in captions:
+		var label := _native_text(str(entry[0]),entry[1],int(entry[2]),GOLD if entry[1].position.y>570 else WHITE,canvas)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	for i: int in range(4):
+		var center := 188.0+60.0*i
+		var caption: String = ["Growth","Equipment","Stage Records","Story Archive"][i]
+		_native_text(caption,Rect2(1534,center-15,104,30),17,WHITE,canvas).set_meta("handbook_caption",true)
 
 func _process(delta: float) -> void:
 	if not is_instance_valid(resource_tip): return
@@ -226,7 +264,7 @@ func _glyph_patch(rect: Rect2) -> void:
 
 func _card_label(value: String,rect: Rect2,font_size: int,color: Color) -> void:
 	var label := Label.new()
-	label.text = value
+	label.text = GameLocale.text(value)
 	label.add_theme_font_size_override("font_size",font_size)
 	label.add_theme_color_override("font_color",color)
 	label.add_theme_font_override("font",GameSkin.serif())

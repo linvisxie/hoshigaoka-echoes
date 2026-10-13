@@ -5,7 +5,7 @@ var _hover_motion: Tween
 
 func configure(caption: String, artwork: Texture2D, action: Callable) -> void:
 	text = caption
-	tooltip_text = caption
+	tooltip_text = GameLocale.text(caption)
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	for state: String in ["normal", "hover", "pressed", "disabled"]:
 		var skin := StyleBoxTexture.new()

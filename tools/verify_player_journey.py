@@ -7,9 +7,13 @@ p=argparse.ArgumentParser()
 p.add_argument('--exe',type=Path,required=True)
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--seed-save',type=Path,required=True)
+p.add_argument('--locale',choices=['zh','en'],default='zh')
 a=p.parse_args();out=a.output.resolve();assert '_testenv' in out.parts
 folder=out/'appdata/HoshigaokaEchoes';(folder/'save').mkdir(parents=True,exist_ok=True)
 save=folder/'save/savegame.json';shutil.copy2(a.seed_save,save)
+if a.locale=='en':
+    (folder/'settings').mkdir(parents=True,exist_ok=True)
+    (folder/'settings/settings.cfg').write_text('[language]\nlocale="en"\n',encoding='utf8')
 probe_file=folder/'art_probe/latest.json'
 if probe_file.exists():probe_file.unlink()
 checks=[];samples=[];proc=None;error=None
@@ -70,7 +74,13 @@ with (out/'game.log').open('w',encoding='utf8') as log:
         def quit_from_campus():
             key(27);time.sleep(.4);click(836,617,(1672,941));time.sleep(.4);click(991,562,(1672,941))
             proc.wait(timeout=10);check(proc.returncode==0,'Normal confirmed in-game exit')
-        time.sleep(2);key(13);time.sleep(.8)
+        def wait_title(previous_count=0):
+            deadline=time.monotonic()+20
+            while time.monotonic()<deadline:
+                if (out/'game.log').read_text(encoding='utf8',errors='replace').count('标题画面就绪')>previous_count:return
+                time.sleep(.1)
+            raise AssertionError('Title screen did not become ready before input')
+        wait_title();key(13);time.sleep(.8)
         # Spend only actually earned resources through visible controls.
         before=data();click(1565,190,(1672,941));time.sleep(.7);shot('old_cultivation')
         click(1355,827);time.sleep(.3);click(960,895);time.sleep(.7)
@@ -120,13 +130,14 @@ with (out/'game.log').open('w',encoding='utf8') as log:
         check(data()['flow_state'].get('pending_story_after')==pending,'Losing a replay preserves the previously earned unread after-story')
         shot('campus_pending_story');quit_from_campus()
         # A new owned process must resume the same disk progress and story.
+        previous_titles=(out/'game.log').read_text(encoding='utf8',errors='replace').count('标题画面就绪')
         proc=subprocess.Popen([str(a.exe),'--resolution','1280x720','--position','30,30'],env=dict(os.environ,APPDATA=str(out/'appdata')),stdout=log,stderr=subprocess.STDOUT)
         hwnd=None
         for _ in range(100):
             hwnd=win.find_window({proc.pid})
             if hwnd:break
             time.sleep(.1)
-        check(hwnd is not None,'Restarted owned Retail window available');time.sleep(1);key(13);time.sleep(.7);shot('restart_campus')
+        check(hwnd is not None,'Restarted owned Retail window available');wait_title(previous_titles);key(13);time.sleep(.7);shot('restart_campus')
         check(data()['currencies']==paid['currencies'] and data()['stages']==paid['stages'],'Exit and restart preserve settled rewards exactly once')
         check(data()['flow_state'].get('pending_story_after')==pending,'Restart preserves required story')
         click(1545,435,(1672,941));time.sleep(.7)
@@ -143,6 +154,6 @@ with (out/'game.log').open('w',encoding='utf8') as log:
         error=str(exc);print('FAILED:',error,flush=True)
     finally:
         if proc and proc.poll() is None:proc.terminate();proc.wait(timeout=10)
-report=dict(ok=error is None,error=error,type='Final Retail EXE; actual Windows input; normal clock; earned old-save copy then new campaign',checks=checks,samples=samples,exeSha256=sha(a.exe),pckSha256=sha(a.exe.with_suffix('.pck')),sourceSaveSha256=sha(a.seed_save))
+report=dict(ok=error is None,error=error,locale=a.locale,type='Final Retail EXE; actual Windows input; normal clock; earned old-save copy then new campaign',checks=checks,samples=samples,exeSha256=sha(a.exe),pckSha256=sha(a.exe.with_suffix('.pck')),sourceSaveSha256=sha(a.seed_save))
 (out/'journey_report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf8')
 raise SystemExit(0 if error is None else 1)

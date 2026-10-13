@@ -441,7 +441,7 @@ func _build_native_page() -> void:
 		var y := 205+int(i/4)*244
 		var card := _native_page.button_at("",Rect2(x,y,425,225),func() -> void: _activate(i))
 		card.disabled = bool(spec.disabled)
-		card.tooltip_text = str(spec.disabledNote) if card.disabled else "查看关卡情报与出战确认"
+		card.tooltip_text = GameLocale.text(str(spec.disabledNote) if card.disabled else "查看关卡情报与出战确认")
 		card.mouse_entered.connect(func() -> void: _set_selected(i))
 		_stage_buttons.append(card)
 		var image := _native_page.texture_at(ArtRegistry.stage_background(sid),Rect2(x+8,y+8,409,115))
@@ -671,9 +671,9 @@ func _draw_text_outlined(font: Font, pos: Vector2, text: String, fs: int, col: C
 		for dy: float in [-o, 0.0, o]:
 			if is_zero_approx(dx) and is_zero_approx(dy):
 				continue
-			draw_string(font, pos + Vector2(dx, dy), text,
+			draw_string(font, pos + Vector2(dx, dy), GameLocale.text(text),
 				HORIZONTAL_ALIGNMENT_LEFT, -1, fs, OUTLINE)
-	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+	draw_string(font, pos, GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
 
 
 func _draw_header(font: Font) -> void:
@@ -684,7 +684,7 @@ func _draw_header(font: Font) -> void:
 	var en_size := int(_px(HEADER_EN_SIZE))
 	for i: int in range(en.length()):
 		var ch := en.substr(i, 1)
-		var cw := font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
+		var cw := font.get_string_size(GameLocale.text(ch), HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
 		_draw_text_outlined(font, Vector2(ex, _px(HEADER_EN_Y)), ch, en_size, ACCENT)
 		ex += cw + _px(8.0)
 
@@ -705,7 +705,7 @@ func _draw_hint(font: Font) -> void:
 	var text := _feedback if _feedback_timer > 0.0 else "↑ ↓ 选择　Enter / Space 确认　Esc 返回标题　鼠标可直接点击"
 	var col := _feedback_color if _feedback_timer > 0.0 else Color(0.58, 0.64, 0.78)
 	var size := int(_px(HINT_SIZE))
-	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	var w := font.get_string_size(GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	_draw_text_outlined(font, Vector2((_viewport.x - w) * 0.5, _viewport.y - _px(HINT_Y)),
 		text, size, col)
 

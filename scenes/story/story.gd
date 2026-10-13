@@ -52,6 +52,9 @@ func _ready() -> void:
 	dialogue.position = Vector2(368, 822)
 	dialogue.size = Vector2(1410, 125)
 	dialogue.add_theme_font_size_override("normal_font_size", 34)
+	if GameLocale.is_english():
+		dialogue.add_theme_font_size_override("normal_font_size",28)
+		dialogue.size.y = 112
 	dialogue.add_theme_font_override("normal_font",GameSkin.body_font())
 	dialogue.add_theme_color_override("default_color", WHITE)
 	dialogue.scroll_active = false
@@ -61,7 +64,7 @@ func _ready() -> void:
 	button_at("历史", Rect2(80, 1010, 150, 50), _show_history)
 	auto_button = button_at("自动", Rect2(250, 1010, 150, 50), func() -> void:
 		auto = not auto
-		auto_button.text = "自动 ●" if auto else "自动"
+		auto_button.text = GameLocale.text("自动 ●" if auto else "自动")
 		GameSkin.style_button(auto_button,auto))
 	button_at("菜单", Rect2(420, 1010, 150, 50), _show_menu)
 	next_button = button_at("下一句  ▸", Rect2(1510, 936, 290, 50), advance)
@@ -74,7 +77,7 @@ func _process(delta: float) -> void:
 	if dialogue == null or (menu_panel != null and menu_panel.visible) or (history_panel != null and history_panel.visible):
 		return
 	if dialogue.visible_ratio < 1.0:
-		next_button.text = "显示全文  ▸"
+		next_button.text = GameLocale.text("显示全文  ▸")
 		if reading_pause > 0:
 			reading_pause = maxf(0,reading_pause-delta)
 			return
@@ -83,11 +86,11 @@ func _process(delta: float) -> void:
 		var text := dialogue.get_parsed_text()
 		for at: int in range(maxi(0,previous),mini(dialogue.visible_characters,text.length())):
 			var letter := text.substr(at,1)
-			if "。！？…".contains(letter): reading_pause = maxf(reading_pause,.22)
-			elif "，、；：".contains(letter): reading_pause = maxf(reading_pause,.10)
+			if "。！？….!?".contains(letter): reading_pause = maxf(reading_pause,.22)
+			elif "，、；：,;:".contains(letter): reading_pause = maxf(reading_pause,.10)
 		auto_timer = 0
 	else:
-		next_button.text = "下一句  ▸"
+		next_button.text = GameLocale.text("下一句  ▸")
 	if dialogue.visible_ratio >= 1.0 and auto and not save_failed:
 		auto_timer += delta
 		if auto_timer > 2.5:
@@ -99,15 +102,15 @@ func _show_node() -> void:
 		return
 	var node: Dictionary = nodes[index]
 	var cid := str(node.get("character", ""))
-	speaker.text = str(node.get("speaker", "")).replace("{player}", str(SaveService.get_current().get("profile", {}).get("playerName", "转校生")))
-	dialogue.text = str(node.get("text", "")).replace("{player}", str(SaveService.get_current().get("profile", {}).get("playerName", "转校生")))
+	speaker.text = GameLocale.text(str(node.get("speaker", ""))).replace("{player}", str(SaveService.get_current().get("profile", {}).get("playerName", "转校生")))
+	dialogue.text = GameLocale.text(str(node.get("text", ""))).replace("{player}", str(SaveService.get_current().get("profile", {}).get("playerName", "转校生")))
 	dialogue.visible_ratio = 0.0
 	reading_pause = 0.0
 	portrait.texture = ArtRegistry.character_portrait(cid, 256) if not cid.is_empty() else null
 	portrait.visible = portrait.texture != null
 	portrait_frame.visible = portrait.visible
 	if speaker.text.is_empty():
-		speaker.text = "观测记录"
+		speaker.text = GameLocale.text("观测记录")
 	name_plate.position.x = 356 if portrait.visible else 110
 	speaker.position.x = name_plate.position.x + 20
 	dialogue.position.x = 368 if portrait.visible else 122
@@ -118,7 +121,7 @@ func _show_node() -> void:
 		set_background(str(node["background"]))
 	if node.has("sound"):
 		AudioService.play_sfx(str(node["sound"]))
-	page.text = "%d / %d    Enter · 下一句" % [index + 1, nodes.size()]
+	page.text = GameLocale.text("%d / %d    Enter · 下一句" % [index + 1, nodes.size()])
 	history.append("%s：%s" % [speaker.text, dialogue.text])
 	if not replay and not CampaignFlow.record_node(story_id, index):
 		save_failed = true
@@ -151,14 +154,14 @@ func _show_history() -> void:
 	if history_panel != null:
 		for child: Node in history_panel.get_children():
 			if child is RichTextLabel:
-				child.text = "\n\n".join(history)
+				child.text = GameLocale.text("\n\n".join(history))
 		history_panel.visible = true
 		return
 	history_panel = modal_panel(Rect2(240, 160, 1440, 790))
 	var log_view := RichTextLabel.new()
 	log_view.position = Vector2(35, 35)
 	log_view.size = Vector2(1370, 640)
-	log_view.text = "\n\n".join(history)
+	log_view.text = GameLocale.text("\n\n".join(history))
 	log_view.add_theme_font_size_override("normal_font_size", 29)
 	history_panel.add_child(log_view)
 	var close := button_at("关闭历史", Rect2(1370, 860, 260, 60), func() -> void: history_panel.hide())

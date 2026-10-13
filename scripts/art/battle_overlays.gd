@@ -84,11 +84,11 @@ func _build_offer(viewport: Vector2, factor: float) -> void:
 		var maximum := int(view.get("maxStacks",1))
 		var stack := "不可叠加" if maximum<=1 else "叠加 %d / %d" % [int(view.get("stacks",0)),maximum]
 		text(card,"%s · %s" % [battle._upgrade_target_text(view),stack],Rect2(20,408,rect.size.x-40,36),21,GameSkin.BLUE,true)
-		card.tooltip_text = "点击或按 %d 选择，立即生效。" % (i+1)
+		card.tooltip_text = GameLocale.text("点击或按 %d 选择，立即生效。" % (i+1))
 	var rerolls := int(battle.session.stage.pending_offer.get("rerollsRemaining",0))
 	var reroll: Button = hud._button(layer,"重掷（R） · %d" % rerolls,unscale(battle._upgrade_reroll_rect,factor),func() -> void: battle._reroll_upgrade())
 	reroll.disabled = rerolls<=0
-	reroll.tooltip_text = "本次剩余重掷次数：%d" % rerolls
+	reroll.tooltip_text = GameLocale.text("本次剩余重掷次数：%d" % rerolls)
 	hud._button(layer,"跳过（S）",unscale(battle._upgrade_skip_rect,factor),func() -> void: battle._skip_upgrade())
 	var gained: Array = battle.session.stage.upgrade_summary()
 	var names: Array[String] = []

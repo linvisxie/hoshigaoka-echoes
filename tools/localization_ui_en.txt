@@ -1,0 +1,519 @@
+2	Team
+3	Frontline
+4	Ranged
+5	Healer
+6	Battlefield
+7	Frozen
+8	First
+11	Stage '%s' unavailable; returning to '%s'
+12	Stage configuration not found: %s
+14	enemies.json is empty or unavailable
+15	Invalid BattleGrid: %s
+16	Session setup failed: %s
+17	%s HP%d/ATK%d/DEF%d
+23	Cleared
+24	Not cleared
+27	Choose an upgrade (click a card or press 1/2/3)
+29	Retreat refund +15%
+30	Refund amount increased by 15%
+31	Refund rate +15 percentage points
+32	Refund rate +%d%%
+33	ATK +%d%%
+34	DEF +%d%%
+35	Healing +%d%%
+36	Natural AP recovery +%d%%
+39	Upgrade acquired: %s (%s)%s
+40	 Stack %d
+42	This upgrade is unavailable (check remaining uses)
+43	Rerolled: 3 new options (%d rerolls left)
+45	No rerolls remaining
+46	No extra reward
+47	Upgrade skipped (no extra reward)
+49	Cannot skip now
+50	Choose an upgrade first (click a card or press 1/2/3)
+52	ECHO UPGRADES
+53	Choose one and make the echoes your strength · This run only
+54	First upgrade · Takes effect immediately and expires after this stage
+55	First time
+56	Tutorial
+57	Rerolls left: %d
+58	Reroll (R)
+59	Skip (S)
+60	Echo Upgrade
+61	Common
+62	Advanced
+63	Core
+64	Upgrade
+65	Does not stack
+66	Stacks %d/%d
+67	Target: %s   Stacks: %s
+68	Takes effect on click
+69	Click to choose
+70	Used up
+71	None
+72	Upgrades This Run
+73	None yet — this is your first upgrade
+74	Battle ended: %s
+75	Gaze slows nearby allies' attacks. At low HP, this enemy speeds up. Save a skill for the final push.
+76	Moves very quickly. Deal with it early.
+77	Extremely high DEF resists physical damage. Block it with your frontline and keep attacking.
+78	Basic enemy with no special ability. Practice blocking and damage timing.
+79	High-DEF enemy. Watch your damage output.
+80	Moves quickly. Watch empty lanes.
+81	Watch its approach lane.
+82	Freeze
+83	Debug details: %s
+84	On
+85	Off
+88	Resume
+89	Paused (Space to resume)
+90	Resumed
+91	Paused: press Space to resume first
+92	Selection cleared
+93	Selected %s · Q Skill / R Retreat
+94	Selected %s (%s, %d AP) — click a valid tile to deploy; right-click/Esc to cancel
+95	Cancel selection
+96	Dispatch
+97	Unknown
+98	Select a deployed character before retreating
+99	This character
+100	%s retreated: %d AP refunded, %.0fs redeployment cooldown
+102	Retreat failed: %s
+103	Paused: click Resume or press Space
+104	Experimental device placed
+105	Choose an empty tile
+106	Selected %s — click Retreat or press R
+107	Click a deployment tile inside the battlefield
+108	Deployed: %s (-%d AP)
+110	Deployment failed: %s
+121	Correction Zone · %.1fs
+122	Reinforcements · %.1fs
+123	Device %.1fs
+127	Gaze %.1fs
+128	Time's Up · Invigilator accelerates
+129	Elite Echo · Invigilator arrives
+130	Defense Collapsed
+131	Last Defense
+132	Echo Anchor
+133	Blocking %d/%d
+151	Selected
+153	Echoes x%d
+154	Rushing
+156	Elite · Invigilator
+157	Ranged · Exam Wraith
+158	Rushing
+159	Armored
+160	Echo
+167	Resonator ready
+170	Anchor
+171	New enemy · %s
+172	Support 
+173	This lane 
+174	%.1f tiles
+175	Deployed
+176	Redeploy %.1fs
+177	Click to deploy
+178	Not enough AP
+179	Choose a tile
+180	%s  Tile %d
+181	ATK %d  DEF %d  Block %d/%d
+182	Retreat: %d AP refund, %.0fs cooldown
+183	No active skill
+184	Ready
+185	Charged · Fires on next hit
+186	Active %.1fs
+187	Cooldown %.1fs
+188	Use Skill (Q)
+189	Retreat (R)
+190	Experimental device · Click an empty tile; right-click to cancel
+191	Cannot use this skill now
+192	Emergency Dispatch · AP restored to %d / %d
+193	Skill activated · 
+194	Echo Resonance
+195	Awaiting enemies
+196	Final wave · Defeat all Echoes
+197	Next wave  %s · %d enemies
+198	Press
+199	Pause
+200	Defense
+201	Prototype Stage — Three roles, three Echo types
+202	Campus Investigation
+203	PAUSED
+204	Press Space or click Resume to continue
+205	Battle time stops while paused
+206	AP %d / %d    Echo Anchor %d / %d    Wave %d / %d
+207	Echoes Quieted
+208	Anchor Lost
+209	Everyone evacuated. Record saved.
+210	Investigation record saved
+211	Core Defense
+212	Echoes Defeated
+213	Enemies Leaked
+214	Allies Incapacitated
+215	Battle Time
+216	Waves Completed
+217	Rewards
+218	Regroup
+219	Defeat does not deduct existing resources
+220	No rewards this attempt
+221	Run Build
+222	No upgrades acquired this run
+223	Try Again
+224	Back to Stage
+225	Continue Story
+226	Back to Campus
+227	Enemies that breached the line: %s
+228	No enemies breached the line
+229	Most pressured lane: %s (%d total enemy HP)
+230	Several lanes were breached. Watch Next Wave and leave time to rotate ranged support.
+231	Only one lane was breached. Deploy there early and watch retreat cooldowns before rotating.
+232	No voluntary retreats this run. Retreat and redeploy to move ranged support between lanes.
+233	%d allies were incapacitated. Retreat under pressure and save AP and time to redeploy.
+234	Healers keep the frontline alive. Watch their position and healing range.
+235	Total healing: %d HP
+236	Watch frontline HP. Save AP and allow time for retreat cooldowns when rotating.
+237	You rotated with %d voluntary retreats — a key tactic for this stage.
+238	Stage: %s      Render scale: %.3f (design canvas %dx%d)
+239	State: %s%s%s
+240	 (frozen)
+241	 (paused)
+242	Core HP: %d / %d      Leak events: %d
+243	AP: %d / %d (regen %.0f/s)      Allies: %d      Kills: %d
+244	Wave %d / %d      Spawned: %d / %d      Alive: %d
+245	Time: %.2fs      Tile: %.0fpx      Lane spacing: %.0fpx
+246	Lanes: 0=Upper / 1=Middle / 2=Lower; column 0=Core, column 5=Entrance
+248	Stage settlement failed: %s
+249	Settlement error: %s
+250	No rewards issued (%s)
+251	%s reward: %s
+252	First clear
+253	Settlement
+254	Core hit! %s breached the line (-%d)
+255	Wave %d / %d begins
+256	Observation Club
+257	Classroom Building
+258	Archery Range
+259	Infirmary
+260	Settings
+261	Character Growth
+262	Equipment Bag
+263	Stage Records
+264	Story Archive
+265	Continue Investigation
+266	Campus Stroll
+267	Investigation Board
+268	Talk to Mio Amamiya
+269	View After-School Records
+270	Chapter One Archived
+271	Current Investigation · 
+272	Chapter One · Archived
+273	Investigation card: Continue
+274	Revisit unlocked stages
+275	Go to 
+276	In the classroom after school, an unfamiliar echo refuses to fade.
+277	A figure at the corridor's end still waits for a bell that never rang.
+278	On a blank exam paper, corrections appear in nobody's handwriting.
+279	The worries tucked quietly into a schoolbag grow heavier.
+280	After the bell falls silent, someone is still taking attendance in the gym.
+281	The infirmary light shines for wounds not yet spoken of.
+282	Names on the ranking list are erasing other voices.
+283	Some answers hide in experiment records that cannot speak.
+284	Between perfect papers, the same breath repeats.
+285	This time, hear the voice without a name.
+286	Ten investigations are archived in your handbook.\nRevisit any unlocked stage.
+287	Investigation board: 
+288	Expand
+289	Collapse
+290	Open location: 
+291	Back to Campus  Esc
+292	Unlocked locations · New after-school records appear as your investigation progresses
+293	Other areas are not open yet.\nContinue investigating to discover new places here.
+294	%d records
+295	No records available yet
+296	 · New
+297	Conversations and campus records · Reading costs no resources and does not replace main investigations
+298	Revisit Record
+299	New Conversation
+300	New Record
+301	No new records here yet.\nInvestigate further, then return for more after-school voices.
+302	View current investigation
+303	Open campus menu
+304	Campus Menu
+305	Progress saved automatically.
+306	Stay on Campus
+307	Back to Title
+308	Exit Game
+309	Open exit confirmation
+310	End today's observations?
+311	Saved investigations and character growth will be kept.
+312	Cancel
+313	Read records / Collected in story order · Replays do not grant rewards again
+314	Prologue · Transfer Day
+315	Prologue
+316	Prologue · 
+317	Chapter One · Echoes of a New Term / %d read
+318	Campus Notes · Conversations and observations you've read
+319	Back to Growth
+320	Stage Intel
+321	The echo hour approaches / Confirm deployment
+322	Observation Record
+323	Protect the core and defeat all Echoes.
+324	Echoes\n%s
+325	Defense %d   /   Starting AP %d   /   3 lanes
+326	Stage Roster
+327	Click to select or deselect · Drag portraits to reorder
+328	Back to Stage Records
+329	Start Battle   →
+330	Select at least one character before starting.
+331	Could not save your roster. Please try again.
+332	Character
+333	Combat Record
+334	Deploy %d AP    /    Redeploy %.0fs\n
+335	Attack interval %.1fs    /    Block %d\n
+336	Deploy %d AP    /    Redeploy %.0fs\nTeam resource support · No basic attack or blocking\n
+337	\nActive Skill\n
+338	%s    Cooldown %.0fs\n%s\n
+339	\nTalent\n
+340	 · Equipment
+341	One weapon, accessory and campus memento each · Enhancement levels are kept when swapping
+342	Equipment Loadout
+343	Empty · Choose equipment from your bag
+344	Equipment
+345	Warning
+346	Not enough
+347	Active
+350	Level Up
+351	Ascend
+353	Skills & Talents
+354	Character Equipment
+355	‹ Previous
+356	Next ›
+359	Growth system unavailable: check character_growth.json
+364	Selected %s
+368	Not enough %s (need %d books)
+369	Choose an amount first (1 / 5 / Max)
+370	Level cap reached. Ascend first.
+371	Not enough %s
+372	Cannot ascend: %s
+373	Requirements not met
+374	Unavailable
+375	Growth system unavailable
+376	Preview: use %d %s
+377	Study Record type: %s
+378	Level-up failed: %s
+380	Level increased but save failed (check your disk)
+381	 (%d EXP returned at the level cap)
+382	%s reached Lv.%d, gained %d levels%s
+384	Ascension failed: %s
+385	Ascended but save failed (check your disk)
+386	%s completed Ascension %d (level cap Lv.%d)
+388	Growth system unavailable. Check data/character_growth.json.
+389	Growth · Levels & Ascension    /    Equipment · Stats & Enhancement
+390	Ascension %d
+391	Study Record Inventory
+392	Owned %d · %d EXP/book
+393	Level cap Lv.%d
+394	Ascension %d
+395	  ·  Next requires Lv.%d
+396	EXP  %s
+397	Max level
+398	Preview -> Lv.%d
+399	Study Record: %s (click to change)
+400	Use All
+401	Use %d
+402	Level Up (select amount)
+403	Level Up (use %d)
+404	No more needed
+405	Ascension Milestones
+406	(Ascension data missing)
+410	All ascensions completed
+411	Ascension %d requires:
+412	Current Stats
+415	HP
+416	ATK
+417	DEF
+418	Healing Power
+419	School Coins %d    /    Equipment Parts %d    /    Unclaimed Equipment %d
+420	Owned Equipment
+421	Not obtained
+422	 · Unequipped
+423	Claim All Equipment Rewards
+424	Claim equipment earned from stage clears here.
+425	Claim all earned equipment rewards.
+426	  /  Fixed Affixes\n
+427	Attack Speed
+428	Cooldown Recovery
+429	Equipped: %s
+430	Unequipped
+431	Equip on
+432	Already equipped on this character
+433	Replaces equipment in the same slot. The old item stays in your bag with its enhancement level.
+434	Chapter memento · Cannot enhance or dismantle
+435	Next enhancement: %d Coins · %d Parts
+436	Enhance +1
+437	Enhancement cap reached
+438	Not enough School Coins or Equipment Parts. Earn more from stage rewards.
+439	Spend the resources shown above to improve equipment stats.
+440	Unequip
+441	Reset / Dismantle
+442	Chapter mementos are kept permanently
+443	View enhancement reset and dismantling options
+444	Equipment Details
+445	Your equipment bag is empty
+446	Investigation rewards are waiting.\nClick Claim All Equipment Rewards below to view their stats.
+447	Earn equipment by completing investigations and claim it below.\nWeapons, accessories and campus mementos use separate slots.\nEach character can equip one of each type.
+448	Back to Character
+449	Claimed %d items
+450	Claim failed. Check your save.
+451	Reset: keep the item and refund 80% of total enhancement costs.\nDismantle: permanently destroy the item for base parts only.\nDismantling forfeits enhancement costs.
+452	Reset Enhancement Only
+453	Dismantle Directly
+454	Transfer to Hoshigaoka
+455	Your Name
+456	Enter a name
+457	This name will appear in dialogue.
+458	Back
+459	Begin New Term   →
+460	Please enter a name first.
+461	You have existing progress. Click Begin New Term again to replace it, or go back to cancel.
+462	Could not save the new game. Check your disk.
+463	Audio, display & language / Changes take effect immediately
+464	Master Volume
+465	Music
+466	Sound Effects
+467	Display Mode
+468	Fullscreen
+469	Windowed
+470	Text Speed
+471	%.0f chars/s
+472	Settings are kept for your next session.
+473	Save & Return
+474	Could not save settings (error %d)
+475	Alpha Preview · Not unlocked through the story
+476	Invalid stage ID
+477	Clear %d-%d first
+478	Stage %s
+483	Chapter One · Echoes of a New Term
+484	Investigation records / Select a location for intel and roster
+485	View stage intel and confirm deployment
+486	✓ Investigation Complete
+487	Investigate  →
+488	Mouse: select · Arrows: navigate · Enter: confirm · Esc: back
+489	Stage %s is locked: %s
+490	Stage %s is locked
+492	Stage %s configuration missing; cannot enter
+494	Battle scene missing; cannot enter
+498	Could not enter battle
+499	Could not return to title
+500	Stage Select
+501	No stages available in this chapter yet
+504	↑ ↓ Select   Enter / Space Confirm   Esc Back to Title   Click to select
+505	History
+506	Auto
+507	Auto ●
+508	Menu
+509	Next  ▸
+510	Show All  ▸
+511	Transfer Student
+512	%d / %d    Enter · Next
+513	Could not save story progress. Check your disk before continuing.
+514	Story settlement save failed. Progress has not advanced.
+515	Close History
+516	Story progress saved automatically
+517	Continue Reading
+518	Hoshigaoka Echoes
+519	— The voices lost in summer nights
+520	Even if the world forgets,
+521	the voices here will leave an echo.
+522	Not implemented
+523	Continue
+524	New Game
+527	No save yet
+528	%s is not available yet
+531	No valid save found. Please start a new game.
+536	Leave Hoshigaoka for now?
+537	Your saved observation records will be kept.
+538	Stay Here
+539	Hoshigaoka Private High School
+540	Ver %s · Windows · Chapter One
+541	↑ ↓ Select     Enter Confirm
+546	Ⅱ  Pause
+547	Pause battle · Space\nView controls, adjust volume or end this investigation.
+548	%s · %s\nDeployment: %d AP\nClick a deployed character card for skills and retreat.
+549	Use Skill  Q
+550	Retreat  R
+551	Retreat refunds part of the deployment cost and starts redeployment cooldown.
+552	A Moment's Rest
+553	Characters, Echoes and skill cooldowns are paused
+554	Resume   Space
+555	Retry Investigation
+556	Restart this stage with your current roster. Unsettled rewards are not granted.
+557	Controls & Volume
+558	End Investigation
+559	Unsettled rewards from this attempt will not be granted.
+560	Field Handbook
+561	1 / 2  Select a card · Click a tile to deploy\nClick an ally or their card · Q Skill · R Retreat\nRight-click / Esc Cancel · Space Pause / Resume\nHover to inspect ranges, costs and cooldowns.
+562	Volume applied, but settings could not be saved.
+563	Leave this investigation?
+564	Character growth and claimed rewards will be kept.\nUnsettled battle progress and rewards will not be saved.
+565	Classroom · First Anchor
+566	Classroom · Stair Landing
+567	Classroom · Test Room
+568	Classroom · Strange Corridor
+569	Old Gym · Gathering Echoes
+570	Infirmary · Unfading Light
+571	Ranking Board · Echoes of Comparison
+572	Science Building · Silent Frequency
+573	Old Archive · Blank Names
+574	Gym · Core Echo
+575	Defense  
+576	BOSS · Nameless Honor Student / Phase %d
+577	Nameless Honor Student · Three-phase Core Echo
+578	Next wave %02d · %s
+579	Deployment energy full
+580	Auto recovery  +%.1f / s
+581	Threat Intel / 
+582	Observation / FIELD GUIDE
+583	Choose an empty tile for the device · Right-click to cancel
+584	Click a glowing tile to deploy · Right-click to cancel
+585	%s skill ready · Select character, then press Q
+586	Click an ally to inspect skills · R Retreat and rotate
+587	Select a character card · Click a tile to deploy
+588	Resource Support
+589	Research
+590	Tempo Support
+591	Basic attack: %.2f tiles ahead in this lane · Block %d
+592	Team AP recovery +15% · No basic attack or blocking
+593	Attack: %.1f tiles this lane / %.1f adjacent · Block %d
+594	%s · %s\nHP %d / %d · Click to select\n%s\nQ Skill · R Retreat and rotate
+595	Q Skill Ready
+596	Skill ready · Click
+597	Skill active
+598	Skill %.0fs
+599	%s\nRedeployment in %.1fs
+600	Redeploy  %.1fs
+601	%s · Deployment needs %d AP\nCurrent AP: %d. Deploy when energy recovers.
+602	Wait %.0fs
+603	%s · %s\nDeployment: %d AP\nClick, then choose a glowing tile.
+604	Ready · 
+605	Experimental Device
+606	Durability  %d / %d
+607	Temporary decoy\n%.1fs remaining · Attracts and blocks Echoes
+608	Automatic
+609	Uses no character slot. Its tile becomes available when destroyed, recalled or expired.
+610	Recall Device  R
+611	HP  %d / %d
+612	Piercing shot charged · Can intercept adjacent lanes
+613	Active Skill
+614	Piercing Shot Ready
+615	Tutorial · Choose one upgrade for immediate effect · This run only
+616	Choose one and make the echoes your strength · This run only
+617	Stacks %d / %d
+618	Click or press %d to choose. Takes effect immediately.
+619	Reroll (R) · %d
+620	Rerolls remaining this attempt: %d
+621	Run Build / 
+622	No upgrades yet
+623	Settlement: 
+624	No rewards
+625	No upgrades acquired

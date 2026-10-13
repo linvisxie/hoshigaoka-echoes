@@ -1104,27 +1104,27 @@ func _draw_upgrade_overlay() -> void:
 	var cx := _viewport_size.x * 0.5
 	var title := "残 响 强 化"
 	var tfs := int(_px(40.0))
-	var tw := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tfs).x
-	draw_string(font, Vector2(cx - tw * 0.5, _px(78.0)), title,
+	var tw := font.get_string_size(GameLocale.text(title), HORIZONTAL_ALIGNMENT_LEFT, -1, tfs).x
+	draw_string(font, Vector2(cx - tw * 0.5, _px(78.0)), GameLocale.text(title),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, tfs, Color(0.97, 0.94, 0.74))
 	var sub := "选择一项，让残响成为你的力量 · 本局有效"
 	if _upgrade_is_tutorial:
 		sub = "首次强化 · 选择立即生效，离开关卡后清空"
 	var sfs := int(_px(23.0))
-	var sw := font.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
-	draw_string(font, Vector2(cx - sw * 0.5, _px(112.0)), sub,
+	var sw := font.get_string_size(GameLocale.text(sub), HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
+	draw_string(font, Vector2(cx - sw * 0.5, _px(112.0)), GameLocale.text(sub),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, sfs,
 		UPGRADE_TUTORIAL_ACCENT if _upgrade_is_tutorial else DIM_TEXT)
 
 	# 教学条：明确告诉玩家这是"第一次"，与后续随机强化区分（L2132）
 	if _upgrade_is_tutorial:
-		var tag_w := font.get_string_size("首次教学", HORIZONTAL_ALIGNMENT_LEFT, -1,
+		var tag_w := font.get_string_size(GameLocale.text("首次教学"), HORIZONTAL_ALIGNMENT_LEFT, -1,
 			int(_px(15.0))).x + _px(20.0)
 		var tag := Rect2(Vector2(cx - tag_w * 0.5, _px(124.0)),
 			Vector2(tag_w, _px(24.0)))
 		_draw_tag(tag, Color(UPGRADE_TUTORIAL_ACCENT.r, UPGRADE_TUTORIAL_ACCENT.g,
 			UPGRADE_TUTORIAL_ACCENT.b, 0.18), UPGRADE_TUTORIAL_ACCENT)
-		draw_string(font, tag.position + Vector2(_px(10),_px(18)), "首次教学", HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(15)),UPGRADE_TUTORIAL_ACCENT)
+		draw_string(font, tag.position + Vector2(_px(10),_px(18)), GameLocale.text("首次教学"), HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(15)),UPGRADE_TUTORIAL_ACCENT)
 
 	# ---- 三张卡片 ----
 	for i: int in range(n):
@@ -1136,7 +1136,7 @@ func _draw_upgrade_overlay() -> void:
 	# L2058：底部显示「剩余重掷：1」
 	var rr_text := "剩余重掷：%d" % rerolls
 	var rr_fs := int(_px(22.0))
-	var rr_w := font.get_string_size(rr_text, HORIZONTAL_ALIGNMENT_LEFT, -1, rr_fs).x
+	var rr_w := font.get_string_size(GameLocale.text(rr_text), HORIZONTAL_ALIGNMENT_LEFT, -1, rr_fs).x
 	draw_string(font, Vector2(cx - rr_w * 0.5, _upgrade_reroll_rect.position.y - _px(18.0)),
 		rr_text, HORIZONTAL_ALIGNMENT_LEFT, -1, rr_fs,
 		Color(0.86, 0.90, 1.0) if rerolls > 0 else Color(0.55, 0.58, 0.66))
@@ -1184,7 +1184,7 @@ func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
 	var w := draw_rect_body.size.x
 	var key_badge := Rect2(x + _px(16), y + _px(58), _px(38), _px(38))
 	_draw_round_rect(key_badge, _px(5), Color(0.12, 0.17, 0.29), Color(edge, 0.6), 1)
-	draw_string(font, key_badge.position + Vector2(_px(12), _px(27)), str(index + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), edge)
+	draw_string(font, key_badge.position + Vector2(_px(12), _px(27)), GameLocale.text(str(index + 1)), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), edge)
 
 	# ---- ① 顶部类别条 ----
 	var cat_h := _px(40.0)
@@ -1195,7 +1195,7 @@ func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
 	var cat_text := str(view.get("category", ""))
 	if cat_text.is_empty():
 		cat_text = "残响强化"
-	draw_string(font, Vector2(x + _px(18.0), y + _px(27.0)), cat_text,
+	draw_string(font, Vector2(x + _px(18.0), y + _px(27.0)), GameLocale.text(cat_text),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), Color(0.88, 0.92, 1.0))
 	# 层级标签（右侧；CORE 用暖金字色形成记忆点）
 	var tier_text: String = {"COMMON": "普通", "ADVANCED": "进阶", "CORE": "核心"}.get(tier, "强化")
@@ -1204,9 +1204,9 @@ func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
 		tier_col = UPGRADE_TIER_LABEL_CORE
 	elif tier == "ADVANCED":
 		tier_col = UPGRADE_TIER_LABEL_ADVANCED
-	var tier_w := font.get_string_size(tier_text, HORIZONTAL_ALIGNMENT_LEFT, -1,
+	var tier_w := font.get_string_size(GameLocale.text(tier_text), HORIZONTAL_ALIGNMENT_LEFT, -1,
 		int(_px(15.0))).x
-	draw_string(font, Vector2(x + w - _px(18.0) - tier_w, y + _px(26.0)), tier_text,
+	draw_string(font, Vector2(x + w - _px(18.0) - tier_w, y + _px(26.0)), GameLocale.text(tier_text),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(15.0)), tier_col)
 
 	# ---- ② 图标（缺失回退菱形，绝不空、绝不崩）----
@@ -1241,27 +1241,27 @@ func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
 	var name_text := str(view.get("name", ""))
 	var ny := iy + isz + _px(42.0)
 	var nfs := int(_px(30.0))
-	var nw := font.get_string_size(name_text, HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
-	draw_string(font, Vector2(x + w * 0.5 - nw * 0.5, ny), name_text,
+	var nw := font.get_string_size(GameLocale.text(name_text), HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
+	draw_string(font, Vector2(x + w * 0.5 - nw * 0.5, ny), GameLocale.text(name_text),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, nfs, Color(0.97, 0.99, 1.0))
 
 	# ---- ④ 效果数值（高亮）----
 	var eff_text := _upgrade_effect_text(view)
 	var efs := int(_px(24.0))
-	var ew := font.get_string_size(eff_text, HORIZONTAL_ALIGNMENT_LEFT, -1, efs).x
-	draw_string(font, Vector2(x + w * 0.5 - ew * 0.5, ny + _px(34.0)), eff_text,
+	var ew := font.get_string_size(GameLocale.text(eff_text), HORIZONTAL_ALIGNMENT_LEFT, -1, efs).x
+	draw_string(font, Vector2(x + w * 0.5 - ew * 0.5, ny + _px(34.0)), GameLocale.text(eff_text),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, efs, UPGRADE_VALUE_COLOR)
 
 	# ---- ⑤ 补充说明（只在能提供额外信息时画，见 _upgrade_extra_note）----
 	var desc := _upgrade_extra_note(view)
 	if not desc.is_empty():
 		var dfs := int(_px(16.0))
-		var dw := font.get_string_size(desc, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x
+		var dw := font.get_string_size(GameLocale.text(desc), HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x
 		# 过宽时压缩字号，避免溢出卡面（卡面避免长段文字，L2054）
 		if dw > w - _px(36.0):
 			dfs = int(_px(14.0))
-			dw = font.get_string_size(desc, HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x
-		draw_string(font, Vector2(x + w * 0.5 - dw * 0.5, ny + _px(64.0)), desc,
+			dw = font.get_string_size(GameLocale.text(desc), HORIZONTAL_ALIGNMENT_LEFT, -1, dfs).x
+		draw_string(font, Vector2(x + w * 0.5 - dw * 0.5, ny + _px(64.0)), GameLocale.text(desc),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, dfs, UPGRADE_DESC_COLOR)
 
 	# ---- ⑥ 作用对象 + 叠加状态 ----
@@ -1269,18 +1269,18 @@ func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
 	if not guidance.is_empty():
 		var lines := guidance.split("\n")
 		for i: int in range(lines.size()):
-			var text_width := font.get_string_size(lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(22))).x
-			draw_string(font,Vector2(x+(w-text_width)*0.5,ny+_px(105+i*34)),lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(22)),Color(0.74,0.82,0.94))
+			var text_width := font.get_string_size(GameLocale.text(lines[i]),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(22))).x
+			draw_string(font,Vector2(x+(w-text_width)*0.5,ny+_px(105+i*34)),GameLocale.text(lines[i]),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(22)),Color(0.74,0.82,0.94))
 	var target_text := _upgrade_target_text(view)
 	var stacks := int(view.get("stacks", 0))
 	var max_stacks := int(view.get("maxStacks", 1))
 	var stack_text := "不可叠加" if max_stacks <= 1 else "可叠加 %d/%d" % [stacks, max_stacks]
 	var foot := "%s  ·  %s" % [target_text, stack_text]
 	var ffs := int(_px(22.0))
-	var fw := font.get_string_size(foot, HORIZONTAL_ALIGNMENT_LEFT, -1, ffs).x
+	var fw := font.get_string_size(GameLocale.text(foot), HORIZONTAL_ALIGNMENT_LEFT, -1, ffs).x
 	if fw > w - _px(32.0):
 		foot = "对象：%s   叠加：%s" % [target_text, stack_text]
-		fw = font.get_string_size(foot, HORIZONTAL_ALIGNMENT_LEFT, -1, ffs).x
+		fw = font.get_string_size(GameLocale.text(foot), HORIZONTAL_ALIGNMENT_LEFT, -1, ffs).x
 	draw_string(font, Vector2(x + w * 0.5 - fw * 0.5, y + rect.size.y - _px(38.0)),
 		foot, HORIZONTAL_ALIGNMENT_LEFT, -1, ffs, Color(0.74, 0.80, 0.94))
 
@@ -1289,7 +1289,7 @@ func _draw_upgrade_card(index: int, rect: Rect2, font: Font) -> void:
 	if hovered:
 		var hint := "点击选择"
 		var hfs := int(_px(15.0))
-		var hw := font.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
+		var hw := font.get_string_size(GameLocale.text(hint), HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
 		draw_string(font, Vector2(x + w * 0.5 - hw * 0.5, y + rect.size.y - _px(14.0)),
 			hint, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, UPGRADE_CARD_HOVER_EDGE)
 
@@ -1304,7 +1304,7 @@ func _draw_upgrade_button(rect: Rect2, label: String, base: Color, enabled: bool
 	_draw_round_rect(rect, _px(8.0), fill,
 		Color(0.92, 0.96, 1.0, 0.85) if hovered else Color(0.46, 0.54, 0.76, 0.70), 2.0)
 	var fs := int(_px(21.0))
-	var s := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var s := font.get_string_size(GameLocale.text(label), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	draw_string(font, Vector2(rect.position.x + (rect.size.x - s) * 0.5,
 			rect.position.y + rect.size.y * 0.66),
 		label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
@@ -1319,16 +1319,16 @@ func _draw_gained_upgrades(font: Font) -> void:
 	var base_y := _upgrade_skip_rect.position.y + _upgrade_skip_rect.size.y + _px(28.0)
 	var head := "本局已获得强化"
 	var hfs := int(_px(21.0))
-	var hw := font.get_string_size(head, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
+	var hw := font.get_string_size(GameLocale.text(head), HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
 	var cx := _viewport_size.x * 0.5
-	draw_string(font, Vector2(cx - hw * 0.5, base_y), head,
+	draw_string(font, Vector2(cx - hw * 0.5, base_y), GameLocale.text(head),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, Color(0.70, 0.78, 0.94))
 	var y := base_y + _px(24.0)
 	if gained.is_empty():
 		var none_text := "暂无 —— 这是本局第一次强化"
 		var nfs := int(_px(20.0))
-		var nw := font.get_string_size(none_text, HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
-		draw_string(font, Vector2(cx - nw * 0.5, y), none_text,
+		var nw := font.get_string_size(GameLocale.text(none_text), HORIZONTAL_ALIGNMENT_LEFT, -1, nfs).x
+		draw_string(font, Vector2(cx - nw * 0.5, y), GameLocale.text(none_text),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, nfs, Color(0.58, 0.64, 0.78))
 		return
 	for i: int in range(mini(gained.size(), 4)):
@@ -1336,8 +1336,8 @@ func _draw_gained_upgrades(font: Font) -> void:
 		var line := "%s ×%d（%s）" % [str(g.get("name", "")), int(g.get("stacks", 1)),
 			str(g.get("category", ""))]
 		var gfs := int(_px(15.0))
-		var gw := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, gfs).x
-		draw_string(font, Vector2(cx - gw * 0.5, y), line,
+		var gw := font.get_string_size(GameLocale.text(line), HORIZONTAL_ALIGNMENT_LEFT, -1, gfs).x
+		draw_string(font, Vector2(cx - gw * 0.5, y), GameLocale.text(line),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, gfs, Color(0.88, 0.92, 0.72))
 		y += _px(20.0)
 
@@ -2420,15 +2420,15 @@ func _draw_chapter_warnings() -> void:
 			for i: int in range(3):
 				var p := center+Vector2.from_angle(_now()*1.8+float(i)*TAU/3)*radius
 				draw_line(center,p,Color("71b6d9"),_px(2),true)
-			if ThemeDB.fallback_font != null: draw_string(ThemeDB.fallback_font,center+Vector2(-_px(55),_px(30)),"装置 %.1fs" % maxf(0,float(stage.device_expiry.get(c.instance_id,0))-_now()),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color("bcf3ff"))
+			if ThemeDB.fallback_font != null: draw_string(ThemeDB.fallback_font,center+Vector2(-_px(55),_px(30)),GameLocale.text("装置 %.1fs" % maxf(0,float(stage.device_expiry.get(c.instance_id,0))-_now())),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color("bcf3ff"))
 
 func _draw_warning_caption(text: String, center: Vector2, color: Color) -> void:
 	var font := GameSkin.body_font()
 	var size := int(_px(21))
-	var width := font.get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,size).x
+	var width := font.get_string_size(GameLocale.text(text),HORIZONTAL_ALIGNMENT_LEFT,-1,size).x
 	var rect := Rect2(center-Vector2(width*.5+_px(12),_px(19)),Vector2(width+_px(24),_px(38)))
 	_draw_round_rect(rect,_px(5),Color(.035,.025,.065,.92),Color(color,.7),_px(1))
-	draw_string(font,center+Vector2(-width*.5,_px(7)),text,HORIZONTAL_ALIGNMENT_LEFT,-1,size,color.lightened(.2))
+	draw_string(font,center+Vector2(-width*.5,_px(7)),GameLocale.text(text),HORIZONTAL_ALIGNMENT_LEFT,-1,size,color.lightened(.2))
 
 func _draw_boss_echo_layer(front: bool) -> void:
 	var boss := session.stage.chapter_boss()
@@ -2637,7 +2637,7 @@ func _draw_elite_ground() -> void:
 			if effect.effect_id == "invigilator_gaze" and effect.expires_at > now:
 				var p := _cell_screen_pos(character.column,character.lane)+Vector2(0,_px(28))
 				draw_arc(p,_px(27),0,TAU,32,Color("e8a4d2",.6),_px(1.4),true)
-				draw_string(GameSkin.body_font(),p+Vector2(-_px(44),_px(45)),"注视 %.1f秒" % (effect.expires_at-now),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(16)),Color("ffbfd9"))
+				draw_string(GameSkin.body_font(),p+Vector2(-_px(44),_px(45)),GameLocale.text("注视 %.1f秒" % (effect.expires_at-now)),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(16)),Color("ffbfd9"))
 
 func _draw_elite_cue() -> void:
 	var now := _now()
@@ -2650,7 +2650,7 @@ func _draw_elite_cue() -> void:
 	var center := Vector2(_viewport_size.x*.58,_px(171))
 	var box := Rect2(center-Vector2(_px(210),_px(26)),Vector2(_px(420),_px(52)))
 	_draw_cut_panel(box,_px(10),Color(.05,.075,.14,.86*alpha),Color(color,alpha*.65),_px(1))
-	draw_string(GameSkin.body_font(),box.position+Vector2(_px(24),_px(34)),"时间到 · 监考者加速" if phase else "精英残响 · 监考者入场",HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(23)),Color(color,alpha))
+	draw_string(GameSkin.body_font(),box.position+Vector2(_px(24),_px(34)),GameLocale.text("时间到 · 监考者加速" if phase else "精英残响 · 监考者入场"),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(23)),Color(color,alpha))
 
 func _draw_enemy_threat_mark(enemy: EnemyRuntime, feet: Vector2) -> void:
 	var cfg: Dictionary = session.stage._enemy_configs.get(enemy.enemy_id,{})
@@ -2726,7 +2726,7 @@ func _draw_board() -> void:
 		var end := _logical_to_screen(Vector2(5.58,lane))
 		var label_rect := Rect2(start-Vector2(_px(126),_px(19)),Vector2(_px(104),_px(38)))
 		draw_style_box(GameSkin.glass(col, 0.86), label_rect)
-		draw_string(GameSkin.body_font(),label_rect.position+Vector2(_px(29),_px(26)),BattleTypes.lane_name(lane),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color("d8eaff"))
+		draw_string(GameSkin.body_font(),label_rect.position+Vector2(_px(29),_px(26)),GameLocale.text(BattleTypes.lane_name(lane)),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color("d8eaff"))
 		# Quiet slanted ground ribbons make all three routes legible without blue cells.
 		var band := PackedVector2Array([_logical_to_screen(Vector2(-0.46,lane-0.34)),_logical_to_screen(Vector2(5.58,lane-0.34)),_logical_to_screen(Vector2(5.58,lane+0.34)),_logical_to_screen(Vector2(-0.46,lane+0.34))])
 		draw_colored_polygon(band,Color(col,0.025))
@@ -2796,7 +2796,7 @@ func _draw_core() -> void:
 			_draw_corner_marks(Rect2(center - Vector2.ONE * r * 1.3, Vector2.ONE * r * 2.6), r * 0.35, Color(energy, pulse), _px(2.0))
 	# Three seals defend three routes, all read the same authoritative HP.
 	var label := "防线崩解" if hp <= 0 else ("最后防线" if danger else "残响锚点")
-	draw_string(ThemeDB.fallback_font, Vector2(core_center.x - _px(58.0), core_center.y + _px(222.0)), label,
+	draw_string(ThemeDB.fallback_font, Vector2(core_center.x - _px(58.0), core_center.y + _px(222.0)), GameLocale.text(label),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18.0)), energy)
 
 
@@ -2948,14 +2948,14 @@ func _draw_characters(lane_filter: int = -1) -> void:
 		# 职责标签（永远显示，确保玩家看懂谁在做什么）
 		draw_string(ThemeDB.fallback_font,
 			Vector2(px_x - _px(26.0), px_y + half + _px(18.0)),
-			_role_label(_behavior_text_of(c)),
+			GameLocale.text(_role_label(_behavior_text_of(c))),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)), role_color)
 
 		# 阻挡指示：正在阻挡几个敌人（仅前线会显示）
 		if c.blocking_enemy_ids.size() > 0:
 			draw_string(ThemeDB.fallback_font,
 				Vector2(px_x - _px(18.0), px_y + half + _px(34.0)),
-				"阻挡 %d/%d" % [c.blocking_enemy_ids.size(), c.block_count_max],
+				GameLocale.text("阻挡 %d/%d" % [c.blocking_enemy_ids.size(), c.block_count_max]),
 				HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.95, 0.9, 0.4))
 
 		# 治疗反馈：刚被治疗过的角色头顶升起绿色十字与 +HP（纯表现层）
@@ -3298,11 +3298,11 @@ func _draw_one_enemy(e: EnemyRuntime, px_x: float, px_y: float, size: float, til
 		label = ""
 	var font := ThemeDB.fallback_font
 	var lf := int(_px(18.0))
-	var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, lf).x
+	var lw := font.get_string_size(GameLocale.text(label), HORIZONTAL_ALIGNMENT_LEFT, -1, lf).x
 	var lpos := Vector2(px_x - lw * 0.5, px_y + half + _px(16.0))
-	draw_string_outline(font, lpos, label, HORIZONTAL_ALIGNMENT_LEFT, -1, lf, 2,
+	draw_string_outline(font, lpos, GameLocale.text(label), HORIZONTAL_ALIGNMENT_LEFT, -1, lf, 2,
 		Color(0.05, 0.04, 0.10, 0.95))
-	draw_string(font, lpos, label, HORIZONTAL_ALIGNMENT_LEFT, -1, lf, fill.lightened(0.45))
+	draw_string(font, lpos, GameLocale.text(label), HORIZONTAL_ALIGNMENT_LEFT, -1, lf, fill.lightened(0.45))
 
 	# 敌人 HP 条（V2.1.4：血条必须可读；受伤后才显示，满血不刷屏）
 	var hp_ratio := 1.0
@@ -3540,7 +3540,7 @@ func _draw_damage_pops() -> void:
 
 		var text := str(p["text"])
 		var fs := int(_px(base_fs * pop))
-		var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var w := font.get_string_size(GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		var at := Vector2(pos.x - w * 0.5, pos.y - tile * 0.55 - rise)
 		# 高伤害/致命：叠一圈暖色光晕，让"这一下很重"一眼可见（低强度，不闪屏）
 		if kind == "enemy" and (lethal or amount >= DAMAGE_HIGH_THRESHOLD):
@@ -3548,9 +3548,9 @@ func _draw_damage_pops() -> void:
 				Color(col.r, col.g, col.b, 0.16 * alpha), true)
 		# 深色描边保证在亮/暗背景上都可读（V2.1.4：1280×720 到 4K 都要清楚）
 		var ow := maxf(1.5, _px(2.0))
-		draw_string(font, at + Vector2(ow, ow), text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
+		draw_string(font, at + Vector2(ow, ow), GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
 			Color(0, 0, 0, alpha * 0.78))
-		draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+		draw_string(font, at, GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
 		# 致命一击：额外一行短横线，读作"打散"（形状通道，不只靠颜色）
 		if lethal and kind == "enemy":
 			var ly := at.y + _px(4.0)
@@ -3679,8 +3679,8 @@ func _draw_lane_warnings() -> void:
 		# 文字：说明是哪种敌人（机制可读性优先）
 		var label := _enemy_kind_label(str(w["enemyId"]))
 		var fs := int(_px(15.0))
-		var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		draw_string(font, Vector2(entry_x - lw * 0.5, ly - s - _px(6.0)), label,
+		var lw := font.get_string_size(GameLocale.text(label), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		draw_string(font, Vector2(entry_x - lw * 0.5, ly - s - _px(6.0)), GameLocale.text(label),
 			HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(DANGER_COLOR.r, DANGER_COLOR.g, DANGER_COLOR.b, k))
 
 
@@ -3711,7 +3711,7 @@ func _draw_tutorial_cards() -> void:
 		var lines: Array[String] = []
 		var line := ""
 		for character: String in text:
-			if character == "\n" or (not line.is_empty() and font.get_string_size(line+character,HORIZONTAL_ALIGNMENT_LEFT,-1,fs_text).x > box_w-_px(44)):
+			if character == "\n" or (not line.is_empty() and font.get_string_size(GameLocale.text(line+character),HORIZONTAL_ALIGNMENT_LEFT,-1,fs_text).x > box_w-_px(44)):
 				lines.append(line)
 				line = "" if character == "\n" else character
 			else:
@@ -3735,7 +3735,7 @@ func _draw_tutorial_cards() -> void:
 				Color(accent.r, accent.g, accent.b, alpha))
 			ty += _px(36.0)
 		for wrapped: String in lines:
-			draw_string(font, Vector2(box.position.x + _px(22.0), ty), wrapped,
+			draw_string(font, Vector2(box.position.x + _px(22.0), ty), GameLocale.text(wrapped),
 				HORIZONTAL_ALIGNMENT_LEFT, -1, fs_text, Color(0.92, 0.95, 1.0, alpha))
 			ty += _px(31.0)
 
@@ -3770,7 +3770,7 @@ func _draw_deploy_feedback() -> void:
 		points.append(points[0])
 		draw_polyline(points,color,_px(2.5),true)
 		if not _hover_deploy_ok:
-			draw_string(GameSkin.body_font(),_cell_screen_pos(_hover_column,_hover_lane)+Vector2(-_px(60),-_px(65)),_hover_reject_reason,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(18)),CELL_INVALID)
+			draw_string(GameSkin.body_font(),_cell_screen_pos(_hover_column,_hover_lane)+Vector2(-_px(60),-_px(65)),GameLocale.text(_hover_reject_reason),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(18)),CELL_INVALID)
 
 
 func _draw_range_coverage_preview(column: int, lane: int, _tile: float, _spacing: float) -> void:
@@ -3792,7 +3792,7 @@ func _draw_range_coverage_preview(column: int, lane: int, _tile: float, _spacing
 				for n: int in range(count):
 					draw_line(points[i].lerp(points[i+1],float(n)/count),points[i].lerp(points[i+1],(float(n)+0.55)/count),edge,_px(1.5),true)
 			else: draw_line(points[i],points[i+1],edge,_px(1.5),true)
-		draw_string(GameSkin.body_font(),points[0]+Vector2(_px(8),-_px(8)),("支援 " if adjacent else "本路 ")+"%.1f 格"%reach,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(17)),edge)
+		draw_string(GameSkin.body_font(),points[0]+Vector2(_px(8),-_px(8)),GameLocale.text(("支援 " if adjacent else "本路 ")+"%.1f 格"%reach),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(17)),edge)
 
 
 func lane_y_label(lane: int, spacing: float) -> float:
@@ -3904,17 +3904,17 @@ func _draw_one_card(character_id: String, rect: Rect2, slot_index: int) -> void:
 		draw_texture_rect_region(tex, portrait, Rect2(0, _px(0), source_w, source_h))
 	var key := Rect2(rect.position + Vector2(_px(9), _px(9)), Vector2(_px(25), _px(25)))
 	_draw_round_rect(key, _px(3), Color(0.03, 0.04, 0.09, 0.88), edge, 1)
-	draw_string(font, key.position + Vector2(_px(6), _px(19)), str(slot_index + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18)), TEXT_COLOR)
+	draw_string(font, key.position + Vector2(_px(6), _px(19)), GameLocale.text(str(slot_index + 1)), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(18)), TEXT_COLOR)
 	var cost := str(int(cfg.get("deployCost", 0)))
 	var cost_pos := rect.position + Vector2(rect.size.x - _px(45), _px(32))
-	draw_string_outline(font, cost_pos, cost, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(25)), 5, Color(0.02, 0.03, 0.07))
-	draw_string(font, cost_pos, cost, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(25)), Color(0.63, 0.90, 1) if affordable or unit != null else DANGER_COLOR)
+	draw_string_outline(font, cost_pos, GameLocale.text(cost), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(25)), 5, Color(0.02, 0.03, 0.07))
+	draw_string(font, cost_pos, GameLocale.text(cost), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(25)), Color(0.63, 0.90, 1) if affordable or unit != null else DANGER_COLOR)
 	var pos := rect.position + Vector2(_px(11), _px(148))
-	draw_string(font, pos, str(cfg.get("name", "")), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(23)), TEXT_COLOR)
+	draw_string(font, pos, GameLocale.text(str(cfg.get("name", ""))), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(23)), TEXT_COLOR)
 	var status := "已在场" if unit != null else ("再部署 %.1fs" % cooldown if cooldown > 0 else ("点击部署" if affordable else "AP 不足"))
 	if selected:
 		status = "选择站位"
-	draw_string(font, pos + Vector2(0, _px(25)), status, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17)), role)
+	draw_string(font, pos + Vector2(0, _px(25)), GameLocale.text(status), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17)), role)
 	var ratio := unit.hp_ratio() if unit != null else (0.0 if cooldown > 0 else 1.0)
 	if cooldown > 0:
 		var previous := session.stage.get_character_instance(character_id)
@@ -3925,7 +3925,7 @@ func _draw_one_card(character_id: String, rect: Rect2, slot_index: int) -> void:
 	draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), role)
 	if cooldown > 0:
 		draw_rect(portrait, Color(0.03, 0.04, 0.08, 0.60))
-		draw_string(font, portrait.position + Vector2(_px(46), _px(74)), "%.1f" % cooldown, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(35)), Color(1, 0.85, 0.52))
+		draw_string(font, portrait.position + Vector2(_px(46), _px(74)), GameLocale.text("%.1f" % cooldown), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(35)), Color(1, 0.85, 0.52))
 
 
 ## 行为字符串 -> 职责配色
@@ -3975,18 +3975,18 @@ func _draw_character_panel() -> void:
 
 	var tx := pos.x + _px(20.0)
 	var ty := pos.y + _px(34.0)
-	draw_string(font, Vector2(tx, ty), c.display_name,
+	draw_string(font, Vector2(tx, ty), GameLocale.text(c.display_name),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22.0)), TEXT_COLOR)
 	ty += _px(30.0)
-	draw_string(font, Vector2(tx, ty), "%s  第 %d 格" % [
-			BattleTypes.lane_name(c.lane), c.column + 1],
+	draw_string(font, Vector2(tx, ty), GameLocale.text("%s  第 %d 格" % [
+			BattleTypes.lane_name(c.lane), c.column + 1]),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(15.0)), DIM_TEXT)
 	ty += _px(28.0)
-	draw_string(font, Vector2(tx, ty), "HP %d / %d" % [c.hp, c.max_hp],
+	draw_string(font, Vector2(tx, ty), GameLocale.text("HP %d / %d" % [c.hp, c.max_hp]),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(16.0)), Color(0.55, 0.95, 0.65))
 	ty += _px(24.0)
-	draw_string(font, Vector2(tx, ty), "攻击 %d  防御 %d  阻挡 %d/%d" % [
-			c.attack, c.defense, c.blocking_enemy_ids.size(), c.block_count_max],
+	draw_string(font, Vector2(tx, ty), GameLocale.text("攻击 %d  防御 %d  阻挡 %d/%d" % [
+			c.attack, c.defense, c.blocking_enemy_ids.size(), c.block_count_max]),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14.0)), Color(0.72, 0.78, 0.92))
 	ty += _px(24.0)
 	var refund := session.stage.compute_retreat_refund(
@@ -4003,20 +4003,20 @@ func _draw_character_panel() -> void:
 		skill_state = "生效中 %.1f 秒" % c.skill_active_remaining
 	elif c.skill_cooldown_remaining > 0:
 		skill_state = "冷却 %.1f 秒" % c.skill_cooldown_remaining
-	draw_string(font, Vector2(tx, ty), "%s  /  %s" % [skill_label, skill_state], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)), Color(0.75, 0.88, 1.0))
+	draw_string(font, Vector2(tx, ty), GameLocale.text("%s  /  %s" % [skill_label, skill_state]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(17.0)), Color(0.75, 0.88, 1.0))
 	_draw_round_rect(_skill_rect, _px(8), BUTTON_HOVER if c.skill_ready() else Color(0.15, 0.18, 0.28), Color(0.65, 0.78, 0.94), 1.5)
-	draw_string(font, _skill_rect.position + Vector2(_px(18), _px(34)), "释放技能（Q）" if c.skill_ready() else skill_state, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19)), TEXT_COLOR)
+	draw_string(font, _skill_rect.position + Vector2(_px(18), _px(34)), GameLocale.text("释放技能（Q）" if c.skill_ready() else skill_state), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19)), TEXT_COLOR)
 
 	# 撤退按钮
 	var hovered := _retreat_rect.has_point(_mouse_pos)
 	draw_rect(_retreat_rect, BUTTON_HOVER if hovered else RETREAT_COLOR, true)
 	draw_rect(_retreat_rect, Color(1, 1, 1, 0.45), false, 2.0)
 	var label := "撤退（R）"
-	var label_w := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
+	var label_w := font.get_string_size(GameLocale.text(label), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0))).x
 	draw_string(font,
 		Vector2(_retreat_rect.position.x + (_retreat_rect.size.x - label_w) * 0.5,
 			_retreat_rect.position.y + _retreat_rect.size.y * 0.68),
-		label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), Color(1, 0.94, 0.94))
+		GameLocale.text(label), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20.0)), Color(1, 0.94, 0.94))
 
 
 func _request_skill_selected() -> void:
@@ -4056,15 +4056,15 @@ func _draw_wave_banner() -> void:
 	var cx := _viewport_size.x * 0.5
 	var title := "WAVE  %02d / %02d" % [stage.current_wave_number(), stage.total_wave_count()]
 	var fs := int(_px(28))
-	var width := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	draw_string(font, Vector2(cx - width * 0.5, _px(59)), title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, TEXT_COLOR)
+	var width := font.get_string_size(GameLocale.text(title), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	draw_string(font, Vector2(cx - width * 0.5, _px(59)), GameLocale.text(title), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, TEXT_COLOR)
 	var preview := stage.next_wave_preview()
 	var subtitle := "最终波 · 清除全部残响体"
 	if not preview.is_empty():
 		subtitle = "下一波  %s · %d 名" % [_lanes_text(preview["lanes"]), int(preview["enemyCount"])]
 	var small := int(_px(18))
-	width = font.get_string_size(subtitle, HORIZONTAL_ALIGNMENT_LEFT, -1, small).x
-	draw_string(font, Vector2(cx - width * 0.5, _px(94)), subtitle, HORIZONTAL_ALIGNMENT_LEFT, -1, small, Color(0.84, 0.79, 0.94))
+	width = font.get_string_size(GameLocale.text(subtitle), HORIZONTAL_ALIGNMENT_LEFT, -1, small).x
+	draw_string(font, Vector2(cx - width * 0.5, _px(94)), GameLocale.text(subtitle), HORIZONTAL_ALIGNMENT_LEFT, -1, small, Color(0.84, 0.79, 0.94))
 	if not session.is_decided():
 		_draw_pause_button()
 
@@ -4087,7 +4087,7 @@ func _draw_pause_button() -> void:
 	var label := "继续" if session.is_paused() else "暂停"
 	var icon := ArtRegistry.icon("icon_play" if session.is_paused() else "icon_pause", 32)
 	var fs := int(_px(17.0))
-	var lw := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var lw := font.get_string_size(GameLocale.text(label), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var isz := _px(22.0)
 	var total_w := lw + (isz + _px(6.0) if icon != null else 0.0)
 	var sx := _pause_rect.position.x + (_pause_rect.size.x - total_w) * 0.5
@@ -4095,7 +4095,7 @@ func _draw_pause_button() -> void:
 	if icon != null:
 		draw_texture_rect(icon, Rect2(Vector2(sx, cy - isz * 0.5), Vector2(isz, isz)), false)
 		sx += isz + _px(6.0)
-	draw_string(font, Vector2(sx, cy + _px(6.0)), label,
+	draw_string(font, Vector2(sx, cy + _px(6.0)), GameLocale.text(label),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.94, 0.96, 1.0))
 
 
@@ -4117,19 +4117,19 @@ func _lanes_text(lanes: Variant) -> String:
 func _draw_hud_text() -> void:
 	var font := ThemeDB.fallback_font
 	var x := _px(45)
-	draw_string(font, Vector2(x, _px(57)), _stage_display_name(), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24)), TEXT_COLOR)
+	draw_string(font, Vector2(x, _px(57)), GameLocale.text(_stage_display_name()), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24)), TEXT_COLOR)
 	var danger := session.stage.core_hp <= 1
 	var col := DANGER_COLOR if danger else Color(0.73, 0.82, 1)
-	draw_string(font, Vector2(x, _px(102)), "防线", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20)), col)
+	draw_string(font, Vector2(x, _px(102)), GameLocale.text("防线"), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(20)), col)
 	for i: int in range(session.stage.core_hp_max):
 		_draw_core_pip(Vector2(x + _px(82 + i * 30), _px(94)), _px(10), i < session.stage.core_hp, col)
 	var hp := "%d / %d" % [session.stage.core_hp, session.stage.core_hp_max]
-	draw_string(font, Vector2(x + _px(205), _px(102)), hp, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(23)), col)
+	draw_string(font, Vector2(x + _px(205), _px(102)), GameLocale.text(hp), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(23)), col)
 	var ap_x := _viewport_size.x - _px(400)
 	var icon := ArtRegistry.icon("icon_ap", 64)
 	if icon != null:
 		draw_texture_rect(icon, Rect2(ap_x, _px(37), _px(32), _px(32)), false)
-	draw_string(font, Vector2(ap_x + _px(43), _px(64)), "%d / %d" % [session.stage.ap, session.stage.ap_max],
+	draw_string(font, Vector2(ap_x + _px(43), _px(64)), GameLocale.text("%d / %d" % [session.stage.ap, session.stage.ap_max]),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(28)), Color(0.65, 0.9, 1))
 	var bar := Rect2(ap_x, _px(88), _px(202), _px(7))
 	draw_rect(bar, Color(0.15, 0.19, 0.30))
@@ -4138,7 +4138,7 @@ func _draw_hud_text() -> void:
 	if _show_debug_hud:
 		var dy := _px(145)
 		for line: String in _debug_lines:
-			draw_string(font, Vector2(_px(20), dy), line, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14)), DIM_TEXT)
+			draw_string(font, Vector2(_px(20), dy), GameLocale.text(line), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(14)), DIM_TEXT)
 			dy += _px(18)
 
 
@@ -4158,13 +4158,13 @@ func _draw_feedback() -> void:
 	if _feedback_timer <= 0.0 or _feedback_text.is_empty():
 		return
 	var font := ThemeDB.fallback_font
-	var w := font.get_string_size(_feedback_text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19.0))).x
+	var w := font.get_string_size(GameLocale.text(_feedback_text), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(19.0))).x
 	var pad := _px(18.0)
 	var pos := Vector2((_viewport_size.x - w) * 0.5,
 		_viewport_size.y - _px(CARD_HEIGHT) - _px(60.0))
 	draw_rect(Rect2(Vector2(pos.x - pad, pos.y - _px(24.0)),
 		Vector2(w + pad * 2.0, _px(38.0))), Color(0.04, 0.05, 0.09, 0.88), true)
-	draw_string(font, pos, _feedback_text, HORIZONTAL_ALIGNMENT_LEFT, -1,
+	draw_string(font, pos, GameLocale.text(_feedback_text), HORIZONTAL_ALIGNMENT_LEFT, -1,
 		int(_px(19.0)), _feedback_color)
 
 
@@ -4191,7 +4191,7 @@ func _draw_pause_overlay() -> void:
 	var icon := ArtRegistry.icon("icon_pause", 64)
 	var title := "已 暂 停"
 	var tfs := int(_px(34.0))
-	var tw := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tfs).x
+	var tw := font.get_string_size(GameLocale.text(title), HORIZONTAL_ALIGNMENT_LEFT, -1, tfs).x
 	var isz := _px(30.0)
 	var block_w := tw + (isz + _px(12.0) if icon != null else 0.0)
 	var sx := cx - block_w * 0.5
@@ -4199,19 +4199,19 @@ func _draw_pause_overlay() -> void:
 	if icon != null:
 		draw_texture_rect(icon, Rect2(Vector2(sx, tcy - isz * 0.5), Vector2(isz, isz)), false)
 		sx += isz + _px(12.0)
-	draw_string(font, Vector2(sx, tcy + _px(11.0)), title,
+	draw_string(font, Vector2(sx, tcy + _px(11.0)), GameLocale.text(title),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, tfs, Color(0.97, 0.92, 0.62))
 
 	# 正文提示（两行，主次分明）
 	var hint := "按 Space 或点击右上角「继续」恢复战斗"
 	var hfs := int(_px(20.0))
-	var hw := font.get_string_size(hint, HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
-	draw_string(font, Vector2(cx - hw * 0.5, panel.position.y + _px(118.0)), hint,
+	var hw := font.get_string_size(GameLocale.text(hint), HORIZONTAL_ALIGNMENT_LEFT, -1, hfs).x
+	draw_string(font, Vector2(cx - hw * 0.5, panel.position.y + _px(118.0)), GameLocale.text(hint),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, hfs, Color(0.86, 0.90, 0.99))
 	var sub := "暂停期间战斗时间停止推进"
 	var sfs := int(_px(15.0))
-	var sw := font.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
-	draw_string(font, Vector2(cx - sw * 0.5, panel.position.y + _px(150.0)), sub,
+	var sw := font.get_string_size(GameLocale.text(sub), HORIZONTAL_ALIGNMENT_LEFT, -1, sfs).x
+	draw_string(font, Vector2(cx - sw * 0.5, panel.position.y + _px(150.0)), GameLocale.text(sub),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, sfs, DIM_TEXT)
 
 	# 底部信息条：AP / 核心 / Wave（只读摘要，不做操作）
@@ -4220,7 +4220,7 @@ func _draw_pause_overlay() -> void:
 		session.stage.core_hp, session.stage.core_hp_max,
 		session.stage.current_wave_number(), session.stage.total_wave_count()]
 	var ifs := int(_px(15.0))
-	var iw := font.get_string_size(info, HORIZONTAL_ALIGNMENT_LEFT, -1, ifs).x
+	var iw := font.get_string_size(GameLocale.text(info), HORIZONTAL_ALIGNMENT_LEFT, -1, ifs).x
 	draw_string(font, Vector2(cx - iw * 0.5, panel.position.y + panel.size.y - _px(22.0)),
 		info, HORIZONTAL_ALIGNMENT_LEFT, -1, ifs, Color(0.60, 0.68, 0.86))
 
@@ -4269,8 +4269,8 @@ func _draw_result_overlay() -> void:
 	var left := panel.position.x + _px(55)
 	var top := panel.position.y
 	var title := "残响平息" if victory else "锚点失守"
-	draw_string(font, Vector2(left, top + _px(88)), title, HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(52)), accent)
-	draw_string(font, Vector2(left, top + _px(132)), "%s  ·  %s" % [_stage_display_name(), "全员撤离，记录已保存" if not victory else "调查记录已保存"],
+	draw_string(font, Vector2(left, top + _px(88)), GameLocale.text(title), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(52)), accent)
+	draw_string(font, Vector2(left, top + _px(132)), GameLocale.text("%s  ·  %s" % [_stage_display_name(), "全员撤离，记录已保存" if not victory else "调查记录已保存"]),
 		HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(23)), Color(0.68, 0.76, 0.9))
 	draw_line(Vector2(left, top + _px(160)), Vector2(panel.end.x - _px(55), top + _px(160)), Color(accent, 0.35), _px(1))
 	var stats: Array = [
@@ -4284,35 +4284,35 @@ func _draw_result_overlay() -> void:
 	for i: int in range(stats.size()):
 		var x := left + _px(float(i % 3) * 225)
 		var y := top + _px(210 + float(i / 3) * 110)
-		draw_string(font, Vector2(x, y), stats[i][0], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(21)), Color(0.63, 0.71, 0.86))
-		draw_string(font, Vector2(x, y + _px(49)), stats[i][1], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(38)), TEXT_COLOR)
+		draw_string(font, Vector2(x, y), GameLocale.text(stats[i][0]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(21)), Color(0.63, 0.71, 0.86))
+		draw_string(font, Vector2(x, y + _px(49)), GameLocale.text(stats[i][1]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(38)), TEXT_COLOR)
 	var reward_x := left + _px(740)
 	var reward_rect := Rect2(reward_x - _px(22), top + _px(190), _px(470), _px(330))
 	_draw_round_rect(reward_rect, _px(8), Color(0.09, 0.12, 0.21, 0.80), Color(0.30, 0.4, 0.58, 0.65), 1)
-	draw_string(font, Vector2(reward_x, top + _px(230)), "本次奖励" if victory else "重新整备", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(27)), accent)
+	draw_string(font, Vector2(reward_x, top + _px(230)), GameLocale.text("本次奖励" if victory else "重新整备"), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(27)), accent)
 	var granted: Dictionary = _reward_summary.get("granted", {})
 	var ry := top + _px(280)
 	if granted.is_empty():
 		var note := "失败不扣除已有资源" if not victory else str(_reward_summary.get("reason", "本次没有奖励"))
-		draw_string(font, Vector2(reward_x, ry), note, HORIZONTAL_ALIGNMENT_LEFT, _px(430), int(_px(22)), DIM_TEXT)
+		draw_string(font, Vector2(reward_x, ry), GameLocale.text(note), HORIZONTAL_ALIGNMENT_LEFT, _px(430), int(_px(22)), DIM_TEXT)
 	for cid: String in granted:
-		draw_string(font, Vector2(reward_x, ry), _currency_display_name(cid), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), TEXT_COLOR)
-		draw_string(font, Vector2(reward_x + _px(325), ry), "+%d" % int(granted[cid]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24)), Color(0.66, 0.94, 0.79))
+		draw_string(font, Vector2(reward_x, ry), GameLocale.text(_currency_display_name(cid)), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), TEXT_COLOR)
+		draw_string(font, Vector2(reward_x + _px(325), ry), GameLocale.text("+%d" % int(granted[cid])), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24)), Color(0.66, 0.94, 0.79))
 		ry += _px(41)
 	var by := top + _px(455)
-	draw_string(font, Vector2(left, by), "本局构筑", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(25)), Color(0.63, 0.85, 1))
+	draw_string(font, Vector2(left, by), GameLocale.text("本局构筑"), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(25)), Color(0.63, 0.85, 1))
 	var gained := session.stage.upgrade_summary()
 	if gained.is_empty():
-		draw_string(font, Vector2(left, by + _px(42)), "本局未获得强化", HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), DIM_TEXT)
+		draw_string(font, Vector2(left, by + _px(42)), GameLocale.text("本局未获得强化"), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), DIM_TEXT)
 	else:
 		for i: int in range(mini(3, gained.size())):
 			var g: Dictionary = gained[i]
-			draw_string(font, Vector2(left, by + _px(42 + i * 32)), "%s ×%d" % [g.get("name", ""), int(g.get("stacks", 1))], HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), TEXT_COLOR)
+			draw_string(font, Vector2(left, by + _px(42 + i * 32)), GameLocale.text("%s ×%d" % [g.get("name", ""), int(g.get("stacks", 1))]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), TEXT_COLOR)
 	var review := _build_review_lines(summary)
 	var y := top + _px(605)
 	draw_line(Vector2(left, y - _px(25)), Vector2(panel.end.x - _px(55), y - _px(25)), Color(accent, 0.25), 1)
 	for i: int in range(mini(3, review.size())):
-		draw_string(font, Vector2(left, y + _px(i * 31)), review[i], HORIZONTAL_ALIGNMENT_LEFT, _px(1200), int(_px(22)), Color(0.73, 0.80, 0.93))
+		draw_string(font, Vector2(left, y + _px(i * 31)), GameLocale.text(review[i]), HORIZONTAL_ALIGNMENT_LEFT, _px(1200), int(_px(22)), Color(0.73, 0.80, 0.93))
 	_draw_button(_relaunch_rect, "重新挑战", Color(0.13, 0.20, 0.34))
 	var next_label := "返回关卡"
 	if bool(CampaignFlow.state().get("campaign_active", false)):
@@ -4379,7 +4379,7 @@ func _draw_button(rect: Rect2, label: String, base: Color) -> void:
 	_draw_round_rect(r.grow(-_px(4.0)), _px(8.0), Color(0, 0, 0, 0),
 		Color(1.0, 1.0, 1.0, 0.16 if hovered else 0.07), 1.0)
 	var fs := int(_px(24.0))
-	var s := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var s := font.get_string_size(GameLocale.text(label), HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	draw_string(font, Vector2(r.position.x + (r.size.x - s) * 0.5,
 			r.position.y + r.size.y * 0.66),
 		label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.97, 0.99, 1.0))

@@ -139,9 +139,9 @@ func _draw_text_outlined(font: Font, pos: Vector2, text: String, fs: int, col: C
 		for dy: float in [-o, 0.0, o]:
 			if is_zero_approx(dx) and is_zero_approx(dy):
 				continue
-			draw_string(font, pos + Vector2(dx, dy), text,
+			draw_string(font, pos + Vector2(dx, dy), GameLocale.text(text),
 				HORIZONTAL_ALIGNMENT_LEFT, -1, fs, OUTLINE)
-	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+	draw_string(font, pos, GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
 
 
 func _draw() -> void:
@@ -206,7 +206,7 @@ func _draw() -> void:
 	if stacked_subtitle:
 		baseline = cy + _px(1.0)
 	var zh_x := _px(100.0)
-	var base_w := font.get_string_size(label_zh, HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size).x
+	var base_w := font.get_string_size(GameLocale.text(label_zh), HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size).x
 	_draw_text_outlined(font, Vector2(zh_x, baseline), label_zh,
 		zh_size, TEXT_COLOR if interactive else TEXT_DISABLED)
 
@@ -240,7 +240,7 @@ func _draw() -> void:
 	# 英文副标签：右对齐
 	if not label_en.is_empty():
 		var en_size := int(_px(18.0 if stacked_subtitle else 28.0))
-		var en_w := font.get_string_size(label_en, HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
+		var en_w := font.get_string_size(GameLocale.text(label_en), HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
 		var en_pos := Vector2(zh_x, cy + _px(26.0)) if stacked_subtitle else Vector2(size.x - _px(24.0) - en_w, cy + _px(10.0))
 		_draw_text_outlined(font, en_pos, label_en,
 			en_size, EN_COLOR if interactive else EN_DISABLED)
@@ -276,10 +276,10 @@ func _draw_concept_row() -> void:
 	var ex := x
 	for i: int in range(label_en.length()):
 		var character := label_en.substr(i,1)
-		draw_string(english_font,Vector2(ex,cy+_px(29)),character,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(17)),Color(0.73,0.65,0.97,alpha))
-		ex += english_font.get_string_size(character,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(17))).x + _px(4)
+		draw_string(english_font,Vector2(ex,cy+_px(29)),GameLocale.text(character),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(17)),Color(0.73,0.65,0.97,alpha))
+		ex += english_font.get_string_size(GameLocale.text(character),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(17))).x + _px(4)
 	if disabled and not disabled_note.is_empty():
-		draw_string(font,Vector2(_px(305),cy+_px(1)),disabled_note,HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color(0.72,0.70,0.80,0.8))
+		draw_string(font,Vector2(_px(305),cy+_px(1)),GameLocale.text(disabled_note),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color(0.72,0.70,0.80,0.8))
 
 
 ## 选中/悬停高亮条：**左侧实、向右渐隐**（逐顶点颜色插值，不会有硬边）。

@@ -378,21 +378,21 @@ func _quit() -> void:
 	panel.add_theme_stylebox_override("panel",GameSkin.glass(GameSkin.GOLD,.96))
 	_quit_confirmation.add_child(panel)
 	var title := Label.new()
-	title.text = "暂别星丘？"
+	title.text = GameLocale.text("暂别星丘？")
 	title.position = Vector2(_px(42),_px(34))
 	title.size = Vector2(_px(636),_px(60))
 	title.add_theme_font_override("font",GameSkin.serif())
 	title.add_theme_font_size_override("font_size",int(_px(36)))
 	panel.add_child(title)
 	var note := Label.new()
-	note.text = "已保存的观测记录会保留。"
+	note.text = GameLocale.text("已保存的观测记录会保留。")
 	note.position = Vector2(_px(42),_px(114))
 	note.add_theme_font_size_override("font_size",int(_px(25)))
 	note.add_theme_color_override("font_color",GameSkin.MUTED)
 	panel.add_child(note)
 	for i: int in range(2):
 		var b := Button.new()
-		b.text = "留在这里" if i==0 else "退出游戏"
+		b.text = GameLocale.text("留在这里" if i==0 else "退出游戏")
 		b.position = Vector2(_px(42+330*i),_px(220))
 		b.size = Vector2(_px(306),_px(68))
 		b.add_theme_font_size_override("font_size",int(_px(27)))
@@ -458,9 +458,10 @@ func _draw_background() -> void:
 		var crest_rect := Rect2(offset+Vector2(717,499)*s,Vector2(44,49.5)*s)
 		draw_texture_rect(GameSkin.crest(),crest_rect,false,Color(0.95,0.82,0.65))
 		var plaque_font := GameSkin.serif()
-		var plaque := "私立星丘高等学校"
+		var plaque := "HOSHIGAOKA" if GameLocale.is_english() else "私立星丘高等学校"
 		for i: int in range(plaque.length()):
-			draw_string(plaque_font,offset+Vector2(728,580+float(i)*23)*s,plaque.substr(i,1),HORIZONTAL_ALIGNMENT_LEFT,-1,int(20*s),Color("c5a06b"))
+			var plaque_y := 570+float(i)*20 if GameLocale.is_english() else 580+float(i)*23
+			draw_string(plaque_font,offset+Vector2(728,plaque_y)*s,GameLocale.text(plaque.substr(i,1)),HORIZONTAL_ALIGNMENT_LEFT,-1,int((17 if GameLocale.is_english() else 20)*s),Color("c5a06b"))
 	else:
 		_draw_gradient_fallback()
 	_draw_atmosphere()
@@ -554,9 +555,9 @@ func _draw_text_outlined(font: Font, pos: Vector2, text: String, fs: int, col: C
 		for dy: float in [-o, 0.0, o]:
 			if is_zero_approx(dx) and is_zero_approx(dy):
 				continue
-			draw_string(font, pos + Vector2(dx, dy), text,
+			draw_string(font, pos + Vector2(dx, dy), GameLocale.text(text),
 				HORIZONTAL_ALIGNMENT_LEFT, -1, fs, OUTLINE)
-	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
+	draw_string(font, pos, GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
 
 
 func _draw_title_block(font: Font) -> void:
@@ -564,10 +565,10 @@ func _draw_title_block(font: Font) -> void:
 	var zh_size := int(_px(TITLE_SIZE))
 
 	var logo := ArtRegistry.load_texture("res://assets/art/ui/title_logo.png")
-	if logo != null:
+	if logo != null and not GameLocale.is_english():
 		draw_texture_rect(logo, Rect2(_px(75), _px(45), _px(840), _px(280)), false)
 	else:
-		draw_string(font, Vector2(x, _px(TITLE_BASELINE)), TITLE_ZH, HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size, TITLE_FILL)
+		draw_string(font, Vector2(x, _px(TITLE_BASELINE)), GameLocale.text(TITLE_ZH), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(62)) if GameLocale.is_english() else zh_size, TITLE_FILL)
 
 	# 英文副标：fallback_font 没有字距控制，因此**逐字绘制**并手工加 tracking，
 	# 让 HOSHIOKA · RESONANCE 像概念图那样疏朗，而不是挤成一团。
@@ -577,7 +578,7 @@ func _draw_title_block(font: Font) -> void:
 	var en_w := 0.0
 	for i: int in range(TITLE_EN.length()):
 		var ch := TITLE_EN.substr(i, 1)
-		var cw := font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
+		var cw := font.get_string_size(GameLocale.text(ch), HORIZONTAL_ALIGNMENT_LEFT, -1, en_size).x
 		_draw_text_outlined(font, Vector2(ex, ey), ch, en_size, ACCENT)
 		ex += cw + _px(TITLE_EN_TRACKING)
 		en_w += cw + _px(TITLE_EN_TRACKING)
@@ -599,7 +600,7 @@ func _draw_title_glow(font: Font, pos: Vector2, text: String, fs: int) -> void:
 			for dy: float in [-o, 0.0, o]:
 				if is_zero_approx(dx) and is_zero_approx(dy):
 					continue
-				draw_string(font, pos + Vector2(dx, dy), text,
+				draw_string(font, pos + Vector2(dx, dy), GameLocale.text(text),
 					HORIZONTAL_ALIGNMENT_LEFT, -1, fs, TITLE_GLOW)
 
 
@@ -610,7 +611,7 @@ func _draw_text_outlined_at(font: Font, pos: Vector2, text: String, fs: int,
 		for dy: float in [-o, 0.0, o]:
 			if is_zero_approx(dx) and is_zero_approx(dy):
 				continue
-			draw_string(font, pos + Vector2(dx, dy), text,
+			draw_string(font, pos + Vector2(dx, dy), GameLocale.text(text),
 				HORIZONTAL_ALIGNMENT_LEFT, -1, fs, col)
 
 
@@ -658,10 +659,10 @@ func _draw_epigraph(font: Font) -> void:
 	var lh := _px(40.0)
 	var right := _viewport.x - _px(96.0)
 	var col := Color(0.90, 0.88, 0.80)
-	var w2 := font.get_string_size(EPIGRAPH_L2, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	var w2 := font.get_string_size(GameLocale.text(EPIGRAPH_L2), HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	_draw_text_outlined(font, Vector2(right - w2, _viewport.y - _px(156.0) + lh),
 		EPIGRAPH_L2, size, col)
-	var w1 := font.get_string_size(EPIGRAPH_L1, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	var w1 := font.get_string_size(GameLocale.text(EPIGRAPH_L1), HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	_draw_text_outlined(font, Vector2(right - w1, _viewport.y - _px(156.0)), EPIGRAPH_L1,
 		size, col)
 

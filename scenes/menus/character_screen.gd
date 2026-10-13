@@ -208,7 +208,7 @@ func _ready() -> void:
 	_pick_first_character()
 	_layout()
 	var back := Button.new()
-	back.text = "返回校园"
+	back.text = GameLocale.text("返回校园")
 	back.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	back.position = Vector2(70, 620)
 	back.size = Vector2(230, 60)
@@ -217,7 +217,7 @@ func _ready() -> void:
 	add_child(back)
 	_navigation.append(back)
 	var details := Button.new()
-	details.text = "技能与天赋"
+	details.text = GameLocale.text("技能与天赋")
 	details.position = Vector2(320, 620)
 	details.size = Vector2(260, 60)
 	details.add_theme_font_size_override("font_size", 27)
@@ -227,7 +227,7 @@ func _ready() -> void:
 	add_child(details)
 	_navigation.append(details)
 	var equipment := Button.new()
-	equipment.text = "角色装备"
+	equipment.text = GameLocale.text("角色装备")
 	equipment.position = Vector2(70, 695)
 	equipment.size = Vector2(510, 60)
 	equipment.add_theme_font_size_override("font_size", 27)
@@ -237,7 +237,7 @@ func _ready() -> void:
 	add_child(equipment)
 	_navigation.append(equipment)
 	var backpack := Button.new()
-	backpack.text = "装备背包"
+	backpack.text = GameLocale.text("装备背包")
 	backpack.pressed.connect(func() -> void: SceneRouter.go_to("equipment"))
 	add_child(backpack)
 	_navigation.append(backpack)
@@ -247,8 +247,8 @@ func _ready() -> void:
 	_layout_navigation()
 	_page_previous = Button.new()
 	_page_next = Button.new()
-	_page_previous.text = "‹ 上一页"
-	_page_next.text = "下一页 ›"
+	_page_previous.text = GameLocale.text("‹ 上一页")
+	_page_next.text = GameLocale.text("下一页 ›")
 	for button: Button in [_page_previous,_page_next]:
 		add_child(button)
 		GameSkin.style_button(button)
@@ -727,7 +727,7 @@ func _vgrad(top: Color, bottom: Color) -> GradientTexture2D:
 
 
 func _text_w(font: Font, text: String, size: float) -> float:
-	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, int(size)).x
+	return font.get_string_size(GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(size)) if GameLocale.is_english() else int(size)).x
 
 
 ## 数字槽位字体：系统等宽字体优先（数字等宽、字形对齐），
@@ -776,9 +776,9 @@ func _draw_text(font: Font, pos: Vector2, text: String, size: float, color: Colo
 	if fs <= 0 or text.is_empty():
 		return
 	if outline and _outline_w(size) > 0:
-		draw_string_outline(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
+		draw_string_outline(font, pos, GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, fs,
 			int(ceil(_outline_w(size))), OUTLINE_COLOR)
-	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, color)
+	draw_string(font, pos, GameLocale.text(text), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, color)
 
 
 ## 依据视口与缩放计算全部矩形（绘制与命中共用）
@@ -1007,6 +1007,9 @@ func _draw_currency_bar(font: Font) -> void:
 	var chip_y := _px(48.0)
 	var icon_s := _px(ICON_SIZE_CHIP)
 	var gap := _px(12.0)
+	var text_size := F_LABEL
+	if GameLocale.is_english():
+		text_size = 20.0
 
 	# 先量总宽，再整体右对齐。数量按**固定位数槽**测量，
 	# 这样数字从 0 变成 1200 时，整条资源栏不会左右伸缩。
@@ -1015,12 +1018,22 @@ func _draw_currency_bar(font: Font) -> void:
 	for c: Dictionary in sorted:
 		var cid := str(c.get("id", ""))
 		var w := _px(14.0) + icon_s + _px(10.0) \
-			+ _text_w(font, str(c.get("name", cid)), F_LABEL) + _px(8.0) \
-			+ _num_slot_w(CURRENCY_DIGITS, F_LABEL) + _px(18.0)
+			+ _text_w(font, str(c.get("name", cid)), text_size) + _px(8.0) \
+			+ _num_slot_w(CURRENCY_DIGITS, text_size) + _px(18.0)
 		widths.append(w)
 		total += w + gap
 	if not widths.is_empty():
 		total -= gap
+	if GameLocale.is_english():
+		var available := _viewport.x-_px(660.0+48.0)
+		while total>available and text_size>14.0:
+			text_size -= 1.0
+			total = 0.0
+			for i: int in range(sorted.size()):
+				var c: Dictionary = sorted[i]
+				widths[i] = _px(14.0)+icon_s+_px(10.0)+_text_w(font,str(c.get("name","")),text_size)+_px(8.0)+_num_slot_w(CURRENCY_DIGITS,text_size)+_px(18.0)
+				total += widths[i]+gap
+			total -= gap
 
 	var x := maxf(_px(660.0), _viewport.x - _px(48.0) - total)
 	for i: int in range(sorted.size()):
@@ -1030,18 +1043,18 @@ func _draw_currency_bar(font: Font) -> void:
 		var r := Rect2(Vector2(x, chip_y), Vector2(widths[i], chip_h))
 		_resource_chips.append({"id": cid, "rect": r})
 		draw_style_box(_sb(Color(0.08, 0.10, 0.18, 0.90), BORDER_SOFT, _px(8.0), _px(1.0)), r)
-		var text_base := r.position.y + chip_h * 0.5 + _px(8.0)
+		var text_base := r.position.y + chip_h * 0.5 + ((font.get_ascent(int(_px(text_size)))-font.get_descent(int(_px(text_size))))*.5 if GameLocale.is_english() else _px(8.0))
 		# 图标按文字基线对齐（而不是按 chip 中心），避免与汉字视觉错位
 		_draw_icon(str(CURRENCY_ICON.get(cid, "icon_material")),
 			Vector2(r.position.x + _px(14.0),
 				_icon_y_for_text(text_base, F_LABEL, icon_s)), icon_s)
 		var nx := r.position.x + _px(14.0) + icon_s + _px(10.0)
-		_draw_text(font, Vector2(nx, text_base), label, _px(F_LABEL), TEXT)
-		nx += _text_w(font, label, F_LABEL) + _px(8.0)
+		_draw_text(font, Vector2(nx, text_base), label, _px(text_size), TEXT)
+		nx += _text_w(font, label, text_size) + _px(8.0)
 		# 数量：等宽字体，紧贴资源名左对齐；整条 chip 宽度按固定槽预留，
 		# 因此数字位数变化时 chip 本身与相邻 chip 都不会移动。
 		_draw_text(_mono_font(), Vector2(nx, text_base), str(_display_currency_count(cid)),
-			_px(F_LABEL), ACCENT)
+			_px(text_size), ACCENT)
 		x += widths[i] + gap
 
 
@@ -1171,13 +1184,14 @@ func _draw_study_inventory(font: Font) -> void:
 		_draw_icon("icon_study_record",
 			Vector2(rr.position.x + _px(12.0),
 				_icon_y_for_text(row_base, F_LABEL, ic)), ic)
-		_draw_text(font, Vector2(rr.position.x + _px(12.0) + ic + _px(12.0), row_base),
-			str(item.get("name", iid)), _px(F_LABEL), TEXT if picked else DIM)
+		var name_x := rr.position.x + _px(12.0) + ic + _px(12.0)
+		_draw_text(font, Vector2(name_x, rr.position.y+_px(23.0) if GameLocale.is_english() else row_base),
+			GameLocale.text(str(item.get("name", iid))).trim_prefix("Study Record: ") if GameLocale.is_english() else str(item.get("name", iid)), _px(20.0 if GameLocale.is_english() else F_LABEL), TEXT if picked else DIM)
 		var right := "持有 %d 本 · %d EXP/本" % [
 			_svc.get_currency(iid), int(item.get("expValue", 0))]
 		_draw_text(font, Vector2(
-			rr.position.x + rr.size.x - _px(12.0) - _text_w(font, right, F_TINY), row_base),
-			right, _px(F_TINY), ACCENT if picked else DIM)
+			name_x if GameLocale.is_english() else rr.position.x + rr.size.x - _px(12.0) - _text_w(font, right, F_TINY), rr.position.y+_px(45.0) if GameLocale.is_english() else row_base),
+			right, _px(17.0 if GameLocale.is_english() else F_TINY), ACCENT if picked else DIM)
 		ry += row_h + rgap
 
 
@@ -1279,6 +1293,7 @@ func _draw_growth_panel(font: Font) -> void:
 		match action:
 			"cycle_item":
 				label = "学习记录类型：%s（点击切换）" % _item_name(_preview_item)
+				if GameLocale.is_english(): label = GameLocale.text(_item_name(_preview_item)).trim_prefix("Study Record: ")+" · Change"
 				icon = "icon_refresh"
 			"preview":
 				var cnt := int(b.get("arg", 0))
@@ -1602,6 +1617,11 @@ func _draw_button(rect: Rect2, label: String, enabled: bool, icon: String = "",
 	var font_sz := _px(F_LABEL)
 	var icon_s := _px(ICON_SIZE_BUTTON)
 	var tw := _text_w(font, label, F_LABEL)
+	if GameLocale.is_english():
+		var max_width := rect.size.x-_px(32.0)-(icon_s+_px(10.0) if not icon.is_empty() else 0.0)
+		while tw>max_width and font_sz>_px(15.0):
+			font_sz -= 1.0
+			tw = font.get_string_size(GameLocale.text(label),HORIZONTAL_ALIGNMENT_LEFT,-1,int(font_sz)).x
 	var total := tw
 	if not icon.is_empty():
 		total += icon_s + _px(10.0)

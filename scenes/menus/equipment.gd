@@ -47,7 +47,7 @@ func _ready() -> void:
 		if not expanded_slots[slot]: continue
 		if category.is_empty():
 			var hint := Label.new()
-			hint.text = "尚未获得" + EquipmentService.slot_name(slot)
+			hint.text = GameLocale.text("尚未获得" + EquipmentService.slot_name(slot))
 			hint.custom_minimum_size = Vector2(590, 48)
 			hint.add_theme_font_size_override("font_size", 24)
 			hint.add_theme_color_override("font_color", MUTED)
@@ -64,10 +64,10 @@ func _ready() -> void:
 			item_button.reparent(list)
 			item_button.custom_minimum_size = Vector2(590,70)
 			var owner_id := str(item.get("boundCharacterId", ""))
-			item_button.tooltip_text = EquipmentService.slot_name(slot) + " · " + EquipmentService.quality_name(str(template.get("quality", ""))) + (" · 未装备" if owner_id.is_empty() else " · " + str(DataRegistry.get_entry("characters",owner_id).get("name",owner_id)))
+			item_button.tooltip_text = GameLocale.text(EquipmentService.slot_name(slot) + " · " + EquipmentService.quality_name(str(template.get("quality", ""))) + (" · 未装备" if owner_id.is_empty() else " · " + str(DataRegistry.get_entry("characters",owner_id).get("name",owner_id))))
 	var claim := button_at("领取全部装备奖励", Rect2(110, 820, 610, 65), _claim)
 	claim.disabled = EquipmentService.pending_equipment_entitlements().is_empty()
-	claim.tooltip_text = "完成关卡获得的装备会在此领取。" if claim.disabled else "领取已获得的全部装备奖励。"
+	claim.tooltip_text = GameLocale.text("完成关卡获得的装备会在此领取。" if claim.disabled else "领取已获得的全部装备奖励。")
 	panel(Rect2(820, 210, 1020, 710))
 	var inst := EquipmentService.find_instance(save, selected_id)
 	if not inst.is_empty():
@@ -88,20 +88,20 @@ func _ready() -> void:
 				continue
 			var equip_button := button_at("装备给" + str(DataRegistry.get_entry("characters", cid).get("name", cid)), Rect2(870 + (offset % 3) * 300, 585 + int(offset / 3) * 74, 280, 65), func() -> void: _result(EquipmentService.equip(cid, selected_id)))
 			equip_button.disabled = bound == cid
-			equip_button.tooltip_text = "已装备给这名角色" if bound == cid else "替换同槽位装备；旧装备保留在背包，强化等级不变。"
+			equip_button.tooltip_text = GameLocale.text("已装备给这名角色" if bound == cid else "替换同槽位装备；旧装备保留在背包，强化等级不变。")
 			offset += 1
 		var cost := EquipmentService.enhancement_cost_at(int(inst.get("enhanceLevel", 0)))
 		var permanent := not EquipmentService.can_enhance_template(str(inst.get("equipmentId", "")))
 		label_at("章节纪念 · 不可强化或分解" if permanent else "下次强化：学园币 %d · 零件 %d" % [int(cost.get("school_coin", 0)), int(cost.get("equipment_part", 0))], Rect2(870, 735, 880, 40), 25, MUTED)
 		var enhance := button_at("强化 +1", Rect2(870, 780, 260, 65), func() -> void: _result(EquipmentService.enhance(selected_id)), true)
 		enhance.disabled = permanent or cost.is_empty() or int(currency.get("school_coin",0)) < int(cost.get("school_coin",0)) or int(currency.get("equipment_part",0)) < int(cost.get("equipment_part",0))
-		enhance.tooltip_text = "已达到强化上限" if cost.is_empty() else ("学园币或装备零件不足，可通过关卡奖励获取。" if enhance.disabled else "消耗上方显示的资源，提升装备属性。")
+		enhance.tooltip_text = GameLocale.text("已达到强化上限" if cost.is_empty() else ("学园币或装备零件不足，可通过关卡奖励获取。" if enhance.disabled else "消耗上方显示的资源，提升装备属性。"))
 		var unequip := button_at("卸下", Rect2(1160, 780, 260, 65), func() -> void:
 			_result(EquipmentService.unequip(bound, str(template.get("slot", "")))))
 		unequip.disabled = bound.is_empty()
 		var reset := button_at("重置 / 分解", Rect2(1450, 780, 330, 65), _confirm)
 		reset.disabled = bool(template.get("unique",false))
-		reset.tooltip_text = "章节纪念物永久保留" if reset.disabled else "查看重置强化与分解选项"
+		reset.tooltip_text = GameLocale.text("章节纪念物永久保留" if reset.disabled else "查看重置强化与分解选项")
 	else:
 		label_at("装备档案", Rect2(870, 245, 900, 70), 38, GOLD)
 		label_at("背包中还没有装备", Rect2(870, 380, 900, 60), 32, BLUE)

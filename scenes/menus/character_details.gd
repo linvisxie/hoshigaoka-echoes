@@ -22,7 +22,7 @@ func _ready() -> void:
 		if cfg.get("talentIds", []).has(str(talent.get("id", ""))):
 			text += "%s\n%s\n" % [talent.get("name", ""), talent.get("description", "")]
 	var description := RichTextLabel.new()
-	description.text = text
+	description.text = GameLocale.text(text)
 	description.position = Vector2(900,345)
 	description.size = Vector2(880,540)
 	description.add_theme_font_size_override("normal_font_size",26)

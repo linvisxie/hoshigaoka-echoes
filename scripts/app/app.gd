@@ -7,7 +7,7 @@ extends Node
 const TAG := "App"
 
 ## 与 project.godot 的 config/version 保持一致
-const APP_VERSION := "0.5.10"
+const APP_VERSION := "0.5.11"
 var _quitting := false
 const APP_NAME := "HoshigaokaEchoes"
 
@@ -46,6 +46,7 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	GameLocale.initialize()
 	GameLog.info(TAG, "%s %s (%s %s) 启动"
 		% [APP_NAME, APP_VERSION, PHASE, PROTOTYPE_STAGE])
 	GameLog.info(TAG, "权威规格: %s" % SPEC_VERSION)
@@ -159,6 +160,7 @@ func _finish_quit() -> void:
 	# Release static atlas/texture references while the renderer is still alive.
 	ArtRegistry.clear_cache()
 	GameSkin.release_resources()
+	GameLocale.release_resources()
 	RenderingServer.force_sync()
 	await get_tree().process_frame
 	get_tree().quit()

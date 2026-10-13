@@ -108,7 +108,7 @@ func _sync_modal_tooltips() -> void:
 		_suspend_tooltips(canvas)
 	else:
 		for control: Control in _suspended_tooltips:
-			if is_instance_valid(control) and control.tooltip_text.is_empty(): control.tooltip_text = str(_suspended_tooltips[control])
+			if is_instance_valid(control) and control.tooltip_text.is_empty(): control.tooltip_text = GameLocale.text(str(_suspended_tooltips[control]))
 		_suspended_tooltips.clear()
 	get_viewport().update_mouse_cursor_state()
 
@@ -117,15 +117,16 @@ func _suspend_tooltips(node: Node) -> void:
 		if child.has_meta("campus_modal"): continue
 		if child is Control and not child.tooltip_text.is_empty():
 			if not _suspended_tooltips.has(child): _suspended_tooltips[child] = child.tooltip_text
-			child.tooltip_text = ""
+			child.tooltip_text = GameLocale.text("")
 		_suspend_tooltips(child)
 
 func label_at(text: String, rect: Rect2, font_size: int = 28, color: Color = WHITE) -> Label:
 	var label := Label.new()
-	label.text = text
+	label.text = GameLocale.text(text)
 	label.position = rect.position
 	label.size = rect.size
 	label.add_theme_font_size_override("font_size", font_size)
+	if GameLocale.is_english(): label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", Color("091021"))
 	label.add_theme_constant_override("outline_size", 1)
@@ -135,7 +136,7 @@ func label_at(text: String, rect: Rect2, font_size: int = 28, color: Color = WHI
 
 func button_at(text: String, rect: Rect2, callback: Callable, primary: bool = false) -> Button:
 	var button := Button.new()
-	button.text = text
+	button.text = GameLocale.text(text)
 	button.position = rect.position
 	button.size = rect.size
 	button.add_theme_font_size_override("font_size", 28)
@@ -145,6 +146,11 @@ func button_at(text: String, rect: Rect2, callback: Callable, primary: bool = fa
 	button.add_theme_stylebox_override("pressed", box(Color("192c49"), GOLD, 2))
 	button.add_theme_stylebox_override("focus", box(Color(0, 0, 0, 0), BLUE, 2))
 	GameSkin.style_button(button, primary)
+	if GameLocale.is_english():
+		var fitted := 28
+		while fitted>15 and GameSkin.body_font().get_string_size(button.text,HORIZONTAL_ALIGNMENT_LEFT,-1,fitted).x>rect.size.x-48:
+			fitted -= 1
+		button.add_theme_font_size_override("font_size",fitted)
 	button.pressed.connect(func() -> void:
 		AudioService.play_sfx("select")
 		callback.call())
