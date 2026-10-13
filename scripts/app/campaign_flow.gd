@@ -21,9 +21,12 @@ static func persist(values: Dictionary) -> bool:
 	return SaveService.commit(save)
 
 static func start_new(player_name: String) -> bool:
-	replay_story_id = ""
 	if not SaveService.new_game(player_name.strip_edges()):
 		return false
+	replay_story_id = ""
+	replay_return_key = "archive"
+	last_result = {}
+	inspected_character_id = "amamiya_mio"
 	if not persist({"campaign_active": true, "mode": "story", "current_story_id": "prologue_transfer",
 		"current_story_node": "0", "pending_stage_id": "1-1", "last_stable_screen": "title"}):
 		return false

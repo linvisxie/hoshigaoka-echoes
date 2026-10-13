@@ -25,6 +25,7 @@ var _errors: Array[String] = []
 
 ## 是否已初始化
 var _ready: bool = false
+var _save_generation: int = -1
 
 
 ## 从 DataRegistry 与存档初始化（幂等：可重复调用，会以存档为准重建）。
@@ -89,7 +90,14 @@ func setup() -> Array[String]:
 				% [cid, p.missing_profile_id()])
 
 	_ready = _errors.is_empty()
+	_save_generation = SaveService.save_generation()
 	return _errors
+
+
+## Whole-save replacement also invalidates services retained by an older scene.
+func _sync_save() -> void:
+	if _ready and _save_generation != SaveService.save_generation():
+		setup()
 
 
 func is_ready() -> bool:
@@ -102,11 +110,13 @@ func get_errors() -> Array[String]:
 
 ## 取某角色的成长状态（不存在返回 null）
 func get_progress(character_id: String) -> CharacterProgress:
+	_sync_save()
 	return _progress.get(character_id, null)
 
 
 ## 全部角色 id
 func all_character_ids() -> Array:
+	_sync_save()
 	return _progress.keys()
 
 
@@ -126,6 +136,7 @@ func get_currency(currency_id: String) -> int:
 ## 纪律：扣除时**不足即拒绝整笔**（不做部分扣除），并把库存夹在 0 以上。
 ## 本函数只改内存存档；调用方必须在同一事务内 commit()。
 func add_currency(currency_id: String, amount: int) -> int:
+	_sync_save()
 	var save := SaveService.get_current()
 	if save.is_empty():
 		return 0
@@ -217,8 +228,6 @@ func level_up_with_records(character_id: String, record_item_id: String, count: 
 		refunded_items = refunded_exp / exp_value
 		consumed = count - refunded_items
 	add_currency(record_item_id, -consumed)
-	if refunded_items > 0:
-		add_currency(record_item_id, refunded_items)
 
 	out["ok"] = true
 	out["expSpent"] = int(res["gained"])
@@ -288,6 +297,7 @@ func do_breakthrough(character_id: String) -> Dictionary:
 
 ## 把当前成长状态写回存档字典（不提交；由调用方 commit）。
 func write_to_save(save: Dictionary) -> void:
+	_sync_save()
 	if not save.has("progression"):
 		save["progression"] = {}
 	if not (save["progression"] as Dictionary).has("characters"):

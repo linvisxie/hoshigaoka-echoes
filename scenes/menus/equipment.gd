@@ -3,19 +3,25 @@ extends CampusScreen
 static var selected_id := ""
 static var feedback := ""
 static var expanded_slots := {"WEAPON": true, "ACCESSORY": false, "MEMENTO": false}
+static var save_generation := -1
 var confirmation: Panel
 
 func _ready() -> void:
 	super._ready()
 	set_background("bg_env_classroom_battle")
 	var save := SaveService.get_current()
+	if save_generation != SaveService.save_generation():
+		selected_id = ""
+		feedback = ""
+		expanded_slots = {"WEAPON": true, "ACCESSORY": false, "MEMENTO": false}
+		save_generation = SaveService.save_generation()
 	var currency: Dictionary = save.get("currencies", {})
 	page_heading("装备背包", "学园币 %d    /    装备零件 %d    /    待领取装备 %d" % [int(currency.get("school_coin", 0)), int(currency.get("equipment_part", 0)), EquipmentService.pending_equipment_entitlements().size()])
 	panel(Rect2(70, 210, 700, 710))
 	label_at("持有装备", Rect2(110, 240, 590, 65), 36, GOLD)
 	var items := EquipmentService.all_instances()
-	if selected_id.is_empty() and not items.is_empty():
-		selected_id = str(items[0].get("instanceId", ""))
+	if EquipmentService.find_instance(save, selected_id).is_empty():
+		selected_id = "" if items.is_empty() else str(items[0].get("instanceId", ""))
 	var scroll := ScrollContainer.new()
 	scroll.position = Vector2(110,335)
 	scroll.size = Vector2(620,460)
@@ -33,6 +39,13 @@ func _ready() -> void:
 		heading.reparent(list)
 		heading.custom_minimum_size = Vector2(590,60)
 		if not expanded_slots[slot]: continue
+		if category.is_empty():
+			var hint := Label.new()
+			hint.text = "尚未获得" + EquipmentService.slot_name(slot)
+			hint.custom_minimum_size = Vector2(590, 48)
+			hint.add_theme_font_size_override("font_size", 24)
+			hint.add_theme_color_override("font_color", MUTED)
+			list.add_child(hint)
 		for item: Dictionary in category:
 			var template := EquipmentService.template_of(str(item.get("equipmentId", "")))
 			var instance_id := str(item.get("instanceId", ""))
@@ -46,8 +59,6 @@ func _ready() -> void:
 			item_button.custom_minimum_size = Vector2(590,70)
 			var owner_id := str(item.get("boundCharacterId", ""))
 			item_button.tooltip_text = EquipmentService.slot_name(slot) + " · " + EquipmentService.quality_name(str(template.get("quality", ""))) + (" · 未装备" if owner_id.is_empty() else " · " + str(DataRegistry.get_entry("characters",owner_id).get("name",owner_id)))
-	if items.is_empty():
-		label_at("背包中还没有装备。\n完成调查后，可在这里领取奖励。", Rect2(110, 350, 600, 180), 28, MUTED)
 	var claim := button_at("领取全部装备奖励", Rect2(110, 820, 610, 65), _claim)
 	claim.disabled = EquipmentService.pending_equipment_entitlements().is_empty()
 	claim.tooltip_text = "完成关卡获得的装备会在此领取。" if claim.disabled else "领取已获得的全部装备奖励。"
@@ -85,6 +96,11 @@ func _ready() -> void:
 		var reset := button_at("重置 / 分解", Rect2(1450, 780, 330, 65), _confirm)
 		reset.disabled = bool(template.get("unique",false))
 		reset.tooltip_text = "章节纪念物永久保留" if reset.disabled else "查看重置强化与分解选项"
+	else:
+		label_at("装备档案", Rect2(870, 245, 900, 70), 38, GOLD)
+		label_at("背包中还没有装备", Rect2(870, 380, 900, 60), 32, BLUE)
+		var has_rewards := not EquipmentService.pending_equipment_entitlements().is_empty()
+		label_at("调查带回的奖励正在等待领取。\n点击左下方「领取全部装备奖励」，查看它们的属性。" if has_rewards else "完成调查可获得装备奖励，在左下方领取。\n武器、饰品与校园纪念物各有独立的装备槽位。\n每名角色每种类型最多装备一件。", Rect2(870, 465, 900, 230), 27, MUTED)
 	label_at(feedback, Rect2(100, 928, 1700, 40), 24, BLUE)
 	button_at("返回角色", Rect2(90, 980, 360, 70), func() -> void: SceneRouter.go_to("character"))
 	button_at("返回校园", Rect2(1430, 980, 410, 70), func() -> void: SceneRouter.go_to("home"))

@@ -210,7 +210,10 @@ func new_game(player_name: String = "") -> bool:
 	# 刻意**不**在这里预先赋值 _current：赋值统一由 commit() 在写盘成功后完成，
 	# 这样 commit() 失败时回滚到的仍是"上一份真正落盘的存档"，
 	# 而不会把这份从未写成功的存档留在内存里冒充既成事实。
-	return commit(save)
+	if not commit(save):
+		return false
+	_generation += 1
+	return true
 
 
 ## 取「最后一次成功落盘」的存档内容（副本）。
