@@ -270,7 +270,7 @@ func _ready() -> void:
 	_select_first_enabled()
 	GameLog.info(TAG, "关卡选择就绪（构建模式=%s，直选=%s，可进关卡=%d，背景=%s）" % [
 		BuildMode.mode_name(), str(direct_select_allowed()),
-		_implemented_ids().size(),
+		_specs.size() - 1,
 		"已加载" if _bg_tex != null else "缺失→渐变回退"])
 	queue_redraw()
 
@@ -320,6 +320,8 @@ func _build_specs() -> Array[Dictionary]:
 	var lookup := Callable(self, "_cleared_lookup")
 	var allow := direct_select_allowed()
 	for sid: String in _implemented_ids():
+		if not allow and not CampaignFlow.can_open_stage(sid):
+			continue
 		out.append(row_spec(sid, lookup, allow))
 	out.append({
 		"id": BACK_ID,

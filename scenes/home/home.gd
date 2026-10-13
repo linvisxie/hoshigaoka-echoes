@@ -38,7 +38,6 @@ func _ready() -> void:
 	button_at("校园菜单",Rect2(1550,795,240,75),_show_menu)
 	var unread := CampusHub.unread_count()
 	button_at("校园地点与事件" + ("  ·  %d 新" % unread if unread>0 else ""),Rect2(740,915,440,64),_show_campus,true).add_theme_font_size_override("font_size",25)
-	label_at("放课后 · " + ("第一章调查中" if not next.is_empty() else "第一章调查结束"),Rect2(740,985,450,35),23,BLUE)
 	label_at("留意那些还没有被听见的声音。",Rect2(85,985,1000,50),26,GOLD)
 	fade_in_content()
 

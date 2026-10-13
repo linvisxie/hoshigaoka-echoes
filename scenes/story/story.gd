@@ -112,14 +112,6 @@ func _show_node() -> void:
 	speaker.position.x = name_plate.position.x + 20
 	dialogue.position.x = 368 if portrait.visible else 122
 	dialogue.size.x = 1410 if portrait.visible else 1656
-	if cid == "amamiya_mio" and node.has("emotion"):
-		var emotion_tex := ArtRegistry.load_texture("res://assets/art/characters/amamiya_mio/amamiya_mio_portrait_%s.png" % str(node["emotion"]))
-		if emotion_tex != null:
-			# Frame the illustration, excluding the source sheet's caption/border.
-			var framed := AtlasTexture.new()
-			framed.atlas = emotion_tex
-			framed.region = Rect2(emotion_tex.get_size()*Vector2(0.035,0.015),emotion_tex.get_size()*Vector2(0.93,0.86))
-			portrait.texture = framed
 	var figure_path := "res://assets/art/characters/%s/%s_story.png" % [cid, cid]
 	figure.texture = ArtRegistry.character_story(cid) if not cid.is_empty() else null
 	if node.has("background"):

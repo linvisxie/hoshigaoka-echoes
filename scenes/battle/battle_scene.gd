@@ -2724,9 +2724,9 @@ func _draw_board() -> void:
 		var col: Color = LANE_COLORS[lane]
 		var start := _logical_to_screen(Vector2(-0.55,lane))
 		var end := _logical_to_screen(Vector2(5.58,lane))
-		var label_rect := Rect2(start-Vector2(_px(126),_px(17)),Vector2(_px(96),_px(34)))
-		_draw_round_rect(label_rect,_px(6),Color(0.035,0.055,0.09,0.82),Color(col,0.45),1.0)
-		draw_string(GameSkin.body_font(),label_rect.position+Vector2(_px(17),_px(24)),BattleTypes.lane_name(lane),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),col.lightened(0.25))
+		var label_rect := Rect2(start-Vector2(_px(126),_px(19)),Vector2(_px(104),_px(38)))
+		draw_style_box(GameSkin.glass(col, 0.86), label_rect)
+		draw_string(GameSkin.body_font(),label_rect.position+Vector2(_px(29),_px(26)),BattleTypes.lane_name(lane),HORIZONTAL_ALIGNMENT_LEFT,-1,int(_px(20)),Color("d8eaff"))
 		# Quiet slanted ground ribbons make all three routes legible without blue cells.
 		var band := PackedVector2Array([_logical_to_screen(Vector2(-0.46,lane-0.34)),_logical_to_screen(Vector2(5.58,lane-0.34)),_logical_to_screen(Vector2(5.58,lane+0.34)),_logical_to_screen(Vector2(-0.46,lane+0.34))])
 		draw_colored_polygon(band,Color(col,0.025))
@@ -2780,13 +2780,13 @@ func _draw_core() -> void:
 				_mark_drawn("core:rotating_sprite")
 			else:
 				ResonanceCrystal.draw_on(self,crystal_center,_render_scale,now,danger,flash)
-	var tex := ArtRegistry.load_texture("res://assets/art/ui/core_anchor.svg")
+	var tex := ArtRegistry.load_texture("res://assets/art/ui/lane_seal.svg")
 	for lane: int in range(grid.lanes):
 		var center := _logical_to_screen(Vector2(-1.48,lane))
 		var pulse := 0.55 + 0.15 * sin(now * (5.0 if danger else 1.8) + float(lane))
 		if hp <= 0:
 			pulse = 0.12
-		var r := tile * 0.10 * (1.0 + flash * 0.15)
+		var r := tile * 0.125 * (1.0 + flash * 0.15)
 		_draw_ground_shadow(center + Vector2(0, r * 0.9), r * 1.25, Color(energy, pulse * 0.36))
 		if tex != null:
 			draw_texture_rect(tex, Rect2(center - Vector2(r, r), Vector2(r * 2, r * 2)), false, Color(energy, 0.40 if hp <= 0 else 0.92))

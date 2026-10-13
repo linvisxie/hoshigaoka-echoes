@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+ <defs>
+  <linearGradient id="glass" x2="0.3" y2="1"><stop stop-color="#365a85" stop-opacity=".9"/><stop offset="1" stop-color="#0c1c36" stop-opacity=".8"/></linearGradient>
+  <linearGradient id="edge" x2=".7" y2="1"><stop stop-color="#ecf8ff"/><stop offset=".5" stop-color="#86c4f7"/><stop offset="1" stop-color="#6680d9"/></linearGradient>
+ </defs>
+ <path d="M48 5 81 24 81 69 48 90 15 69 15 24Z" fill="url(#glass)" stroke="url(#edge)" stroke-width="2"/>
+ <path d="M48 11 75 27 75 66 48 83 21 66 21 27Z" fill="none" stroke="#a3d7ff" stroke-opacity=".4"/>
+ <path d="M18 26 48 9 77 26M18 67 48 86 77 67" fill="none" stroke="#e0f3ff" stroke-opacity=".7" stroke-width="2"/>
+ <circle cx="48" cy="47" r="24" fill="none" stroke="#8fbbef" stroke-opacity=".45" stroke-dasharray="3 5"/>
+ <g fill="url(#edge)">
+  <ellipse cx="48" cy="35" rx="4" ry="12"/>
+  <ellipse cx="48" cy="35" rx="4" ry="12" transform="rotate(60 48 47)"/>
+  <ellipse cx="48" cy="35" rx="4" ry="12" transform="rotate(120 48 47)"/>
+  <ellipse cx="48" cy="35" rx="4" ry="12" transform="rotate(180 48 47)"/>
+  <ellipse cx="48" cy="35" rx="4" ry="12" transform="rotate(240 48 47)"/>
+  <ellipse cx="48" cy="35" rx="4" ry="12" transform="rotate(300 48 47)"/>
+ </g>
+ <circle cx="48" cy="47" r="4" fill="#f1faff"/>
+ <path d="M36 78H60" stroke="#b3e5ff" stroke-width="2"/>
+</svg>

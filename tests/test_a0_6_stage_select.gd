@@ -47,6 +47,22 @@ func after_each() -> void:
 	_set_override(-1)
 
 
+func test_retail_hides_future_stages_until_predecessors_clear() -> void:
+	var previous := SaveService.snapshot()
+	SaveService.new_game()
+	_set_override(0)
+	var screen := load(STAGE_SELECT_SCENE).instantiate() as Control
+	autofree(screen)
+	assert_eq(screen._build_specs().map(func(s: Dictionary) -> String: return s.id), ["1-1", BACK_ID])
+	StageRewardService.settle(DataRegistry.get_entry("stages", "1-1"), false, true)
+	assert_eq(screen._build_specs().map(func(s: Dictionary) -> String: return s.id), ["1-1", BACK_ID], "Defeat reveals no future stage")
+	StageRewardService.settle(DataRegistry.get_entry("stages", "1-1"), true, true)
+	assert_eq(screen._build_specs().map(func(s: Dictionary) -> String: return s.id), ["1-1", "1-2", BACK_ID])
+	StageRewardService.settle(DataRegistry.get_entry("stages", "1-2"), true, true)
+	assert_eq(screen._build_specs().map(func(s: Dictionary) -> String: return s.id), ["1-1", "1-2", "1-3", BACK_ID])
+	SaveService.commit(previous)
+
+
 # ============================================================
 #  注入辅助（不真读 OS.has_feature）
 # ============================================================

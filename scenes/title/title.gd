@@ -452,9 +452,11 @@ func _draw_background() -> void:
 			false)
 		# Architectural sign is separate from the clean plate and uses the formal crest.
 		var offset := Vector2((_viewport.x-dw)*0.5,(_viewport.y-dh)*0.5)
-		var crest_rect := Rect2(offset+Vector2(709,488)*s,Vector2(62,67)*s)
-		draw_rect(crest_rect,Color("152139"))
-		draw_texture_rect(GameSkin.crest(),crest_rect.grow(-3*s),false,Color("c2a66d"))
+		# Reuse the plaque's own unlettered material inside its existing metal rim.
+		# The old flat square extended over both the rim and the masonry.
+		draw_texture_rect_region(_bg_tex,Rect2(offset+Vector2(711,499)*s,Vector2(55,49)*s),Rect2(711,601,55,49))
+		var crest_rect := Rect2(offset+Vector2(717,499)*s,Vector2(44,49.5)*s)
+		draw_texture_rect(GameSkin.crest(),crest_rect,false,Color(0.95,0.82,0.65))
 		var plaque_font := GameSkin.serif()
 		var plaque := "私立星丘高等学校"
 		for i: int in range(plaque.length()):
