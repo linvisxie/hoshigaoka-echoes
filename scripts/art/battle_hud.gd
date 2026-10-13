@@ -36,6 +36,7 @@ var overlays: BattleOverlays
 var tutorial_stack: VBoxContainer
 var tutorial_views: Array[Dictionary] = []
 var boss_hp: ProgressBar
+var _focus_scope: Control
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -106,6 +107,7 @@ func _button(parent: Node, text: String, rect: Rect2, action: Callable, primary:
 	var b := Button.new()
 	b.text = text
 	b.focus_mode = Control.FOCUS_NONE
+	b.set_meta("modal_primary",primary)
 	b.position = rect.position
 	b.size = rect.size
 	b.add_theme_font_size_override("font_size", 25)
@@ -310,6 +312,14 @@ func _process(delta: float) -> void:
 	var modal: bool = battle._upgrade_panel_active() or battle.session.is_decided()
 	normal.visible = not modal and not battle.session.is_paused()
 	pause_layer.visible = not modal and battle.session.is_paused()
+	var focus_scope: Control = null
+	if pause_layer.visible:
+		focus_scope = leave_confirmation if is_instance_valid(leave_confirmation) and leave_confirmation.visible else (paused_settings if is_instance_valid(paused_settings) and paused_settings.visible else pause_panel)
+	elif is_instance_valid(overlays.layer):
+		focus_scope = overlays.layer
+	if focus_scope != _focus_scope:
+		_focus_scope = focus_scope
+		if is_instance_valid(focus_scope): GameSkin.focus_modal(focus_scope)
 	(pause_layer.get_node("Dim") as ColorRect).size = vp
 	pause_panel.position = (vp-pause_panel.size)*0.5
 	if not pause_layer.visible:

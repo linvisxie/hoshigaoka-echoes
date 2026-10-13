@@ -4316,7 +4316,7 @@ func _draw_result_overlay() -> void:
 	_draw_button(_relaunch_rect, "重新挑战", Color(0.13, 0.20, 0.34))
 	var next_label := "返回关卡"
 	if bool(CampaignFlow.state().get("campaign_active", false)):
-		next_label = "继续剧情" if not str(CampaignFlow.state().get("pending_story_after", "")).is_empty() else "返回校园"
+		next_label = "继续剧情" if victory and not str(CampaignFlow.state().get("pending_story_after", "")).is_empty() else "返回校园"
 	_draw_button(_quit_rect, next_label, Color(0.25, 0.31, 0.44))
 
 func _build_review_lines(summary: Dictionary) -> Array[String]:

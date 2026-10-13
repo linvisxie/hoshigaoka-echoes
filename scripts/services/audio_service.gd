@@ -27,6 +27,7 @@ var _music_tween: Tween
 var _streams: Dictionary = {}
 var _variant_cursor: Dictionary = {}
 var _played_assets: Dictionary = {}
+var _music_target_db := -12.0
 
 const FOLEY := {
 	"slash": ["resonance_blade_01","resonance_blade_02"],
@@ -86,6 +87,7 @@ func play_music(track: String, loop: bool = true) -> void:
 	stream.loop_begin = 0
 	stream.loop_end = int(stream.get_length() * float(stream.mix_rate))
 	_current_music = track
+	_music_target_db = float({"invigilator_exam":-11.0,"boss_exam_1":-10.0,"boss_exam_2":-9.0,"boss_exam_3":-8.0}.get(track,-12.0))
 	if _music_tween != null:
 		_music_tween.kill()
 	_music_tween = create_tween()
@@ -93,7 +95,7 @@ func play_music(track: String, loop: bool = true) -> void:
 	_music_tween.tween_callback(func() -> void:
 		_music.stream = stream
 		_music.play())
-	_music_tween.tween_property(_music, "volume_db", -12.0, 0.6)
+	_music_tween.tween_property(_music, "volume_db", _music_target_db, 0.6)
 
 
 func stop_music() -> void:
@@ -146,6 +148,7 @@ func playback_status() -> Dictionary:
 		if voice.playing:
 			active += 1
 	return {"track": _current_music, "musicPlaying": _music != null and _music.playing,
+		"musicGainDb":_music.volume_db if _music != null else -80.0,"musicTargetDb":_music_target_db,
 		"musicPosition": _music.get_playback_position() if _music != null else 0.0,
 		"activeVoices": active, "soundsTriggered": _last_sound.keys(),"playedAssets":_played_assets.duplicate()}
 

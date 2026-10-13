@@ -7,7 +7,7 @@ extends Node
 const TAG := "App"
 
 ## 与 project.godot 的 config/version 保持一致
-const APP_VERSION := "0.5.9"
+const APP_VERSION := "0.5.10"
 var _quitting := false
 const APP_NAME := "HoshigaokaEchoes"
 

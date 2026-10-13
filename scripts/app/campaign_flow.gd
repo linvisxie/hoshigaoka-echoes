@@ -148,13 +148,23 @@ static func launch_battle() -> bool:
 
 static func after_battle(victory: bool = true) -> bool:
 	if not victory:
-		if not persist({"mode":"hub", "pending_story_after":"", "current_story_id":"", "current_story_node":""}):
+		if not record_failed_attempt_return():
 			return false
 		return SceneRouter.go_to("home")
 	var story_id := str(state().get("pending_story_after", ""))
 	if not story_id.is_empty() and story_allowed(story_id):
 		return open_story(story_id, str(state().get("pending_stage_id", "")), "post_battle", true)
 	return SceneRouter.go_to("home")
+
+## A failed replay must not erase the required story earned by an earlier win.
+## Failure itself creates neither a clear nor a new story entitlement.
+static func record_failed_attempt_return() -> bool:
+	var pending := str(state().get("pending_story_after", ""))
+	var preserve := not pending.is_empty() and not done(pending) and story_allowed(pending)
+	return persist({"mode":"post_battle" if preserve else "hub",
+		"pending_story_after":pending if preserve else "",
+		"current_story_id":pending if preserve else "",
+		"current_story_node":str(state().get("current_story_node","0")) if preserve else ""})
 
 ## Entry guards apply to every menu, resume and battle launch, not only tiles.
 static func can_open_stage(sid: String) -> bool:

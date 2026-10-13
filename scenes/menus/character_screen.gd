@@ -1287,7 +1287,7 @@ func _draw_growth_panel(font: Font) -> void:
 				# 当前生效的档位：与预览份数一致时高亮为"已选中"
 				active = _preview_count > 0 and cnt == _preview_count
 			"levelup":
-				label = "升级（投入 %d 份）" % maxi(1, _preview_count)
+				label = "升级（先选择份数）" if _preview_count<=0 else "升级（投入 %d 份）" % _preview_count
 				icon = "icon_confirm"
 			"breakthrough":
 				label = "突破"

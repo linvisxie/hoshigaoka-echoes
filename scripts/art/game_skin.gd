@@ -21,6 +21,14 @@ static func battle_glass() -> StyleBoxTexture:
 static var _glass_cache: Dictionary = {}
 static var _font_cache: Dictionary = {}
 
+static func focus_outline() -> StyleBoxTexture:
+	var style := StyleBoxTexture.new()
+	style.texture = ArtRegistry.load_texture("res://assets/art/ui/glass_focus.svg")
+	for side: int in [SIDE_LEFT,SIDE_TOP,SIDE_RIGHT,SIDE_BOTTOM]:
+		style.set_texture_margin(side,18.0)
+		style.set_content_margin(side,18.0)
+	return style
+
 static func glass(accent: Color = BLUE, opacity: float = 0.90) -> StyleBox:
 	var key := accent.to_html() + str(opacity)
 	if not _glass_cache.has(key):
@@ -62,6 +70,9 @@ static func panel(fill: Color = Color("111c34"), accent: Color = Color("52678f")
 	s.shadow_color = Color(0.005, 0.01, 0.03, 0.5)
 	s.shadow_size = 4
 	s.shadow_offset = Vector2(0, 4)
+	if fill.a <= 0.0:
+		s.shadow_color = Color.TRANSPARENT
+		s.shadow_size = 0
 	s.set_content_margin_all(18)
 	return s
 
@@ -83,7 +94,7 @@ static func make_theme() -> Theme:
 	t.set_stylebox("hover", "Button", glass(BLUE,.96))
 	t.set_stylebox("pressed", "Button", glass(GREEN,.96))
 	t.set_stylebox("disabled", "Button", glass(Color("586c85"),.70))
-	t.set_stylebox("focus", "Button", panel(Color(0, 0, 0, 0), GOLD, true))
+	t.set_stylebox("focus", "Button", focus_outline())
 	t.set_stylebox("panel", "Panel", glass())
 	t.set_stylebox("background", "ProgressBar", bar(Color("28344e")))
 	t.set_stylebox("fill", "ProgressBar", bar(BLUE))
@@ -111,7 +122,7 @@ static func style_button(button: Button, primary: bool = false) -> void:
 	button.add_theme_stylebox_override("hover", glass(Color("b3eee8"), .96))
 	button.add_theme_stylebox_override("pressed", glass(GREEN, .96))
 	button.add_theme_stylebox_override("disabled", glass(Color("586c85"), .70))
-	button.add_theme_stylebox_override("focus", panel(Color(0,0,0,0), GOLD, true))
+	button.add_theme_stylebox_override("focus", focus_outline())
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	for state: String in ["normal","hover","pressed","disabled","focus"]:
 		var style := button.get_theme_stylebox(state)
@@ -161,3 +172,33 @@ static func release_resources() -> void:
 	for font: Font in _font_cache.values():
 		if font is FontFile: font.clear_cache()
 	_font_cache.clear()
+
+## Keep keyboard traversal inside the topmost visible dialog.
+static func focus_modal(root: Control) -> void:
+	var controls: Array[Control] = []
+	_collect_focusable(root,controls)
+	if controls.is_empty(): return
+	for i: int in range(controls.size()):
+		var control := controls[i]
+		var previous := control.get_path_to(controls[(i+controls.size()-1)%controls.size()])
+		var next := control.get_path_to(controls[(i+1)%controls.size()])
+		control.focus_previous = previous
+		control.focus_next = next
+		control.focus_neighbor_top = previous
+		control.focus_neighbor_bottom = next
+		control.focus_neighbor_left = previous
+		control.focus_neighbor_right = next
+	var owner := root.get_viewport().gui_get_focus_owner()
+	if owner == null or not root.is_ancestor_of(owner):
+		var initial := controls[0]
+		for control: Control in controls:
+			if bool(control.get_meta("modal_primary",false)): initial = control; break
+		initial.grab_focus()
+
+static func _collect_focusable(node: Node, controls: Array[Control]) -> void:
+	for child: Node in node.get_children():
+		if child is Control and not child.is_visible_in_tree(): continue
+		if child is BaseButton and not child.disabled: child.focus_mode = Control.FOCUS_ALL
+		if child is Control and child.focus_mode != Control.FOCUS_NONE and not (child is BaseButton and child.disabled):
+			controls.append(child)
+		_collect_focusable(child,controls)

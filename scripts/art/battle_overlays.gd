@@ -133,5 +133,5 @@ func _build_result(viewport: Vector2, factor: float) -> void:
 	hud._button(layer,"重新挑战",unscale(battle._relaunch_rect,factor),func() -> void: battle._handle_result_click(battle._relaunch_rect.get_center()))
 	var next := "返回关卡"
 	if bool(CampaignFlow.state().get("campaign_active",false)):
-		next = "继续剧情" if not str(CampaignFlow.state().get("pending_story_after","")).is_empty() else "返回校园"
+		next = "继续剧情" if victory and not str(CampaignFlow.state().get("pending_story_after","")).is_empty() else "返回校园"
 	hud._button(layer,next,unscale(battle._quit_rect,factor),func() -> void: battle._handle_result_click(battle._quit_rect.get_center()),true)

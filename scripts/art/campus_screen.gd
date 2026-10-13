@@ -10,6 +10,7 @@ const GOLD := Color("e8c990")
 const BLUE := Color("8edcff")
 var canvas: Control
 var background: TextureRect
+var _suspended_tooltips: Dictionary = {}
 
 func _ready() -> void:
 	theme = GameSkin.make_theme()
@@ -68,6 +69,16 @@ static func box(fill: Color, edge: Color, width: int = 1) -> StyleBoxFlat:
 
 func modal_panel(rect: Rect2) -> Panel:
 	var dialog := panel(rect)
+	dialog.set_meta("campus_modal",true)
+	var owner := get_viewport().gui_get_focus_owner()
+	if owner != null: dialog.set_meta("return_focus",weakref(owner))
+	dialog.visibility_changed.connect(func() -> void:
+		_sync_modal_tooltips()
+		if dialog.visible: _focus_dialog.call_deferred(dialog)
+		elif dialog.has_meta("return_focus"):
+			var previous: Control = dialog.get_meta("return_focus").get_ref()
+			if is_instance_valid(previous) and previous.is_visible_in_tree(): previous.grab_focus())
+	dialog.tree_exiting.connect(_sync_modal_tooltips)
 	dialog.mouse_filter = Control.MOUSE_FILTER_STOP
 	var veil := ColorRect.new()
 	veil.position = -rect.position
@@ -80,7 +91,34 @@ func modal_panel(rect: Rect2) -> Panel:
 	surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	surface.add_theme_stylebox_override("panel", GameSkin.glass(GOLD, .96))
 	dialog.add_child(surface)
+	_focus_dialog.call_deferred(dialog)
 	return dialog
+
+func _focus_dialog(dialog: Control) -> void:
+	if not is_instance_valid(dialog) or not dialog.is_visible_in_tree(): return
+	_sync_modal_tooltips()
+	GameSkin.focus_modal(dialog)
+
+func _sync_modal_tooltips() -> void:
+	if is_queued_for_deletion(): return
+	var active := false
+	for child: Node in canvas.get_children():
+		if child is Control and child.has_meta("campus_modal") and child.visible and not child.is_queued_for_deletion(): active = true
+	if active:
+		_suspend_tooltips(canvas)
+	else:
+		for control: Control in _suspended_tooltips:
+			if is_instance_valid(control) and control.tooltip_text.is_empty(): control.tooltip_text = str(_suspended_tooltips[control])
+		_suspended_tooltips.clear()
+	get_viewport().update_mouse_cursor_state()
+
+func _suspend_tooltips(node: Node) -> void:
+	for child: Node in node.get_children():
+		if child.has_meta("campus_modal"): continue
+		if child is Control and not child.tooltip_text.is_empty():
+			if not _suspended_tooltips.has(child): _suspended_tooltips[child] = child.tooltip_text
+			child.tooltip_text = ""
+		_suspend_tooltips(child)
 
 func label_at(text: String, rect: Rect2, font_size: int = 28, color: Color = WHITE) -> Label:
 	var label := Label.new()
