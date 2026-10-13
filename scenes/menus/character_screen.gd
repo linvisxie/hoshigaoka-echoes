@@ -255,21 +255,14 @@ func _ready() -> void:
 	_page_previous.pressed.connect(func() -> void: _list_page=maxi(0,_list_page-1); _layout(); queue_redraw())
 	_page_next.pressed.connect(func() -> void: _list_page=mini(int((_card_ids.size()-1)/3),_list_page+1); _layout(); queue_redraw())
 	_layout()
-	_resource_tip = Panel.new()
+	_resource_tip = ResourceDescription.new()
 	_resource_tip.name = "ResourceDescription"
 	_resource_tip.z_index = 50
 	_resource_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_resource_tip.add_theme_stylebox_override("panel", GameSkin.panel(Color("101d33"), GameSkin.BLUE))
 	add_child(_resource_tip)
-	_resource_tip_body = Label.new()
-	_resource_tip_quote = Label.new()
-	var kai := SystemFont.new()
-	kai.font_names = PackedStringArray(["KaiTi", "楷体", "STKaiti"])
-	_resource_tip_quote.add_theme_font_override("font", kai)
-	_resource_tip_quote.add_theme_color_override("font_color", GameSkin.GOLD)
-	for line: Label in [_resource_tip_body, _resource_tip_quote]:
-		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_resource_tip.add_child(line)
+	_resource_tip_body = (_resource_tip as ResourceDescription).body
+	_resource_tip_quote = (_resource_tip as ResourceDescription).quote
 	_resource_tip.hide()
 	GameLog.info(TAG, "角色培养界面就绪（%d 名角色，服务就绪=%s，画布 %.0fx%.0f，缩放 %.3f）"
 		% [_card_ids.size(), str(_svc != null and _svc.is_ready()),
@@ -307,13 +300,7 @@ func _update_resource_tip(delta: float) -> void:
 	_resource_tip.visible = not cid.is_empty() and _resource_hover_age >= 0.22
 	if not _resource_tip.visible:
 		return
-	var config: Dictionary = {}
-	for entry: Dictionary in DataRegistry.get_domain("currencies").get("currencies", []):
-		if str(entry.get("id", "")) == cid:
-			config = entry
-			break
-	_resource_tip_body.text = str(config.get("uiDescription", config.get("use", "")))
-	_resource_tip_quote.text = str(config.get("flavorText", ""))
+	(_resource_tip as ResourceDescription).set_currency(cid)
 	_resource_tip.size = Vector2(_px(540), _px(120))
 	_resource_tip.position = Vector2(clampf((hit.rect as Rect2).end.x - _resource_tip.size.x, _px(24), _viewport.x - _resource_tip.size.x - _px(24)), _px(116))
 	_resource_tip_body.position = Vector2(_px(24), _px(20))
@@ -1136,7 +1123,7 @@ func _draw_character_card(character_id: String, rect: Rect2, index: int) -> void
 				"突破 %d" % p.breakthrough, _px(F_TINY), POSITIVE)
 		# 迷你经验条
 		var bar := Rect2(Vector2(tx, rect.position.y + rect.size.y - _px(34.0)),
-			Vector2(tw, _px(12.0)))
+			Vector2(maxf(_px(40.0),tw-_px(48.0)), _px(12.0)))
 		_draw_exp_bar(bar, p, false)
 
 	# 定位标签（右上）
@@ -1153,7 +1140,7 @@ func _draw_character_card(character_id: String, rect: Rect2, index: int) -> void
 	# 序号（右下）
 	var idx_label := "[%d]" % (index + 1)
 	_draw_text(font, Vector2(rect.position.x + rect.size.x - pad - _text_w(font, idx_label, F_TINY),
-		rect.position.y + rect.size.y - _px(14.0)), idx_label, _px(F_TINY), FAINT)
+		rect.position.y + rect.size.y - _px(21.0)), idx_label, _px(F_TINY), FAINT)
 
 
 ## 左下：学习记录库存（图标 + 名称 + 持有本数 + 单份 EXP）

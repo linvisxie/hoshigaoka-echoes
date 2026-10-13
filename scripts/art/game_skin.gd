@@ -12,13 +12,14 @@ const RED := Color("ff899e")
 
 static func battle_glass() -> StyleBoxTexture:
 	var style := StyleBoxTexture.new()
-	style.texture = preload("res://assets/art/ui/battle_glass.svg")
+	style.texture = ArtRegistry.load_texture("res://assets/art/ui/battle_glass.svg")
 	for side: int in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
 		style.set_texture_margin(side, 18.0)
 		style.set_content_margin(side, 18.0)
 	return style
 
 static var _glass_cache: Dictionary = {}
+static var _font_cache: Dictionary = {}
 
 static func glass(accent: Color = BLUE, opacity: float = 0.90) -> StyleBox:
 	var key := accent.to_html() + str(opacity)
@@ -97,9 +98,9 @@ static func make_theme() -> Theme:
 	t.set_stylebox("slider", "HSlider", track)
 	t.set_stylebox("grabber_area", "HSlider", bar(Color("6ba7c4")))
 	t.set_stylebox("grabber_area_highlight", "HSlider", bar(BLUE))
-	t.set_icon("grabber", "HSlider", preload("res://assets/art/ui/slider_grabber.svg"))
-	t.set_icon("grabber_highlight", "HSlider", preload("res://assets/art/ui/slider_grabber_hover.svg"))
-	t.set_icon("grabber_disabled", "HSlider", preload("res://assets/art/ui/slider_grabber.svg"))
+	t.set_icon("grabber", "HSlider", ArtRegistry.load_texture("res://assets/art/ui/slider_grabber.svg"))
+	t.set_icon("grabber_highlight", "HSlider", ArtRegistry.load_texture("res://assets/art/ui/slider_grabber_hover.svg"))
+	t.set_icon("grabber_disabled", "HSlider", ArtRegistry.load_texture("res://assets/art/ui/slider_grabber.svg"))
 	t.set_stylebox("scroll", "VScrollBar", bar(Color("17253f")))
 	t.set_stylebox("grabber", "VScrollBar", bar(Color("6583af")))
 	t.set_stylebox("grabber_highlight", "VScrollBar", bar(BLUE))
@@ -146,7 +147,17 @@ static func crest() -> Texture2D:
 	return ArtRegistry.load_texture("res://assets/art/ui/school_crest_six.svg")
 
 static func serif() -> Font:
-	return preload("res://assets/fonts/NotoSerifCJKsc-Regular.otf")
+	return _font("res://assets/fonts/NotoSerifCJKsc-Regular.otf")
 
 static func body_font() -> Font:
-	return preload("res://assets/fonts/NotoSansCJKsc-Regular.otf")
+	return _font("res://assets/fonts/NotoSansCJKsc-Regular.otf")
+
+static func _font(path: String) -> Font:
+	if not _font_cache.has(path): _font_cache[path] = load(path) as Font
+	return _font_cache[path] as Font
+
+static func release_resources() -> void:
+	_glass_cache.clear()
+	for font: Font in _font_cache.values():
+		if font is FontFile: font.clear_cache()
+	_font_cache.clear()

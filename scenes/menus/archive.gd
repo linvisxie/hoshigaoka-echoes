@@ -2,9 +2,13 @@ extends CampusScreen
 
 static var chapter_open := false
 static var campus_open := true
+static var return_key := "home"
 
 func _ready() -> void:
 	super._ready()
+	var origin := SceneRouter.entry_origin()
+	if origin not in ["archive","story"]:
+		return_key = "character" if origin in ["character_details","character_equipment"] else "home"
 	set_background("bg_env_classroom_dusk")
 	page_heading("剧情档案", "已读记录 / 按调查顺序收藏 · 回看不重复发放奖励")
 	var ids := DataRegistry.get_ids("story")
@@ -57,7 +61,11 @@ func _ready() -> void:
 			tile.reparent(campus_grid)
 			tile.custom_minimum_size = Vector2(414,100)
 			tile.add_theme_font_size_override("font_size",23)
-	button_at("返回校园",Rect2(100,965,370,75),func() -> void: SceneRouter.go_to("home"))
+	if return_key == "character":
+		button_at("返回培养",Rect2(100,965,370,75),func() -> void: SceneRouter.go_to("character"))
+		button_at("返回校园",Rect2(1430,965,410,75),func() -> void: SceneRouter.go_to("home"))
+	else:
+		button_at("返回校园",Rect2(100,965,370,75),func() -> void: SceneRouter.go_to("home"))
 
 func _story_order(sid: String) -> int:
 	if sid.begins_with("prologue"): return -1
@@ -75,3 +83,8 @@ func _replay(sid: String) -> void:
 	CampaignFlow.replay_story_id = sid
 	CampaignFlow.replay_return_key = "archive"
 	SceneRouter.go_to("story")
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		get_viewport().set_input_as_handled()
+		SceneRouter.go_to.call_deferred(return_key)

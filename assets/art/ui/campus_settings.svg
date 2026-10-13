@@ -3,6 +3,14 @@
 <path d="M13 6H51L59 14V41L51 49H13L5 41V14Z" fill="url(#g)" stroke="#b6a078" stroke-width="1"/>
 <path d="M15 9H29M8 16V39M39 46H49L56 39" fill="none" stroke="#ead29a" stroke-opacity=".5" stroke-width=".7"/>
 <g transform="translate(32 27.5)" fill="#edf2ff">
-<path d="M-3-12H3L4-8L7-6L11-7L14-2L11 1L10 5L12 8L7 12L4 9L0 10L-2 14L-8 11L-7 7L-10 4L-14 4L-15-2L-11-4L-9-8L-10-11L-5-14Z" transform="scale(.72)"/>
-<circle r="5" fill="#17273b"/>
+<circle r="8"/>
+<rect x="-2" y="-11" width="4" height="5" rx=".6" transform="rotate(0)"/>
+<rect x="-2" y="-11" width="4" height="5" rx=".6" transform="rotate(45)"/>
+<rect x="-2" y="-11" width="4" height="5" rx=".6" transform="rotate(90)"/>
+<rect x="-2" y="-11" width="4" height="5" rx=".6" transform="rotate(135)"/>
+<rect x="-2" y="-11" width="4" height="5" rx=".6" transform="rotate(180)"/>
+<rect x="-2" y="-11" width="4" height="5" rx=".6" transform="rotate(225)"/>
+<rect x="-2" y="-11" width="4" height="5" rx=".6" transform="rotate(270)"/>
+<rect x="-2" y="-11" width="4" height="5" rx=".6" transform="rotate(315)"/>
+<circle r="4" fill="#1b2c41"/>
 </g></svg>

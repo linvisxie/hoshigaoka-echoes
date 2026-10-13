@@ -30,6 +30,7 @@ const SCENES := {
 }
 
 var _current_scene_key: String = ""
+var _entry_origin: String = ""
 var _history: Array[String] = []
 
 
@@ -72,6 +73,11 @@ func go_back() -> bool:
 func get_current_key() -> String:
 	return _current_scene_key
 
+## Immediate transition source, including same-scene rebuilds. History is
+## deliberately deduplicated and cannot distinguish a rebuild from re-entry.
+func entry_origin() -> String:
+	return _entry_origin
+
 func previous_key() -> String:
 	if _history.size() < 2:
 		return "title"
@@ -83,12 +89,14 @@ func previous_key() -> String:
 
 
 func _change(path: String, key: String, remember: bool = true) -> bool:
+	var origin := _current_scene_key
 	var err := get_tree().change_scene_to_file(path)
 	if err != OK:
 		GameLog.error(TAG, "切换场景失败 %s（错误 %d）" % [path, err])
 		return false
 	if key == "home":
 		CampaignFlow.inspected_character_id = "amamiya_mio"
+	_entry_origin = origin
 	_current_scene_key = key
 	if remember and (_history.is_empty() or _history[-1] != path):
 		_history.append(path)

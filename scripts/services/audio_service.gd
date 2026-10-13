@@ -103,6 +103,16 @@ func stop_music() -> void:
 		_music.stop()
 	_current_music = ""
 
+## Called only during application shutdown, before the audio server is torn down.
+func release_resources() -> void:
+	stop_music()
+	_music_tween = null
+	if _music != null: _music.stream = null
+	for voice: AudioStreamPlayer in _voices:
+		voice.stop()
+		voice.stream = null
+	_streams.clear()
+
 
 func play_sfx(sound: String, gain_db: float = 0.0) -> void:
 	var now := Time.get_ticks_msec()

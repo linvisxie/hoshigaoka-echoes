@@ -4,6 +4,7 @@ static var selected_id := ""
 static var feedback := ""
 static var expanded_slots := {"WEAPON": true, "ACCESSORY": false, "MEMENTO": false}
 static var save_generation := -1
+static var return_key := "home"
 var confirmation: Panel
 
 func _ready() -> void:
@@ -15,11 +16,16 @@ func _ready() -> void:
 		feedback = ""
 		expanded_slots = {"WEAPON": true, "ACCESSORY": false, "MEMENTO": false}
 		save_generation = SaveService.save_generation()
+	var origin := SceneRouter.entry_origin()
+	if origin in ["home","character","character_equipment"]:
+		return_key = origin
 	var currency: Dictionary = save.get("currencies", {})
 	page_heading("装备背包", "学园币 %d    /    装备零件 %d    /    待领取装备 %d" % [int(currency.get("school_coin", 0)), int(currency.get("equipment_part", 0)), EquipmentService.pending_equipment_entitlements().size()])
 	panel(Rect2(70, 210, 700, 710))
 	label_at("持有装备", Rect2(110, 240, 590, 65), 36, GOLD)
 	var items := EquipmentService.all_instances()
+	if items.is_empty() and origin != "equipment":
+		expanded_slots = {"WEAPON":false,"ACCESSORY":false,"MEMENTO":false}
 	if EquipmentService.find_instance(save, selected_id).is_empty():
 		selected_id = "" if items.is_empty() else str(items[0].get("instanceId", ""))
 	var scroll := ScrollContainer.new()
@@ -134,3 +140,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	super._unhandled_key_input(event)
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		get_viewport().set_input_as_handled()
+		if is_instance_valid(confirmation) and confirmation.visible:
+			confirmation.hide()
+		else:
+			SceneRouter.go_to.call_deferred(return_key)

@@ -1,6 +1,8 @@
 class_name CampusArtButton
 extends Button
 
+var _hover_motion: Tween
+
 func configure(caption: String, artwork: Texture2D, action: Callable) -> void:
 	text = caption
 	tooltip_text = caption
@@ -25,4 +27,13 @@ func configure(caption: String, artwork: Texture2D, action: Callable) -> void:
 	pressed.connect(func() -> void:
 		AudioService.play_sfx("select")
 		action.call())
-	mouse_entered.connect(func() -> void: AudioService.play_sfx("ui_hover",-14.0))
+	mouse_entered.connect(_hover_entered)
+
+func _hover_entered() -> void:
+	AudioService.play_sfx("ui_hover",-14.0)
+	var hover := get_theme_stylebox("hover") as StyleBoxTexture
+	if hover == null: return
+	if _hover_motion != null: _hover_motion.kill()
+	hover.modulate_color = Color.WHITE
+	_hover_motion = create_tween()
+	_hover_motion.tween_property(hover,"modulate_color",Color(1.08,1.08,1.06),.14)

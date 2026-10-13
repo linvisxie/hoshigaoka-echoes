@@ -7,7 +7,7 @@ extends Node
 const TAG := "App"
 
 ## 与 project.godot 的 config/version 保持一致
-const APP_VERSION := "0.5.8"
+const APP_VERSION := "0.5.9"
 var _quitting := false
 const APP_NAME := "HoshigaokaEchoes"
 
@@ -154,7 +154,11 @@ func _finish_quit() -> void:
 		scene.queue_free()
 	await get_tree().process_frame
 	await get_tree().process_frame
+	AudioService.release_resources()
+	await get_tree().create_timer(0.05).timeout
 	# Release static atlas/texture references while the renderer is still alive.
 	ArtRegistry.clear_cache()
-	GameSkin._glass_cache.clear()
+	GameSkin.release_resources()
+	RenderingServer.force_sync()
+	await get_tree().process_frame
 	get_tree().quit()

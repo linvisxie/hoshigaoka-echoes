@@ -23,6 +23,10 @@ var art_buttons: Dictionary = {}
 var _approved: Texture2D
 var _clean: Texture2D
 var _textless: Texture2D
+var resource_chips: Dictionary = {}
+var resource_tip: ResourceDescription
+var _resource_hover_id := ""
+var _resource_hover_age := 0.0
 
 func _ready() -> void:
 	super._ready()
@@ -65,6 +69,10 @@ func _ready() -> void:
 	_legacy_resource("equipment_part","icon_material",Rect2(1470,29,119,38))
 	_build_investigation()
 	_build_crisp_text()
+	resource_tip = ResourceDescription.new()
+	resource_tip.z_index = 50
+	add_child(resource_tip)
+	resource_tip.hide()
 	if CampaignFlow.open_campus_menu:
 		CampaignFlow.open_campus_menu = false
 		_show_menu()
@@ -117,8 +125,8 @@ func _legacy_resource(currency_id: String,icon_id: String,rect: Rect2) -> void:
 	group.position = rect.position
 	group.size = rect.size
 	group.mouse_filter = Control.MOUSE_FILTER_STOP
-	group.tooltip_text = "学园币\n用于角色突破、技能与装备培养。" if currency_id == "school_coin" else "装备零件\n用于强化装备，可通过调查奖励获得。"
 	canvas.add_child(group)
+	resource_chips[currency_id] = group
 	# Identical fine gold frames; original resource art, fitted to one icon box.
 	_image(preload("res://assets/art/ui/campus_resource.svg"),Rect2(Vector2.ZERO,rect.size),group)
 	var icon := ArtRegistry.icon(icon_id,64)
@@ -180,7 +188,34 @@ func _build_crisp_text() -> void:
 		_glyph_patch(rect)
 	if _has_unread("保健室"): _glyph_patch(Rect2(1341,474,70,23))
 	for entry: Array in [["角色培养",177],["装备背包",237],["关卡记录",297],["剧情档案",357]]:
-		_text_patch(Rect2(1540,int(entry[1]),91,30),str(entry[0]),19).set_meta("handbook_caption",true)
+		var index: int = ["角色培养","装备背包","关卡记录","剧情档案"].find(str(entry[0]))
+		var center := 188.0+60.0*index
+		var source_y: float = [174.0,232.0,291.0,349.0][index]
+		_image(_slice(_textless,Rect2(1540,source_y-2,38,38)),Rect2(1490,source_y-2,38,38))
+		var icon := _image(_slice(_approved,Rect2(1493,source_y,31,33)),Rect2(1493,center-16.5,31,33))
+		icon.name = "HandbookIcon%d"%index
+		_text_patch(Rect2(1540,center-15,91,30),str(entry[0]),19).set_meta("handbook_caption",true)
+
+func _process(delta: float) -> void:
+	if not is_instance_valid(resource_tip): return
+	var currency_id := ""
+	if not ((is_instance_valid(campus_panel) and campus_panel.visible) or (is_instance_valid(exit_panel) and exit_panel.visible)):
+		for key: String in resource_chips:
+			if resource_chips[key].get_global_rect().has_point(get_global_mouse_position()): currency_id = key
+	if currency_id != _resource_hover_id:
+		_resource_hover_id = currency_id
+		_resource_hover_age = 0.0
+		if not currency_id.is_empty():
+			var description := ResourceDescription.definition(currency_id)
+			GameLog.debug("CampusTip","%s | %s | %s"%[currency_id,description.get("uiDescription",""),description.get("flavorText","")])
+	_resource_hover_age += delta
+	resource_tip.visible = not currency_id.is_empty() and _resource_hover_age>=.22
+	if not resource_tip.visible: return
+	var factor := minf(get_viewport_rect().size.x/1920.0,get_viewport_rect().size.y/1080.0)
+	resource_tip.set_ui_scale(factor)
+	resource_tip.set_currency(currency_id)
+	var anchor: Rect2 = resource_chips[currency_id].get_global_rect()
+	resource_tip.position = Vector2(clampf(anchor.end.x-resource_tip.size.x,24*factor,get_viewport_rect().size.x-resource_tip.size.x-24*factor),116*factor)
 
 func _glyph_patch(rect: Rect2) -> void:
 	var image := _image(_slice(_approved,rect),rect)
@@ -336,7 +371,7 @@ func _show_menu() -> void:
 	exit_panel = modal_panel(Rect2(496,190,680,590))
 	_in_panel(label_at("校园菜单",Rect2(0,0,520,60),36,GOLD),exit_panel,Vector2(80,40))
 	_in_panel(label_at("进度已自动保存。",Rect2(0,0,520,45),25,MUTED),exit_panel,Vector2(80,110))
-	for spec: Array in [["继续留在校园",190,func() -> void: exit_panel.hide()],["返回标题",290,func() -> void: SceneRouter.go_to("title")],["退出游戏…",390,_confirm_exit]]:
+	for spec: Array in [["继续留在校园",190,func() -> void: exit_panel.hide()],["返回标题",290,func() -> void: SceneRouter.go_to("title")],["退出游戏",390,_confirm_exit]]:
 		_in_panel(button_at(str(spec[0]),Rect2(0,0,520,75),spec[2]),exit_panel,Vector2(80,int(spec[1])))
 
 func _confirm_exit() -> void:

@@ -7,7 +7,7 @@ func _ready() -> void:
 func _run() -> void:
 	DataRegistry.load_all()
 	var reports: Array = []
-	for level: int in [5,6,7]:
+	for level: int in [5,7,9]:
 		for n: int in range(6,11):
 			for active: bool in [false,true]:
 				reports.append(simulate("1-%d" % n,level,active))
@@ -65,4 +65,5 @@ func simulate(sid: String,level: int,active: bool) -> Dictionary:
 	var summary := session.result_summary()
 	summary.merge({"stage":sid,"level":level,"skillsEnabled":active,"skillCasts":count,"peakLiving":peak,"lanes":lane_seen.keys(),"waveConsistent":wave_consistent,"seconds":rt.elapsed_seconds},true)
 	print("BALANCE ",JSON.stringify(summary))
+	session.free()
 	return summary

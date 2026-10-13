@@ -5,6 +5,7 @@ func _view() -> Node:
 	var view: Node = load("res://scenes/battle/battle_scene.gd").new()
 	view.grid = BattleGrid.from_layout(DataRegistry.get_layout())
 	view.session = BattleSession.new()
+	view.add_child(view.session)
 	view.session.grid = view.grid
 	view.session.stage = StageRuntime.new()
 	view.session.stage.grid = view.grid
