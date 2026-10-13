@@ -15,4 +15,3 @@ Production asset extraction / precise background reconstruction for the approved
 campus_approved.png: 3198552863243c6ef893a97a687924230fa4a6948d6e20b7b441f28d57500527
 
 campus_clean.png: dd05a0cbc5a22ed76f482fe96ce61a1ff8d9a4a32a1218fa2593dafb7ac50989
-

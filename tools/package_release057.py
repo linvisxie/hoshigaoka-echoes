@@ -88,4 +88,3 @@ assert 'chapter_one_0.5.6_20261013' in body
 launcher.write_text(body.replace('chapter_one_0.5.6_20261013','chapter_one_0.5.7_20261013'),encoding='ascii')
 subprocess.run([shutil.which('pwsh') or 'pwsh','-NoProfile','-Command',"& '"+str(ROOT/'tools/retain_release_versions.ps1')+"' -Keep @('chapter_one_0.5.7_20261013','chapter_one_0.5.6_20261013')"],check=True)
 print(json.dumps(dict(ok=True,archive=str(archive),bytes=archive.stat().st_size,files=len(files),preservedFiles=len(preserved)),ensure_ascii=False))
-
