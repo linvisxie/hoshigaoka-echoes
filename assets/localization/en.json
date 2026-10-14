@@ -922,6 +922,7 @@
   "远程负责攻击：站在前线身后，射程内持续输出": "Ranged characters attack from behind the frontline, dealing damage within range.",
   "治疗负责恢复：范围内生命百分比最低的受伤友军优先": "Healers prioritize wounded allies with the lowest HP percentage in range.",
   "点击场上角色可打开操作面板主动撤退；撤退返还 50% AP，但需等 20 秒再部署": "Click a deployed character to retreat. Refunds 50% AP, with a 20s redeployment cooldown.",
+  "打开设置失败，请重试。": "Could not open Settings. Please try again.",
   "关于游戏": "About",
   "鸣谢与许可证": "Credits & Licenses",
   "返回设置": "Back to Settings",

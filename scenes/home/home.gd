@@ -32,6 +32,7 @@ var petals: CampusPetals
 var _action_epoch := 0
 var _card_motion: Tween
 var _feedback: Control
+var _photo_reveal: ShaderMaterial
 
 func _ready() -> void:
 	super._ready()
@@ -88,13 +89,18 @@ func _ready() -> void:
 	canvas.add_child(_feedback)
 	for place: String in MAIN_LOCATIONS:
 		if _has_unread(place): atmosphere.unread.append(place)
+	for event: Dictionary in CampusHub.events():
+		if not CampaignFlow.done(str(event.storyId)): atmosphere.new_record = true
 	for key: String in art_buttons:
 		var control: Button = art_buttons[key]
 		control.mouse_entered.connect(func() -> void: atmosphere.set_hover(key))
 		control.mouse_exited.connect(func() -> void: atmosphere.clear_hover(key))
-		control.focus_entered.connect(func() -> void: atmosphere.set_hover(key))
+		control.focus_entered.connect(func() -> void:
+			if App.keyboard_navigation: atmosphere.set_hover(key))
 		control.focus_exited.connect(func() -> void: atmosphere.clear_hover(key))
-	_animate_card()
+	var investigation_key := str(investigation_state.stage) if not str(investigation_state.stage).is_empty() else "complete"
+	_animate_card(SceneRouter.last_campus_investigation!=investigation_key)
+	SceneRouter.last_campus_investigation = investigation_key
 	resource_tip = ResourceDescription.new()
 	resource_tip.z_index = 50
 	add_child(resource_tip)
@@ -171,7 +177,10 @@ func _build_investigation() -> void:
 	investigation.size = CARD.size
 	investigation.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(investigation)
-	_image(_slice(_textless if GameLocale.is_english() else _approved,CARD),Rect2(Vector2.ZERO,CARD.size),investigation)
+	var card_image := _image(_slice(_textless if GameLocale.is_english() else _approved,CARD),Rect2(Vector2.ZERO,CARD.size),investigation)
+	_photo_reveal = ShaderMaterial.new()
+	_photo_reveal.shader = preload("res://scripts/art/campus_card_reveal.gdshader")
+	card_image.material = _photo_reveal
 	var clue := _investigation_clue(sid)
 	investigation_state["clue"] = clue
 	_image(_slice(_textless,Rect2(1378,703,251,109)),Rect2(158,8,251,109),investigation)
@@ -308,6 +317,7 @@ func _card_label(value: String,rect: Rect2,font_size: int,color: Color) -> void:
 	label.clip_text = true
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	investigation.add_child(label)
+	label.set_meta("card_text",true)
 	label.position = rect.position
 	label.size = rect.size
 
@@ -341,11 +351,18 @@ func _has_campus_modal() -> bool:
 		if child is Control and child.has_meta("campus_modal") and child.visible and not child.is_queued_for_deletion(): return true
 	return false
 
-func _animate_card() -> void:
+func _animate_card(updated: bool = false) -> void:
 	if _card_motion != null: _card_motion.kill()
 	investigation.modulate.a = 0.0
-	_card_motion = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	_card_motion.tween_property(investigation,"modulate:a",1.0,.28)
+	_photo_reveal.set_shader_parameter("photo_alpha",0.0 if updated else 1.0)
+	_card_motion = create_tween().set_parallel().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_card_motion.tween_property(investigation,"modulate:a",1.0,.38)
+	if updated:
+		_card_motion.tween_method(func(alpha: float) -> void: _photo_reveal.set_shader_parameter("photo_alpha",alpha),0.0,1.0,.36)
+	for child: Node in investigation.get_children():
+		if child is Control and child.has_meta("card_text"):
+			child.modulate.a = 0.0 if updated else 1.0
+			if updated: _card_motion.tween_property(child,"modulate:a",1.0,.40).set_delay(.18)
 
 func _campus_action(caption: String,rect: Rect2,action: Callable) -> void:
 	if not is_instance_valid(atmosphere):

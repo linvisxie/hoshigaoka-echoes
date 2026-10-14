@@ -123,6 +123,7 @@ static func style_button(button: Button, primary: bool = false) -> void:
 	button.add_theme_stylebox_override("pressed", glass(GREEN, .96))
 	button.add_theme_stylebox_override("disabled", glass(Color("586c85"), .70))
 	button.add_theme_stylebox_override("focus", focus_outline())
+	bind_focus_feedback(button)
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	for state: String in ["normal","hover","pressed","disabled","focus"]:
 		var style := button.get_theme_stylebox(state)
@@ -194,6 +195,14 @@ static func focus_modal(root: Control) -> void:
 		for control: Control in controls:
 			if bool(control.get_meta("modal_primary",false)): initial = control; break
 		initial.grab_focus()
+
+static func bind_focus_feedback(button: Button) -> void:
+	if button.has_node("InputFocusFeedback"):
+		button.get_node("InputFocusFeedback").refresh()
+		return
+	var feedback: Node = load("res://scripts/art/button_focus_feedback.gd").new()
+	feedback.name = "InputFocusFeedback"
+	button.add_child(feedback)
 
 static func _collect_focusable(node: Node, controls: Array[Control]) -> void:
 	for child: Node in node.get_children():

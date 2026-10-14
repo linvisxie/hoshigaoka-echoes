@@ -320,7 +320,7 @@ func _activate(index: int) -> void:
 		"new_game":
 			SceneRouter.go_to("new_game")
 		"settings":
-			SceneRouter.go_to("settings")
+			_menu_with_feedback(index,func() -> bool: return SceneRouter.go_to("settings"),"打开设置失败，请重试。")
 		"stage_select":
 			_open_stage_select()
 		"quit":
@@ -330,16 +330,22 @@ func _activate(index: int) -> void:
 
 
 func _continue_with_feedback(index: int) -> void:
+	_menu_with_feedback(index,CampaignFlow.continue_to_campus,"返回校园失败，请重试。")
+
+func _menu_with_feedback(index: int,action: Callable,error_message: String) -> void:
 	_busy = true
 	var row := _rows[index]
 	var feedback := create_tween()
 	feedback.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	feedback.tween_property(row,"modulate:a",0.55,0.16)
+	feedback.tween_property(row,"modulate:a",0.55,0.22)
 	await feedback.finished
-	if not CampaignFlow.continue_to_campus():
+	# OS input can arrive before the render target has been repainted. Capture
+	# only after a complete title frame; otherwise the snapshot may be clear color.
+	if DisplayServer.get_name()!="headless": await RenderingServer.frame_post_draw
+	if not bool(action.call()):
 		_busy = false
 		row.modulate.a = 1.0
-		_show("返回校园失败，请重试。",WARN)
+		_show(error_message,WARN)
 
 ## 进入战斗场景。
 ## 关卡由 PrototypeEntry 决策（默认演示关 p1_0_demo；Retail 构建下为其正式默认关），
@@ -411,9 +417,9 @@ func _quit() -> void:
 		b.add_theme_font_size_override("font_size",int(_px(27)))
 		GameSkin.style_button(b,i==0)
 		b.pressed.connect(func() -> void:
+			AudioService.play_sfx("select")
 			if i==0:
 				_quit_confirmation.hide()
-				AudioService.play_sfx("ui_back",-5.0)
 			else:
 				_busy = true
 				App.request_quit())
@@ -653,16 +659,7 @@ func _draw_left_panel(_font: Font) -> void:
 
 
 func _draw_petals() -> void:
-	for i: int in range(22):
-		var seed := float(i)
-		var x := fposmod(seed * 137.7 + _ambient_time * (18 + fmod(seed, 4) * 5), REF_W + 80) - 40
-		var y := fposmod(seed * 73.3 + _ambient_time * (10 + fmod(seed, 3) * 3), REF_H + 80) - 40
-		var center := Vector2(_px(x), _px(y + sin(_ambient_time * 0.8 + seed) * 20))
-		var radius := _px(3 + fmod(seed, 4))
-		var angle := _ambient_time * 0.45 + seed
-		var axis := Vector2(cos(angle),sin(angle)) * radius
-		var side := axis.orthogonal() * 0.38
-		draw_colored_polygon(PackedVector2Array([center-axis,center+side,center+axis,center-side]),Color(0.96,0.64,0.78,0.24 + fmod(seed,3)*0.10))
+	CampusPetals.draw_field(self,_ambient_time,sin(_ambient_time*.45)*.62+sin(_ambient_time*.91)*.22,Vector2(_scale,_scale))
 
 
 func _draw_epigraph(font: Font) -> void:

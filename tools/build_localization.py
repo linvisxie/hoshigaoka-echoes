@@ -10,6 +10,7 @@ for kind in ('ui', 'data'):
         index, target = line.split('\t', 1)
         catalog[sources[int(index)]] = target.replace('\\n', '\n')
 catalog.update({
+    '打开设置失败，请重试。': 'Could not open Settings. Please try again.',
     '关于游戏': 'About', '鸣谢与许可证': 'Credits & Licenses', '返回设置': 'Back to Settings',
     '设置自动保留 · 滚动卡片查看更多': 'Settings are kept · Scroll inside the card for more',
     '感谢这些项目与创作者 · 许可证保留原文，可离线阅读': 'Thanks to these projects and creators · Original license texts available offline',

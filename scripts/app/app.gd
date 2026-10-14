@@ -7,7 +7,9 @@ extends Node
 const TAG := "App"
 
 ## 与 project.godot 的 config/version 保持一致
-const APP_VERSION := "0.5.13"
+const APP_VERSION := "0.5.14"
+signal ui_input_mode_changed(keyboard: bool)
+var keyboard_navigation := false
 var _quitting := false
 const APP_NAME := "HoshigaokaEchoes"
 
@@ -58,6 +60,19 @@ func _ready() -> void:
 	# App 排在 DataRegistry 之前，因此此处 DataRegistry 尚未加载。
 	# 成长系统的构建推迟到 deferred（此时全部 Autoload 的 _ready 已完成）。
 	_init_growth.call_deferred()
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton or (event is InputEventMouseMotion and event.relative.length_squared()>1.0):
+		set_keyboard_navigation(false)
+	elif event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode in [KEY_TAB,KEY_UP,KEY_DOWN,KEY_LEFT,KEY_RIGHT,KEY_ENTER,KEY_KP_ENTER,KEY_SPACE]: set_keyboard_navigation(true)
+	elif event is InputEventJoypadButton and event.pressed:
+		set_keyboard_navigation(true)
+
+func set_keyboard_navigation(value: bool) -> void:
+	if keyboard_navigation==value: return
+	keyboard_navigation = value
+	ui_input_mode_changed.emit(value)
 
 
 ## 构建角色成长服务并载入存档中的成长状态。

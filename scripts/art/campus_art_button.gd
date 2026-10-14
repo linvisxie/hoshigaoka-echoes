@@ -24,6 +24,7 @@ func configure(caption: String, artwork: Texture2D, action: Callable) -> void:
 	focus.set_border_width_all(1)
 	focus.set_corner_radius_all(5)
 	add_theme_stylebox_override("focus",focus)
+	GameSkin.bind_focus_feedback(self)
 	pressed.connect(func() -> void:
 		AudioService.play_sfx("select")
 		action.call())

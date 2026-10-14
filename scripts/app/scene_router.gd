@@ -5,6 +5,9 @@
 extends Node
 
 const TAG := "SceneRouter"
+const MENU_FADE_SECONDS := .55
+var _menu_snapshot: CanvasLayer
+var _menu_fade: Tween
 
 ## 已登记的场景路径。
 ## P0.1 起含 battle；Alpha A0.1 起含 character（角色培养，V2.1.4 H 章三十三）。
@@ -36,6 +39,7 @@ var _history: Array[String] = []
 ## Transient settings navigation, independent of player progress and save data.
 var settings_return_key := "title"
 var settings_scroll := 0
+var last_campus_investigation := ""
 
 
 ## 按 key 切换场景。
@@ -94,8 +98,10 @@ func previous_key() -> String:
 
 func _change(path: String, key: String, remember: bool = true) -> bool:
 	var origin := _current_scene_key
+	if origin=="title" and key in ["home","settings"]: _capture_menu_frame()
 	var err := get_tree().change_scene_to_file(path)
 	if err != OK:
+		_clear_menu_snapshot()
 		GameLog.error(TAG, "切换场景失败 %s（错误 %d）" % [path, err])
 		return false
 	if key == "home":
@@ -106,3 +112,39 @@ func _change(path: String, key: String, remember: bool = true) -> bool:
 		_history.append(path)
 	GameLog.debug(TAG, "场景切换 -> %s" % path)
 	return true
+
+func _capture_menu_frame() -> void:
+	_clear_menu_snapshot()
+	if DisplayServer.get_name()=="headless": return
+	var picture := get_viewport().get_texture().get_image()
+	if picture==null or picture.is_empty(): return
+	_menu_snapshot = CanvasLayer.new()
+	_menu_snapshot.layer = 100
+	add_child(_menu_snapshot)
+	var cover := TextureRect.new()
+	cover.texture = ImageTexture.create_from_image(picture)
+	cover.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	cover.stretch_mode = TextureRect.STRETCH_SCALE
+	cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cover.mouse_filter = Control.MOUSE_FILTER_STOP
+	_menu_snapshot.add_child(cover)
+	get_tree().scene_changed.connect(_fade_menu_snapshot,CONNECT_ONE_SHOT)
+
+func _fade_menu_snapshot() -> void:
+	if not is_instance_valid(_menu_snapshot): return
+	var cover := _menu_snapshot.get_child(0) as TextureRect
+	_menu_fade = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_menu_fade.tween_property(cover,"modulate:a",0.0,MENU_FADE_SECONDS)
+	_menu_fade.tween_callback(_clear_menu_snapshot)
+
+func _clear_menu_snapshot() -> void:
+	if get_tree().scene_changed.is_connected(_fade_menu_snapshot): get_tree().scene_changed.disconnect(_fade_menu_snapshot)
+	if _menu_fade != null:
+		_menu_fade.kill()
+		_menu_fade = null
+	if is_instance_valid(_menu_snapshot): _menu_snapshot.queue_free()
+	_menu_snapshot = null
+
+func _input(event: InputEvent) -> void:
+	if is_instance_valid(_menu_snapshot) and (event is InputEventMouseButton or event is InputEventKey or event is InputEventJoypadButton):
+		get_viewport().set_input_as_handled()

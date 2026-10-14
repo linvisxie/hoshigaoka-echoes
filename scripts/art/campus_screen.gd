@@ -182,7 +182,7 @@ func resource_chip(currency_id: String, icon_id: String, rect: Rect2) -> void:
 
 func fade_in_content() -> void:
 	canvas.modulate.a = 0.0
-	create_tween().tween_property(canvas,"modulate:a",1.0,0.32)
+	create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT).tween_property(canvas,"modulate:a",1.0,SceneRouter.MENU_FADE_SECONDS)
 
 func show_error(message: String) -> void:
 	label_at(message, Rect2(85, 1010, 1600, 45), 25, Color("ffacb0"))

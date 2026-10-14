@@ -15,16 +15,18 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	draw_field(self,ambient_time,breeze,size/Vector2(1920,1080))
+
+static func draw_field(surface: Control,elapsed: float,wind: float,factor: Vector2) -> void:
 	# Three fixed depth bands share the same breeze as the foliage and hair.
-	var factor := size / Vector2(1920,1080)
-	for i: int in range(34):
+	for i: int in range(42):
 		var seed := float(i)
-		var depth := .55 if i<16 else 1.0 if i<29 else 1.45
-		var x := fposmod(seed*137.7+ambient_time*(18+fmod(seed,4)*5)*depth,2000)-40
-		var y := fposmod(seed*73.3+ambient_time*(10+fmod(seed,3)*3)*depth,1160)-40
-		var center := Vector2(x+breeze*14*depth,y+sin(ambient_time*.8+seed)*20*depth)*factor
+		var depth := .65 if i<18 else 1.0 if i<35 else 1.35
+		var x := fposmod(seed*137.7+elapsed*(18+fmod(seed,4)*5)*depth,2000)-40
+		var y := fposmod(seed*73.3+elapsed*(10+fmod(seed,3)*3)*depth,1160)-40
+		var center := Vector2(x+wind*14*depth,y+sin(elapsed*.8+seed)*20*depth)*factor
 		var radius := (3+fmod(seed,4))*depth*minf(factor.x,factor.y)
-		var angle := ambient_time*.45+seed
+		var angle := elapsed*.45+seed
 		var axis := Vector2(cos(angle),sin(angle))*radius
 		var side := axis.orthogonal()*.38
-		draw_colored_polygon(PackedVector2Array([center-axis,center+side,center+axis,center-side]),Color(.96,.64,.78,(.20+fmod(seed,3)*.09)*minf(depth,1.0)))
+		surface.draw_colored_polygon(PackedVector2Array([center-axis,center+side,center+axis,center-side]),Color(.98,.69,.82,(.30+fmod(seed,3)*.10)*minf(depth,1.0)))
