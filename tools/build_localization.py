@@ -10,6 +10,16 @@ for kind in ('ui', 'data'):
         index, target = line.split('\t', 1)
         catalog[sources[int(index)]] = target.replace('\\n', '\n')
 catalog.update({
+    '关于游戏': 'About', '鸣谢与许可证': 'Credits & Licenses', '返回设置': 'Back to Settings',
+    '设置自动保留 · 滚动卡片查看更多': 'Settings are kept · Scroll inside the card for more',
+    '感谢这些项目与创作者 · 许可证保留原文，可离线阅读': 'Thanks to these projects and creators · Original license texts available offline',
+    '游戏引擎及随引擎分发的第三方组件': 'Game engine and its bundled third-party components',
+    '界面与对白字体': 'Interface and dialogue font', '标题与校园文字字体': 'Titles and campus typography',
+    '菜单与功能图标': 'Menu and interface icons', '界面、命中与角色扮演音效素材': 'Interface, impact and RPG sound samples',
+    '原创背景音乐使用的乐器采样与编曲说明': 'Instrument samples and composition notes for original background music',
+    '项目原创与 AI 辅助美术': 'Original & AI-Assisted Art', '项目美术来源与制作说明': 'Project art provenance and production notes',
+    '制作与来源声明': 'Production and provenance notice', '项目来源': 'Project Website',
+    '返回校园失败，请重试。': 'Could not return to campus. Please try again.',
     '语言': 'Language', '中文 / English': '中文 / English',
     '音量、显示与语言  /  修改后立即生效': 'Audio, display & language / Changes take effect immediately',
     '学生手册': 'Student Handbook', '放课后 · 校园': 'After School · Campus',

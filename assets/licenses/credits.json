@@ -1,0 +1,9 @@
+[
+  {"name":"Godot Engine","author":"Godot Engine contributors · Juan Linietsky · Ariel Manzur","use":"游戏引擎及随引擎分发的第三方组件","license":"MIT / Third-party notices","url":"https://godotengine.org/license/","files":["Godot-MIT.txt","Godot-Third-Party-Notices.txt"]},
+  {"name":"Noto Sans CJK","author":"Google · Adobe · Noto contributors","use":"界面与对白字体","license":"SIL Open Font License 1.1","url":"https://github.com/notofonts/noto-cjk","files":["NotoSansCJK-OFL.txt"]},
+  {"name":"Noto Serif CJK","author":"Google · Adobe · Noto contributors","use":"标题与校园文字字体","license":"SIL Open Font License 1.1","url":"https://github.com/notofonts/noto-cjk","files":["NotoSerifCJK-OFL.txt"]},
+  {"name":"Lucide / Feather","author":"Lucide contributors · Cole Bemis / Feather contributors","use":"菜单与功能图标","license":"ISC / MIT","url":"https://lucide.dev/license","files":["Lucide-ISC-MIT.txt"]},
+  {"name":"Kenney Audio","author":"Kenney","use":"界面、命中与角色扮演音效素材","license":"CC0","url":"https://kenney.nl/","files":["Kenney-Interface-Sounds-CC0.txt","Kenney-Impact-Sounds-CC0.txt","Kenney-RPG-Audio-CC0.txt"]},
+  {"name":"VSCO 2 Community Edition","author":"Sam Gossner · Versilian Studios","use":"原创背景音乐使用的乐器采样与编曲说明","license":"CC0","url":"https://github.com/sgossner/VSCO-2-CE","files":["VSCO2-CE-CC0.txt","VSCO2-CE-Readme.txt","VSCO2_ORCHESTRA_CC0.txt","VSCO2_SCENE_SCORES_CC0.txt"]},
+  {"name":"项目原创与 AI 辅助美术","author":"Hoshigaoka Echoes","use":"项目美术来源与制作说明","license":"制作与来源声明","url":"","files":["AI_GENERATED_ART_NOTICE.txt"]}
+]

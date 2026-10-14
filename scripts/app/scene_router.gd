@@ -23,6 +23,7 @@ const SCENES := {
 	"briefing": "res://scenes/menus/briefing.tscn",
 	"archive": "res://scenes/menus/archive.tscn",
 	"settings": "res://scenes/menus/settings.tscn",
+	"credits": "res://scenes/menus/credits.tscn",
 	"new_game": "res://scenes/menus/new_game.tscn",
 	"character_details": "res://scenes/menus/character_details.tscn",
 	"equipment": "res://scenes/menus/equipment.tscn",
@@ -32,6 +33,9 @@ const SCENES := {
 var _current_scene_key: String = ""
 var _entry_origin: String = ""
 var _history: Array[String] = []
+## Transient settings navigation, independent of player progress and save data.
+var settings_return_key := "title"
+var settings_scroll := 0
 
 
 ## 按 key 切换场景。

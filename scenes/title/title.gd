@@ -299,6 +299,7 @@ func _input(event: InputEvent) -> void:
 # ============================================================ 动作
 
 func _activate(index: int) -> void:
+	if _busy: return
 	AudioService.play_sfx("select")
 	if index < 0 or index >= _rows.size():
 		return
@@ -315,7 +316,7 @@ func _activate(index: int) -> void:
 			if SaveService.get_current().is_empty():
 				_show("还没有有效存档，请选择新游戏。", WARN)
 			else:
-				CampaignFlow.continue_to_campus()
+				_continue_with_feedback(index)
 		"new_game":
 			SceneRouter.go_to("new_game")
 		"settings":
@@ -327,6 +328,18 @@ func _activate(index: int) -> void:
 		_:
 			_show("未知菜单项：%s" % id, WARN)
 
+
+func _continue_with_feedback(index: int) -> void:
+	_busy = true
+	var row := _rows[index]
+	var feedback := create_tween()
+	feedback.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	feedback.tween_property(row,"modulate:a",0.55,0.16)
+	await feedback.finished
+	if not CampaignFlow.continue_to_campus():
+		_busy = false
+		row.modulate.a = 1.0
+		_show("返回校园失败，请重试。",WARN)
 
 ## 进入战斗场景。
 ## 关卡由 PrototypeEntry 决策（默认演示关 p1_0_demo；Retail 构建下为其正式默认关），
@@ -565,10 +578,10 @@ func _draw_title_block(font: Font) -> void:
 	var zh_size := int(_px(TITLE_SIZE))
 
 	var logo := ArtRegistry.load_texture("res://assets/art/ui/title_logo.png")
-	if logo != null and not GameLocale.is_english():
+	if logo != null:
 		draw_texture_rect(logo, Rect2(_px(75), _px(45), _px(840), _px(280)), false)
 	else:
-		draw_string(font, Vector2(x, _px(TITLE_BASELINE)), GameLocale.text(TITLE_ZH), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(62)) if GameLocale.is_english() else zh_size, TITLE_FILL)
+		draw_string(font, Vector2(x, _px(TITLE_BASELINE)), TITLE_ZH, HORIZONTAL_ALIGNMENT_LEFT, -1, zh_size, TITLE_FILL)
 
 	# 英文副标：fallback_font 没有字距控制，因此**逐字绘制**并手工加 tracking，
 	# 让 HOSHIOKA · RESONANCE 像概念图那样疏朗，而不是挤成一团。

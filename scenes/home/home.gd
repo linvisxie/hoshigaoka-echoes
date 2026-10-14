@@ -76,6 +76,7 @@ func _ready() -> void:
 	if CampaignFlow.open_campus_menu:
 		CampaignFlow.open_campus_menu = false
 		_show_menu()
+	if SceneRouter.entry_origin()=="title": fade_in_content()
 
 func _fit_canvas() -> void:
 	if canvas == null: return
