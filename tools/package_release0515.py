@@ -30,23 +30,8 @@ for folder in ('retail_delivery','retail_pending'):
     assert all('resources still in use at exit' in line for line in log.splitlines() if line.startswith('ERROR:'))
 assert not subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip(), 'Commit reviewed source first'
 
-# The source of migration is the previous formal release, never a QA fixture.
-checkpoint = BASE/'player-checkpoint'
-checkpoint.mkdir(exist_ok=True)
+# Build a reviewable archive only. Player migration and publication are separate.
 preserved = []
-for group, folder in [('player',OLD/'_testenv/player/appdata/HoshigaokaEchoes'),('formal',Path.home()/'AppData/Roaming/HoshigaokaEchoes')]:
-    for relative in ('save/savegame.json','save/savegame_backup.json','settings/settings.cfg'):
-        source = folder/relative
-        if not source.exists(): continue
-        if source.suffix=='.json': json.loads(source.read_text(encoding='utf-8-sig'))
-        dest = checkpoint/group/relative
-        dest.parent.mkdir(parents=True,exist_ok=True)
-        checksum = sha(source)
-        shutil.copy2(source,dest)
-        assert sha(dest)==checksum
-        preserved.append(dict(group=group,relative=relative,source=str(source),sha256=checksum))
-assert any(p['group']=='player' and p['relative']=='save/savegame.json' for p in preserved)
-(checkpoint/'checkpoint.json').write_text(json.dumps(preserved,ensure_ascii=False,indent=2),encoding='utf8')
 
 evidence = OUT/'实机验证'
 evidence.mkdir(exist_ok=True)
@@ -92,18 +77,4 @@ with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=4) as z:
 with zipfile.ZipFile(archive) as z:
     assert z.testzip() is None and not any('_testenv' in n for n in z.namelist())
     assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in manifest['sha256'].items())
-for entry in preserved:
-    source = Path(entry['source'])
-    assert sha(source)==entry['sha256'], 'Player files changed during packaging'
-    if entry['group']=='player':
-        dest = OUT/'_testenv/player/appdata/HoshigaokaEchoes'/entry['relative']
-        dest.parent.mkdir(parents=True,exist_ok=True)
-        assert not dest.exists() or sha(dest)==entry['sha256']
-        shutil.copy2(source,dest)
-        assert sha(dest)==entry['sha256']
-launcher = ROOT.parent/'启动星丘残响.cmd'
-body = launcher.read_text(encoding='ascii')
-assert OLD.name in body
-launcher.write_text(body.replace(OLD.name,OUT.name),encoding='ascii')
-subprocess.run([shutil.which('pwsh') or 'pwsh','-NoProfile','-Command',"& '"+str(ROOT/'tools/retain_release_versions.ps1')+"' -Keep @('"+OUT.name+"','"+OLD.name+"')"],check=True)
-print(json.dumps(dict(ok=True,archive=str(archive),bytes=archive.stat().st_size,files=len(files),preservedFiles=len(preserved)),ensure_ascii=False))
+print(json.dumps(dict(ok=True,archive=str(archive),bytes=archive.stat().st_size,files=len(files),published=False),ensure_ascii=False))
