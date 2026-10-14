@@ -29,3 +29,12 @@ Original generated files are preserved in tools/source_art/chapter_tail.
 Per-source hashes, targets and origin are in docs/chapter_tail_assets.json.
 No additional paid external model or third-party game assets were acquired.
 The ownership and non-uniqueness qualifications above also apply to these assets.
+
+Campus motion, version 0.5.13:
+Built-in image_gen produced a local girl-removed clean plate and a blink frame.
+Only the silhouette-sized clean plate and a soft eyelid mask are displayed.
+The animated character continues to sample the approved original campus art.
+Prompts and use boundaries: assets/art/hub/motion/provenance.json.
+A generated transparent cutout changed the proportions and was rejected.
+Campus foliage, resonance, glows and feedback are project-original code;
+campus_bow.wav and campus_paper.wav are sample-free original synthesis.

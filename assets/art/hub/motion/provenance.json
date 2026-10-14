@@ -1,0 +1,17 @@
+{
+  "mode": "built-in image_gen",
+  "input": "assets/art/hub/campus_clean.png",
+  "assets": [
+    {
+      "path": "assets/art/hub/motion/mio_cleanplate_v1.png",
+      "prompt": "Edit target: the provided campus_clean.png (1672x941) game background. Produce exactly the same canvas/composition, preserving every building, sign, foliage, lighting and paving. Only remove the foreground schoolgirl standing at x234..370 y457..803 (left doorway), and reconstruct the warm wooden/glass doorway and paving that her silhouette occludes. Do not remove any other people. No UI, no added objects, no typography changes, no changes elsewhere. This is a clean background plate for compositing the identical girl as a separate animation layer. Pixel-faithful unchanged outside her silhouette.",
+      "use": "Only a silhouette-sized clean plate; rest of generated scene is never displayed."
+    },
+    {
+      "path": "assets/art/hub/motion/mio_blink_v1.png",
+      "prompt": "Edit target: campus_clean.png, 1672x941. Exact original scene. Change ONLY the two eyes of the original foreground schoolgirl standing in the LEFT doorway: close both eyelids gently for a blink. The girl's face is around x300 y490. Preserve her original exact pose, face shape, tiny scale, hairstyle, all original clothing and limbs, original pixel coordinates. No other character changes. Do NOT enlarge or replace her. Everything outside her two eyelids stays completely identical. Output full 1672x941 canvas, this is a precisely registered blink-frame overlay for a game.",
+      "use": "Only softly masked original eye area is blended during a 160ms blink."
+    }
+  ],
+  "discarded": "Transparent cutout changed character proportions, rejected. Animated character samples the approved original through a local silhouette mesh."
+}

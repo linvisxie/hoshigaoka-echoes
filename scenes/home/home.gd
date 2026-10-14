@@ -27,6 +27,11 @@ var resource_chips: Dictionary = {}
 var resource_tip: ResourceDescription
 var _resource_hover_id := ""
 var _resource_hover_age := 0.0
+var atmosphere: CampusAtmosphere
+var petals: CampusPetals
+var _action_epoch := 0
+var _card_motion: Tween
+var _feedback: Control
 
 func _ready() -> void:
 	super._ready()
@@ -38,7 +43,7 @@ func _ready() -> void:
 	(get_child(1) as ColorRect).color.a = 0.0
 	canvas.size = ART_SIZE
 	_fit_canvas()
-	var petals := CampusPetals.new()
+	petals = CampusPetals.new()
 	add_child(petals)
 	move_child(petals,2)
 	AudioService.play_music("observation_club")
@@ -62,13 +67,34 @@ func _ready() -> void:
 	_art_button("校园漫游",Rect2(756,364,169,71),_show_campus)
 	_art_button("调查公告板",Rect2(75,571,144,47),_toggle_investigation)
 	_art_button("与雨宫澪交谈",Rect2(244,452,120,348),func() -> void: _show_location("观测会活动室")).add_theme_stylebox_override("hover",StyleBoxEmpty.new())
+	art_buttons["与雨宫澪交谈"].tooltip_text = ""
 	_art_button("查看放课后观测记录",Rect2(6,325,199,243),_toggle_investigation).add_theme_stylebox_override("hover",StyleBoxEmpty.new())
+	# These are invisible hotspots, not rectangular copies of the static painting.
+	# Keep their normal/pressed skins from covering the animated character/paper.
+	for hotspot: String in ["与雨宫澪交谈","查看放课后观测记录"]:
+		for state: String in ["normal","hover","pressed","disabled"]:
+			art_buttons[hotspot].add_theme_stylebox_override(state,StyleBoxEmpty.new())
 	if _has_unread("保健室") and not GameLocale.is_english():
 		_image(_slice(_approved,Rect2(1285,470,147,35)),Rect2(1285,470,147,35))
 	_legacy_resource("school_coin","icon_school_coin",Rect2(1339,29,119,38))
 	_legacy_resource("equipment_part","icon_material",Rect2(1470,29,119,38))
 	_build_investigation()
 	_build_crisp_text()
+	atmosphere = CampusAtmosphere.new()
+	atmosphere.configure(_textless if GameLocale.is_english() else _approved,_textless if GameLocale.is_english() else _approved)
+	canvas.add_child(atmosphere)
+	canvas.move_child(atmosphere,0)
+	_feedback = atmosphere.create_feedback()
+	canvas.add_child(_feedback)
+	for place: String in MAIN_LOCATIONS:
+		if _has_unread(place): atmosphere.unread.append(place)
+	for key: String in art_buttons:
+		var control: Button = art_buttons[key]
+		control.mouse_entered.connect(func() -> void: atmosphere.set_hover(key))
+		control.mouse_exited.connect(func() -> void: atmosphere.clear_hover(key))
+		control.focus_entered.connect(func() -> void: atmosphere.set_hover(key))
+		control.focus_exited.connect(func() -> void: atmosphere.clear_hover(key))
+	_animate_card()
 	resource_tip = ResourceDescription.new()
 	resource_tip.z_index = 50
 	add_child(resource_tip)
@@ -113,7 +139,7 @@ func _image(texture: Texture2D,rect: Rect2,parent: Control = null) -> TextureRec
 
 func _art_button(caption: String,rect: Rect2,action: Callable,parent: Control = null) -> CampusArtButton:
 	var button := CampusArtButton.new()
-	button.configure(caption,preload("res://assets/art/ui/campus_settings.svg") if caption == "设置" else _slice(_textless if GameLocale.is_english() else _approved,rect),action)
+	button.configure(caption,preload("res://assets/art/ui/campus_settings.svg") if caption == "设置" else _slice(_textless if GameLocale.is_english() else _approved,rect),func() -> void: _campus_action(caption,rect,action))
 	button.position = rect.position
 	button.size = rect.size
 	(parent if parent != null else canvas).add_child(button)
@@ -236,9 +262,17 @@ func _build_english_text() -> void:
 		_native_text(caption,Rect2(1534,center-15,104,30),17,WHITE,canvas).set_meta("handbook_caption",true)
 
 func _process(delta: float) -> void:
+	var modal := _has_campus_modal()
+	var active_window := DisplayServer.window_is_focused()
+	if is_instance_valid(atmosphere):
+		atmosphere.tick(delta,canvas.get_local_mouse_position(),modal,active_window)
+		_feedback.queue_redraw()
+	if is_instance_valid(petals):
+		petals.suspended = not active_window
+		petals.breeze = atmosphere.breeze if is_instance_valid(atmosphere) else 0.0
 	if not is_instance_valid(resource_tip): return
 	var currency_id := ""
-	if not ((is_instance_valid(campus_panel) and campus_panel.visible) or (is_instance_valid(exit_panel) and exit_panel.visible)):
+	if not modal:
 		for key: String in resource_chips:
 			if resource_chips[key].get_global_rect().has_point(get_global_mouse_position()): currency_id = key
 	if currency_id != _resource_hover_id:
@@ -299,7 +333,34 @@ func _continue_investigation() -> void:
 
 func _toggle_investigation() -> void:
 	investigation.visible = not investigation.visible
+	if investigation.visible: _animate_card()
 	GameLog.info("CampusHub", "调查公告板：" + ("展开" if investigation.visible else "收起"))
+
+func _has_campus_modal() -> bool:
+	for child: Node in canvas.get_children():
+		if child is Control and child.has_meta("campus_modal") and child.visible and not child.is_queued_for_deletion(): return true
+	return false
+
+func _animate_card() -> void:
+	if _card_motion != null: _card_motion.kill()
+	investigation.modulate.a = 0.0
+	_card_motion = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_card_motion.tween_property(investigation,"modulate:a",1.0,.28)
+
+func _campus_action(caption: String,rect: Rect2,action: Callable) -> void:
+	if not is_instance_valid(atmosphere):
+		action.call()
+		return
+	if atmosphere.pending or _has_campus_modal(): return
+	_action_epoch += 1
+	var ticket := _action_epoch
+	atmosphere.pending = true
+	atmosphere.feedback(caption,rect)
+	await get_tree().create_timer(.32 if caption=="与雨宫澪交谈" else .18).timeout
+	if not is_inside_tree() or is_queued_for_deletion(): return
+	atmosphere.pending = false
+	if ticket!=_action_epoch or _has_campus_modal(): return
+	action.call()
 
 func _location_events(location: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -321,9 +382,15 @@ func _new_campus_panel(title: String,subtitle: String) -> void:
 	GameLog.info("CampusHub", "打开地点：" + title)
 	if is_instance_valid(campus_panel): campus_panel.queue_free()
 	campus_panel = modal_panel(Rect2(230,130,1210,680))
+	_reveal_panel(campus_panel)
 	_in_panel(label_at(title,Rect2(0,0,1110,60),36,GOLD),campus_panel,Vector2(45,25))
 	_in_panel(label_at(subtitle,Rect2(0,0,1110,45),23,MUTED),campus_panel,Vector2(45,90))
 	_in_panel(button_at("返回校园  Esc",Rect2(0,0,280,60),func() -> void: campus_panel.hide()),campus_panel,Vector2(880,590))
+
+func _reveal_panel(dialog: Panel) -> void:
+	dialog.modulate.a = .65
+	var motion := dialog.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	motion.tween_property(dialog,"modulate:a",1.0,.18)
 
 func _show_campus() -> void:
 	_new_campus_panel("校园漫游","已经开放的地点 · 新的放课后记录会随调查逐步出现")
@@ -394,6 +461,7 @@ func _show_location(location: String) -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		_action_epoch += 1
 		if is_instance_valid(campus_panel) and campus_panel.visible: campus_panel.hide()
 		elif is_instance_valid(exit_panel) and exit_panel.visible: exit_panel.hide()
 		else: _show_menu()
@@ -408,6 +476,7 @@ func _show_menu() -> void:
 	GameLog.info("CampusHub", "打开校园菜单")
 	if is_instance_valid(exit_panel): exit_panel.queue_free()
 	exit_panel = modal_panel(Rect2(496,190,680,590))
+	_reveal_panel(exit_panel)
 	_in_panel(label_at("校园菜单",Rect2(0,0,520,60),36,GOLD),exit_panel,Vector2(80,40))
 	_in_panel(label_at("进度已自动保存。",Rect2(0,0,520,45),25,MUTED),exit_panel,Vector2(80,110))
 	for spec: Array in [["继续留在校园",190,func() -> void: exit_panel.hide()],["返回标题",290,func() -> void: SceneRouter.go_to("title")],["退出游戏",390,_confirm_exit]]:
