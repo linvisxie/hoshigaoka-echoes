@@ -31,11 +31,17 @@ var _blink_at := 3.8
 var _blink_age := 1.0
 var _foliage: ShaderMaterial
 var _mio: ShaderMaterial
+var _lights: Control
 
 class Feedback extends Control:
 	var atmosphere: Control
 	func _draw() -> void:
 		if is_instance_valid(atmosphere): atmosphere.paint_feedback(self)
+
+class LightPools extends Control:
+	var atmosphere: Control
+	func _draw() -> void:
+		if is_instance_valid(atmosphere): atmosphere.paint_lights(self)
 
 func create_feedback() -> Control:
 	var layer := Feedback.new()
@@ -67,11 +73,20 @@ func configure(original: Texture2D, world: Texture2D) -> void:
 	_mio.set_shader_parameter("blink_base",preload("res://assets/art/hub/campus_clean.png"))
 	girl.material = _mio
 	add_child(girl)
+	_lights = LightPools.new()
+	_lights.atmosphere = self
+	_lights.size = DESIGN
+	_lights.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var additive := CanvasItemMaterial.new()
+	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	_lights.material = additive
+	add_child(_lights)
 
 func tick(delta: float, pointer: Vector2, modal: bool, active_window: bool) -> void:
 	blocked = modal or not active_window
 	if blocked:
 		hover_key = ""
+		_lights.queue_redraw()
 		queue_redraw()
 		return
 	clock += minf(delta,0.05)
@@ -94,6 +109,7 @@ func tick(delta: float, pointer: Vector2, modal: bool, active_window: bool) -> v
 	_mio.set_shader_parameter("breeze",breeze)
 	_mio.set_shader_parameter("attention",attention)
 	_mio.set_shader_parameter("blink",blink)
+	_lights.queue_redraw()
 	queue_redraw()
 
 func set_hover(key: String) -> void:
@@ -121,6 +137,9 @@ func paint_feedback(surface: Control) -> void:
 	if blocked: return
 	if SIGNS.has(hover_key):
 		var rect: Rect2 = SIGNS[hover_key]
+		# Atlas slices include uneven outer padding; accent the visible frame.
+		if hover_key == "保健室": rect = Rect2(1285,434,147,39)
+		elif hover_key == "调查卡：继续调查": rect = Rect2(1384,818,201,32)
 		var accent := GOLD if hover_key in ["观测会活动室","调查公告板","继续调查"] else BLUE
 		accent.a = .65*hover_strength
 		surface.draw_line(rect.position+Vector2(16,1),rect.position+Vector2(rect.size.x-16,1),accent,1.5,true)
@@ -143,16 +162,18 @@ func paint_feedback(surface: Control) -> void:
 	surface.draw_line(edge.position+Vector2(12,0),edge.position+Vector2(edge.size.x-12,0),Color(.91,.83,.64,(1-progress)*.65),1.2,true)
 	surface.draw_line(edge.end-Vector2(edge.size.x-12,0),edge.end-Vector2(12,0),Color(.91,.83,.64,(1-progress)*.65),1.2,true)
 
+func paint_lights(surface: Control) -> void:
+	if blocked: return
+	for key: String in LIGHTS:
+		if hover_key!=key: continue
+		var strength := .46*hover_strength
+		var center: Vector2 = LIGHTS[key]
+		for ring: int in range(10):
+			var radius := 20.0+float(ring)*7.5
+			surface.draw_circle(center,radius,Color(1.0,.72,.36,strength*(1.0-float(ring)/10.0)/10.0))
+
 func _draw() -> void:
 	if blocked: return
-	# Warm pools are additive glows, drawn behind labels and modal veils.
-	for key: String in LIGHTS:
-		var strength := (0.036+0.008*sin(clock*.6+float(key.length())))
-		if hover_key==key: strength += .24*hover_strength
-		var center: Vector2 = LIGHTS[key]
-		for ring: int in range(7):
-			var radius := 26.0+float(ring)*13.0
-			draw_circle(center,radius,Color(1.0,.67,.30,strength*(1.0-float(ring)/8.0)/7.0))
 	# Sparse resonance traces remain in the existing purple sky.
 	for i: int in range(3):
 		var points := PackedVector2Array()

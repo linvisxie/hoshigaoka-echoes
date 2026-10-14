@@ -1319,18 +1319,19 @@ func _draw_exp_bar(bar: Rect2, p: CharacterProgress, with_text: bool) -> void:
 	var ratio := 0.0 if need <= 0 else clampf(float(p.exp) / float(need), 0.0, 1.0)
 	var radius := bar.size.y * 0.35
 	# 底槽
-	draw_style_box(_sb(Color(0.045, 0.055, 0.095, 0.95), BORDER_SOFT, radius, _px(1.0)), bar)
+	draw_style_box(_exp_style(Color(0.045, 0.055, 0.095, 0.95), BORDER_SOFT, radius, _px(1.0)), bar)
 	if ratio > 0.0:
-		var fill := Rect2(bar.position,
-			Vector2(maxf(bar.size.y * 0.8, bar.size.x * ratio), bar.size.y))
-		draw_style_box(_sb(ACCENT.darkened(0.22), ACCENT, radius, _px(1.0)), fill)
+		var inner := bar.grow(-_px(1.0))
+		var fill := Rect2(inner.position,Vector2(inner.size.x*ratio,inner.size.y))
+		var fill_radius := minf(radius,fill.size.x*.5)
+		draw_style_box(_exp_style(ACCENT.darkened(0.22), ACCENT, fill_radius, _px(1.0)), fill)
 		# 高光：填充区上缘的一条亮线
-		draw_rect(Rect2(Vector2(fill.position.x + _px(2.0), fill.position.y + _px(2.0)),
-			Vector2(maxf(0.0, fill.size.x - _px(4.0)), maxf(1.0, bar.size.y * 0.22))),
-			Color(1.0, 1.0, 1.0, 0.30), true)
+		var inset := fill_radius+_px(1.0)
+		if fill.size.x>inset*2.0 and fill.size.y>_px(4.0):
+			draw_rect(Rect2(fill.position+Vector2(inset,_px(2.0)),Vector2(fill.size.x-inset*2.0,_px(1.0))),Color(1,1,1,.24),true)
 	# 已满级：整条走正向色，明确"无需再投入"
 	if need <= 0:
-		draw_style_box(_sb(Color(POSITIVE.r, POSITIVE.g, POSITIVE.b, 0.30), POSITIVE,
+		draw_style_box(_exp_style(Color(POSITIVE.r, POSITIVE.g, POSITIVE.b, 0.30), POSITIVE,
 			radius, _px(1.0)), bar)
 	if with_text and bar.size.x > _px(180.0):
 		var label := "已满级" if need <= 0 else "%d / %d" % [p.exp, need]
@@ -1340,6 +1341,18 @@ func _draw_exp_bar(bar: Rect2, p: CharacterProgress, with_text: bool) -> void:
 			bar.position.y + bar.size.y * 0.5 + _px(8.0)),
 			label, _px(F_TINY),
 			TEXT if ratio < 0.55 else Color(0.06, 0.09, 0.16))
+
+func _exp_style(fill: Color,border: Color,radius: float,border_w: float) -> StyleBoxFlat:
+	# Progress indicators never reuse card SVGs or their fixed nine-patch borders.
+	var key := "exp|%s|%s|%.1f|%.1f"%[fill.to_html(true),border.to_html(true),radius,border_w]
+	if not _sb_cache.has(key):
+		var style := StyleBoxFlat.new()
+		style.bg_color = fill
+		style.border_color = border
+		style.set_border_width_all(int(border_w))
+		style.set_corner_radius_all(int(radius))
+		_sb_cache[key] = style
+	return _sb_cache[key] as StyleBoxFlat
 
 
 ## 突破节点带：菱形节点（已达成 / 未达成两态）+ 连线 + 成本/原因
@@ -1603,11 +1616,8 @@ func _draw_button(rect: Rect2, label: String, enabled: bool, icon: String = "",
 		txt = Color(1, 1, 1)
 
 	draw_style_box(_sb(fill, edge, _px(10.0), _px(2.0)), rect)
-	# 悬停时加一层内高光，强化"可点"反馈
-	if hovered:
-		draw_rect(Rect2(Vector2(rect.position.x + _px(3.0), rect.position.y + _px(3.0)),
-			Vector2(maxf(0.0, rect.size.x - _px(6.0)), _px(2.0))),
-			Color(1.0, 1.0, 1.0, 0.22), true)
+	# The bevel skin already supplies its highlight; a rectangular strip crossed
+	# the cut corners and looked like an overlapping translucent control.
 	# 已选中档位：左侧一条亮色指示条，与 hover 区分开
 	if active:
 		draw_style_box(_sb(BUTTON_BORDER_ACTIVE, Color(0, 0, 0, 0), _px(2.0), 0.0),

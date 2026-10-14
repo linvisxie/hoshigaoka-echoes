@@ -3,6 +3,22 @@
 class_name CampusScreen
 extends Control
 
+
+class GatePlaque extends Control:
+	var texture: Texture2D
+	func _draw() -> void:
+		GameSkin.draw_gate_plaque(self, texture, size)
+
+func add_gate_plaque() -> void:
+	var plaque := GatePlaque.new()
+	plaque.name = "SchoolGatePlaque"
+	plaque.texture = background.texture
+	plaque.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plaque.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(plaque)
+	move_child(plaque, 1)
+	plaque.resized.connect(plaque.queue_redraw)
+
 const INK := Color("10182d")
 const WHITE := Color("edf2ff")
 const MUTED := Color("a7b3d1")
@@ -152,7 +168,13 @@ func button_at(text: String, rect: Rect2, callback: Callable, primary: bool = fa
 			fitted -= 1
 		button.add_theme_font_size_override("font_size",fitted)
 	button.pressed.connect(func() -> void:
+		if bool(button.get_meta("action_pending",false)): return
+		button.set_meta("action_pending",true)
 		AudioService.play_sfx("select")
+		if DisplayServer.get_name()!="headless": await RenderingServer.frame_post_draw
+		if not is_instance_valid(button) or button.is_queued_for_deletion(): return
+		button.set_meta("action_pending",false)
+		if button.disabled or not callback.is_valid(): return
 		callback.call())
 	canvas.add_child(button)
 	return button

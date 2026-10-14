@@ -211,3 +211,18 @@ static func _collect_focusable(node: Node, controls: Array[Control]) -> void:
 		if child is Control and child.focus_mode != Control.FOCUS_NONE and not (child is BaseButton and child.disabled):
 			controls.append(child)
 		_collect_focusable(child,controls)
+
+## School signage follows the covered background, independently of the UI canvas.
+static func draw_gate_plaque(surface: Control, texture: Texture2D, viewport: Vector2) -> void:
+	if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
+		return
+	var dimensions := Vector2(texture.get_width(), texture.get_height())
+	var factor := maxf(viewport.x / dimensions.x, viewport.y / dimensions.y)
+	var offset := (viewport - dimensions * factor) * 0.5
+	surface.draw_texture_rect_region(texture, Rect2(offset + Vector2(711,499) * factor, Vector2(55,49) * factor), Rect2(711,601,55,49))
+	surface.draw_texture_rect(crest(), Rect2(offset + Vector2(717,499) * factor, Vector2(44,49.5) * factor), false, Color(0.95,0.82,0.65))
+	var english := GameLocale.is_english()
+	var plaque := "HOSHIGAOKA" if english else "私立星丘高等学校"
+	for i: int in range(plaque.length()):
+		var baseline := 570 + float(i) * 20 if english else 580 + float(i) * 23
+		surface.draw_string(serif(), offset + Vector2(728,baseline) * factor, GameLocale.text(plaque.substr(i,1)), HORIZONTAL_ALIGNMENT_LEFT, -1, int((17 if english else 20) * factor), Color("c5a06b"))

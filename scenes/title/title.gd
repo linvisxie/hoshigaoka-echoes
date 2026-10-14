@@ -469,18 +469,7 @@ func _draw_background() -> void:
 		draw_texture_rect(_bg_tex,
 			Rect2(Vector2((_viewport.x - dw) * 0.5, (_viewport.y - dh) * 0.5), Vector2(dw, dh)),
 			false)
-		# Architectural sign is separate from the clean plate and uses the formal crest.
-		var offset := Vector2((_viewport.x-dw)*0.5,(_viewport.y-dh)*0.5)
-		# Reuse the plaque's own unlettered material inside its existing metal rim.
-		# The old flat square extended over both the rim and the masonry.
-		draw_texture_rect_region(_bg_tex,Rect2(offset+Vector2(711,499)*s,Vector2(55,49)*s),Rect2(711,601,55,49))
-		var crest_rect := Rect2(offset+Vector2(717,499)*s,Vector2(44,49.5)*s)
-		draw_texture_rect(GameSkin.crest(),crest_rect,false,Color(0.95,0.82,0.65))
-		var plaque_font := GameSkin.serif()
-		var plaque := "HOSHIGAOKA" if GameLocale.is_english() else "私立星丘高等学校"
-		for i: int in range(plaque.length()):
-			var plaque_y := 570+float(i)*20 if GameLocale.is_english() else 580+float(i)*23
-			draw_string(plaque_font,offset+Vector2(728,plaque_y)*s,GameLocale.text(plaque.substr(i,1)),HORIZONTAL_ALIGNMENT_LEFT,-1,int((17 if GameLocale.is_english() else 20)*s),Color("c5a06b"))
+		GameSkin.draw_gate_plaque(self, _bg_tex, _viewport)
 	else:
 		_draw_gradient_fallback()
 	_draw_atmosphere()

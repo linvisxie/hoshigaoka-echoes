@@ -98,7 +98,9 @@ func previous_key() -> String:
 
 func _change(path: String, key: String, remember: bool = true) -> bool:
 	var origin := _current_scene_key
-	if origin=="title" and key in ["home","settings"]: _capture_menu_frame()
+	var preserve_frame := (origin=="title" and key in ["home","settings"]) or (origin=="home" and key in ["character","equipment","stage_select","archive","settings","briefing","story"])
+	if preserve_frame: _capture_menu_frame()
+	var started := Time.get_ticks_usec()
 	var err := get_tree().change_scene_to_file(path)
 	if err != OK:
 		_clear_menu_snapshot()
@@ -111,6 +113,7 @@ func _change(path: String, key: String, remember: bool = true) -> bool:
 	if remember and (_history.is_empty() or _history[-1] != path):
 		_history.append(path)
 	GameLog.debug(TAG, "场景切换 -> %s" % path)
+	GameLog.debug("SceneTiming","%s -> %s | request %.2f ms | frame cover %s"%[origin,key,float(Time.get_ticks_usec()-started)/1000.0,str(preserve_frame)])
 	return true
 
 func _capture_menu_frame() -> void:

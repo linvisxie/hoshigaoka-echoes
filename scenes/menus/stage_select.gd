@@ -427,6 +427,7 @@ func _build_native_page() -> void:
 	_native_page = CampusScreen.new()
 	add_child(_native_page)
 	_native_page.set_background("bg_title_gate")
+	_native_page.add_gate_plaque()
 	_native_page.page_heading("第一章 · 新学期的残响", "调查记录  /  选择地点查看情报与出战角色")
 	_stage_buttons.clear()
 	for i: int in range(_specs.size()):
@@ -453,7 +454,6 @@ func _build_native_page() -> void:
 		if not str(spec.get("badge", "")).is_empty():
 			state = str(spec.badge)
 		_native_page.label_at(state,Rect2(x+20,y+182,390,35),22,CampusScreen.GOLD if _cleared_lookup(sid) else CampusScreen.BLUE)
-	_native_page.label_at("鼠标选择地点 · 方向键切换 · Enter 确认 · Esc 返回",Rect2(650,984,1180,45),25,CampusScreen.MUTED)
 	_native_page.fade_in_content()
 
 

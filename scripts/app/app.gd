@@ -7,7 +7,7 @@ extends Node
 const TAG := "App"
 
 ## 与 project.godot 的 config/version 保持一致
-const APP_VERSION := "0.5.14"
+const APP_VERSION := "0.5.15"
 signal ui_input_mode_changed(keyboard: bool)
 var keyboard_navigation := false
 var _quitting := false

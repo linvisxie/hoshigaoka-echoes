@@ -375,6 +375,8 @@ func _campus_action(caption: String,rect: Rect2,action: Callable) -> void:
 	atmosphere.feedback(caption,rect)
 	await get_tree().create_timer(.32 if caption=="与雨宫澪交谈" else .18).timeout
 	if not is_inside_tree() or is_queued_for_deletion(): return
+	if DisplayServer.get_name()!="headless": await RenderingServer.frame_post_draw
+	if not is_inside_tree() or is_queued_for_deletion(): return
 	atmosphere.pending = false
 	if ticket!=_action_epoch or _has_campus_modal(): return
 	action.call()
