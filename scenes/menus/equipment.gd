@@ -189,7 +189,7 @@ func _preview(operation: String,cid: String = "") -> void:
 	if operation=="enhance":
 		details = "消耗：学园币 %d · 装备零件 %d\n剩余：学园币 %d · 装备零件 %d" % [int(preview.cost.get("school_coin",0)),int(preview.cost.get("equipment_part",0)),int(preview.remaining.get("school_coin",0)),int(preview.remaining.get("equipment_part",0))]
 		if not preview.affordable:
-			details = "需求：学园币 %d · 装备零件 %d\n当前：学园币 %d · 装备零件 %d\n缺少：学园币 %d · 装备零件 %d，无法强化。" % [int(preview.cost.get("school_coin",0)),int(preview.cost.get("equipment_part",0)),int(preview.available.get("school_coin",0)),int(preview.available.get("equipment_part",0)),int(preview.shortfall.get("school_coin",0)),int(preview.shortfall.get("equipment_part",0))]
+			details = "需求：学园币 %d · 装备零件 %d\n当前：学园币 %d · 装备零件 %d" % [int(preview.cost.get("school_coin",0)),int(preview.cost.get("equipment_part",0)),int(preview.available.get("school_coin",0)),int(preview.available.get("equipment_part",0))]
 	_preview_label(details,Rect2(40,460,1280,130),25,MUTED)
 	var confirm := button_at("确认操作",Rect2(0,0,420,70),func() -> void:
 		if SaveService.snapshot()!=save:
