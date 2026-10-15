@@ -14,6 +14,7 @@ var figure: TextureRect
 var history: Array[String] = []
 var auto := false
 var auto_timer := 0.0
+var auto_delay := 2.5
 var history_panel: Panel
 var menu_panel: Panel
 var text_speed := 42.0
@@ -27,6 +28,7 @@ func _ready() -> void:
 	var preferences := ConfigFile.new()
 	if preferences.load(SaveService.SETTINGS_PATH) == OK:
 		text_speed = clampf(float(preferences.get_value("story","text_speed",42.0)),15,90)
+		auto_delay = clampf(float(preferences.get_value("story","auto_delay",2.5)),1,6)
 	replay = not CampaignFlow.replay_story_id.is_empty()
 	story_id = CampaignFlow.replay_story_id if replay else str(CampaignFlow.state().get("current_story_id", "prologue_transfer"))
 	if not replay and not CampaignFlow.story_allowed(story_id):
@@ -93,7 +95,7 @@ func _process(delta: float) -> void:
 		next_button.text = GameLocale.text("下一句  ▸")
 	if dialogue.visible_ratio >= 1.0 and auto and not save_failed:
 		auto_timer += delta
-		if auto_timer > 2.5:
+		if auto_timer > reading_delay(dialogue.get_parsed_text(),auto_delay,GameLocale.is_english()):
 			advance()
 
 func _show_node() -> void:
@@ -194,3 +196,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				_show_menu()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		advance()
+
+static func reading_delay(text: String,base: float,english: bool) -> float:
+	# Text is already revealed; allow more dwell time for longer sentences.
+	var units := float(text.split(" ",false).size()) if english else float(text.length())
+	var short_line := 16.0 if english else 30.0
+	var pace := 6.0 if english else 12.0
+	return clampf(base,1,6)+clampf((units-short_line)/pace,0,6)

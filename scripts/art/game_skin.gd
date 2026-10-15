@@ -2,6 +2,16 @@
 class_name GameSkin
 extends RefCounted
 
+static var motion_level := 2
+
+static func initialize_preferences() -> void:
+	var settings := ConfigFile.new()
+	settings.load("user://settings/settings.cfg")
+	motion_level = clampi(int(settings.get_value("presentation","motion_level",2)),0,2)
+
+static func motion_factor() -> float:
+	return [0.0,0.5,1.0][clampi(motion_level,0,2)]
+
 const INK := Color("10182d")
 const WHITE := Color("f2f4ff")
 const MUTED := Color("a9b9d7")

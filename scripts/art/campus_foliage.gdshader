@@ -1,4 +1,5 @@
 shader_type canvas_item;
+uniform float strength = 1.0;
 uniform float clock = 0.0;
 uniform float breeze = 0.0;
 uniform vec2 gaze = vec2(0.0);
@@ -28,6 +29,6 @@ void fragment() {
 	vec2 shift = vec2(breeze*1.65,sin(clock*0.65+p.x*0.01)*0.45)*branches;
 	shift += (gaze*2.4+vec2(breeze*0.65,0.0))*foreground;
 	shift += vec2(sin(clock*1.1+p.x*.01)*2.2,breeze*1.1)*paper;
-	vec4 scene = texture(TEXTURE,clamp(UV+shift/vec2(1672.0,941.0),vec2(0.0),vec2(1.0)));
+	vec4 scene = texture(TEXTURE,clamp(UV+shift*strength/vec2(1672.0,941.0),vec2(0.0),vec2(1.0)));
 	COLOR = vec4(scene.rgb,scene.a*mask)*tint;
 }

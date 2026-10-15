@@ -1,4 +1,5 @@
 shader_type canvas_item;
+uniform float strength = 1.0;
 uniform float clock = 0.0;
 uniform float breeze = 0.0;
 uniform float attention = 0.0;
@@ -17,7 +18,7 @@ void fragment() {
 	float body = oval(p,vec2(310.0,578.0),vec2(36.0,82.0));
 	float mask = max(max(hair,head),body);
 	vec2 shift = vec2(breeze*hair*.8+attention*head*.35,-sin(clock*1.65)*(body+head)*.32);
-	vec2 sample_uv = UV+shift/vec2(1672.0,941.0);
+	vec2 sample_uv = UV+shift*strength/vec2(1672.0,941.0);
 	vec4 original = texture(TEXTURE,sample_uv);
 	float eyes = 1.0-smoothstep(0.55,1.0,length((p-vec2(310.0,492.0))/vec2(16.0,8.0)));
 	// Transfer only the eyelid edit, preserving the approved painting's grading.

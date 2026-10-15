@@ -7,7 +7,7 @@ extends Node
 const TAG := "App"
 
 ## 与 project.godot 的 config/version 保持一致
-const APP_VERSION := "0.5.15"
+const APP_VERSION := "0.5.16"
 signal ui_input_mode_changed(keyboard: bool)
 var keyboard_navigation := false
 var _quitting := false
@@ -49,6 +49,7 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	GameLocale.initialize()
+	GameSkin.initialize_preferences()
 	GameLog.info(TAG, "%s %s (%s %s) 启动"
 		% [APP_NAME, APP_VERSION, PHASE, PROTOTYPE_STAGE])
 	GameLog.info(TAG, "权威规格: %s" % SPEC_VERSION)

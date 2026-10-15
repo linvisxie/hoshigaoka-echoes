@@ -6,6 +6,7 @@ static var expanded_slots := {"WEAPON": true, "ACCESSORY": false, "MEMENTO": fal
 static var save_generation := -1
 static var return_key := "home"
 var confirmation: Panel
+var preview_panel: Panel
 
 func _ready() -> void:
 	super._ready()
@@ -86,18 +87,18 @@ func _ready() -> void:
 			var cid := str(cfg.get("id", ""))
 			if not CampaignFlow.character_unlocked(cid) or not EquipmentService.can_equip(str(inst.get("equipmentId", "")), cid):
 				continue
-			var equip_button := button_at("装备给" + str(DataRegistry.get_entry("characters", cid).get("name", cid)), Rect2(870 + (offset % 3) * 300, 585 + int(offset / 3) * 74, 280, 65), func() -> void: _result(EquipmentService.equip(cid, selected_id)))
+			var equip_button := button_at("装备给" + str(DataRegistry.get_entry("characters", cid).get("name", cid)), Rect2(870 + (offset % 3) * 300, 585 + int(offset / 3) * 74, 280, 65), func() -> void: _preview("equip",cid))
 			equip_button.disabled = bound == cid
 			equip_button.tooltip_text = GameLocale.text("已装备给这名角色" if bound == cid else "替换同槽位装备；旧装备保留在背包，强化等级不变。")
 			offset += 1
 		var cost := EquipmentService.enhancement_cost_at(int(inst.get("enhanceLevel", 0)))
 		var permanent := not EquipmentService.can_enhance_template(str(inst.get("equipmentId", "")))
 		label_at("章节纪念 · 不可强化或分解" if permanent else "下次强化：学园币 %d · 零件 %d" % [int(cost.get("school_coin", 0)), int(cost.get("equipment_part", 0))], Rect2(870, 735, 880, 40), 25, MUTED)
-		var enhance := button_at("强化 +1", Rect2(870, 780, 260, 65), func() -> void: _result(EquipmentService.enhance(selected_id)), true)
-		enhance.disabled = permanent or cost.is_empty() or int(currency.get("school_coin",0)) < int(cost.get("school_coin",0)) or int(currency.get("equipment_part",0)) < int(cost.get("equipment_part",0))
+		var enhance := button_at("强化 +1", Rect2(870, 780, 260, 65), func() -> void: _preview("enhance"), true)
+		enhance.disabled = permanent or cost.is_empty()
 		enhance.tooltip_text = GameLocale.text("已达到强化上限" if cost.is_empty() else ("学园币或装备零件不足，可通过关卡奖励获取。" if enhance.disabled else "消耗上方显示的资源，提升装备属性。"))
 		var unequip := button_at("卸下", Rect2(1160, 780, 260, 65), func() -> void:
-			_result(EquipmentService.unequip(bound, str(template.get("slot", "")))))
+			_preview("unequip"))
 		unequip.disabled = bound.is_empty()
 		var reset := button_at("重置 / 分解", Rect2(1450, 780, 330, 65), _confirm)
 		reset.disabled = bool(template.get("unique",false))
@@ -144,7 +145,78 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
 		get_viewport().set_input_as_handled()
-		if is_instance_valid(confirmation) and confirmation.visible:
+		if is_instance_valid(preview_panel) and preview_panel.visible:
+			preview_panel.hide()
+		elif is_instance_valid(confirmation) and confirmation.visible:
 			confirmation.hide()
 		else:
 			SceneRouter.go_to.call_deferred(return_key)
+
+func _preview(operation: String,cid: String = "") -> void:
+	var save := SaveService.snapshot()
+	var instance_id := selected_id
+	var preview := EquipmentService.preview_operation(save,instance_id,operation,cid)
+	if preview.is_empty(): return
+	if is_instance_valid(preview_panel): preview_panel.queue_free()
+	preview_panel = modal_panel(Rect2(280,185,1360,720))
+	preview_panel.name = "EquipmentPreview"
+	_preview_label({"equip":"换装预览","unequip":"卸下预览","enhance":"强化预览"}[operation],Rect2(40,25,1280,60),36,GOLD)
+	var inst := EquipmentService.find_instance(save,instance_id)
+	var title := str(EquipmentService.template_of(str(inst.get("equipmentId",""))).get("name","装备"))
+	var level := int(inst.get("enhanceLevel",0))
+	_preview_label(title + ("  +%d → +%d" % [level,level+1] if operation=="enhance" else "  +%d" % level),Rect2(40,88,1280,42),25,MUTED)
+	var columns := 0
+	for character_id: String in preview.changes:
+		var base := {}
+		if App.growth != null and App.growth.is_ready():
+			var p: CharacterProgress = App.growth.get_progress(character_id)
+			if p != null: base = p.compute_stats()
+		var delta: Dictionary = preview.changes[character_id]
+		var name := str(DataRegistry.get_entry("characters",character_id).get("name",character_id))
+		_preview_label(name,Rect2(40+columns*650,142,620,45),28,BLUE)
+		_preview_label(_stat_changes(base,delta.before,delta.after),Rect2(40+columns*650,195,620,240),25)
+		columns += 1
+	if columns==0:
+		_preview_label("装备属性",Rect2(40,142,1280,45),28,BLUE)
+		_preview_label(_stat_changes({},preview.equipmentBefore,preview.equipmentAfter),Rect2(40,195,1280,240),25)
+	var details := "换装不消耗资源，旧装备保留在背包。"
+	if operation=="unequip": details = "卸下不消耗资源，装备与强化等级保留。"
+	if operation=="enhance":
+		details = "消耗：学园币 %d · 装备零件 %d\n剩余：学园币 %d · 装备零件 %d" % [int(preview.cost.get("school_coin",0)),int(preview.cost.get("equipment_part",0)),int(preview.remaining.get("school_coin",0)),int(preview.remaining.get("equipment_part",0))]
+		if not preview.affordable: details += "\n资源不足，无法确认强化。"
+	_preview_label(details,Rect2(40,460,1280,112),25,MUTED)
+	var confirm := button_at("确认操作",Rect2(0,0,420,70),func() -> void:
+		if SaveService.snapshot()!=save:
+			preview_panel.hide()
+			feedback = "状态已变化，请重新查看预览。"
+			SceneRouter.go_to("equipment")
+			return
+		if operation=="equip": _result(EquipmentService.equip(cid,instance_id))
+		elif operation=="enhance": _result(EquipmentService.enhance(instance_id))
+		else:
+			var current_item := EquipmentService.find_instance(save,instance_id)
+			_result(EquipmentService.unequip(str(current_item.get("boundCharacterId","")),str(EquipmentService.template_of(str(current_item.get("equipmentId",""))).get("slot","")))),true)
+	confirm.disabled = not bool(preview.affordable)
+	confirm.reparent(preview_panel)
+	confirm.position = Vector2(880,610)
+	var cancel := button_at("取消",Rect2(0,0,420,70),func() -> void: preview_panel.hide())
+	cancel.reparent(preview_panel)
+	cancel.position = Vector2(40,610)
+
+func _preview_label(value: String,rect: Rect2,font_size: int,color: Color = WHITE) -> Label:
+	var label := label_at(value,rect,font_size,color)
+	label.reparent(preview_panel)
+	label.position = rect.position
+	return label
+
+func _stat_changes(base: Dictionary,before: Dictionary,after: Dictionary) -> String:
+	var lines: Array[String] = []
+	for key: String in ["hp","attack","defense","healPower","attackSpeed","cdRecovery"]:
+		if not base.has(key) and not before.has(key) and not after.has(key): continue
+		var a := float(base.get(key,0))+float(before.get(key,0))
+		var b := float(base.get(key,0))+float(after.get(key,0))
+		var caption: String = {"hp":"生命","attack":"攻击","defense":"防御","healPower":"治疗力","attackSpeed":"攻击速度加成","cdRecovery":"冷却恢复加成"}[key]
+		var percent := key in ["attackSpeed","cdRecovery"]
+		var values := "%.1f%% → %.1f%% (%+.1f%%)" % [a*100,b*100,(b-a)*100] if percent else "%d → %d (%+d)" % [int(a),int(b),int(b-a)]
+		lines.append(GameLocale.text(caption)+"  "+values)
+	return "\n".join(lines)

@@ -1,0 +1,79 @@
+"""Publish the verified bilingual build, preserving latest player saves verbatim."""
+from pathlib import Path
+import hashlib, html, json, re, shutil, subprocess, zipfile
+
+ROOT = Path(__file__).resolve().parents[1]
+BASE = ROOT.parent / '_testenv/features0516'
+OUT = ROOT / 'dist/chapter_one_0.5.16_20261015'
+OLD = ROOT / 'dist/chapter_one_0.5.15_20261014'
+
+def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+
+reports = {
+    'source720': BASE/'ui720_delivery/appdata/HoshigaokaEchoes/features_report.json',
+    'source1080': BASE/'ui1080_delivery/appdata/HoshigaokaEchoes/features_report.json',
+    'restored': BASE/'restored0515_report.json',
+    'retail_hub': BASE/'retail_zh/retail_hub_report.json',
+    'retail_en': BASE/'retail_en/retail_hub_report.json',
+}
+for name, p in reports.items():
+    report = json.loads(p.read_text(encoding='utf8'))
+    assert report['ok'], name
+    if name.startswith('retail'):
+        for ext in ('exe','pck'):
+            assert sha(OUT/f'HoshigaokaEchoes.{ext}') == report[ext+'Sha256'], name
+assert re.search(r'Passing Tests\s+652\b',(BASE/'unit_delivery.log').read_text(encoding='utf8'))
+for folder in ('retail_zh','retail_en'):
+    log = (BASE/folder/'game.log').read_text(encoding='utf8',errors='replace')
+    assert 'SCRIPT ERROR' not in log and 'Parse Error' not in log
+    assert all('resources still in use at exit' in line for line in log.splitlines() if line.startswith('ERROR:'))
+assert not subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip(), 'Commit reviewed source first'
+
+# Build a reviewable archive only. Player migration and publication are separate.
+preserved = []
+
+evidence = OUT/'实机验证'
+evidence.mkdir(exist_ok=True)
+for name,p in reports.items(): shutil.copy2(p,evidence/(name+'_report.json'))
+for name in ('unit_delivery.log','export.log'): shutil.copy2(BASE/name,evidence/name)
+gallery = ['<!doctype html><meta charset="utf-8"><title>0.5.16 双语验收</title><style>body{background:#091422;color:#edf2ff;font:18px/1.8 Microsoft YaHei;margin:30px}img{max-width:100%}figure{max-width:1280px;margin:30px 0}</style><h1>0.5.16 设置、阅读与装备预览</h1><p>source 为源码渲染与合成视口输入；retail 为最终 EXE 真实 Windows 输入、隔离正常通关存档副本。均为自动化验收，并非人工试玩。</p>']
+folders = [('source720',BASE/'ui720_delivery/appdata/HoshigaokaEchoes/frontend_shots'),('source1080',BASE/'ui1080_delivery/appdata/HoshigaokaEchoes/frontend_shots'),('retail',BASE/'retail_zh'),('pending',BASE/'retail_en')]
+for name, folder in folders:
+    dest = evidence/name
+    dest.mkdir(exist_ok=True)
+    for p in sorted(folder.glob('*.png')):
+        if name in ('retail','pending') and '_frame_' in p.name: continue
+        shutil.copy2(p,dest/p.name)
+        link = html.escape(name+'/'+p.name)
+        gallery.append(f'<figure><img loading="lazy" src="{link}"><figcaption>{link}</figcaption></figure>')
+for folder in ('retail_zh','retail_en'):
+    shutil.copy2(BASE/folder/'game.log',evidence/(folder+'_game.log'))
+    
+    for metric in (BASE/folder).glob('*metrics.json'): shutil.copy2(metric,evidence/(folder+'_'+metric.name))
+
+for label, folder in folders[:2]:
+    for gif in folder.parent.parent.parent.glob('*.gif'):
+        shutil.copy2(gif,evidence/(label+'_'+gif.name))
+        gallery.append(f'<figure><img src="{label}_{gif.name}"><figcaption>{label} rendered animation</figcaption></figure>')
+(evidence/'实机对照.html').write_text(''.join(gallery),encoding='utf8')
+art = OUT/'素材来源'
+art.mkdir(exist_ok=True)
+for name in ('provenance.json','mio_blink_v1.png'):
+    shutil.copy2(ROOT/'assets/art/hub/motion'/name,art/name)
+report = (ROOT/'docs/RELEASE0516_ACCEPTANCE_20261015.md').read_text(encoding='utf8')
+(OUT/'本轮修改与验证.md').write_text(report.replace('../assets/art/hub/motion/provenance.json','素材来源/provenance.json'),encoding='utf8')
+licenses = OUT/'素材授权'
+licenses.mkdir(exist_ok=True)
+for p in (ROOT/'assets/licenses').glob('*.txt'): shutil.copy2(p,licenses/p.name)
+(OUT/'启动星丘残响.cmd').write_text('@echo off\nsetlocal\ncd /d "%~dp0"\nset "APPDATA=%~dp0_testenv\\player\\appdata"\nif not exist "%APPDATA%" mkdir "%APPDATA%"\nstart "" "%~dp0HoshigaokaEchoes.exe" --resolution 1280x720\nendlocal\n',encoding='ascii')
+(OUT/'试玩说明.txt').write_text('《星丘残响》第一章 0.5.16\n双击启动星丘残响.cmd；EXE、PCK 保持同目录。\n新增环境动效三档、自动阅读停留设置、装备操作预览和地点交谈状态提示。\n菜单、剧情、技能、装备和战斗提示支持英文。玩家自行填写的名字保持原样。\n档案列表、按钮反馈和页面过渡保持 0.5.15；没有增加跳过已读。\n验收报告与截图见本轮修改与验证.md、实机验证/实机对照.html。\n保留 0.5.15 可回退；ZIP 不含玩家存档。\n',encoding='utf-8-sig')
+files = [p for p in sorted(OUT.rglob('*')) if p.is_file() and '_testenv' not in p.parts and p.name!='build_manifest.json']
+manifest = dict(version='0.5.16',sourceCommit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),languages=['zh','en'],sha256={p.relative_to(OUT).as_posix():sha(p) for p in files})
+(OUT/'build_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf8')
+archive = ROOT/'dist/星丘残响_设置与装备预览_0.5.16_20261015.zip'
+with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=4) as z:
+    for p in files+[OUT/'build_manifest.json']: z.write(p,p.relative_to(OUT).as_posix())
+with zipfile.ZipFile(archive) as z:
+    assert z.testzip() is None and not any('_testenv' in n for n in z.namelist())
+    assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in manifest['sha256'].items())
+print(json.dumps(dict(ok=True,archive=str(archive),bytes=archive.stat().st_size,files=len(files),published=False),ensure_ascii=False))

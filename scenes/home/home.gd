@@ -95,6 +95,7 @@ func _ready() -> void:
 		var control: Button = art_buttons[key]
 		control.mouse_entered.connect(func() -> void: atmosphere.set_hover(key))
 		control.mouse_exited.connect(func() -> void: atmosphere.clear_hover(key))
+		if key in MAIN_LOCATIONS: control.tooltip_text = GameLocale.text(key + " · " + _location_status(key))
 		control.focus_entered.connect(func() -> void:
 			if App.keyboard_navigation: atmosphere.set_hover(key))
 		control.focus_exited.connect(func() -> void: atmosphere.clear_hover(key))
@@ -510,3 +511,11 @@ func _confirm_exit() -> void:
 	_in_panel(button_at("取消",Rect2(0,0,250,75),func() -> void: confirm.queue_free()),confirm,Vector2(60,250))
 	_in_panel(button_at("退出游戏",Rect2(0,0,250,75),App.request_quit,true),confirm,Vector2(370,250))
 	exit_panel = confirm
+
+func _location_status(location: String) -> String:
+	var events := _location_events(location)
+	if events.is_empty(): return "尚未开放交谈"
+	var unread_count := 0
+	for event: Dictionary in events:
+		if not CampaignFlow.done(str(event.storyId)): unread_count += 1
+	return "有新交谈 · %d 篇" % unread_count if unread_count>0 else "已全部阅读"

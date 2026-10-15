@@ -3,6 +3,8 @@ extends CampusScreen
 var status: Label
 var return_key := "title"
 var speed_slider: HSlider
+var auto_delay_slider: HSlider
+var motion_button: Button
 var scroll: ScrollContainer
 var rows: VBoxContainer
 var display: Button
@@ -45,6 +47,17 @@ func _ready() -> void:
 	speed.add_theme_font_size_override("font_size",24)
 	speed.add_theme_color_override("font_color",BLUE)
 	speed_slider.value_changed.connect(func(amount: float) -> void: speed.text = GameLocale.text("%.0f 字/秒" % amount))
+	var auto_row := _row("自动阅读停留","AutoDelay")
+	auto_delay_slider = _slider(auto_row,1,6,.5,float(saved.get_value("story","auto_delay",2.5)))
+	auto_delay_slider.tooltip_text = GameLocale.text("文字显示完成后的基础停留时间；长句会适当延长。")
+	var auto_value := _value(auto_row,GameLocale.text("%.1f 秒" % auto_delay_slider.value))
+	auto_value.add_theme_font_size_override("font_size",24)
+	auto_delay_slider.value_changed.connect(func(amount: float) -> void:
+		auto_value.text = GameLocale.text("%.1f 秒" % amount))
+	var motion_row := _row("动态效果强度","Motion")
+	motion_button = _row_button(motion_row,_motion_caption(),_toggle_motion)
+	motion_button.name = "MotionButton"
+	motion_button.tooltip_text = GameLocale.text("控制樱花、枝叶、天空与地点灯光；关闭时保留静态交互提示。")
 	var display_row := _row("显示模式","Display")
 	display = _row_button(display_row,"全屏显示" if DisplayServer.window_get_mode()==DisplayServer.WINDOW_MODE_FULLSCREEN else "窗口显示",_toggle_display)
 	display.name = "DisplayMode"
@@ -108,6 +121,8 @@ func _persist(locale: String) -> bool:
 	for bus: String in ["Master","BGM","SFX"]: config.set_value("audio",bus,AudioService.get_volume(bus))
 	config.set_value("display","fullscreen",DisplayServer.window_get_mode()==DisplayServer.WINDOW_MODE_FULLSCREEN)
 	config.set_value("story","text_speed",speed_slider.value)
+	config.set_value("story","auto_delay",auto_delay_slider.value)
+	config.set_value("presentation","motion_level",GameSkin.motion_level)
 	config.set_value("language","locale",locale)
 	var err := config.save(SaveService.SETTINGS_PATH)
 	if err!=OK:
@@ -134,3 +149,13 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode==KEY_ESCAPE:
 		get_viewport().set_input_as_handled()
 		_save.call_deferred()
+
+func _motion_caption() -> String:
+	if GameSkin.motion_level==0: return "Off" if GameLocale.is_english() else "关闭"
+	return ["关闭","柔和","标准"][GameSkin.motion_level]
+
+func _toggle_motion() -> void:
+	var previous := GameSkin.motion_level
+	GameSkin.motion_level = (GameSkin.motion_level+1)%3
+	if not _persist(GameLocale.language): GameSkin.motion_level = previous
+	motion_button.text = GameLocale.text(_motion_caption())

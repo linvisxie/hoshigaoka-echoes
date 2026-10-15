@@ -713,3 +713,49 @@ static func pending_equipment_entitlements() -> Array[Dictionary]:
 		if str(ent.get("kind", "")) in ["EQUIPMENT","MEMENTO"]:
 			out.append(ent)
 	return out
+
+## Pure preview: only a deep copy is changed; no SaveService writes or callbacks.
+static func preview_operation(save: Dictionary,instance_id: String,operation: String,character_id: String = "") -> Dictionary:
+	var before := find_instance(save,instance_id)
+	if before.is_empty() or operation not in ["equip","unequip","enhance"]: return {}
+	var simulated := save.duplicate(true)
+	var item := find_instance(simulated,instance_id)
+	var slot := str(template_of(str(item.get("equipmentId",""))).get("slot",""))
+	var owner := str(item.get("boundCharacterId",""))
+	var affected: Array[String] = []
+	var cost := {}
+	if operation=="equip":
+		if not can_equip(str(item.get("equipmentId","")),character_id) or not VALID_SLOTS.has(slot): return {}
+		if not owner.is_empty():
+			_clear_slot_of(simulated,owner,slot)
+			affected.append(owner)
+		var existing := str(equipped_of(simulated,character_id).get(slot,""))
+		var previous := find_instance(simulated,existing)
+		if not previous.is_empty(): previous["boundCharacterId"] = ""
+		_ensure_character(simulated,character_id)
+		if not simulated[CHARACTERS_KEY][character_id].has(EQUIP_SLOT_KEY): simulated[CHARACTERS_KEY][character_id][EQUIP_SLOT_KEY] = {}
+		simulated[CHARACTERS_KEY][character_id][EQUIP_SLOT_KEY][slot] = instance_id
+		item["boundCharacterId"] = character_id
+		if not affected.has(character_id): affected.append(character_id)
+	elif operation=="unequip":
+		if owner.is_empty(): return {}
+		_clear_slot_of(simulated,owner,slot)
+		affected.append(owner)
+	else:
+		if not can_enhance_template(str(item.get("equipmentId",""))): return {}
+		var current_level := int(item.get("enhanceLevel",0))
+		if current_level>=int(template_of(str(item.get("equipmentId",""))).get("enhanceMax",0)): return {}
+		var row := enhancement_cost_at(current_level)
+		if row.is_empty(): return {}
+		cost = {"school_coin":int(row.get("school_coin",0)),"equipment_part":int(row.get("equipment_part",0))}
+		item["enhanceLevel"] = int(item.get("enhanceLevel",0))+1
+		if not owner.is_empty(): affected.append(owner)
+	var changes := {}
+	for cid: String in affected:
+		changes[cid] = {"before":bonuses_for_character(save,cid),"after":bonuses_for_character(simulated,cid)}
+	var remaining := {}
+	var affordable := true
+	for currency: String in cost:
+		remaining[currency] = int(save.get("currencies",{}).get(currency,0))-int(cost[currency])
+		if int(remaining[currency])<0: affordable = false
+	return {"changes":changes,"cost":cost,"remaining":remaining,"affordable":affordable,"equipmentBefore":stat_bonus_of(before),"equipmentAfter":stat_bonus_of(item)}

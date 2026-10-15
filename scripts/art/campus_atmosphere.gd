@@ -84,12 +84,15 @@ func configure(original: Texture2D, world: Texture2D) -> void:
 
 func tick(delta: float, pointer: Vector2, modal: bool, active_window: bool) -> void:
 	blocked = modal or not active_window
+	var strength := GameSkin.motion_factor()
+	visible = strength>0
+	if strength<=0: return
 	if blocked:
 		hover_key = ""
 		_lights.queue_redraw()
 		queue_redraw()
 		return
-	clock += minf(delta,0.05)
+	clock += minf(delta,0.05)*strength
 	breeze = sin(clock*0.45)*0.62+sin(clock*0.91)*0.22
 	var target := (pointer/DESIGN-Vector2(.5,.5)).clamp(-Vector2.ONE*.5,Vector2.ONE*.5)
 	gaze = gaze.lerp(target,1.0-exp(-delta*3.0))
@@ -105,6 +108,8 @@ func tick(delta: float, pointer: Vector2, modal: bool, active_window: bool) -> v
 	_foliage.set_shader_parameter("clock",clock)
 	_foliage.set_shader_parameter("breeze",breeze)
 	_foliage.set_shader_parameter("gaze",gaze)
+	_foliage.set_shader_parameter("strength",strength)
+	_mio.set_shader_parameter("strength",strength)
 	_mio.set_shader_parameter("clock",clock)
 	_mio.set_shader_parameter("breeze",breeze)
 	_mio.set_shader_parameter("attention",attention)
@@ -148,15 +153,15 @@ func paint_feedback(surface: Control) -> void:
 		if not SIGNS.has(key): continue
 		var rect: Rect2 = SIGNS[key]
 		var center := Vector2(1413,436) if key=="保健室" else rect.position+Vector2(rect.size.x-8,5)
-		var pulse := pow(maxf(0.0,sin(clock*1.4+key.length())),3.0)
+		var pulse := 0.0 if GameSkin.motion_level==0 else pow(maxf(0.0,sin(clock*1.4+key.length())),3.0)
 		surface.draw_circle(center,5.0+pulse*4.0,Color(1.0,.84,.43,.08+pulse*.22))
 		surface.draw_circle(center,2.3,Color(1.0,.88,.57,.45+pulse*.45))
-	if new_record:
+	if new_record and GameSkin.motion_level>0:
 		var lift := pow(maxf(0.0,sin(clock*.85)),4.0)*5.0
 		if lift>.25:
 			for corner: Vector2 in [Vector2(73,525),Vector2(146,475)]:
 				surface.draw_colored_polygon(PackedVector2Array([corner,corner-Vector2(lift,0),corner-Vector2(0,lift)]),Color(.97,.85,.68,lift*.09))
-	if _click_age>=.24: return
+	if GameSkin.motion_level==0 or _click_age>=.24: return
 	var progress := _click_age/.24
 	var edge := _click_rect.grow(1.5+progress*2.0)
 	surface.draw_line(edge.position+Vector2(12,0),edge.position+Vector2(edge.size.x-12,0),Color(.91,.83,.64,(1-progress)*.65),1.2,true)
@@ -166,7 +171,7 @@ func paint_lights(surface: Control) -> void:
 	if blocked: return
 	for key: String in LIGHTS:
 		if hover_key!=key: continue
-		var strength := .46*hover_strength
+		var strength := .46*hover_strength*GameSkin.motion_factor()
 		var center: Vector2 = LIGHTS[key]
 		for ring: int in range(10):
 			var radius := 20.0+float(ring)*7.5
