@@ -64,8 +64,8 @@ func _ready() -> void:
 	if settings.load("user://settings/settings.cfg") == OK:
 		for bus_name: String in [BUS_MASTER, BUS_BGM, BUS_SFX]:
 			_volumes[bus_name] = clampf(float(settings.get_value("audio", bus_name, 100.0)), 0.0, 100.0)
-		if bool(settings.get_value("display", "fullscreen", false)):
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	# First launch uses fullscreen; an explicit saved window preference wins.
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if bool(settings.get_value("display", "fullscreen", true)) else DisplayServer.WINDOW_MODE_WINDOWED)
 	_apply_all()
 
 

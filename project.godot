@@ -12,7 +12,7 @@ config_version=5
 
 config/name="HoshigaokaEchoes"
 config/description="星丘残响 — 日系校园像素风角色构筑塔防 RPG"
-config/version="0.5.17"
+config/version="0.5.18"
 run/main_scene="res://scenes/bootstrap/bootstrap.tscn"
 run/max_fps=60
 config/features=PackedStringArray("4.7", "GL Compatibility")
@@ -38,6 +38,7 @@ SceneRouter="*res://scripts/app/scene_router.gd"
 ; J1：设计分辨率 1920×1080，最低验证 1280×720；16:9 主基线
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=3
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
