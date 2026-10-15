@@ -2,6 +2,8 @@ extends CampusScreen
 
 static var selected_id := ""
 static var feedback := ""
+static var feedback_expires_at := 0
+const FEEDBACK_MSEC := 3000
 static var expanded_slots := {"WEAPON": true, "ACCESSORY": false, "MEMENTO": false}
 static var save_generation := -1
 static var return_key := "home"
@@ -18,6 +20,9 @@ func _ready() -> void:
 		expanded_slots = {"WEAPON": true, "ACCESSORY": false, "MEMENTO": false}
 		save_generation = SaveService.save_generation()
 	var origin := SceneRouter.entry_origin()
+	if origin!="equipment":
+		feedback = ""
+		feedback_expires_at = 0
 	if origin in ["home","character","character_equipment"]:
 		return_key = origin
 	var currency: Dictionary = save.get("currencies", {})
@@ -108,17 +113,17 @@ func _ready() -> void:
 		label_at("背包中还没有装备", Rect2(870, 380, 900, 60), 32, BLUE)
 		var has_rewards := not EquipmentService.pending_equipment_entitlements().is_empty()
 		label_at("调查带回的奖励正在等待领取。\n点击左下方「领取全部装备奖励」，查看它们的属性。" if has_rewards else "完成调查可获得装备奖励，在左下方领取。\n武器、饰品与校园纪念物各有独立的装备槽位。\n每名角色每种类型最多装备一件。", Rect2(870, 465, 900, 230), 27, MUTED)
-	label_at(feedback, Rect2(100, 928, 1700, 40), 24, BLUE)
+	_show_feedback()
 	button_at("返回角色", Rect2(90, 980, 360, 70), func() -> void: SceneRouter.go_to("character"))
 	button_at("返回校园", Rect2(1430, 980, 410, 70), func() -> void: SceneRouter.go_to("home"))
 
 func _claim() -> void:
 	var result := EquipmentService.fulfill_all_equipment()
-	feedback = "领取 %d 件装备" % result.get("fulfilled", []).size() if bool(result.get("ok", false)) else "领取失败，请检查存档。"
+	_set_feedback("领取 %d 件装备" % result.get("fulfilled", []).size() if bool(result.get("ok", false)) else "领取失败，请检查存档。")
 	SceneRouter.go_to("equipment")
 
 func _result(result: EquipmentService.OpResult) -> void:
-	feedback = result.reason
+	_set_feedback(result.reason)
 	AudioService.play_sfx("upgrade" if result.ok else "select")
 	SceneRouter.go_to("equipment")
 
@@ -183,12 +188,13 @@ func _preview(operation: String,cid: String = "") -> void:
 	if operation=="unequip": details = "卸下不消耗资源，装备与强化等级保留。"
 	if operation=="enhance":
 		details = "消耗：学园币 %d · 装备零件 %d\n剩余：学园币 %d · 装备零件 %d" % [int(preview.cost.get("school_coin",0)),int(preview.cost.get("equipment_part",0)),int(preview.remaining.get("school_coin",0)),int(preview.remaining.get("equipment_part",0))]
-		if not preview.affordable: details += "\n资源不足，无法确认强化。"
-	_preview_label(details,Rect2(40,460,1280,112),25,MUTED)
+		if not preview.affordable:
+			details = "需求：学园币 %d · 装备零件 %d\n当前：学园币 %d · 装备零件 %d\n缺少：学园币 %d · 装备零件 %d，无法强化。" % [int(preview.cost.get("school_coin",0)),int(preview.cost.get("equipment_part",0)),int(preview.available.get("school_coin",0)),int(preview.available.get("equipment_part",0)),int(preview.shortfall.get("school_coin",0)),int(preview.shortfall.get("equipment_part",0))]
+	_preview_label(details,Rect2(40,460,1280,130),25,MUTED)
 	var confirm := button_at("确认操作",Rect2(0,0,420,70),func() -> void:
 		if SaveService.snapshot()!=save:
 			preview_panel.hide()
-			feedback = "状态已变化，请重新查看预览。"
+			_set_feedback("状态已变化，请重新查看预览。")
 			SceneRouter.go_to("equipment")
 			return
 		if operation=="equip": _result(EquipmentService.equip(cid,instance_id))
@@ -220,3 +226,27 @@ func _stat_changes(base: Dictionary,before: Dictionary,after: Dictionary) -> Str
 		var values := "%.1f%% → %.1f%% (%+.1f%%)" % [a*100,b*100,(b-a)*100] if percent else "%d → %d (%+d)" % [int(a),int(b),int(b-a)]
 		lines.append(GameLocale.text(caption)+"  "+values)
 	return "\n".join(lines)
+
+static func _set_feedback(message: String) -> void:
+	feedback = message
+	feedback_expires_at = Time.get_ticks_msec()+FEEDBACK_MSEC if not message.is_empty() else 0
+
+func _show_feedback() -> void:
+	var remaining := feedback_expires_at-Time.get_ticks_msec()
+	if feedback.is_empty() or remaining<=0:
+		feedback = ""
+		feedback_expires_at = 0
+		return
+	var label := label_at(feedback,Rect2(100,928,1700,40),24,BLUE)
+	label.name = "EquipmentFeedback"
+	var deadline := feedback_expires_at
+	var expiry := Timer.new()
+	expiry.one_shot = true
+	add_child(expiry)
+	expiry.timeout.connect(func() -> void:
+		if feedback_expires_at==deadline:
+			feedback = ""
+			feedback_expires_at = 0
+		label.queue_free()
+		expiry.queue_free())
+	expiry.start(float(remaining)/1000.0)

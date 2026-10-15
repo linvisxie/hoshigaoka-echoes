@@ -754,8 +754,14 @@ static func preview_operation(save: Dictionary,instance_id: String,operation: St
 	for cid: String in affected:
 		changes[cid] = {"before":bonuses_for_character(save,cid),"after":bonuses_for_character(simulated,cid)}
 	var remaining := {}
+	var available := {}
+	var shortfall := {}
 	var affordable := true
 	for currency: String in cost:
-		remaining[currency] = int(save.get("currencies",{}).get(currency,0))-int(cost[currency])
-		if int(remaining[currency])<0: affordable = false
-	return {"changes":changes,"cost":cost,"remaining":remaining,"affordable":affordable,"equipmentBefore":stat_bonus_of(before),"equipmentAfter":stat_bonus_of(item)}
+		available[currency] = maxi(0,int(save.get("currencies",{}).get(currency,0)))
+		shortfall[currency] = maxi(0,int(cost[currency])-int(available[currency]))
+		if int(shortfall[currency])>0: affordable = false
+	for currency: String in cost:
+		# No resources will be spent when any part of the cost is unaffordable.
+		remaining[currency] = int(available[currency])-int(cost[currency]) if affordable else int(available[currency])
+	return {"changes":changes,"cost":cost,"remaining":remaining,"available":available,"shortfall":shortfall,"affordable":affordable,"equipmentBefore":stat_bonus_of(before),"equipmentAfter":stat_bonus_of(item)}

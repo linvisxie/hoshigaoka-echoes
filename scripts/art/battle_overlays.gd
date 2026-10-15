@@ -112,16 +112,36 @@ func _build_result(viewport: Vector2, factor: float) -> void:
 		var y := 190+float(i/3)*110
 		text(p,stats[i][0],Rect2(x,y,215,35),22,GameSkin.MUTED)
 		text(p,stats[i][1],Rect2(x,y+37,215,57),38)
-	var reward: Panel = hud._panel(p,Rect2(790,186,472,336),accent)
+	var reward: Panel = hud._panel(p,Rect2(790,186,472,376),accent)
 	heading(reward,"本次奖励" if victory else "重新整备",Rect2(28,20,410,48),29,accent)
+	var scroll := ScrollContainer.new()
+	scroll.name = "ResultRewards"
+	scroll.position = Vector2(24,82)
+	scroll.size = Vector2(424,268)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	reward.add_child(scroll)
+	var rows := VBoxContainer.new()
+	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rows.add_theme_constant_override("separation",6)
+	scroll.add_child(rows)
+	# Newly registered items come first so they are visible without scrolling.
+	for item: Dictionary in equipment_rewards(battle._reward_summary):
+		var row := Control.new()
+		row.custom_minimum_size = Vector2(400,100)
+		rows.add_child(row)
+		var icon_view: TextureRect = hud._texture(row,ArtRegistry.icon(str(item.icon),32),Rect2(0,8,36,36))
+		icon_view.name = "RewardEquipmentIcon"
+		text(row,GameLocale.text(str(item.name))+" ×%d"%int(item.count),Rect2(46,0,350,66),22,GameSkin.BLUE)
+		text(row,"前往装备背包领取",Rect2(46,66,350,30),19,GameSkin.MUTED)
 	var granted: Dictionary = battle._reward_summary.get("granted",{})
-	var y := 91.0
 	for currency: String in granted:
-		var reward_line := text(reward,"%s    +%d" % [battle._currency_display_name(currency),int(granted[currency])],Rect2(28,y,416,44),24,GameSkin.GREEN)
-		reward_line.autowrap_mode = TextServer.AUTOWRAP_OFF
-		y += 47
-	if granted.is_empty():
-		text(reward,"失败不扣除已有资源" if not victory else str(battle._reward_summary.get("reason","本次没有奖励")),Rect2(28,92,410,166),24,GameSkin.MUTED)
+		var line := text(rows,"%s    +%d" % [battle._currency_display_name(currency),int(granted[currency])],Rect2(),24,GameSkin.GREEN)
+		line.custom_minimum_size = Vector2(400,44)
+		line.autowrap_mode = TextServer.AUTOWRAP_OFF
+	if granted.is_empty() and equipment_rewards(battle._reward_summary).is_empty():
+		var note := text(rows,"失败不扣除已有资源" if not victory else str(battle._reward_summary.get("reason","本次没有奖励")),Rect2(),24,GameSkin.MUTED)
+		note.custom_minimum_size = Vector2(400,166)
 	heading(p,"本局构筑",Rect2(55,443,690,46),28,GameSkin.BLUE)
 	var gained: Array = battle.session.stage.upgrade_summary()
 	var names: Array[String] = []
@@ -129,9 +149,32 @@ func _build_result(viewport: Vector2, factor: float) -> void:
 		names.append("%s ×%d" % [item.get("name",""),int(item.get("stacks",1))])
 	text(p,"未获得强化" if names.is_empty() else "   ·   ".join(names),Rect2(55,491,682,85),23,GameSkin.MUTED)
 	var review: Array = battle._build_review_lines(summary)
-	text(p,"\n".join(review.slice(0,3)),Rect2(55,590,1210,125),23,GameSkin.MUTED)
+	var localized_review: Array[String] = []
+	for line: String in review.slice(0,3): localized_review.append(GameLocale.text(line))
+	text(p,"\n".join(localized_review),Rect2(55,590,1210,125),23,GameSkin.MUTED)
 	hud._button(layer,"重新挑战",unscale(battle._relaunch_rect,factor),func() -> void: battle._handle_result_click(battle._relaunch_rect.get_center()))
 	var next := "返回关卡"
 	if bool(CampaignFlow.state().get("campaign_active",false)):
 		next = "继续剧情" if victory and not str(CampaignFlow.state().get("pending_story_after","")).is_empty() else "返回校园"
 	hud._button(layer,next,unscale(battle._quit_rect,factor),func() -> void: battle._handle_result_click(battle._quit_rect.get_center()),true)
+
+## Presentation reads only this settlement's new entitlements, never the account's pending list.
+static func equipment_rewards(summary: Dictionary) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	if not bool(summary.get("ok",false)): return rows
+	var seen := {}
+	var by_item := {}
+	for entitlement: Dictionary in summary.get("pendingRegistered",[]):
+		if str(entitlement.get("kind","")) not in ["EQUIPMENT","MEMENTO"]: continue
+		var id := str(entitlement.get("itemId",""))
+		var token := str(entitlement.get("entitlementId",""))
+		if not token.is_empty() and seen.has(token): continue
+		seen[token] = true
+		var template := EquipmentService.template_of(id)
+		if template.is_empty(): continue
+		if by_item.has(id):
+			rows[int(by_item[id])].count += 1
+		else:
+			by_item[id] = rows.size()
+			rows.append({"id":id,"name":str(template.get("name",id)),"icon":EquipmentService.slot_icon(str(template.get("slot",""))),"count":1})
+	return rows

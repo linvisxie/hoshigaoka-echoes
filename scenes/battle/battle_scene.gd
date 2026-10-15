@@ -4287,7 +4287,7 @@ func _draw_result_overlay() -> void:
 		draw_string(font, Vector2(x, y), GameLocale.text(stats[i][0]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(21)), Color(0.63, 0.71, 0.86))
 		draw_string(font, Vector2(x, y + _px(49)), GameLocale.text(stats[i][1]), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(38)), TEXT_COLOR)
 	var reward_x := left + _px(740)
-	var reward_rect := Rect2(reward_x - _px(22), top + _px(190), _px(470), _px(330))
+	var reward_rect := Rect2(reward_x - _px(22), top + _px(190), _px(470), _px(376))
 	_draw_round_rect(reward_rect, _px(8), Color(0.09, 0.12, 0.21, 0.80), Color(0.30, 0.4, 0.58, 0.65), 1)
 	draw_string(font, Vector2(reward_x, top + _px(230)), GameLocale.text("本次奖励" if victory else "重新整备"), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(27)), accent)
 	var granted: Dictionary = _reward_summary.get("granted", {})
@@ -4299,6 +4299,13 @@ func _draw_result_overlay() -> void:
 		draw_string(font, Vector2(reward_x, ry), GameLocale.text(_currency_display_name(cid)), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(22)), TEXT_COLOR)
 		draw_string(font, Vector2(reward_x + _px(325), ry), GameLocale.text("+%d" % int(granted[cid])), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(24)), Color(0.66, 0.94, 0.79))
 		ry += _px(41)
+	for item: Dictionary in BattleOverlays.equipment_rewards(_reward_summary):
+		var icon := ArtRegistry.icon(str(item.icon),32)
+		if icon != null: draw_texture_rect(icon,Rect2(Vector2(reward_x,ry-_px(20)),Vector2.ONE*_px(28)),false)
+		draw_string(font,Vector2(reward_x+_px(38),ry),GameLocale.text(str(item.name))+" ×%d"%int(item.count),HORIZONTAL_ALIGNMENT_LEFT,_px(386),int(_px(20)),Color("8edcff"))
+		ry += _px(27)
+		draw_string(font,Vector2(reward_x+_px(38),ry),GameLocale.text("前往装备背包领取"),HORIZONTAL_ALIGNMENT_LEFT,_px(386),int(_px(18)),DIM_TEXT)
+		ry += _px(30)
 	var by := top + _px(455)
 	draw_string(font, Vector2(left, by), GameLocale.text("本局构筑"), HORIZONTAL_ALIGNMENT_LEFT, -1, int(_px(25)), Color(0.63, 0.85, 1))
 	var gained := session.stage.upgrade_summary()
@@ -4457,7 +4464,7 @@ func _grant_battle_rewards() -> void:
 		return
 	var victory := session.outcome == BattleTypes.Outcome.VICTORY
 	var res := StageRewardService.settle(_stage_config_for_rewards, victory)
-	_reward_summary = {"granted": res.granted.duplicate(), "reason": res.reason, "firstClear": res.first_clear, "ok": res.ok}
+	_reward_summary = {"granted": res.granted.duplicate(), "reason": res.reason, "firstClear": res.first_clear, "ok": res.ok, "pendingRegistered": res.pending_registered.duplicate(true) if res.ok else []}
 	if not res.ok:
 		GameLog.error(TAG, "关卡结算失败：%s" % res.reason)
 		_show_feedback("结算异常：%s" % res.reason, Color(0.98, 0.4, 0.4))

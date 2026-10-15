@@ -1053,5 +1053,7 @@
   "已装备": "Equipped",
   "已卸下": "Unequipped",
   "强化成功 → +%d": "Enhanced to +%d",
-  "文字显示完成后的基础停留时间；长句会适当延长。": "Base pause after the text is fully revealed. Longer lines receive more reading time."
+  "文字显示完成后的基础停留时间；长句会适当延长。": "Base pause after the text is fully revealed. Longer lines receive more reading time.",
+  "需求：学园币 %d · 装备零件 %d\n当前：学园币 %d · 装备零件 %d\n缺少：学园币 %d · 装备零件 %d，无法强化。": "Required: %d School Coins · %d Equipment Parts\nOwned: %d School Coins · %d Equipment Parts\nShortfall: %d School Coins · %d Equipment Parts. Cannot enhance.",
+  "前往装备背包领取": "Claim in Equipment Bag"
 }

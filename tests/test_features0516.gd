@@ -83,3 +83,47 @@ func test_motion_strength_options_do_not_change_transition_code() -> void:
 	assert_eq(GameSkin.motion_factor(),0.5)
 	GameSkin.motion_level = 2
 	assert_eq(GameSkin.motion_factor(),1.0)
+
+func test_insufficient_enhancement_shows_shortfall_without_negative_balances() -> void:
+	var save := _seed([_item(BOW,"bow","kamiya_yuma",4)],{"kamiya_yuma":{"equipment":{"WEAPON":"bow"}}})
+	save.currencies = {"school_coin":1340,"equipment_part":0}
+	var original := save.duplicate(true)
+	var preview := EquipmentService.preview_operation(save,"bow","enhance")
+	assert_false(preview.affordable)
+	assert_eq(preview.available,{"school_coin":1340,"equipment_part":0})
+	assert_eq(preview.remaining,preview.available,"A rejected operation spends neither currency")
+	assert_eq(preview.shortfall,{"school_coin":0,"equipment_part":2})
+	assert_eq(save,original)
+	SaveService._current = save
+	assert_false(EquipmentService.enhance("bow").ok)
+	assert_eq(SaveService.get_current(),original,"Domain refusal preserves all resources")
+
+func test_result_equipment_cards_follow_this_settlement_only() -> void:
+	var cfg := DataRegistry.get_entry("stages","1-2")
+	var first := StageRewardService.settle(cfg,true,false)
+	assert_true(first.ok)
+	var summary := {"ok":first.ok,"pendingRegistered":first.pending_registered}
+	var before := SaveService.snapshot()
+	var items := BattleOverlays.equipment_rewards(summary)
+	assert_eq(items.size(),1)
+	assert_eq(items[0].id,BOW)
+	assert_eq(items[0].count,1)
+	assert_eq(items[0].icon,EquipmentService.slot_icon("WEAPON"))
+	assert_eq(SaveService.snapshot(),before,"Rendering must not fulfill or duplicate equipment")
+	var repeat := StageRewardService.settle(cfg,true,false)
+	assert_true(repeat.ok)
+	assert_eq(BattleOverlays.equipment_rewards({"ok":true,"pendingRegistered":repeat.pending_registered}),[],"A repeat victory must not repeat the pending first-clear item")
+	assert_eq(BattleOverlays.equipment_rewards({"ok":false,"pendingRegistered":first.pending_registered}),[],"A failed transaction must not announce an award")
+	assert_eq(BattleOverlays.equipment_rewards({"ok":true}),[],"Old pending items are not rewards from this run")
+
+func test_result_memento_card_uses_the_actual_template() -> void:
+	var cfg := DataRegistry.get_entry("stages","1-10")
+	var result := StageRewardService.settle(cfg,true,false)
+	assert_true(result.ok)
+	var summary := {"ok":true,"pendingRegistered":result.pending_registered}
+	var items := BattleOverlays.equipment_rewards(summary)
+	assert_eq(items.size(),1)
+	assert_eq(items[0].id,"memento_ch1_boss_cleared")
+	assert_eq(items[0].icon,EquipmentService.slot_icon("MEMENTO"))
+	summary.pendingRegistered.append(result.pending_registered[0])
+	assert_eq(BattleOverlays.equipment_rewards(summary)[0].count,1,"Duplicate tokens must not duplicate a visible reward")
